@@ -16,6 +16,7 @@ export type CompetitionEvent = {
     displayname: string
     format: string
     iconcode: string
+    puzzlecode: string
 }
 
 export type CompetitionState = CompetitionData & {
