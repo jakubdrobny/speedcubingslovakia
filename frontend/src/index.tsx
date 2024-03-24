@@ -1,7 +1,8 @@
-import './index.css';
+import './styles/index.css';
 
 import App from './App';
 import { BrowserRouter } from 'react-router-dom'
+import { CompetitionProvider } from './components/Competition/CompetitionContext';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
@@ -11,7 +12,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-        <App />
+        <CompetitionProvider>
+            <App />
+        </CompetitionProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
