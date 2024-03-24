@@ -7,8 +7,9 @@ import { useContext } from "react";
 const Scramble = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { competitionState } = useContext(CompetitionContext) as CompetitionContextType
-    const scramble = competitionState && competitionState.currentEventIdx < competitionState.scrambles.length && competitionState.currentSolveIdx < competitionState.scrambles[competitionState.currentEventIdx].length ? competitionState.scrambles[competitionState.currentEventIdx][competitionState.currentSolveIdx] : "";
-    const eventDisplayName = competitionState && competitionState.currentEventIdx < competitionState.events.length ? competitionState.events[competitionState.currentEventIdx].displayname : "";
+    const scramble = competitionState && competitionState.currentEventIdx < competitionState.scrambles.length && competitionState.currentSolveIdx < competitionState.scrambles[competitionState.currentEventIdx].length ? competitionState.scrambles[competitionState.currentEventIdx][competitionState.currentSolveIdx].replaceAll("\n", "") : "";
+    console.log(scramble);
+    const puzzlecode = competitionState && competitionState.currentEventIdx < competitionState.events.length ? competitionState.events[competitionState.currentEventIdx].puzzlecode : "";
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -18,7 +19,7 @@ const Scramble = () => {
         scrambleDisplay.setAttribute('hint-facelets', 'none')
         scrambleDisplay.setAttribute('background', 'none')
         scrambleDisplay.setAttribute('control-panel', 'none')
-        scrambleDisplay.setAttribute('puzzle', eventDisplayName)
+        scrambleDisplay.setAttribute('puzzle', puzzlecode)
         scrambleDisplay.setAttribute('visualization', '2D')
         containerRef.current.appendChild(scrambleDisplay);
 
