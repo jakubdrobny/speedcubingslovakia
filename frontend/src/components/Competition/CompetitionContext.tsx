@@ -20,8 +20,10 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
 
     const updateCurrentSolve = (idx: number) => setCompetitionState({...competitionState, currentSolveIdx: idx });
 
+    const saveResults = () => console.log('Your results were saved!');
+    
     return (
-        <CompetitionContext.Provider value={{competitionState, updateBasicInfo, updateCurrentEvent, updateCurrentSolve}}>
+        <CompetitionContext.Provider value={{competitionState, updateBasicInfo, updateCurrentEvent, updateCurrentSolve, saveResults}}>
             {children}
         </CompetitionContext.Provider>
     );
@@ -35,5 +37,6 @@ const initialState: CompetitionState = {
     events: [],
     currentEventIdx: 0,
     noOfSolves: 1,
-    currentSolveIdx: 0
+    currentSolveIdx: 0,
+    scrambles: []
 };

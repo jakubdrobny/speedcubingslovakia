@@ -3,10 +3,11 @@ import { East, West } from "@mui/icons-material";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { CompetitionContextType } from "../../Types";
+import Scramble from "./Scramble";
 import { useContext } from "react";
 
 const Compete = () => {
-    const { competitionState, updateCurrentSolve } = useContext(CompetitionContext) as CompetitionContextType
+    const { competitionState, updateCurrentSolve, saveResults } = useContext(CompetitionContext) as CompetitionContextType
 
     return (
         <Card>
@@ -35,7 +36,9 @@ const Compete = () => {
                     </Button>
                 </Grid>
             </Grid>
-            <Input size="lg" placeholder="Large" />
+            <Scramble />
+            <Input size="lg" placeholder="Enter your time or solution..." sx={{ marginBottom: 2}}/>
+            <Button color="primary" variant="solid" onClick={saveResults}>Save</Button>
         </Card>
     );
 }
