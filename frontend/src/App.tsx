@@ -1,9 +1,11 @@
 import { Grid, List, ListItemButton, ListItemDecorator } from '@mui/joy';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Navigate, Route, Routes } from 'react-router-dom';
 
+import Competition from './routes/Competition';
+import Competitions from './routes/Competitions';
 import Home from './routes/Home'
 import LanguageIcon from '@mui/icons-material/Language';
-import OnlineCompetitions from './routes/OnlineCompetitions';
+import NotFound from './routes/NotFound';
 
 const App = () => {
     return (
@@ -13,7 +15,7 @@ const App = () => {
                     <ListItemButton component={Link} to="/">
                         Speedcubing Slovakia
                     </ListItemButton>
-                    <ListItemButton component={Link} to="/online-competitions">
+                    <ListItemButton component={Link} to="/competitions">
                         <ListItemDecorator>
                             <LanguageIcon/>
                         </ListItemDecorator>
@@ -25,7 +27,10 @@ const App = () => {
             <Grid xs={12} md={10} lg={8}>
                 <Routes>
                     <Route path="/" Component={Home} />
-                    <Route path="/online-competitions" Component={OnlineCompetitions} />
+                    <Route path="/competitions" Component={Competitions} />
+                    <Route path="/competition/:id" Component={Competition} />
+                    <Route path='/not-found' Component={NotFound} />
+                    <Route path="*" element={ <Navigate to="/not-found" replace />} />
                 </Routes>
             </Grid>
             <Grid xs={0} md={1} lg={2}/>
