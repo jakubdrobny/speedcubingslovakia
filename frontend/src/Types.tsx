@@ -3,7 +3,8 @@ export type CompetitionData = {
     name: string,
     startdate: Date,
     enddate: Date,
-    events: CompetitionEvent[]
+    events: CompetitionEvent[],
+    scrambles: string[][]
 }
 
 export enum FilterValue {
@@ -28,4 +29,5 @@ export type CompetitionContextType = {
     updateBasicInfo: (info: CompetitionData) => void
     updateCurrentEvent: (idx: number) => void
     updateCurrentSolve: (idx: number) => void
+    saveResults: () => void
 }

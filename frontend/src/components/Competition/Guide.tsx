@@ -8,7 +8,7 @@ const Guide = () => {
 
     return (
         <Card>
-            <h3 style={{ textAlign: 'center', paddingBottom: 10 }}>How to submit results?</h3>
+            <h3 style={{ textAlign: 'center', marginBottom: 0 }}>How to submit results?</h3>
             {competitionState?.events[competitionState?.currentEventIdx]?.iconcode === "fmc" ? (
                 <div>
                     <p>
@@ -20,23 +20,23 @@ const Guide = () => {
                     </p>
                 </div>
             ) : (
-            <div>
-                <p>
-                    To enter your times, type just the numbers. For example, to enter 12 seconds and 55 hundreths, type "1255".
-                </p>
-                <p>
-                    Penalties:
+                <div>
+                    <p>
+                        To enter your times, type just the numbers. For example, to enter 12 seconds and 55 hundreths, type "1255".
+                    </p>
+                    <p>
+                        Penalties:
+                    </p>
                     <ul>
                         <li key={"3"}>
                             If you get a +2, enter the final result. For example, if you finished
                             in 12 second and 55 hundreths, with a +4 penalty, type "1655".
                         </li>
                         <li key={"4"}>
-                            If you get a DNF, type "D" and if you get a DNS, type "S".
+                        If you get a DNF, type "D" and if you get a DNS, type "S".
                         </li>
                     </ul>
-                </p>
-            </div>
+                </div>
             )}
             <p>After you are done, don't forget to save your results!</p>
         </Card>
