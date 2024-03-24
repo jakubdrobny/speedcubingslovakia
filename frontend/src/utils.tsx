@@ -36,6 +36,12 @@ const events: CompetitionEvent[] = [
         'displayname': '3BLD',
         'format': 'bo3',
         'iconcode': '333bld'
+    },
+    {
+        'id': 7,
+        'displayname': 'FMC',
+        'format': 'mo3',
+        'iconcode': 'fmc'
     }
 ]
 

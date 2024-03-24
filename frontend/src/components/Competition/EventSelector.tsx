@@ -1,4 +1,4 @@
-import { Button, ButtonGroup } from "@mui/joy"
+import { Button, ButtonGroup, Grid } from "@mui/joy"
 import { CompetitionContextType, CompetitionEvent } from "../../Types"
 
 import { CompetitionContext } from "./CompetitionContext"
@@ -8,20 +8,22 @@ export const EventSelector = () => {
     const { competitionState, updateCurrentEvent } = useContext(CompetitionContext) as CompetitionContextType
 
     return (
-        <ButtonGroup style={{padding: '1em'}}>
-            {competitionState.events.map((e: CompetitionEvent, idx: number) => {
-                return (
-                    <Button 
-                        key={idx} 
-                        onClick={() => updateCurrentEvent(idx)}
-                        variant={idx === competitionState.currentEventIdx ? "solid" : "soft"}
-                        color="primary"
-                    >
-                        <span className={`cubing-icon event-${e.iconcode}`}>&ensp;</span>
-                        {e.displayname}
-                    </Button>
-                )
-            })}
-        </ButtonGroup>
+        <Grid container >
+            <ButtonGroup style={{padding: '1em', flexWrap: 'wrap'}}>
+                {competitionState.events.map((e: CompetitionEvent, idx: number) => {
+                    return (
+                        <Button 
+                            key={idx} 
+                            onClick={() => updateCurrentEvent(idx)}
+                            variant={idx === competitionState.currentEventIdx ? "solid" : "soft"}
+                            color="primary"
+                        >
+                            <span className={`cubing-icon event-${e.iconcode}`}>&ensp;</span>
+                            {e.displayname}
+                        </Button>
+                    )
+                })}
+            </ButtonGroup>
+        </Grid>
     )
 }
