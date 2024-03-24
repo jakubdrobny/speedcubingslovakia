@@ -6,12 +6,22 @@ export const CompetitionContext = createContext<CompetitionContextType | null>(n
 export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ children }) => {
     const [competitionState, setCompetitionState] = useState<CompetitionState>(initialState);
 
-    const updateBasicInfo = (info: CompetitionData) => setCompetitionState({...competitionState, ...info});
+    const updateBasicInfo = (info: CompetitionData) => {
+        const match = info.events[competitionState.currentEventIdx].format.match(/\d+$/)?.[0]
+        const noOfSolves = match ? parseInt(match) : 1
+        setCompetitionState({...competitionState, ...info, noOfSolves: noOfSolves});
+    }
 
-    const updateCurrentEvent = (idx: number) => setCompetitionState({...competitionState, currentEventIdx: idx });
+    const updateCurrentEvent = (idx: number) => {
+        const match = competitionState.events[idx].format.match(/\d+$/)?.[0]
+        const noOfSolves = match ? parseInt(match) : 1
+        setCompetitionState({...competitionState, currentEventIdx: idx, noOfSolves: noOfSolves, currentSolveIdx: 0 });
+    }
+
+    const updateCurrentSolve = (idx: number) => setCompetitionState({...competitionState, currentSolveIdx: idx });
 
     return (
-        <CompetitionContext.Provider value={{competitionState, updateBasicInfo, updateCurrentEvent}}>
+        <CompetitionContext.Provider value={{competitionState, updateBasicInfo, updateCurrentEvent, updateCurrentSolve}}>
             {children}
         </CompetitionContext.Provider>
     );
@@ -23,5 +33,7 @@ const initialState: CompetitionState = {
     startdate: new Date(),
     enddate: new Date(),
     events: [],
-    currentEventIdx: 0
+    currentEventIdx: 0,
+    noOfSolves: 1,
+    currentSolveIdx: 0
 };

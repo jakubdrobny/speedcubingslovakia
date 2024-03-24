@@ -1,10 +1,11 @@
 import '../../styles/cubing-icons.css'
 
-import { CompetitionContext, CompetitionProvider } from './CompetitionContext';
-import { CompetitionContextType, CompetitionData } from "../../Types";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { CompetitionContext } from './CompetitionContext';
+import { CompetitionContextType } from "../../Types";
+import CompetitorArea from './CompetitorArea';
 import { EventSelector } from './EventSelector';
 import { getCompetitionById } from "../../utils";
 
@@ -27,6 +28,8 @@ const Competition = () => {
             <h1>{competitionState.name}</h1>
             <p>{competitionState.startdate.toLocaleString()} - {competitionState.enddate.toLocaleString()}</p>
             <EventSelector />
+            <br/>
+            <CompetitorArea />
         </div>
     );
 };
