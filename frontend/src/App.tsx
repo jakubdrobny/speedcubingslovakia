@@ -1,11 +1,11 @@
 import { Grid, List, ListItemButton, ListItemDecorator } from '@mui/joy';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
 
-import Competition from './routes/Competition';
-import Competitions from './routes/Competitions';
-import Home from './routes/Home'
+import Competition from './components/Competition/Competition';
+import Competitions from './components/Competitions/Competitions';
+import Home from './components/Home/Home'
 import LanguageIcon from '@mui/icons-material/Language';
-import NotFound from './routes/NotFound';
+import NotFound from './components/NotFound/NotFound';
 
 const App = () => {
     return (

@@ -16,3 +16,13 @@ export type CompetitionEvent = {
     format: string
     iconcode: string
 }
+
+export type CompetitionState = CompetitionData & {
+    currentEventIdx: number
+}
+
+export type CompetitionContextType = {
+    competitionState: CompetitionState,
+    updateBasicInfo: (info: CompetitionData) => void
+    updateCurrentEvent: (idx: number) => void
+}

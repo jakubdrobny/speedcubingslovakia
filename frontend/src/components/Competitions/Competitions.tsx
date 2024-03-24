@@ -1,12 +1,12 @@
 import { Button, ButtonGroup, Typography } from "@mui/joy";
-import { CompetitionData, FilterValue } from "../Types";
+import { CompetitionData, FilterValue } from "../../Types";
 import { useEffect, useState } from "react";
 
 import FormControl from '@mui/joy/FormControl';
 import FormLabel from '@mui/joy/FormLabel';
 import { Link } from "react-router-dom";
 import Table from '@mui/joy/Table';
-import { loadCompetitionData } from "../utils";
+import { loadCompetitionData } from "../../utils";
 
 const Competitions = () => {
     const [competitionData, setCompetitionData] = useState<CompetitionData[]>([])
