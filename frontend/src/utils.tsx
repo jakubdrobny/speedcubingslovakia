@@ -1,4 +1,43 @@
-import { CompetitionData, FilterValue } from "./Types";
+import { CompetitionData, CompetitionEvent, FilterValue } from "./Types";
+
+const events: CompetitionEvent[] = [
+    {
+        'id': 1,
+        'displayname': '3x3x3',
+        'format': 'ao5',
+        'iconcode': '333'
+    },
+    {
+        'id': 2,
+        'displayname': '2x2x2',
+        'format': 'ao5',
+        'iconcode': '222'
+    },
+    {
+        'id': 3,
+        'displayname': '6x6x6',
+        'format': 'mo3',
+        'iconcode': '666'
+    },
+    {
+        'id': 4,
+        'displayname': 'Mega',
+        'format': 'ao5',
+        'iconcode': 'mega'
+    },
+    {
+        'id': 5,
+        'displayname': 'Pyra',
+        'format': 'ao5',
+        'iconcode': 'pyra'
+    },
+    {
+        'id': 6,
+        'displayname': '3BLD',
+        'format': 'bo3',
+        'iconcode': '333bld'
+    }
+]
 
 const allCompetitionData = async (): Promise<CompetitionData[]> => {
     const result: CompetitionData[] = [];
@@ -19,7 +58,8 @@ const allCompetitionData = async (): Promise<CompetitionData[]> => {
                 'id': 'WeeklyCompetition' + (i + 1).toString(),
                 'name': 'Weekly Competition ' + (i + 1).toString(),
                 startdate,
-                enddate
+                enddate,
+                events
             }
         )
     }
