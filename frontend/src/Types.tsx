@@ -20,10 +20,15 @@ export type CompetitionEvent = {
     puzzlecode: string
 }
 
+export enum InputMethod {
+    Manual, Timer
+}
+
 export type CompetitionState = CompetitionData & {
     currentEventIdx: number,
     currentSolveIdx: number,
     noOfSolves: number,
+    inputMethod: InputMethod,
     results: ResultEntry
 }
 
@@ -34,6 +39,7 @@ export type CompetitionContextType = {
     updateCurrentSolve: (idx: number) => void
     saveResults: () => void
     updateSolve: (newTime: string) => void
+    toggleInputMethod: () => void
 }
 
 export type ResultEntry = {

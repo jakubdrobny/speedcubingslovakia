@@ -1,14 +1,17 @@
+import { Button, Input } from "@mui/joy";
 import { CompetitionContextType, ResultEntry } from "../../Types";
+import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
-import { Input } from "@mui/joy";
-import { useContext } from "react";
 
-const TimeInput = () => {
+const TimerInput = () => {
+    const [forceRerender, setForceRerender] = useState(false);
     const { competitionState, updateSolve, saveResults } = useContext(CompetitionContext) as CompetitionContextType;
-    const solveProp: keyof ResultEntry = `solve${competitionState.currentSolveIdx+1}` as keyof ResultEntry;
+    const solveProp: keyof ResultEntry= `solve${competitionState.currentSolveIdx+1}` as keyof ResultEntry;
     const formattedTime = competitionState.results[solveProp].toString();
     
+    useEffect(() => setForceRerender(!forceRerender), [competitionState.currentEventIdx]);
+
     const reformatTime = (oldFormattedTime: string, added: boolean = false): string => {
         if (added) {
             let idx = 0;
@@ -39,6 +42,11 @@ const TimeInput = () => {
 
     const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
         const newValue = e.currentTarget.value;
+
+        if (competitionState.events[competitionState.currentEventIdx].displayname === "FMC") {
+            updateSolve(newValue);
+            return;
+        }
         
         // character deleted
         if (newValue.length + 1 === formattedTime.length) {
@@ -49,7 +57,6 @@ const TimeInput = () => {
                 updateSolve(reformatTime(newValue));
             }
         } else {
-            console.log(newValue);
             if (newValue.endsWith("d")) {
                 updateSolve("DNF");
             } else if (newValue.endsWith("s")) {
@@ -69,15 +76,17 @@ const TimeInput = () => {
     }
 
     return (
-        <Input
-            size="lg"
-            placeholder="Enter your time or solution..."
-            sx={{ marginBottom: 2, marginTop: 2}}
-            value={formattedTime}
-            onChange={handleTimeInputChange}
-            onKeyDown={handleKeyDown}
-        />
+        <div>
+            <Input
+                size="lg"
+                placeholder="Enter your time or solution..."
+                sx={{ marginBottom: 2, marginTop: 2}}
+                value={formattedTime}
+                onChange={handleTimeInputChange}
+                onKeyDown={handleKeyDown}
+            />
+        </div>
     )
 }
 
-export default TimeInput;
+export default TimerInput;

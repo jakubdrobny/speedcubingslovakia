@@ -1,4 +1,4 @@
-import { AuthContextType, CompetitionContextType, CompetitionData, CompetitionState, ResultEntry } from "../../Types";
+import { AuthContextType, CompetitionContextType, CompetitionData, CompetitionState, InputMethod, ResultEntry } from "../../Types";
 import React, { ReactNode, createContext, useContext, useState } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
@@ -16,11 +16,11 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
         setCompetitionState({...competitionState, ...info, noOfSolves: noOfSolves});
     }
 
-    const updateCurrentEvent = (idx: number) => {
+    const updateCurrentEvent = async (idx: number) => {
         const match = competitionState.events[idx].format.match(/\d+$/)?.[0]
         const noOfSolves = match ? parseInt(match) : 1
-        const results = getResultsFromCompetitionAndEvent(authState.token, competitionState.id, competitionState.events[competitionState.currentEventIdx]);
-        setCompetitionState({...competitionState, currentEventIdx: idx, noOfSolves: noOfSolves, currentSolveIdx: 0, ...results });
+        const resultEntry = await getResultsFromCompetitionAndEvent(authState.token, competitionState.id, competitionState.events[idx]);
+        setCompetitionState({...competitionState, currentEventIdx: idx, noOfSolves: noOfSolves, currentSolveIdx: 0, results: resultEntry });
     }
 
     const updateCurrentSolve = (idx: number) => setCompetitionState({...competitionState, currentSolveIdx: idx });
@@ -29,7 +29,6 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
 
     const updateSolve = (newTime: string) => {
         const solveProp: keyof ResultEntry = `solve${competitionState.currentSolveIdx+1}` as keyof ResultEntry;
-        console.log(newTime);
         setCompetitionState({
             ...competitionState,
             results:
@@ -38,10 +37,12 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
                 [solveProp]: newTime
             }
         });
-    } 
+    }
+
+    const toggleInputMethod = () => setCompetitionState({...competitionState, inputMethod: competitionState.inputMethod === InputMethod.Manual ? InputMethod.Timer : InputMethod.Manual})
     
     return (
-        <CompetitionContext.Provider value={{competitionState, updateBasicInfo, updateCurrentEvent, updateCurrentSolve, saveResults, updateSolve}}>
+        <CompetitionContext.Provider value={{competitionState, updateBasicInfo, updateCurrentEvent, updateCurrentSolve, saveResults, updateSolve, toggleInputMethod}}>
             {children}
         </CompetitionContext.Provider>
     );
@@ -57,6 +58,7 @@ const initialState: CompetitionState = {
     noOfSolves: 1,
     currentSolveIdx: 0,
     scrambles: [],
+    inputMethod: InputMethod.Timer,
     results: {
         id: 0,
         userid: 0,

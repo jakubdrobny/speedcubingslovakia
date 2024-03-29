@@ -1,14 +1,15 @@
-import { Button, Card, Grid, Input } from "@mui/joy";
-import { CompetitionContextType, ResultEntry } from "../../Types";
-import { East, West } from "@mui/icons-material";
+import { Button, Card, Grid, Typography } from "@mui/joy";
+import { CompetitionContextType, InputMethod } from "../../Types";
+import { East, Keyboard, Timer, West } from "@mui/icons-material";
 
 import { CompetitionContext } from "./CompetitionContext";
+import ManualInput from "./ManualInput";
 import Scramble from "./Scramble";
-import TimeInput from "./TimeInput";
+import TimerInput from "./TimerInput";
 import { useContext } from "react";
 
 const Compete = () => {
-    const { competitionState, updateCurrentSolve, saveResults, updateSolve } = useContext(CompetitionContext) as CompetitionContextType
+    const { competitionState, updateCurrentSolve, toggleInputMethod, saveResults } = useContext(CompetitionContext) as CompetitionContextType
 
     return (
         <Card>
@@ -36,8 +37,32 @@ const Compete = () => {
                 </Grid>
             </Grid>
             <Scramble />
-            <TimeInput />
-            <Button color="primary" variant="solid" onClick={saveResults}>Save</Button>
+            <Grid container>
+                <Grid xs={12} sx={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                    <h3
+                        onClick={toggleInputMethod}
+                        style={{display: 'flex', alignItems: 'center'}}
+                    >
+                        {competitionState.inputMethod === InputMethod.Manual ? 
+                            <>
+                                Manual&nbsp;
+                                <Keyboard />
+                            </>
+                        :
+                            <>
+                                Timer&nbsp;
+                                <Timer />
+                            </>
+                        }
+                    </h3>
+                </Grid>
+                <Grid xs={12}>
+                    {competitionState.inputMethod === InputMethod.Manual ? <ManualInput /> : <TimerInput />}
+                </Grid>
+                <Grid xs={12} sx={{marginTop: 2}}>
+                    <Button color="primary" variant="solid" onClick={saveResults} sx={{width: '100%'}}>Save</Button>
+                </Grid>
+            </Grid>
         </Card>
     );
 }
