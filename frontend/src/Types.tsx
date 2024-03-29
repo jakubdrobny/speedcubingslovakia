@@ -66,3 +66,24 @@ export type AuthContextType = {
     authState: AuthState,
     updateAuthToken: (newToken: string) => void
 }
+
+export type TimerInputContextType = {
+    timerInputState: TimerInputState,
+    handleTimerInputKeyDown: EventListener
+    handleTimerInputKeyUp: EventListener
+}
+
+export type TimerInputState = {
+    currentState: TimerInputCurrentState,
+    color: string
+}
+
+export enum TimerInputCurrentState {
+    NotSolving, GettingReady, Ready, Solving, Finishing
+}
+
+export enum TimerColors {
+    Default = '#32383E',
+    Red = 'red',
+    Green = 'green'
+}

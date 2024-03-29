@@ -1,13 +1,33 @@
 import { Grid, List, ListItemButton, ListItemDecorator } from '@mui/joy';
-import { Link, Navigate, Route, Routes } from 'react-router-dom';
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { useContext, useEffect } from 'react';
 
 import Competition from './components/Competition/Competition';
 import Competitions from './components/Competitions/Competitions';
 import Home from './components/Home/Home'
 import LanguageIcon from '@mui/icons-material/Language';
 import NotFound from './components/NotFound/NotFound';
+import { TimerInputContext } from './context/TimerInputContext';
+import { TimerInputContextType } from './Types';
 
 const App = () => {
+    const location = useLocation();
+    const { handleTimerInputKeyDown, handleTimerInputKeyUp } = useContext(TimerInputContext) as TimerInputContextType;
+
+    useEffect(() => {
+
+        const routePattern = /^\/competition(?:\/.*)?$/;
+        if (routePattern.test(location.pathname)) {
+            window.addEventListener('keydown', handleTimerInputKeyDown);
+            window.addEventListener('keyup', handleTimerInputKeyUp);
+        }
+
+        return () => {
+            window.removeEventListener('keydwn', handleTimerInputKeyDown);
+            window.removeEventListener('keyup', handleTimerInputKeyUp);
+        }
+    }, [location.pathname, handleTimerInputKeyDown, handleTimerInputKeyUp]);
+
     return (
         <Grid container>
             <Grid xs={12} borderBottom={"2px solid lightgrey"}>

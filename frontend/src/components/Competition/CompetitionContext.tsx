@@ -25,7 +25,11 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
 
     const updateCurrentSolve = (idx: number) => setCompetitionState({...competitionState, currentSolveIdx: idx });
 
-    const saveResults = () => console.log('Your results were saved!');
+    const saveResults = () => {
+        const solveProp: keyof ResultEntry= `solve${competitionState.currentSolveIdx+1}` as keyof ResultEntry;
+        const formattedTime = competitionState.results[solveProp].toString();
+        console.log(`You saved a time of ${formattedTime}!`);
+    }
 
     const updateSolve = (newTime: string) => {
         const solveProp: keyof ResultEntry = `solve${competitionState.currentSolveIdx+1}` as keyof ResultEntry;
@@ -39,7 +43,11 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
         });
     }
 
-    const toggleInputMethod = () => setCompetitionState({...competitionState, inputMethod: competitionState.inputMethod === InputMethod.Manual ? InputMethod.Timer : InputMethod.Manual})
+    const toggleInputMethod = () => {
+        if (competitionState.currentEventIdx < competitionState.events.length && competitionState.events[competitionState.currentEventIdx].displayname !== "FMC") {
+            setCompetitionState({...competitionState, inputMethod: competitionState.inputMethod === InputMethod.Manual ? InputMethod.Timer : InputMethod.Manual})
+        }
+    }
     
     return (
         <CompetitionContext.Provider value={{competitionState, updateBasicInfo, updateCurrentEvent, updateCurrentSolve, saveResults, updateSolve, toggleInputMethod}}>
@@ -58,7 +66,7 @@ const initialState: CompetitionState = {
     noOfSolves: 1,
     currentSolveIdx: 0,
     scrambles: [],
-    inputMethod: InputMethod.Timer,
+    inputMethod: InputMethod.Manual,
     results: {
         id: 0,
         userid: 0,

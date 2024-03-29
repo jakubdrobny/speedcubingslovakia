@@ -1,12 +1,14 @@
+import { CompetitionContextType, TimerInputContextType, TimerInputCurrentState } from "../../Types";
 import { useEffect, useRef } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
-import { CompetitionContextType } from "../../Types";
+import { TimerInputContext } from "../../context/TimerInputContext";
 import { useContext } from "react";
 
 const Scramble = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { competitionState } = useContext(CompetitionContext) as CompetitionContextType
+    const { timerInputState } = useContext(TimerInputContext) as TimerInputContextType
     const scramble = competitionState && competitionState.currentEventIdx < competitionState.scrambles.length && competitionState.currentSolveIdx < competitionState.scrambles[competitionState.currentEventIdx].length ? competitionState.scrambles[competitionState.currentEventIdx][competitionState.currentSolveIdx] : "";
     const puzzlecode = competitionState && competitionState.currentEventIdx < competitionState.events.length ? competitionState.events[competitionState.currentEventIdx].puzzlecode : "";
 
@@ -30,7 +32,7 @@ const Scramble = () => {
     }, [competitionState]);
 
     return (
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+        <div style={timerInputState.currentState !== TimerInputCurrentState.NotSolving ? {display: 'none'} : {display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
             <h3>Scramble:</h3>
             <p style={{whiteSpace: 'pre-line'}}>{scramble}</p>
             <h3>Preview:</h3>

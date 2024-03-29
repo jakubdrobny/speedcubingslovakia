@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { CompetitionProvider } from './components/Competition/CompetitionContext';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { TimerInputProvider } from './context/TimerInputContext';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -15,7 +16,9 @@ root.render(
     <BrowserRouter>
         <AuthProvider>
             <CompetitionProvider>
-                <App />
+                <TimerInputProvider>
+                    <App />
+                </TimerInputProvider>
             </CompetitionProvider>
         </AuthProvider>
     </BrowserRouter>
