@@ -4,7 +4,8 @@ export type CompetitionData = {
     startdate: Date,
     enddate: Date,
     events: CompetitionEvent[],
-    scrambles: string[][]
+    scrambles: string[][],
+    results?: ResultEntry
 }
 
 export enum FilterValue {
@@ -22,7 +23,8 @@ export type CompetitionEvent = {
 export type CompetitionState = CompetitionData & {
     currentEventIdx: number,
     currentSolveIdx: number,
-    noOfSolves: number
+    noOfSolves: number,
+    results: ResultEntry
 }
 
 export type CompetitionContextType = {
@@ -31,4 +33,30 @@ export type CompetitionContextType = {
     updateCurrentEvent: (idx: number) => void
     updateCurrentSolve: (idx: number) => void
     saveResults: () => void
+    updateSolve: (newTime: string) => void
+}
+
+export type ResultEntry = {
+    id: number,
+    userid: number,
+    solve1: string,
+    solve2: string,
+    solve3: string,
+    solve4: string,
+    solve5: string,
+    comment: string,
+    statusid: number,
+}
+
+export enum ResultEntrySolves {
+    solve1, solve2, solve3, solve4, solve5
+}
+
+export type AuthState = {
+    token: string
+}
+
+export type AuthContextType = {
+    authState: AuthState,
+    updateAuthToken: (newToken: string) => void
 }

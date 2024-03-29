@@ -1,13 +1,14 @@
 import { Button, Card, Grid, Input } from "@mui/joy";
+import { CompetitionContextType, ResultEntry } from "../../Types";
 import { East, West } from "@mui/icons-material";
 
 import { CompetitionContext } from "./CompetitionContext";
-import { CompetitionContextType } from "../../Types";
 import Scramble from "./Scramble";
+import TimeInput from "./TimeInput";
 import { useContext } from "react";
 
 const Compete = () => {
-    const { competitionState, updateCurrentSolve, saveResults } = useContext(CompetitionContext) as CompetitionContextType
+    const { competitionState, updateCurrentSolve, saveResults, updateSolve } = useContext(CompetitionContext) as CompetitionContextType
 
     return (
         <Card>
@@ -15,8 +16,7 @@ const Compete = () => {
                 <Grid xs={4}>
                     <Button
                         variant="outlined"
-                        disabled={competitionState.currentSolveIdx === 0}
-                        onClick={() => updateCurrentSolve(competitionState.currentSolveIdx - 1)}
+                        onClick={() => updateCurrentSolve((competitionState.currentSolveIdx - 1 + competitionState.noOfSolves) % competitionState.noOfSolves)}
                     >
                         <West />&nbsp;
                         Previous
@@ -28,8 +28,7 @@ const Compete = () => {
                 <Grid xs={4} sx={{display: 'flex', justifyContent: 'flex-end'}}>
                     <Button
                         variant="outlined"
-                        disabled={competitionState.currentSolveIdx === competitionState.noOfSolves - 1}
-                        onClick={() => updateCurrentSolve(competitionState.currentSolveIdx + 1)}
+                        onClick={() => updateCurrentSolve((competitionState.currentSolveIdx + 1) % competitionState.noOfSolves)}
                     >
                         Next&nbsp;
                         <East />
@@ -37,7 +36,7 @@ const Compete = () => {
                 </Grid>
             </Grid>
             <Scramble />
-            <Input size="lg" placeholder="Enter your time or solution..." sx={{ marginBottom: 2}}/>
+            <TimeInput />
             <Button color="primary" variant="solid" onClick={saveResults}>Save</Button>
         </Card>
     );

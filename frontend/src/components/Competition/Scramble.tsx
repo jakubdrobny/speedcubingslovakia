@@ -7,8 +7,7 @@ import { useContext } from "react";
 const Scramble = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { competitionState } = useContext(CompetitionContext) as CompetitionContextType
-    const scramble = competitionState && competitionState.currentEventIdx < competitionState.scrambles.length && competitionState.currentSolveIdx < competitionState.scrambles[competitionState.currentEventIdx].length ? competitionState.scrambles[competitionState.currentEventIdx][competitionState.currentSolveIdx].replaceAll("\n", "") : "";
-    console.log(scramble);
+    const scramble = competitionState && competitionState.currentEventIdx < competitionState.scrambles.length && competitionState.currentSolveIdx < competitionState.scrambles[competitionState.currentEventIdx].length ? competitionState.scrambles[competitionState.currentEventIdx][competitionState.currentSolveIdx] : "";
     const puzzlecode = competitionState && competitionState.currentEventIdx < competitionState.events.length ? competitionState.events[competitionState.currentEventIdx].puzzlecode : "";
 
     useEffect(() => {
@@ -31,9 +30,9 @@ const Scramble = () => {
     }, [competitionState]);
 
     return (
-        <div>
+        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
             <h3>Scramble:</h3>
-            <p>{scramble}</p>
+            <p style={{whiteSpace: 'pre-line'}}>{scramble}</p>
             <h3>Preview:</h3>
             <div ref={containerRef}></div>
         </div>

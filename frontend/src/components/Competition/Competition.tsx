@@ -1,24 +1,30 @@
 import '../../styles/cubing-icons.css'
 
+import { AuthContextType, CompetitionContextType, CompetitionData, ResultEntry } from "../../Types";
+import { getCompetitionById, getResultsFromCompetitionAndEvent } from "../../utils";
 import { useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { AuthContext } from '../../context/AuthContext';
 import { CompetitionContext } from './CompetitionContext';
-import { CompetitionContextType } from "../../Types";
 import CompetitorArea from './CompetitorArea';
 import { EventSelector } from './EventSelector';
-import { getCompetitionById } from "../../utils";
 
 const Competition = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const { competitionState, updateBasicInfo } = useContext(CompetitionContext) as CompetitionContextType
+    const { authState } = useContext(AuthContext) as AuthContextType
 
     useEffect(() => {
         getCompetitionById(id)
-            .then(res => {
-                if (res === undefined) navigate('/not-found');
-                else updateBasicInfo(res);
+            .then((info: CompetitionData | undefined) => {
+                if (info === undefined) navigate('/not-found');
+                else {
+                    getResultsFromCompetitionAndEvent(authState.token, id, info.events[0])
+                        .then((resultEntry: ResultEntry) => updateBasicInfo({...info, results: resultEntry}))
+                        .catch(console.error)
+                }
             })
             .catch(console.error);
     }, []);

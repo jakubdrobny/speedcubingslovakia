@@ -1,4 +1,4 @@
-import { CompetitionData, CompetitionEvent, FilterValue } from "./Types";
+import { CompetitionData, CompetitionEvent, FilterValue, ResultEntry } from "./Types";
 
 const events: CompetitionEvent[] = [
     {
@@ -98,6 +98,32 @@ const scrambles: string[][] = [
     ]
 ]
 
+const results: { [key: string]: ResultEntry } = {
+    '3x3x3': {
+        'id': 1,
+        'userid': 1,
+        'solve1': '12.55',
+        'solve2': '10.14',
+        'solve3': '8.81',
+        'solve4': 'DNF',
+        'solve5': '14.43',
+        'comment': '',
+        'statusid': 1,
+    },
+    '2x2x2': {
+        'id': 2,
+        'userid': 1,
+        'solve1': '2.55',
+        'solve2': '1.14',
+        'solve3': '8.81',
+        'solve4': '2.00',
+        'solve5': '1.43',
+        'comment': '',
+        'statusid': 2,
+    },
+
+}
+
 const allCompetitionData = async (): Promise<CompetitionData[]> => {
     const result: CompetitionData[] = [];
     let startdate: Date = new Date();
@@ -142,4 +168,9 @@ export const loadCompetitionData = async (filterValue: FilterValue): Promise<Com
 export const getCompetitionById = async (id: string | undefined): Promise<CompetitionData | undefined> => {
     const competitions: CompetitionData[] = await allCompetitionData();
     return competitions.find((c: CompetitionData) => c.id === id);
+}
+
+export const getResultsFromCompetitionAndEvent = async (token: string, id: string | undefined, event: CompetitionEvent): Promise<ResultEntry> => {
+    const resultEntry = results[event.displayname];
+    return resultEntry;    
 }

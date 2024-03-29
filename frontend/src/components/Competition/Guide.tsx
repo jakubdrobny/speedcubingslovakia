@@ -33,7 +33,7 @@ const Guide = () => {
                             in 12 second and 55 hundreths, with a +4 penalty, type "1655".
                         </li>
                         <li key={"4"}>
-                        If you get a DNF, type "D" and if you get a DNS, type "S".
+                        If you get a DNF, type "d" and if you get a DNS, type "s".
                         </li>
                     </ul>
                 </div>

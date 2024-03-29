@@ -1,6 +1,7 @@
 import './styles/index.css';
 
 import App from './App';
+import { AuthProvider } from './context/AuthContext';
 import { BrowserRouter } from 'react-router-dom'
 import { CompetitionProvider } from './components/Competition/CompetitionContext';
 import React from 'react';
@@ -12,9 +13,11 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-        <CompetitionProvider>
-            <App />
-        </CompetitionProvider>
+        <AuthProvider>
+            <CompetitionProvider>
+                <App />
+            </CompetitionProvider>
+        </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
