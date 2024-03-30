@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
+import { reformatWithPenalties } from "../../utils";
 
 const Timer = () => {
     const [forceRerender, setForceRerender] = useState(false);
@@ -15,7 +16,18 @@ const Timer = () => {
 
     return (
         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%'}}>
-            <h1 style={{color: timerInputState.color}}>{timerInputState.currentState === TimerInputCurrentState.Ready ? "Ready" : timerInputState.currentState === TimerInputCurrentState.Solving ? 'Solving...' : formattedTime}</h1>
+            <h1 style={{color: timerInputState.color}}>
+                {timerInputState.currentState === TimerInputCurrentState.Ready
+                ?
+                    "Ready"
+                :
+                    timerInputState.currentState === TimerInputCurrentState.Solving
+                    ?
+                        'Solving...'
+                    :
+                        reformatWithPenalties(formattedTime, competitionState.penalties[competitionState.currentSolveIdx])
+                }
+            </h1>
         </div>
     )
 }

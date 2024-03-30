@@ -228,3 +228,68 @@ export const getResultsFromCompetitionAndEvent = async (token: string, id: strin
     const resultEntry = results[event.displayname];
     return resultEntry;    
 }
+
+const formattedToMiliseconds = (formattedTime: string): number => {
+    let res = 0;
+
+    const formattedTimeSplit = formattedTime.split('.');
+    const wholePart = formattedTimeSplit[0].split(':').reverse(), decimalPart = formattedTimeSplit[1];
+
+    res += parseInt(decimalPart) * 10;
+    if (wholePart.length > 0)
+        res += parseInt(wholePart[0]) * 1000;
+    if (wholePart.length > 1)
+        res += 60 * parseInt(wholePart[1]) * 1000;
+    if (wholePart.length > 2)
+        res += 60 * 60 * parseInt(wholePart[2]) * 1000;
+    if (wholePart.length > 3)
+        res += 24 * 60 * 60 * parseInt(wholePart[3]) * 1000;
+
+    return res;
+}
+
+export const milisecondsToFormattedTime = (toFormat: number): string => {
+    if (toFormat === -1) {
+        return "DNF";
+    }
+
+    let res = [];
+
+    let pw = 1000 * 60 * 60 * 24;
+    for (const mul of [24, 60, 60, 1000, 1]) {
+        const toPush = Math.floor(toFormat / pw).toString();
+        res.push(mul === 1 ? toPush.padStart(3, '0') : toPush);
+        toFormat %= pw;
+        pw = Math.floor(pw / mul);
+    }
+
+    res[res.length - 1] = res[res.length - 1].slice(0, res[res.length - 1].length - 1);
+    let sliceIdx = 0;
+    while (sliceIdx < res.length - 2 && res[sliceIdx] === '0')
+        sliceIdx += 1;
+    res = res.slice(sliceIdx);
+
+    let resString = "";
+    let resIdx: number;
+    for (resIdx = 0; resIdx < res.length - 1; resIdx++) {
+        resString += resIdx > 0 ? res[resIdx].padStart(2, '0') : res[resIdx];
+        resString += resIdx == res.length - 2 ? '.' : ':';
+    }
+    resString += res[resIdx].padStart(2, '0');
+
+    return resString;
+}
+
+export const reformatWithPenalties = (oldFormattedTime: string, penalty: string) => {
+    let miliseconds = formattedToMiliseconds(oldFormattedTime);
+
+    if (penalty === "DNF") {
+        miliseconds = -1;
+    } else {
+        miliseconds += parseInt(penalty) * 1000;
+    }
+
+    let newFormattedTime = milisecondsToFormattedTime(miliseconds);
+
+    return newFormattedTime;
+}

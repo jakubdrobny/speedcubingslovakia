@@ -29,7 +29,8 @@ export type CompetitionState = CompetitionData & {
     currentSolveIdx: number,
     noOfSolves: number,
     inputMethod: InputMethod,
-    results: ResultEntry
+    results: ResultEntry,
+    penalties: string[]
 }
 
 export type CompetitionContextType = {
@@ -40,6 +41,7 @@ export type CompetitionContextType = {
     saveResults: () => void
     updateSolve: (newTime: string) => void
     toggleInputMethod: () => void
+    addPenalty: (newPenalty: string) => void
 }
 
 export type ResultEntry = {
@@ -86,4 +88,8 @@ export enum TimerColors {
     Default = '#32383E',
     Red = 'red',
     Green = 'green'
+}
+
+export enum PenaltyType { 
+    PlusTwo, DNF
 }

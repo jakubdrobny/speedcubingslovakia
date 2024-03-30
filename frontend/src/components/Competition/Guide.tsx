@@ -1,6 +1,7 @@
+import { CompetitionContextType, InputMethod } from "../../Types";
+
 import { Card } from "@mui/joy";
 import { CompetitionContext } from "./CompetitionContext";
-import { CompetitionContextType } from "../../Types";
 import { useContext } from "react";
 
 const Guide = () => {
@@ -19,7 +20,7 @@ const Guide = () => {
                         (TLDR: basically anthing except slice moves)
                     </p>
                 </div>
-            ) : (
+            ) : competitionState.inputMethod === InputMethod.Manual ? (
                 <div>
                     <p>
                         To enter your times, type just the numbers. For example, to enter 12 seconds and 55 hundreths, type "1255".
@@ -37,7 +38,24 @@ const Guide = () => {
                         </li>
                     </ul>
                 </div>
-            )}
+            ) : 
+                <div>
+                    <p>
+                        The timer is controlled using Spacebar. To start the solve, hold for 1 second.
+                    </p>
+                    <p>
+                        After the solve, to add penalties, just click the corresponding buttons.
+                    </p>
+                    <ul>
+                        <li key={"5"}>
+                            You can add up to +16, after that, it will cycle back to no penalty.
+                        </li>
+                        <li key={"6"}>
+                            DNF can be removed by clicking the DNF button again.
+                        </li>
+                    </ul>
+                </div>
+            }
             <p>After you are done, don't forget to save your results!</p>
         </Card>
     );

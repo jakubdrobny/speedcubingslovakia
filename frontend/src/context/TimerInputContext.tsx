@@ -2,6 +2,7 @@ import { CompetitionContextType, TimerColors, TimerInputContextType, TimerInputC
 import React, { ReactNode, createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import { CompetitionContext } from "../components/Competition/CompetitionContext";
+import { milisecondsToFormattedTime } from "../utils";
 
 export const TimerInputContext = createContext<TimerInputContextType | null>(null);
 
@@ -26,40 +27,12 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({ childre
             if (timingInterval.current && timerInputState.currentState === TimerInputCurrentState.Solving) {
                 clearInterval(timingInterval.current);
                 timingInterval.current = undefined;
-                updateSolve(formatTime(elapsedTime.current))
+                updateSolve(milisecondsToFormattedTime(elapsedTime.current))
                 setTimerInputState(ps => ({...ps, currentState: TimerInputCurrentState.Finishing, color: TimerColors.Red}))
                 holdingTimeout.current = 1;
             }
         }
     }, [timerInputState.currentState, holdingTimeout, elapsedTime])
-
-    const formatTime = (toFormat: number) => {
-        let res = [];
-
-        let pw = 1000 * 60 * 60 * 24;
-        for (const mul of [24, 60, 60, 1000, 1]) {
-            const toPush = Math.floor(toFormat / pw).toString();
-            res.push(mul === 1 ? toPush.padStart(3, '0') : toPush);
-            toFormat %= pw;
-            pw = Math.floor(pw / mul);
-        }
-
-        res[res.length - 1] = res[res.length - 1].slice(0, res[res.length - 1].length - 1);
-        let sliceIdx = 0;
-        while (sliceIdx < res.length - 2 && res[sliceIdx] === '0')
-            sliceIdx += 1;
-        res = res.slice(sliceIdx);
-
-        let resString = "";
-        let resIdx: number;
-        for (resIdx = 0; resIdx < res.length - 1; resIdx++) {
-            resString += resIdx > 0 ? res[resIdx].padStart(2, '0') : res[resIdx];
-            resString += resIdx == res.length - 2 ? '.' : ':';
-        }
-        resString += res[resIdx].padStart(2, '0');
-
-        return resString;
-    }
 
     const handleTimerInputKeyUp = useCallback((e: Event) => {
         const ev = e as KeyboardEvent

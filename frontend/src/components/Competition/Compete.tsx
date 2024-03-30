@@ -4,6 +4,7 @@ import { East, Keyboard, Timer, West } from "@mui/icons-material";
 
 import { CompetitionContext } from "./CompetitionContext";
 import ManualInput from "./ManualInput";
+import Penalties from "./Penalties";
 import Scramble from "./Scramble";
 import TimerInput from "./TimerInput";
 import { useContext } from "react";
@@ -59,6 +60,7 @@ const Compete = () => {
                 <Grid xs={12}>
                     {competitionState.inputMethod === InputMethod.Manual ? <ManualInput /> : <TimerInput />}
                 </Grid>
+                <Penalties />
                 <Grid xs={12} sx={{marginTop: 2}}>
                     <Button color="primary" variant="solid" onClick={saveResults} sx={{width: '100%'}}>Save</Button>
                 </Grid>
