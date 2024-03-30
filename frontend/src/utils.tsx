@@ -253,6 +253,10 @@ export const milisecondsToFormattedTime = (toFormat: number): string => {
         return "DNF";
     }
 
+    if (toFormat === -2) {
+        return "DNS";
+    }
+
     let res = [];
 
     let pw = 1000 * 60 * 60 * 24;
@@ -281,6 +285,14 @@ export const milisecondsToFormattedTime = (toFormat: number): string => {
 }
 
 export const reformatWithPenalties = (oldFormattedTime: string, penalty: string) => {
+    if (oldFormattedTime === "DNF") {
+        return oldFormattedTime;
+    }
+
+    if (oldFormattedTime === "DNS") {
+        return penalty === "DNF" ? "DNF" : "DNS";
+    }
+
     let miliseconds = formattedToMiliseconds(oldFormattedTime);
 
     if (penalty === "DNF") {
