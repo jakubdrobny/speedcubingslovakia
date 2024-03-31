@@ -1,4 +1,4 @@
-import { CompetitionData, CompetitionEvent, FilterValue, ResultEntry } from "./Types";
+import { CompetitionData, CompetitionEvent, FilterValue, ResultEntry, User } from "./Types";
 
 const events: CompetitionEvent[] = [
     {
@@ -304,4 +304,25 @@ export const reformatWithPenalties = (oldFormattedTime: string, penalty: string)
     let newFormattedTime = milisecondsToFormattedTime(miliseconds);
 
     return newFormattedTime;
+}
+
+const users: User[] = [
+    {
+        id: 1,
+        name: "Janko Hrasko",
+        isadmin: true,
+    },
+    {
+        id: 2,
+        name: "Ferko Mrkvicka",
+        isadmin: false
+    }
+]
+
+export const getUsers = async () => {
+    return users;
+}
+
+export const updateUsers = async (users: User[]) => {
+    
 }

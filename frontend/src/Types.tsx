@@ -61,7 +61,9 @@ export enum ResultEntrySolves {
 }
 
 export type AuthState = {
-    token: string
+    token: string,
+    authenticated: boolean,
+    admin: boolean
 }
 
 export type AuthContextType = {
@@ -92,4 +94,10 @@ export enum TimerColors {
 
 export enum PenaltyType { 
     PlusTwo, DNF
+}
+
+export type User = {
+    id: number
+    name: string
+    isadmin: boolean
 }

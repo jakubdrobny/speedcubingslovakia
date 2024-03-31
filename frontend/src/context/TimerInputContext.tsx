@@ -1,4 +1,4 @@
-import { CompetitionContextType, TimerColors, TimerInputContextType, TimerInputCurrentState, TimerInputState } from "../Types";
+import { CompetitionContextType, InputMethod, TimerColors, TimerInputContextType, TimerInputCurrentState, TimerInputState } from "../Types";
 import React, { ReactNode, createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 import { CompetitionContext } from "../components/Competition/CompetitionContext";

@@ -16,5 +16,7 @@ export const AuthProvider: React.FC<{ children?: ReactNode }> = ({ children }) =
 }
 
 const initialState: AuthState = {
-    token: ''
+    token: '',
+    authenticated: true,
+    admin: true
 };

@@ -20,7 +20,15 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
         const match = competitionState.events[idx].format.match(/\d+$/)?.[0]
         const noOfSolves = match ? parseInt(match) : 1
         const resultEntry = await getResultsFromCompetitionAndEvent(authState.token, competitionState.id, competitionState.events[idx]);
-        setCompetitionState({...competitionState, currentEventIdx: idx, noOfSolves: noOfSolves, currentSolveIdx: 0, results: resultEntry, penalties: Array(5).fill('0') });
+        setCompetitionState(ps => ({
+            ...ps,
+            currentEventIdx: idx,
+            noOfSolves: noOfSolves,
+            currentSolveIdx: 0,
+            results: resultEntry,
+            penalties: Array(5).fill('0'),
+            inputMethod: competitionState.events[idx].displayname === "FMC" ? InputMethod.Manual : ps.inputMethod
+        }));
     }
 
     const updateCurrentSolve = (idx: number) => setCompetitionState({...competitionState, currentSolveIdx: idx });

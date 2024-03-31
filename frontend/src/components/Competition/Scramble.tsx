@@ -32,7 +32,7 @@ const Scramble = () => {
     }, [competitionState]);
 
     return (
-        <div style={timerInputState.currentState !== TimerInputCurrentState.NotSolving ? {display: 'none'} : {display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+        <div style={[TimerInputCurrentState.NotSolving, TimerInputCurrentState.GettingReady].includes(timerInputState.currentState) ? {display: 'flex', flexDirection: 'column', alignItems: 'center'} : {display: 'none'}}>
             <h3>Scramble:</h3>
             <p style={{whiteSpace: 'pre-line'}}>{scramble}</p>
             <h3>Preview:</h3>

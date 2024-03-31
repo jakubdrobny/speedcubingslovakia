@@ -4,8 +4,10 @@ import { useContext, useEffect } from 'react';
 
 import Competition from './components/Competition/Competition';
 import Competitions from './components/Competitions/Competitions';
+import Dashboard from './components/Dashboard/Dashboard';
 import Home from './components/Home/Home'
 import LanguageIcon from '@mui/icons-material/Language';
+import { ListAlt } from '@mui/icons-material';
 import NotFound from './components/NotFound/NotFound';
 import { TimerInputContext } from './context/TimerInputContext';
 import { TimerInputContextType } from './Types';
@@ -30,19 +32,31 @@ const App = () => {
 
     return (
         <Grid container>
-            <Grid xs={12} borderBottom={"2px solid lightgrey"}>
-                <List style={{ display: 'flex', flexDirection: 'row', padding: 20, justifyContent: 'space-around'}}>
-                    <ListItemButton component={Link} to="/">
-                        Speedcubing Slovakia
-                    </ListItemButton>
-                    <ListItemButton component={Link} to="/competitions">
-                        <ListItemDecorator>
-                            <LanguageIcon/>
-                        </ListItemDecorator>
-                        Online Competitions
-                    </ListItemButton>
+            <Grid xs={0} md={1} lg={2} borderBottom={"2px solid lightgrey"} width={"100%"}/>
+            <Grid xs={12} md={10} lg={8} borderBottom={"2px solid lightgrey"} width={"100%"}>
+                <List style={{ display: 'flex', flexDirection: 'row', padding: 20, width: '100%'}}>
+                    <Grid sx={{display: 'flex', justifyContent: 'center'}}>
+                        <ListItemButton component={Link} to="/">
+                            Speedcubing Slovakia
+                        </ListItemButton>
+                    </Grid>
+                    <Grid sx={{display: 'flex', justifyContent: 'flex-end', width: '100%'}}>
+                        <ListItemButton component={Link} to="/competitions">
+                            <ListItemDecorator>
+                                <LanguageIcon />
+                            </ListItemDecorator>
+                            Online Competitions
+                        </ListItemButton>
+                        <ListItemButton component={Link} to="/admin/dashboard">
+                            <ListItemDecorator>
+                                <ListAlt />
+                            </ListItemDecorator>
+                            Dashboard
+                        </ListItemButton>
+                    </Grid>
                 </List>
             </Grid>
+            <Grid xs={0} md={1} lg={2} borderBottom={"2px solid lightgrey"} width={"100%"}/>
             <Grid xs={0} md={1} lg={2}/>
             <Grid xs={12} md={10} lg={8}>
                 <Routes>
@@ -50,6 +64,7 @@ const App = () => {
                     <Route path="/competitions" Component={Competitions} />
                     <Route path="/competition/:id" Component={Competition} />
                     <Route path='/not-found' Component={NotFound} />
+                    <Route path='/admin/dashboard' Component={Dashboard} />
                     <Route path="*" element={ <Navigate to="/not-found" replace />} />
                 </Routes>
             </Grid>
