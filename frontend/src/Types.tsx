@@ -101,3 +101,11 @@ export type User = {
     name: string
     isadmin: boolean
 }
+
+export enum DashboardPanel {
+    ManageRoles, None
+}
+
+export type CompetitionEditProps = {
+    edit: boolean
+}

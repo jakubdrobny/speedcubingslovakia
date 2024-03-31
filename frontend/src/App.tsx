@@ -3,11 +3,14 @@ import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useContext, useEffect } from 'react';
 
 import Competition from './components/Competition/Competition';
+import CompetitionEdit from './components/Dashboard/CompetitionEdit';
+import { CompetitionEditProps } from './Types';
 import Competitions from './components/Competitions/Competitions';
 import Dashboard from './components/Dashboard/Dashboard';
 import Home from './components/Home/Home'
 import LanguageIcon from '@mui/icons-material/Language';
 import { ListAlt } from '@mui/icons-material';
+import ManageRoles from './components/Dashboard/ManageRoles';
 import NotFound from './components/NotFound/NotFound';
 import { TimerInputContext } from './context/TimerInputContext';
 import { TimerInputContextType } from './Types';
@@ -63,8 +66,11 @@ const App = () => {
                     <Route path="/" Component={Home} />
                     <Route path="/competitions" Component={Competitions} />
                     <Route path="/competition/:id" Component={Competition} />
+                    <Route path="/competition/:id/edit" Component={() => <CompetitionEdit edit={true} />} />
+                    <Route path="/competition/create" Component={() => <CompetitionEdit edit={false} />} />
                     <Route path='/not-found' Component={NotFound} />
                     <Route path='/admin/dashboard' Component={Dashboard} />
+                    <Route path='/admin/manage-roles' Component={ManageRoles} />
                     <Route path="*" element={ <Navigate to="/not-found" replace />} />
                 </Routes>
             </Grid>

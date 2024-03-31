@@ -306,7 +306,7 @@ export const reformatWithPenalties = (oldFormattedTime: string, penalty: string)
     return newFormattedTime;
 }
 
-const users: User[] = [
+let users: User[] = [
     {
         id: 1,
         name: "Janko Hrasko",
@@ -323,6 +323,10 @@ export const getUsers = async () => {
     return users;
 }
 
-export const updateUsers = async (users: User[]) => {
-    
+export const updateUsers = async (newUsers: User[]) => {
+    users = [...newUsers];
+}
+
+export const getAvailableEvents = async () => {
+    return events;
 }
