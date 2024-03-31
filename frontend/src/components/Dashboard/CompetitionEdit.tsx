@@ -77,24 +77,14 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
                                 multiple
                                 renderValue={(selected) => (
                                     <Box sx={{ display: 'flex', gap: '0.25rem' }}>
-                                    {selected.map((selectedOption) => (
-                                        <Chip variant="soft" color="primary">
-                                            <span className={`cubing-icon event-${selectedOption.label}`} />&nbsp;
-                                            {selectedOption.value.toString()}
-                                        </Chip>
-                                    ))}
+                                        {selected.map((selectedOption) => (
+                                            <Chip variant="soft" color="primary">
+                                                <span className={`cubing-icon event-${selectedOption.label}`} />&nbsp;
+                                                {selectedOption.value.toString()}
+                                            </Chip>
+                                        ))}
                                     </Box>
                                 )}
-                                sx={{
-                                    minWidth: '15rem',
-                                }}
-                                slotProps={{
-                                    listbox: {
-                                    sx: {
-                                        width: '100%',
-                                    },
-                                    },
-                                }}
                             >
                                 {availableEvents.map((ev: CompetitionEvent) => {
                                     return (
