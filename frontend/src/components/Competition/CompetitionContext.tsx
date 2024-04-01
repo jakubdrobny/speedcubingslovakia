@@ -1,4 +1,4 @@
-import { AuthContextType, CompetitionContextType, CompetitionData, CompetitionState, InputMethod, PenaltyType, ResultEntry } from "../../Types";
+import { AuthContextType, CompetitionContextType, CompetitionData, CompetitionEvent, CompetitionState, InputMethod, PenaltyType, ResultEntry } from "../../Types";
 import React, { ReactNode, createContext, useContext, useState } from "react";
 import { getResultsFromCompetitionAndEvent, reformatWithPenalties } from "../../utils";
 
@@ -32,6 +32,11 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
     }
 
     const updateCurrentSolve = (idx: number) => setCompetitionState({...competitionState, currentSolveIdx: idx });
+
+    const updateCompetitionName = (newName: string) => setCompetitionState(ps => ({...ps, name: newName}));
+    const updateCompetitionStartDate = (newStartDate: Date) => setCompetitionState(ps => ({...ps, startdate: newStartDate}));
+    const updateCompetitionEndDate = (newEndDate: Date) => setCompetitionState(ps => ({...ps, enddate: newEndDate}));
+    const updateCompetitionEvents = (newEvents: CompetitionEvent[]) => setCompetitionState(ps => ({...ps, events: newEvents, currentEventIdx: 0}));
 
     const saveResults = () => {
         const solveProp: keyof ResultEntry= `solve${competitionState.currentSolveIdx+1}` as keyof ResultEntry;
@@ -79,7 +84,9 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
         <CompetitionContext.Provider value={{
             competitionState, updateBasicInfo, updateCurrentEvent,
             updateCurrentSolve, saveResults, toggleInputMethod,
-            addPenalty, updateSolve
+            addPenalty, updateSolve, updateCompetitionName, 
+            updateCompetitionStartDate, updateCompetitionEndDate,
+            updateCompetitionEvents, setCompetitionState
         }}>
             {children}
         </CompetitionContext.Provider>

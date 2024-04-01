@@ -42,6 +42,11 @@ export type CompetitionContextType = {
     updateSolve: (newTime: string) => void
     toggleInputMethod: () => void
     addPenalty: (newPenalty: string) => void
+    updateCompetitionName: (newName: string) => void, 
+    updateCompetitionStartDate: (newStartingDate: Date) => void,
+    updateCompetitionEndDate: (newEndingDate: Date) => void,
+    updateCompetitionEvents: (newEvents: CompetitionEvent[]) => void
+    setCompetitionState: (newState: CompetitionState) => void
 }
 
 export type ResultEntry = {

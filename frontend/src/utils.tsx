@@ -1,4 +1,4 @@
-import { CompetitionData, CompetitionEvent, FilterValue, ResultEntry, User } from "./Types";
+import { CompetitionData, CompetitionEvent, CompetitionState, FilterValue, ResultEntry, User } from "./Types";
 
 const events: CompetitionEvent[] = [
     {
@@ -329,4 +329,9 @@ export const updateUsers = async (newUsers: User[]) => {
 
 export const getAvailableEvents = async () => {
     return events;
+}
+
+export const updateCompetition = (state: CompetitionState, edit: boolean) => {
+    console.log('editujem')
+    return;
 }
