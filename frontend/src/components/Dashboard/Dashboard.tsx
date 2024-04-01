@@ -21,6 +21,9 @@ const Dashboard = () => {
                 <Button component={Link} to="/competition/create" color="primary">
                     Create competition
                 </Button>
+                <Button component={Link} to="/results/edit" color="primary">
+                    Edit results
+                </Button>
             </ButtonGroup>
         </div>
     )

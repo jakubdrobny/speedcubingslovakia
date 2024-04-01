@@ -4,7 +4,6 @@ import { useContext, useEffect } from 'react';
 
 import Competition from './components/Competition/Competition';
 import CompetitionEdit from './components/Dashboard/CompetitionEdit';
-import { CompetitionEditProps } from './Types';
 import Competitions from './components/Competitions/Competitions';
 import Dashboard from './components/Dashboard/Dashboard';
 import Home from './components/Home/Home'
@@ -12,6 +11,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import { ListAlt } from '@mui/icons-material';
 import ManageRoles from './components/Dashboard/ManageRoles';
 import NotFound from './components/NotFound/NotFound';
+import ResultsEdit from './components/Dashboard/ResultsEdit';
 import { TimerInputContext } from './context/TimerInputContext';
 import { TimerInputContextType } from './Types';
 
@@ -71,6 +71,7 @@ const App = () => {
                     <Route path='/not-found' Component={NotFound} />
                     <Route path='/admin/dashboard' Component={Dashboard} />
                     <Route path='/admin/manage-roles' Component={ManageRoles} />
+                    <Route path='/results/edit' Component={ResultsEdit} />
                     <Route path="*" element={ <Navigate to="/not-found" replace />} />
                 </Routes>
             </Grid>
