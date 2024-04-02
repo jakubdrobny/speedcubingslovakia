@@ -2,3 +2,53 @@ body {
     margin: 0;
     padding: 0;
 }
+
+.mui-joy-btn {
+    --Icon-margin: initial;
+    --Icon-color: currentColor;
+    --Icon-fontSize: var(--joy-fontSize-xl, 1.25rem);
+    --CircularProgress-size: 20px;
+    --CircularProgress-thickness: 2px;
+    --Button-gap: 0.5rem;
+    min-height: var(--Button-minHeight, 2.25rem);
+    font-size: var(--joy-fontSize-sm, 0.875rem);
+    padding-block: var(--Button-paddingBlock, 0.375rem);
+    padding-inline: 1rem;
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+    border-radius: var(--Button-radius, var(--joy-radius-sm, 6px));
+    margin: var(--Button-margin);
+    border: none;
+    background-color: transparent;
+    display: -webkit-inline-box;
+    display: -webkit-inline-flex;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    -webkit-align-items: center;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    position: relative;
+    -webkit-text-decoration: none;
+    text-decoration: none;
+    font-family: var(--joy-fontFamily-body, "Inter", var(--joy-fontFamily-fallback, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"));
+    font-weight: var(--joy-fontWeight-lg, 600);
+    line-height: var(--joy-lineHeight-md, 1.5);
+    --variant-borderWidth: 0px;
+}
+
+.mui-joy-btn-soft-success {
+    color: var(--variant-softColor, var(--joy-palette-success-softColor, var(--joy-palette-success-700, #0A470A)));
+    background-color: var(--variant-softBg, var(--joy-palette-success-softBg, var(--joy-palette-success-100, #E3FBE3)));
+}
+
+.mui-joy-btn-soft-danger {
+    color: var(--variant-softColor, var(--joy-palette-danger-softColor, var(--joy-danger-danger-700, #7D1212)));
+    background-color: var(--variant-softBg, var(--joy-palette-danger-softBg, var(--joy-palette-danger-100, #FCE4E4)));
+}
+
+

@@ -1,4 +1,4 @@
-import { CompetitionData, CompetitionEvent, CompetitionState, FilterValue, InputMethod, ResultEntry, User } from "./Types";
+import { CompetitionData, CompetitionEvent, CompetitionState, FilterValue, InputMethod, ResultEntry, ResultsStatus, User } from "./Types";
 
 const events: CompetitionEvent[] = [
     {
@@ -98,6 +98,29 @@ const scrambles: string[][] = [
     ]
 ]
 
+const waitingForApprovalResultsStatus: ResultsStatus = {
+    id: 1,
+    approvalFinished: false,
+    visible: false,
+    displayname: 'Waiting for approval',
+}
+
+const deniedResultsStatus: ResultsStatus = {
+    id: 2,
+    approvalFinished: true,
+    approved: false,
+    visible: false,
+    displayname: 'Denied',
+}
+
+const approvedResultsStatus: ResultsStatus = {
+    id: 3,
+    approvalFinished: true,
+    approved: true,
+    visible: true,
+    displayname: 'Approved',
+}
+
 const results: { [key: string]: ResultEntry } = {
     '3x3x3': {
         'id': 1,
@@ -115,7 +138,7 @@ const results: { [key: string]: ResultEntry } = {
         'solve4': 'DNF',
         'solve5': '14.43',
         'comment': '',
-        'statusid': 1,
+        'status': waitingForApprovalResultsStatus,
     },
     '2x2x2': {
         'id': 2,
@@ -133,7 +156,7 @@ const results: { [key: string]: ResultEntry } = {
         'solve4': '2.00',
         'solve5': '1.43',
         'comment': '',
-        'statusid': 2,
+        'status': approvedResultsStatus,
     },
     '6x6x6': {
         'id': 3,
@@ -151,7 +174,7 @@ const results: { [key: string]: ResultEntry } = {
         'solve4': '',
         'solve5': '',
         'comment': '',
-        'statusid': 2,
+        'status': approvedResultsStatus,
     },
     'Mega': {
         'id': 4,
@@ -169,7 +192,7 @@ const results: { [key: string]: ResultEntry } = {
         'solve4': '42.00',
         'solve5': '41.43',
         'comment': '',
-        'statusid': 2,
+        'status': deniedResultsStatus,
     },
     'Pyra': {
         'id': 5,
@@ -187,7 +210,7 @@ const results: { [key: string]: ResultEntry } = {
         'solve4': '2.00',
         'solve5': '2.69',
         'comment': '',
-        'statusid': 2,
+        'status': waitingForApprovalResultsStatus,
     },
     '3BLD': {
         'id': 6,
@@ -205,7 +228,7 @@ const results: { [key: string]: ResultEntry } = {
         'solve4': '',
         'solve5': '',
         'comment': '',
-        'statusid': 2,
+        'status': deniedResultsStatus,
     },
     'FMC': {
         'id': 7,
@@ -223,7 +246,7 @@ const results: { [key: string]: ResultEntry } = {
         'solve4': '',
         'solve5': '',
         'comment': '',
-        'statusid': 2,
+        'status': approvedResultsStatus
     },
 }
 
@@ -421,7 +444,12 @@ export const initialCompetitionState: CompetitionState = {
         solve4: '',
         solve5: '',
         comment: '',
-        statusid: 0,
+        status: {
+            id: 0,
+            approvalFinished: true,
+            visible: true,
+            displayname: '',
+        }
     },
     penalties: Array(5).fill('0')
 };
@@ -456,4 +484,8 @@ export const reformatTime = (oldFormattedTime: string, added: boolean = false): 
 
 export const sendResults = async (resultEntry: ResultEntry) => {
     console.log('zatial sa nic neudeje', resultEntry);
+}
+
+export const saveValidation = async (resultEntry: ResultEntry, verdict: boolean) => {
+    console.log('zatial sa nic neudeje', verdict, resultEntry);
 }

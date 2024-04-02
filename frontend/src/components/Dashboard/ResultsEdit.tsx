@@ -1,7 +1,10 @@
-import { Box, Button, Card, Chip, Divider, FormControl, FormHelperText, FormLabel, Grid, Input, Option, Select, Stack, Typography } from "@mui/joy";
+import { Box, Button, Card, Chip, FormControl, FormHelperText, FormLabel, Grid, Input, Option, Select, Stack, Typography } from "@mui/joy";
+import { Check, Close } from "@mui/icons-material";
 import { CompetitionEvent, ResultEntry } from "../../Types";
-import { getAvailableEvents, getResults, reformatTime, sendResults } from "../../utils";
-import { useCallback, useEffect, useState } from "react";
+import { getAvailableEvents, getResults, reformatTime, saveValidation, sendResults } from "../../utils";
+import { useEffect, useState } from "react";
+
+type ButtonColor = "danger" | "warning" | "success" | "primary" | "neutral" | undefined;
 
 const ResultsEdit = () => {
     const [availableEvents, setAvailableEvents] = useState<CompetitionEvent[]>([]);
@@ -21,15 +24,19 @@ const ResultsEdit = () => {
             .catch(console.error);
     }, []);
 
+    const fetchResults = () => {
+        getResults(competitorName, competitionName, availableEvents.find(e => e.displayname === competitionEvent))
+            .then(res => setResults(res))
+            .catch(console.error);
+    }
+
     const handleQuery = () => {
         if (competitionEvent === undefined) {
             setSelectError(true);
             return;
         }
         
-        getResults(competitorName, competitionName, availableEvents.find(e => e.displayname === competitionEvent))
-            .then(res => setResults(res))
-            .catch(console.error);
+        fetchResults();
     }
 
     const updateSolve = (newTime: string, resultsIdx: number, solveProp: string) => {
@@ -72,6 +79,12 @@ const ResultsEdit = () => {
 
     const saveResult = (resultsIdx: number) => {
         sendResults(results[resultsIdx]);
+    }
+
+    const validateResult = (resultsIdx: number, verdict: boolean) => {
+        saveValidation(results[resultsIdx], verdict);
+
+        fetchResults();
     }
 
     return (
@@ -133,12 +146,11 @@ const ResultsEdit = () => {
             <Card>
                 <Stack spacing={2}>
                     <Typography level="h3" sx={{borderBottom: '1px solid #636D7433'}}>Results</Typography>
-                    {results.map((result: ResultEntry, resultIdx: number) => {
-                        console.log(result);
-                        return (
-                            <Card key={result.id}>
+                    {results.map((result: ResultEntry, resultIdx: number) => (
+                        <Card key={result.id}>
+                            <Stack spacing={3} sx={{marginBottom: "0.25em"}}>
                                 <Grid container>
-                                    <Grid xs={6}>
+                                    <Grid xs={6} sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                                         <Stack spacing={2}>
                                             <div>
                                                 <Typography level="h4">Name:</Typography>
@@ -157,6 +169,23 @@ const ResultsEdit = () => {
                                                         </span>
                                                     </Chip>
                                                 </Typography>
+                                            </div>
+                                            <div style={result.status.approvalFinished ? {display: 'none'} : {}}>
+                                                <Typography level="h4">Resolve status:</Typography>
+                                                <Stack spacing={2} direction="row">
+                                                    <Button color='danger' variant='soft'><Close />Deny</Button>
+                                                    <Button color='success' variant='soft'><Check />Approve</Button>
+                                                </Stack>
+                                            </div>
+                                            <div style={!result.status.approvalFinished ? {display: 'none'} : {}}>
+                                                <Typography level="h4">Status:</Typography>
+                                                {result.status.approved === true ? 
+                                                    <div className="mui-joy-btn mui-joy-btn-soft-danger">Denied</div>
+                                                : result.status.approved === false ?
+                                                    <div className="mui-joy-btn mui-joy-btn-soft-success">Approved</div>
+                                                :
+                                                    <></>
+                                                }
                                             </div>
                                         </Stack>
                                     </Grid>
@@ -179,9 +208,9 @@ const ResultsEdit = () => {
                                     </Grid>
                                 </Grid>
                                 <Button type="submit" onClick={() => saveResult(resultIdx)}>Save</Button>
-                            </Card>
-                        );
-                    })}
+                            </Stack>
+                        </Card>
+                    ))}
                 </Stack>
             </Card>
         </Stack>

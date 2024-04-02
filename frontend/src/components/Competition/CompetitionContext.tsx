@@ -40,7 +40,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
 
     const saveResults = () => {
         const solveProp: keyof ResultEntry= `solve${competitionState.currentSolveIdx+1}` as keyof ResultEntry;
-        const formattedTime = competitionState.results[solveProp].toString();
+        const formattedTime = (competitionState.results[solveProp] || '').toString();
         const finalFormattedTime = reformatWithPenalties(formattedTime, competitionState.penalties[competitionState.currentSolveIdx]);
         console.log(`You saved a time of ${finalFormattedTime}!`);
         sendResults(competitionState.results);

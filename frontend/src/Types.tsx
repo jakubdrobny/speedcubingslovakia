@@ -65,7 +65,7 @@ export type ResultEntry = {
     solve4: string,
     solve5: string,
     comment: string,
-    statusid: number,
+    status: ResultsStatus
 }
 
 export enum ResultEntrySolves {
@@ -120,4 +120,12 @@ export enum DashboardPanel {
 
 export type CompetitionEditProps = {
     edit: boolean
+}
+
+export type ResultsStatus = {
+    id: number,
+    approvalFinished: boolean,
+    approved?: boolean,
+    visible: boolean,
+    displayname: string,
 }
