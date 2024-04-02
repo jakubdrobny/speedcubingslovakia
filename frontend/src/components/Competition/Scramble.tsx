@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
+import { Typography } from "@mui/joy";
 import { useContext } from "react";
 
 const Scramble = () => {
@@ -34,7 +35,7 @@ const Scramble = () => {
     return (
         <div style={[TimerInputCurrentState.NotSolving, TimerInputCurrentState.GettingReady].includes(timerInputState.currentState) ? {display: 'flex', flexDirection: 'column', alignItems: 'center'} : {display: 'none'}}>
             <h3>Scramble:</h3>
-            <p style={{whiteSpace: 'pre-line'}}>{scramble}</p>
+            <Typography style={{whiteSpace: 'pre-line'}}>{scramble}</Typography>
             <h3>Preview:</h3>
             <div ref={containerRef}></div>
         </div>

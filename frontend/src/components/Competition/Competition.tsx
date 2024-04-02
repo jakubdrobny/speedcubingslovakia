@@ -1,6 +1,7 @@
 import '../../styles/cubing-icons.css'
 
 import { AuthContextType, CompetitionContextType, CompetitionData, ResultEntry } from "../../Types";
+import { Stack, Typography } from '@mui/joy';
 import { getCompetitionById, getResultsFromCompetitionAndEvent } from "../../utils";
 import { useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -30,13 +31,13 @@ const Competition = () => {
     }, []);
 
     return (
-        <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-            <h1>{competitionState.name}</h1>
-            <p>{competitionState.startdate.toLocaleString()} - {competitionState.enddate.toLocaleString()}</p>
+        <Stack spacing={3} sx={{display: 'flex', alignItems: 'center', margin: "2em 0"}}>
+            <Typography level="h1">{competitionState.name}</Typography>
+            <Typography>{competitionState.startdate.toLocaleString()} - {competitionState.enddate.toLocaleString()}</Typography>
             <EventSelector />
             <br/>
             <CompetitorArea />
-        </div>
+        </Stack>
     );
 };
 

@@ -1,9 +1,8 @@
-import { Button, ButtonGroup, Typography } from "@mui/joy";
+import { Button, ButtonGroup, Card, Stack, Typography } from "@mui/joy";
 import { CompetitionData, FilterValue } from "../../Types";
 import { useEffect, useState } from "react";
 
 import FormControl from '@mui/joy/FormControl';
-import FormLabel from '@mui/joy/FormLabel';
 import { Link } from "react-router-dom";
 import Table from '@mui/joy/Table';
 import { loadCompetitionData } from "../../utils";
@@ -21,18 +20,18 @@ const Competitions = () => {
     const handleFilterChange = (newFilterValue: FilterValue) => setFilterValue(newFilterValue);
 
     return (
-        <div>
-            <h1>Online competitions</h1>
-            <FormControl>
-                <FormLabel>Filters:</FormLabel>
-                <ButtonGroup variant="outlined">
+        <Card sx={{margin: "1em 0"}}>
+            <Typography level="h1" sx={{margin: "0.25em 0", borderBottom: '1px solid '}}>Online competitions</Typography>
+            <Stack direction="row" sx={{display: 'flex', alignItems: 'center'}} spacing={1}>
+                <Typography level="title-md">Filters:</Typography>
+                <ButtonGroup>
                 {Object.keys(FilterValue).map((key) => {
                     const filterKey = key as keyof typeof FilterValue;
                     return (
                         <Button 
                             key={FilterValue[filterKey]} 
                             onClick={() => handleFilterChange(FilterValue[filterKey])}
-                            variant={filterValue === FilterValue[filterKey] ? "solid" : "plain"}
+                            variant={filterValue === FilterValue[filterKey] ? "solid" : "outlined"}
                             color="primary"
                         >
                             {FilterValue[filterKey]}
@@ -40,8 +39,7 @@ const Competitions = () => {
                     );
                 })}
                 </ButtonGroup>
-            </FormControl>
-
+            </Stack>
             <Table aria-label="basic table">
                 <thead>
                     <tr>
@@ -64,7 +62,7 @@ const Competitions = () => {
                     })}
                 </tbody>
             </Table>
-        </div>
+        </Card>
     );
 }
 

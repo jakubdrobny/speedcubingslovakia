@@ -1,6 +1,6 @@
+import { Card, Typography } from "@mui/joy";
 import { CompetitionContextType, InputMethod } from "../../Types";
 
-import { Card } from "@mui/joy";
 import { CompetitionContext } from "./CompetitionContext";
 import { useContext } from "react";
 
@@ -12,22 +12,22 @@ const Guide = () => {
             <h3 style={{ textAlign: 'center', marginBottom: 0 }}>How to submit results?</h3>
             {competitionState?.events[competitionState?.currentEventIdx]?.iconcode === "fmc" ? (
                 <div>
-                    <p>
+                    <Typography>
                         For FMC enter your solutions instead of times. They will be evaluated automatically.
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                         You can find the list of allowed moves <a href="https://www.worldcubeassociation.org/regulations/#12a">here</a>.
                         (TLDR: basically anthing except slice moves)
-                    </p>
+                    </Typography>
                 </div>
             ) : competitionState.inputMethod === InputMethod.Manual ? (
                 <div>
-                    <p>
+                    <Typography>
                         To enter your times, type just the numbers. For example, to enter 12 seconds and 55 hundreths, type "1255".
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                         Penalties:
-                    </p>
+                    </Typography>
                     <ul>
                         <li key={"3"}>
                             If you get a +2, enter the final result. For example, if you finished
@@ -40,12 +40,12 @@ const Guide = () => {
                 </div>
             ) : 
                 <div>
-                    <p>
+                    <Typography>
                         The timer is controlled using Spacebar. To start the solve, hold for 1 second.
-                    </p>
-                    <p>
+                    </Typography>
+                    <Typography>
                         After the solve, to add penalties, just click the corresponding buttons.
-                    </p>
+                    </Typography>
                     <ul>
                         <li key={"5"}>
                             You can add up to +16, after that, it will cycle back to no penalty.
@@ -56,7 +56,7 @@ const Guide = () => {
                     </ul>
                 </div>
             }
-            <p>After you are done, don't forget to save your results!</p>
+            <Typography>After you are done, don't forget to save your results!</Typography>
         </Card>
     );
 }

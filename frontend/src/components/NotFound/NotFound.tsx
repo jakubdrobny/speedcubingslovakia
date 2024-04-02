@@ -1,8 +1,10 @@
+import { Typography } from "@mui/joy";
+
 const NotFound = () => {
     return (
         <div>
-            <h1>Page not found!</h1>
-            <p>Nothing to look for here!</p>
+            <Typography level="h1">Page not found!</Typography>
+            <Typography>Nothing to look for here!</Typography>
         </div>
     );
 }

@@ -51,4 +51,6 @@ body {
     background-color: var(--variant-softBg, var(--joy-palette-danger-softBg, var(--joy-palette-danger-100, #FCE4E4)));
 }
 
-
+.bottom-divider {
+    border-bottom: 1px solid #636D7433;
+}

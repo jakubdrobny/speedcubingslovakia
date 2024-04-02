@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
+import { Typography } from "@mui/joy";
 import { reformatWithPenalties } from "../../utils";
 
 const Timer = () => {
@@ -16,7 +17,7 @@ const Timer = () => {
 
     return (
         <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%'}}>
-            <h1 style={{color: timerInputState.color}}>
+            <Typography level="h1" style={{color: timerInputState.color}}>
                 {timerInputState.currentState === TimerInputCurrentState.Ready
                 ?
                     "Ready"
@@ -27,7 +28,7 @@ const Timer = () => {
                     :
                         reformatWithPenalties(formattedTime, competitionState.penalties[competitionState.currentSolveIdx])
                 }
-            </h1>
+            </Typography>
         </div>
     )
 }

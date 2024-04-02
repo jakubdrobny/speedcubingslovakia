@@ -4,8 +4,6 @@ import { CompetitionEvent, ResultEntry } from "../../Types";
 import { getAvailableEvents, getResults, reformatTime, saveValidation, sendResults } from "../../utils";
 import { useEffect, useState } from "react";
 
-type ButtonColor = "danger" | "warning" | "success" | "primary" | "neutral" | undefined;
-
 const ResultsEdit = () => {
     const [availableEvents, setAvailableEvents] = useState<CompetitionEvent[]>([]);
     const [competitorName, setCompetitorName] = useState<string>('');
@@ -92,7 +90,7 @@ const ResultsEdit = () => {
             <Typography level="h2">Edit results</Typography>
             <Card>
                 <Stack spacing={2}>
-                    <Typography level="h3" sx={{borderBottom: '1px solid #636D7433'}}>Query builder</Typography>
+                    <Typography level="h3" className="bottom-divider">Query builder</Typography>
                     <FormControl>
                         <FormLabel>Competitor name</FormLabel>
                         <Input
@@ -145,7 +143,7 @@ const ResultsEdit = () => {
             </Card>
             <Card>
                 <Stack spacing={2}>
-                    <Typography level="h3" sx={{borderBottom: '1px solid #636D7433'}}>Results</Typography>
+                    <Typography level="h3" className="bottom-divider">Results</Typography>
                     {results.map((result: ResultEntry, resultIdx: number) => (
                         <Card key={result.id}>
                             <Stack spacing={3} sx={{marginBottom: "0.25em"}}>
@@ -173,8 +171,12 @@ const ResultsEdit = () => {
                                             <div style={result.status.approvalFinished ? {display: 'none'} : {}}>
                                                 <Typography level="h4">Resolve status:</Typography>
                                                 <Stack spacing={2} direction="row">
-                                                    <Button color='danger' variant='soft'><Close />Deny</Button>
-                                                    <Button color='success' variant='soft'><Check />Approve</Button>
+                                                    <Button color='danger' variant='soft' onClick={() => validateResult(resultIdx, false)}>
+                                                        <Close />Deny
+                                                    </Button>
+                                                    <Button color='success' variant='soft' onClick={() => validateResult(resultIdx, true)}>
+                                                        <Check />Approve
+                                                    </Button>
                                                 </Stack>
                                             </div>
                                             <div style={!result.status.approvalFinished ? {display: 'none'} : {}}>
