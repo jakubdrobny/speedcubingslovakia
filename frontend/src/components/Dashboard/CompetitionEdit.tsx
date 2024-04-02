@@ -1,49 +1,21 @@
-import { AuthContextType, CompetitionData, CompetitionEvent, CompetitionState, InputMethod } from "../../Types";
-import { Box, Button, Card, Chip, Input, Option, Select, Typography } from "@mui/joy";
-import { ChangeEvent, ReactNode, useContext, useEffect, useState } from "react";
-import dayjs, { Dayjs } from 'dayjs';
-import { getAvailableEvents, updateCompetition } from "../../utils";
+import { AuthContextType, CompetitionData, CompetitionEvent, CompetitionState } from "../../Types";
+import { Button, Card, Typography } from "@mui/joy";
+import { ChangeEvent, useContext, useEffect, useState } from "react";
+import { getAvailableEvents, initialCompetitionState, updateCompetition } from "../../utils";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { AuthContext } from "../../context/AuthContext";
 import { CompetitionEditProps } from "../../Types";
-import { DateTimeField } from '@mui/x-date-pickers/DateTimeField';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { SelectChangeEvent } from "@mui/material/Select";
 import { getCompetitionById } from "../../utils";
-
-const initialState: CompetitionState = {
-    id: "",
-    name: "",
-    startdate: new Date(),
-    enddate: new Date(),
-    events: [],
-    currentEventIdx: 0,
-    noOfSolves: 1,
-    currentSolveIdx: 0,
-    scrambles: [],
-    inputMethod: InputMethod.Manual,
-    results: {
-        id: 0,
-        userid: 0,
-        solve1: '',
-        solve2: '',
-        solve3: '',
-        solve4: '',
-        solve5: '',
-        comment: '',
-        statusid: 0,
-    },
-    penalties: Array(5).fill('0')
-};
 
 const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const { authState } = useContext(AuthContext) as AuthContextType
     const [availableEvents, setAvailableEvents] = useState<CompetitionEvent[]>([]);
-    const [competitionState, setCompetitionState] = useState<CompetitionState>(initialState);
+    const [competitionState, setCompetitionState] = useState<CompetitionState>(initialCompetitionState);
 
     useEffect(() => {
         if (!authState.authenticated || !authState.admin) {

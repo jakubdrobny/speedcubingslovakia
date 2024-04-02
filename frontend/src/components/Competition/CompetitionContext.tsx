@@ -1,13 +1,13 @@
-import { AuthContextType, CompetitionContextType, CompetitionData, CompetitionEvent, CompetitionState, InputMethod, PenaltyType, ResultEntry } from "../../Types";
+import { AuthContextType, CompetitionContextType, CompetitionData, CompetitionEvent, CompetitionState, InputMethod, ResultEntry } from "../../Types";
 import React, { ReactNode, createContext, useContext, useState } from "react";
-import { getResultsFromCompetitionAndEvent, reformatWithPenalties } from "../../utils";
+import { getResultsFromCompetitionAndEvent, initialCompetitionState, reformatWithPenalties, sendResults } from "../../utils";
 
 import { AuthContext } from "../../context/AuthContext";
 
 export const CompetitionContext = createContext<CompetitionContextType | null>(null);
 
 export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ children }) => {
-    const [competitionState, setCompetitionState] = useState<CompetitionState>(initialState);
+    const [competitionState, setCompetitionState] = useState<CompetitionState>(initialCompetitionState);
     const { authState } = useContext(AuthContext) as AuthContextType;
 
     const updateBasicInfo = (info: CompetitionData) => {
@@ -43,6 +43,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
         const formattedTime = competitionState.results[solveProp].toString();
         const finalFormattedTime = reformatWithPenalties(formattedTime, competitionState.penalties[competitionState.currentSolveIdx]);
         console.log(`You saved a time of ${finalFormattedTime}!`);
+        sendResults(competitionState.results);
     }
 
     const addPenalty = (newPenalty: string) => {
@@ -92,28 +93,3 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
         </CompetitionContext.Provider>
     );
 }
-
-const initialState: CompetitionState = {
-    id: "",
-    name: "",
-    startdate: new Date(),
-    enddate: new Date(),
-    events: [],
-    currentEventIdx: 0,
-    noOfSolves: 1,
-    currentSolveIdx: 0,
-    scrambles: [],
-    inputMethod: InputMethod.Manual,
-    results: {
-        id: 0,
-        userid: 0,
-        solve1: '',
-        solve2: '',
-        solve3: '',
-        solve4: '',
-        solve5: '',
-        comment: '',
-        statusid: 0,
-    },
-    penalties: Array(5).fill('0')
-};

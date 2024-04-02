@@ -3,6 +3,7 @@ import { CompetitionContextType, ResultEntry } from "../../Types";
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
+import { reformatTime } from "../../utils";
 
 const TimerInput = () => {
     const [forceRerender, setForceRerender] = useState(false);
@@ -11,35 +12,7 @@ const TimerInput = () => {
     const formattedTime = competitionState.results[solveProp].toString();
     
     useEffect(() => setForceRerender(!forceRerender), [competitionState.currentEventIdx]);
-
-    const reformatTime = (oldFormattedTime: string, added: boolean = false): string => {
-        if (added) {
-            let idx = 0;
-            while (idx < oldFormattedTime.length && /^\D/.test(oldFormattedTime[idx]) || oldFormattedTime[idx] === '0')
-                idx++;
-            oldFormattedTime = oldFormattedTime.slice(idx);
-        }
-
-        const matchedDigits = oldFormattedTime.match(/\d+/g);
-        let digits = !matchedDigits ? '' : matchedDigits.join('');
-        if (digits.length < 3)
-            digits = digits.padStart(3, '0');
-
-        let newFormattedTime = `${digits[digits.length - 1]}${digits[digits.length - 2]}.`;
-        let idx = digits.length - 3;
-        while (idx >= 0) {
-            newFormattedTime += digits[idx--];
-            if (idx >= 0)
-                newFormattedTime += digits[idx--];
-            if (idx >= 0)
-                newFormattedTime += ':';
-        }
-
-        newFormattedTime = newFormattedTime.split('').reverse().join('');
-
-        return newFormattedTime;
-    }
-
+    
     const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
         const newValue = e.currentTarget.value;
 

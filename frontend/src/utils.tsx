@@ -1,4 +1,4 @@
-import { CompetitionData, CompetitionEvent, CompetitionState, FilterValue, ResultEntry, User } from "./Types";
+import { CompetitionData, CompetitionEvent, CompetitionState, FilterValue, InputMethod, ResultEntry, User } from "./Types";
 
 const events: CompetitionEvent[] = [
     {
@@ -102,6 +102,13 @@ const results: { [key: string]: ResultEntry } = {
     '3x3x3': {
         'id': 1,
         'userid': 1,
+        'username': 'Janko Hrasko',
+        'competitionid': 4,
+        'competitionname': 'Weekly Competition 4',
+        'eventid': 1,
+        'eventname': '3x3x3',
+        'iconcode': '333',
+        'format': 'ao5',
         'solve1': '12.55',
         'solve2': '10.14',
         'solve3': '8.81',
@@ -113,6 +120,13 @@ const results: { [key: string]: ResultEntry } = {
     '2x2x2': {
         'id': 2,
         'userid': 1,
+        'username': 'Janko Hrasko',
+        'competitionid': 4,
+        'competitionname': 'Weekly Competition 4',
+        'eventid': 2,
+        'eventname': '2x2x2',
+        'iconcode': '222',
+        'format': 'ao5',
         'solve1': '2.55',
         'solve2': '1.14',
         'solve3': '8.81',
@@ -124,6 +138,13 @@ const results: { [key: string]: ResultEntry } = {
     '6x6x6': {
         'id': 3,
         'userid': 1,
+        'username': 'Janko Hrasko',
+        'competitionid': 4,
+        'competitionname': 'Weekly Competition 4',
+        'eventid': 3,
+        'eventname': '6x6x6',
+        'iconcode': '666',
+        'format': 'mo3',
         'solve1': '2:00.55',
         'solve2': '1:59.14',
         'solve3': '1:58.80',
@@ -135,6 +156,13 @@ const results: { [key: string]: ResultEntry } = {
     'Mega': {
         'id': 4,
         'userid': 1,
+        'username': 'Janko Hrasko',
+        'competitionid': 4,
+        'competitionname': 'Weekly Competition 4',
+        'eventid': 5,
+        'eventname': 'Megaminx',
+        'iconcode': 'mega',
+        'format': 'ao5',
         'solve1': '42.55',
         'solve2': '41.14',
         'solve3': '48.81',
@@ -146,6 +174,13 @@ const results: { [key: string]: ResultEntry } = {
     'Pyra': {
         'id': 5,
         'userid': 1,
+        'username': 'Janko Hrasko',
+        'competitionid': 4,
+        'competitionname': 'Weekly Competition 4',
+        'eventid': 5,
+        'eventname': 'Pyraminx',
+        'iconcode': 'pyra',
+        'format': 'ao5',
         'solve1': '2.13',
         'solve2': '1.01',
         'solve3': '2.99',
@@ -157,6 +192,13 @@ const results: { [key: string]: ResultEntry } = {
     '3BLD': {
         'id': 6,
         'userid': 1,
+        'username': 'Janko Hrasko',
+        'competitionid': 4,
+        'competitionname': 'Weekly Competition 4',
+        'eventid': 6,
+        'eventname': '3BLD',
+        'iconcode': '333bld',
+        'format': 'bo3',
         'solve1': 'DNF',
         'solve2': '1:00.05',
         'solve3': 'DNS',
@@ -166,8 +208,15 @@ const results: { [key: string]: ResultEntry } = {
         'statusid': 2,
     },
     'FMC': {
-        'id': 2,
+        'id': 7,
         'userid': 1,
+        'username': 'Janko Hrasko',
+        'competitionid': 4,
+        'competitionname': 'Weekly Competition 4',
+        'eventid': 7,
+        'eventname': 'FMC',
+        'iconcode': 'fmc',
+        'format': 'mo3',
         'solve1': 'R U R\' U\'',
         'solve2': 'abc',
         'solve3': '',
@@ -334,4 +383,77 @@ export const getAvailableEvents = async () => {
 export const updateCompetition = (state: CompetitionState, edit: boolean) => {
     console.log('editujem')
     return;
+}
+
+export const getResults = async (competitorName: string, competitionName: string, competeEvent: CompetitionEvent | undefined) => {
+    const res: ResultEntry[] = [];
+    for (const [k, v] of Object.entries(results)) {
+        console.log(v);
+        res.push(v);
+    }
+    return res;
+}
+
+export const initialCompetitionState: CompetitionState = {
+    id: "",
+    name: "",
+    startdate: new Date(),
+    enddate: new Date(),
+    events: [],
+    currentEventIdx: 0,
+    noOfSolves: 1,
+    currentSolveIdx: 0,
+    scrambles: [],
+    inputMethod: InputMethod.Manual,
+    results: {
+        id: 0,
+        userid: 0,
+        username: '',
+        competitionid: 0,
+        competitionname: '',
+        eventid: 0,
+        eventname: '',
+        iconcode: '',
+        format: '',
+        solve1: '',
+        solve2: '',
+        solve3: '',
+        solve4: '',
+        solve5: '',
+        comment: '',
+        statusid: 0,
+    },
+    penalties: Array(5).fill('0')
+};
+
+export const reformatTime = (oldFormattedTime: string, added: boolean = false): string => {
+    if (added) {
+        let idx = 0;
+        while (idx < oldFormattedTime.length && /^\D/.test(oldFormattedTime[idx]) || oldFormattedTime[idx] === '0')
+            idx++;
+        oldFormattedTime = oldFormattedTime.slice(idx);
+    }
+
+    const matchedDigits = oldFormattedTime.match(/\d+/g);
+    let digits = !matchedDigits ? '' : matchedDigits.join('');
+    if (digits.length < 3)
+        digits = digits.padStart(3, '0');
+
+    let newFormattedTime = `${digits[digits.length - 1]}${digits[digits.length - 2]}.`;
+    let idx = digits.length - 3;
+    while (idx >= 0) {
+        newFormattedTime += digits[idx--];
+        if (idx >= 0)
+            newFormattedTime += digits[idx--];
+        if (idx >= 0)
+            newFormattedTime += ':';
+    }
+
+    newFormattedTime = newFormattedTime.split('').reverse().join('');
+
+    return newFormattedTime;
+}
+
+export const sendResults = async (resultEntry: ResultEntry) => {
+    console.log('zatial sa nic neudeje', resultEntry);
 }

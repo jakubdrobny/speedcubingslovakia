@@ -52,6 +52,13 @@ export type CompetitionContextType = {
 export type ResultEntry = {
     id: number,
     userid: number,
+    username: string,
+    competitionid: number,
+    competitionname: string,
+    eventid: number,
+    eventname: string,
+    iconcode: string,
+    format: string,
     solve1: string,
     solve2: string,
     solve3: string,
