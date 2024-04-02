@@ -2,7 +2,7 @@ import '../../styles/cubing-icons.css'
 
 import { Alert, CircularProgress, Stack, Typography } from '@mui/joy';
 import { AuthContextType, CompetitionContextType, CompetitionData, ResultEntry } from "../../Types";
-import { getCompetitionById, getResultsFromCompetitionAndEvent, initialCompetitionState } from "../../utils";
+import { formatDate, getCompetitionById, getResultsFromCompetitionAndEvent, initialCompetitionState } from "../../utils";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -44,7 +44,7 @@ const Competition = () => {
                 : 
                     <>
                         <Typography level="h1">{competitionState.name}</Typography>
-                        <Typography>{competitionState.startdate.toLocaleString()} - {competitionState.enddate.toLocaleString()}</Typography>
+                        <Typography>{formatDate(competitionState.startdate)} - {formatDate(competitionState.enddate)}</Typography>
                         <EventSelector />
                         {competitionState.loadingState.results ? 
                             <CircularProgress />

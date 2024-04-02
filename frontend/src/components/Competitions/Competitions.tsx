@@ -1,10 +1,10 @@
 import { Alert, Button, ButtonGroup, Card, CircularProgress, Stack, Typography } from "@mui/joy";
 import { CompetitionData, FilterValue } from "../../Types";
+import { formatDate, loadFilteredCompetitions } from "../../utils";
 import { useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Table from '@mui/joy/Table';
-import { loadFilteredCompetitions } from "../../utils";
 
 const Competitions = () => {
     const [competitionData, setCompetitionData] = useState<CompetitionData[]>([])
@@ -26,16 +26,11 @@ const Competitions = () => {
             });
     }, [filterValue]);
 
-    const formatDate = (dateString: string): String => {
-        const date = new Date(dateString)
-        return date.toLocaleDateString() + " " + date.toLocaleTimeString()
-    }
-
     const handleFilterChange = (newFilterValue: FilterValue) => setFilterValue(newFilterValue);
 
     return (
         <Card sx={{margin: "1em 0"}}>
-            <Typography level="h1" sx={{margin: "0.25em 0", borderBottom: '1px solid '}}>Online competitions</Typography>
+            <Typography level="h2" sx={{margin: "0.25em 0", borderBottom: '1px solid #CDD7E1'}}>Online competitions</Typography>
             <Stack direction="row" sx={{display: 'flex', alignItems: 'center'}} spacing={1}>
                 <Typography level="title-md">Filters:</Typography>
                 <ButtonGroup>

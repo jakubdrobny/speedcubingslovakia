@@ -13,8 +13,9 @@ export const getCompetitionById = async (id: string | undefined): Promise<Compet
         return Promise.reject("Invalid competition id.");
     }
     
-    const response = await axios.get(`/api/competitions/${id}`)
-    return response.data;
+    const response = await axios.get(`/api/competition/${id}`)
+    console.log(response.data);
+    return !response.data ? undefined : response.data;
 }
 
 export const getResultsFromCompetitionAndEvent = async (token: string, id: string | undefined, event: CompetitionEvent): Promise<ResultEntry> => {
@@ -225,4 +226,9 @@ export const competitionOnGoing = (state: CompetitionState): boolean => {
     const now = new Date();
     const enddate = new Date(state.enddate)
     return startdate < now && now < enddate;
+}
+
+export const formatDate = (dateString: string): String => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString()
 }
