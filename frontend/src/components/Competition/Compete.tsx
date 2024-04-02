@@ -7,6 +7,7 @@ import ManualInput from "./ManualInput";
 import Penalties from "./Penalties";
 import Scramble from "./Scramble";
 import TimerInput from "./TimerInput";
+import { competitionOnGoing } from "../../utils";
 import { useContext } from "react";
 
 const Compete = () => {
@@ -58,11 +59,11 @@ const Compete = () => {
                     </h3>
                 </Grid>
                 <Grid xs={12}>
-                    {competitionState.inputMethod === InputMethod.Manual ? <ManualInput /> : <TimerInput />}
+                    {competitionState.inputMethod === InputMethod.Manual || !competitionOnGoing(competitionState) ? <ManualInput /> : <TimerInput />}
                 </Grid>
                 <Penalties />
                 <Grid xs={12} sx={{marginTop: 2}}>
-                    <Button color="primary" variant="solid" onClick={saveResults} sx={{width: '100%'}}>Save</Button>
+                    <Button color="primary" variant="solid" onClick={saveResults} sx={{width: '100%'}} disabled={!competitionOnGoing(competitionState)}>Save</Button>
                 </Grid>
             </Grid>
         </Card>

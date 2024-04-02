@@ -3,6 +3,7 @@ import { CompetitionContextType, InputMethod, TimerInputContextType, TimerInputC
 
 import { CompetitionContext } from "./CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
+import { competitionOnGoing } from "../../utils";
 import { useContext } from "react";
 
 const Penalties = () => {
@@ -15,7 +16,7 @@ const Penalties = () => {
                 {display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', margin: '1em 0 1em 0'}
             : {display: 'none'}
         }>
-            <ButtonGroup>
+            <ButtonGroup disabled={!competitionOnGoing(competitionState)}>
                 <Button color="primary" variant="outlined" onClick={() => addPenalty("2")}>+2</Button>
                 <Button color="primary" variant="outlined" onClick={() => addPenalty("DNF")}>DNF</Button>
             </ButtonGroup>

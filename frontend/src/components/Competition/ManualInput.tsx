@@ -1,9 +1,9 @@
 import { Button, Input } from "@mui/joy";
 import { CompetitionContextType, ResultEntry } from "../../Types";
+import { competitionOnGoing, reformatTime } from "../../utils";
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
-import { reformatTime } from "../../utils";
 
 const TimerInput = () => {
     const [forceRerender, setForceRerender] = useState(false);
@@ -57,6 +57,7 @@ const TimerInput = () => {
                 value={formattedTime}
                 onChange={handleTimeInputChange}
                 onKeyDown={handleKeyDown}
+                disabled={!competitionOnGoing(competitionState)}
             />
         </div>
     )

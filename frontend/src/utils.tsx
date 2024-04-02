@@ -300,6 +300,7 @@ export const getCompetitionById = async (id: string | undefined): Promise<Compet
 
 export const getResultsFromCompetitionAndEvent = async (token: string, id: string | undefined, event: CompetitionEvent): Promise<ResultEntry> => {
     const response = await axios.get(`/api/results/${id}/${event.displayname}`)
+    console.log(response);
     return response.data;
 }
 
@@ -433,6 +434,11 @@ export const initialCompetitionState: CompetitionState = {
     currentSolveIdx: 0,
     scrambles: [],
     inputMethod: InputMethod.Manual,
+    loadingState: {
+        results: false,
+        compinfo: false,
+        error: ''
+    },
     results: {
         id: 0,
         userid: 0,
@@ -493,4 +499,9 @@ export const sendResults = async (resultEntry: ResultEntry) => {
 
 export const saveValidation = async (resultEntry: ResultEntry, verdict: boolean) => {
     console.log('zatial sa nic neudeje', verdict, resultEntry);
+}
+
+export const competitionOnGoing = (state: CompetitionState): boolean => {
+    const now = new Date();
+    return state.startdate < now && now < state.enddate;
 }

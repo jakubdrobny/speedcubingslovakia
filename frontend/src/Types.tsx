@@ -30,6 +30,11 @@ export type CompetitionState = CompetitionData & {
     noOfSolves: number,
     inputMethod: InputMethod,
     results: ResultEntry,
+    loadingState: {
+        compinfo: boolean,
+        results: boolean,
+        error: string
+    }
     penalties: string[]
 }
 

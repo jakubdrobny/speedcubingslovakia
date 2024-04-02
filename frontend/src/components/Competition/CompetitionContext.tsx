@@ -1,6 +1,6 @@
 import { AuthContextType, CompetitionContextType, CompetitionData, CompetitionEvent, CompetitionState, InputMethod, ResultEntry } from "../../Types";
 import React, { ReactNode, createContext, useContext, useState } from "react";
-import { getResultsFromCompetitionAndEvent, initialCompetitionState, reformatWithPenalties, sendResults } from "../../utils";
+import { competitionOnGoing, getResultsFromCompetitionAndEvent, initialCompetitionState, reformatWithPenalties, sendResults } from "../../utils";
 
 import { AuthContext } from "../../context/AuthContext";
 
@@ -13,22 +13,39 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
     const updateBasicInfo = (info: CompetitionData) => {
         const match = info.events[competitionState.currentEventIdx].format.match(/\d+$/)?.[0]
         const noOfSolves = match ? parseInt(match) : 1
-        setCompetitionState({...competitionState, ...info, noOfSolves: noOfSolves});
+        setCompetitionState(ps => {
+            return {
+                ...ps,
+                ...info,
+                noOfSolves: noOfSolves,
+                currentEventIdx: 0,
+                currentSolveIdx: 0,
+                loadingState: {
+                    ...ps.loadingState,
+                    results: false,
+                }
+            }
+        });
     }
 
     const updateCurrentEvent = async (idx: number) => {
         const match = competitionState.events[idx].format.match(/\d+$/)?.[0]
         const noOfSolves = match ? parseInt(match) : 1
-        const resultEntry = await getResultsFromCompetitionAndEvent(authState.token, competitionState.id, competitionState.events[idx]);
-        setCompetitionState(ps => ({
-            ...ps,
-            currentEventIdx: idx,
-            noOfSolves: noOfSolves,
-            currentSolveIdx: 0,
-            results: resultEntry,
-            penalties: Array(5).fill('0'),
-            inputMethod: competitionState.events[idx].displayname === "FMC" ? InputMethod.Manual : ps.inputMethod
-        }));
+        setCompetitionState(ps => ({...ps, loadingState: {...ps.loadingState, results: true, error: ''}}))
+        getResultsFromCompetitionAndEvent(authState.token, competitionState.id, competitionState.events[idx])
+            .then(resultEntry => {
+                setCompetitionState(ps => ({
+                    ...ps,
+                    currentEventIdx: idx,
+                    noOfSolves: noOfSolves,
+                    currentSolveIdx: 0,
+                    results: resultEntry,
+                    penalties: Array(5).fill('0'),
+                    inputMethod: competitionState.events[idx].displayname === "FMC" ? InputMethod.Manual : ps.inputMethod,
+                    loadingState: {...ps.loadingState, results: false}
+                }));
+            })
+            .catch(err => setCompetitionState(ps => ({...ps, loadingState: {...ps.loadingState, results: false, error: err.message}})))
     }
 
     const updateCurrentSolve = (idx: number) => setCompetitionState({...competitionState, currentSolveIdx: idx });
@@ -72,6 +89,9 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
     }
 
     const toggleInputMethod = () => {
+        if (!competitionOnGoing(competitionState))
+            return;
+
         if (competitionState.currentEventIdx < competitionState.events.length && competitionState.events[competitionState.currentEventIdx].displayname !== "FMC") {
             setCompetitionState(ps => ({
                 ...ps,

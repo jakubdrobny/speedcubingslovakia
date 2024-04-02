@@ -201,6 +201,7 @@ func main() {
 
 	router.GET("/api/ping", ping)
 	router.GET("api/results", getResults)
+	router.GET("api/results/:id/:event", getResultsByIdAndEvent)
 
 	router.Run("localhost:8080")
 }
@@ -217,4 +218,10 @@ func getResults(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, r)
+}
+
+func getResultsByIdAndEvent(c *gin.Context) {
+	event := c.Param("event")
+
+	c.IndentedJSON(http.StatusOK, results[event])
 }
