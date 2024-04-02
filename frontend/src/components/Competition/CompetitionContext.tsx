@@ -51,8 +51,6 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
     const updateCurrentSolve = (idx: number) => setCompetitionState({...competitionState, currentSolveIdx: idx });
 
     const updateCompetitionName = (newName: string) => setCompetitionState(ps => ({...ps, name: newName}));
-    const updateCompetitionStartDate = (newStartDate: Date) => setCompetitionState(ps => ({...ps, startdate: newStartDate}));
-    const updateCompetitionEndDate = (newEndDate: Date) => setCompetitionState(ps => ({...ps, enddate: newEndDate}));
     const updateCompetitionEvents = (newEvents: CompetitionEvent[]) => setCompetitionState(ps => ({...ps, events: newEvents, currentEventIdx: 0}));
 
     const saveResults = () => {
@@ -106,7 +104,6 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
             competitionState, updateBasicInfo, updateCurrentEvent,
             updateCurrentSolve, saveResults, toggleInputMethod,
             addPenalty, updateSolve, updateCompetitionName, 
-            updateCompetitionStartDate, updateCompetitionEndDate,
             updateCompetitionEvents, setCompetitionState
         }}>
             {children}

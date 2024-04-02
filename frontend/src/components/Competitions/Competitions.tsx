@@ -1,21 +1,35 @@
-import { Button, ButtonGroup, Card, Stack, Typography } from "@mui/joy";
+import { Alert, Button, ButtonGroup, Card, CircularProgress, Stack, Typography } from "@mui/joy";
 import { CompetitionData, FilterValue } from "../../Types";
 import { useEffect, useState } from "react";
 
-import FormControl from '@mui/joy/FormControl';
 import { Link } from "react-router-dom";
 import Table from '@mui/joy/Table';
-import { loadCompetitionData } from "../../utils";
+import { loadFilteredCompetitions } from "../../utils";
 
 const Competitions = () => {
     const [competitionData, setCompetitionData] = useState<CompetitionData[]>([])
     const [filterValue, setFilterValue] = useState<FilterValue>(FilterValue.Current)
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>('')
 
     useEffect(() => {
-        loadCompetitionData(filterValue).then(setCompetitionData).catch(console.error);
+        setIsLoading(true);
+        loadFilteredCompetitions(filterValue)
+            .then(res => {
+                setIsLoading(false)
+                console.log(res)
+                setCompetitionData(res)
+            })
+            .catch(err => {
+                setIsLoading(false)
+                setError(err.message)
+            });
     }, [filterValue]);
 
-    const formatDate = (date: Date): String => date.toLocaleDateString() + " " + date.toLocaleTimeString()
+    const formatDate = (dateString: string): String => {
+        const date = new Date(dateString)
+        return date.toLocaleDateString() + " " + date.toLocaleTimeString()
+    }
 
     const handleFilterChange = (newFilterValue: FilterValue) => setFilterValue(newFilterValue);
 
@@ -40,7 +54,7 @@ const Competitions = () => {
                 })}
                 </ButtonGroup>
             </Stack>
-            <Table aria-label="basic table">
+            {error ? <Alert color="danger">{error}</Alert> : isLoading ? <CircularProgress /> : <Table aria-label="basic table">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -61,7 +75,7 @@ const Competitions = () => {
                         );
                     })}
                 </tbody>
-            </Table>
+            </Table>}
         </Card>
     );
 }

@@ -1,8 +1,8 @@
 export type CompetitionData = {
     id: string,
     name: string,
-    startdate: Date,
-    enddate: Date,
+    startdate: string,
+    enddate: string,
     events: CompetitionEvent[],
     scrambles: string[][],
     results?: ResultEntry
@@ -48,8 +48,6 @@ export type CompetitionContextType = {
     toggleInputMethod: () => void
     addPenalty: (newPenalty: string) => void
     updateCompetitionName: (newName: string) => void, 
-    updateCompetitionStartDate: (newStartingDate: Date) => void,
-    updateCompetitionEndDate: (newEndingDate: Date) => void,
     updateCompetitionEvents: (newEvents: CompetitionEvent[]) => void
     setCompetitionState: (newState: CompetitionState) => void
 }

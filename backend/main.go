@@ -1,12 +1,74 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slices"
 )
+
+type CompetitionEvent struct {
+	Id int `json:"id"`
+	Displayname string `json:"displayname"`
+	Format string `json:"format"`
+	Iconcode string `json:"iconcode"`
+	Puzzlecode string `json:"puzzlecode"`
+}
+
+var events = []CompetitionEvent {
+    {
+        Id: 1,
+        Displayname: "3x3x3",
+        Format: "ao5",
+        Iconcode: "333",
+        Puzzlecode: "3x3x3",
+    },
+    {
+        Id: 2,
+        Displayname: "2x2x2",
+        Format: "ao5",
+        Iconcode: "222",
+        Puzzlecode: "2x2x2",
+    },
+    {
+        Id: 3,
+        Displayname: "6x6x6",
+        Format: "mo3",
+        Iconcode: "666",
+        Puzzlecode: "6x6x6",
+    },
+    {
+        Id: 4,
+        Displayname: "Mega",
+        Format: "ao5",
+        Iconcode: "mega",
+        Puzzlecode: "megaminx",
+    },
+    {
+        Id: 5,
+    	Displayname: "Pyra",
+        Format: "ao5",
+        Iconcode: "pyra",
+    	Puzzlecode: "pyraminx",
+    },
+    {
+        Id: 6,
+        Displayname: "3BLD",
+        Format: "bo3",
+        Iconcode: "333bld",
+        Puzzlecode: "3x3x3",
+    },
+    {
+        Id: 7,
+        Displayname: "FMC",
+        Format: "mo3",
+        Iconcode: "fmc",
+    	Puzzlecode: "3x3x3",
+    },
+}
 
 type ResultEntry struct {
 	Id int `json:"id"`
@@ -187,6 +249,89 @@ var results = map[string]ResultEntry {
     },
 }
 
+var scrambles = [][]string{
+    {
+        "R2 U B2 D' R2 U L2 B' D U' L' F2 U' L F' D'",
+        "F2 B U2 F2 D' B D2 L R2 U' F2 D F2 U' L2 U R2 U2 B'",
+        "L D2 R2 B2 U' R2 D B2 U2 L2 R2 F2 R F' D' R' B U2 B",
+        "B' L2 F' L2 R2 D2 R2 F' L2 B' L2 B R' U B' F2 D' R U' B' R",
+        "U L2 B2 D' L2 F2 L2 U2 L2 U R2 U2 L' D' R2 B' D2 B2 D2",
+	},
+    {
+        "R' U2 R F2 U' R' U2 R' F2",
+        "F R2 U2 R F2 U F' R' F2",
+        "U R2 U F' R2 U2 F' U2 R'",
+        "R U2 R2 U' F R2 U F2 U2",
+        "F2 U2 R' F R F2 U' F R2 F2",
+    },
+    {
+        "R' U2 Uw2 3Rw2 Fw' 3Fw' D' Fw 3Fw2 R' Uw2 Lw Dw R D' Bw2 R2 U2 Rw2 3Rw U F' L 3Fw2 R' F2 3Rw2 D Dw' Lw' B R' Fw Bw2 3Uw2 Fw' U2 3Fw' Fw' D L2 F2 Uw 3Fw2 3Uw' Bw Uw2 R2 Rw' 3Fw2 R Lw B Dw2 U2 Bw 3Rw R2 3Fw Fw R' 3Uw' Fw Uw 3Rw2 L2 Lw' U2 Lw U2 Bw' F 3Fw Dw R2 Rw2 L' 3Rw 3Fw Fw2",
+        "L' R2 Bw F 3Uw D' 3Fw Lw2 Rw' Bw' R Bw2 D2 Bw' D2 F' D2 L2 Rw2 Lw' 3Rw' F Bw' D2 3Uw Bw2 Lw' U 3Uw Rw Bw2 Lw' F' B Bw2 U 3Fw' F2 R2 Bw' Fw 3Rw2 Uw Fw R F2 Lw U2 Bw2 Uw' B Uw' Lw 3Uw2 Dw F Uw' F2 L2 3Fw Dw' Bw2 Rw2 Lw' Dw' F' Lw' B' Rw' D' Dw2 Fw Lw 3Fw Dw' D2 F' D2 3Fw2 Fw'",
+        "R' Fw' D Fw Uw' U2 F' L2 Rw' 3Rw' Lw' Dw U2 Lw' 3Rw' R' B2 3Uw2 Uw2 F' 3Uw Rw2 F2 R2 Lw 3Uw2 Uw' 3Fw2 Fw2 D' 3Uw Fw 3Rw' Fw Dw2 3Rw2 Lw L F Lw' B2 Uw' 3Fw2 Dw D Lw' F2 R Bw' Rw' Fw' 3Rw' Fw 3Rw' F2 Fw 3Fw2 D2 F L B2 Lw' L2 D2 3Fw' 3Uw Uw Rw' Uw F' Rw' L' U Fw2 U Uw 3Uw F R 3Rw'",
+    },
+    {
+        "R-- D-- R-- D-- R-- D-- R++ D++ R-- D-- U'\n  R++ D-- R-- D-- R-- D++ R++ D-- R++ D-- U'\n  R++ D++ R++ D++ R++ D++ R++ D-- R++ D++ U\n  R++ D++ R-- D-- R++ D-- R++ D++ R++ D++ U \n  R++ D++ R++ D-- R-- D++ R-- D++ R-- D++ U \n  R++ D-- R-- D++ R-- D++ R-- D-- R++ D-- U'\n  R++ D++ R-- D++ R++ D++ R-- D-- R-- D-- U'\n",
+        "R-- D++ R-- D-- R++ D-- R++ D++ R++ D-- U'\n  R++ D++ R++ D-- R-- D-- R-- D++ R-- D++ U \n  R-- D-- R-- D-- R-- D-- R++ D++ R++ D-- U'\n  R++ D-- R++ D++ R-- D++ R-- D-- R++ D-- U'\n  R++ D-- R-- D-- R++ D-- R-- D-- R++ D-- U'\n  R++ D-- R++ D-- R-- D++ R-- D-- R++ D++ U \n  R++ D-- R++ D-- R++ D-- R++ D-- R-- D-- U'\n",
+        "R-- D++ R-- D++ R-- D-- R-- D-- R-- D++ U \n  R++ D-- R++ D-- R-- D-- R-- D++ R++ D++ U \n  R-- D-- R-- D-- R++ D++ R-- D-- R-- D++ U \n  R-- D++ R-- D-- R++ D-- R++ D-- R-- D-- U'\n  R-- D++ R++ D-- R++ D++ R-- D++ R++ D++ U \n  R-- D++ R++ D++ R++ D-- R++ D++ R++ D-- U'\n  R++ D++ R++ D++ R++ D++ R++ D++ R-- D-- U'\n",
+        "R-- D++ R++ D-- R++ D++ R-- D++ R-- D-- U'\n  R-- D++ R++ D-- R-- D++ R-- D-- R-- D-- U'\n  R-- D-- R-- D-- R-- D-- R++ D-- R-- D-- U'\n  R-- D++ R++ D++ R++ D++ R-- D-- R-- D++ U \n  R++ D++ R-- D-- R-- D-- R++ D-- R++ D++ U \n  R-- D++ R++ D++ R-- D++ R++ D++ R++ D-- U'\n  R++ D++ R++ D++ R-- D-- R-- D-- R++ D-- U'\n",
+        "R++ D-- R-- D++ R-- D-- R-- D-- R++ D-- U'\n  R-- D-- R-- D++ R-- D-- R-- D-- R++ D-- U'\n  R-- D++ R++ D-- R++ D-- R++ D++ R-- D-- U'\n  R-- D-- R-- D++ R-- D++ R++ D++ R-- D++ U \n  R++ D++ R-- D++ R++ D++ R-- D-- R++ D++ U \n  R-- D-- R++ D++ R-- D++ R++ D-- R-- D-- U'\n  R++ D-- R++ D++ R-- D-- R++ D++ R++ D-- U'\n",
+    },
+    {
+        "R U B U' B' L' U R' l' r' u'",
+        "B' U' R B R' L B' U r u'",
+        "L' U L R' L B' R B' l b u",
+        "B' R U B L U' B' L l' r' b' u",
+        "B L U' L B' R' U' B' l r b' u",
+    },
+    {
+        "F2 L2 D' F2 D2 L2 U B2 U F2 U B' U L' B R2 D2 F R' D2 Rw' Uw'",
+        "L2 B D2 B2 U2 L2 B' R2 F' D2 F L2 D' B' F' U' L R' B U' F Rw Uw",
+        "R' D L2 B2 U2 R2 B2 L' U2 L2 B2 D2 R' F' L U2 R2 B F D' Rw",
+    },
+    {
+        "R' U' F D2 U2 L2 B U2 B2 L2 D2 U2 F' R B2 F R U F U' B2 F2 R' U' F",
+        "R' U' F D2 F2 D2 B2 L2 F2 L2 D F2 B' R F' L F U2 F' D R' U' F",
+        "R' U' F L U2 R' D2 L B2 R F2 L B2 U2 F2 B' L F' R D F U L2 B2 R' U' F",
+	},
+}
+
+type CompetitionData struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	Startdate time.Time `json:"startdate"`
+	Enddate time.Time `json:"enddate"`
+	Events []CompetitionEvent `json:"events"`
+	Scrambles [][]string `json:"scrambles"`
+	Results ResultEntry `json:"results"`
+}
+
+func allCompetitionData() []CompetitionData {
+	res := make([]CompetitionData, 0)
+	startdate := time.Now()
+	startdate = startdate.AddDate(0, 0, -23)
+	enddate := time.Time(startdate)
+	enddate = enddate.AddDate(0, 0, 7)
+
+	for i := range [10]int{} {
+		if len(res) > 0 {
+			startdate = time.Time(res[len(res) - 1].Enddate)
+			enddate = time.Time(startdate)
+			enddate = enddate.AddDate(0, 0, 7)
+		}
+
+		res = append(res, CompetitionData{
+			Id: fmt.Sprintf("WeeklyCompetition%d", i + 1),
+			Name: fmt.Sprintf("Weekly Competition %d", i + 1),
+			Startdate: startdate,
+			Enddate: enddate,
+			Events: events,
+			Scrambles: scrambles,
+		})
+	}
+
+	return res
+}
+
 func main() {
 	router := gin.Default()
 
@@ -200,8 +345,11 @@ func main() {
     }))
 
 	router.GET("/api/ping", ping)
-	router.GET("api/results", getResults)
-	router.GET("api/results/:id/:event", getResultsByIdAndEvent)
+	router.GET("/api/results", getResults)
+	router.GET("/api/results/:id/:event", getResultsByIdAndEvent)
+	router.GET("/api/events", getEvents)
+	router.GET("/api/competitions/:filter", getFilteredCompetitions)
+	router.GET("/api/competition/:id", getCompetitionById)
 
 	router.Run("localhost:8080")
 }
@@ -224,4 +372,51 @@ func getResultsByIdAndEvent(c *gin.Context) {
 	event := c.Param("event")
 
 	c.IndentedJSON(http.StatusOK, results[event])
+}
+
+func getEvents(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, events);
+}
+
+func getFilteredCompetitions(c *gin.Context) {
+	filter := c.Param("filter")
+	
+	result := make([]CompetitionData, 0);
+	competitions := allCompetitionData();
+
+	now := time.Now()
+	if filter == "Past" {
+		for _, competition := range competitions {
+			if competition.Enddate.Before(now) {
+				result = append(result, competition)
+			}
+		}
+	} else if filter == "Current" {
+		for _, competition := range competitions {
+			if competition.Startdate.Before(now) && now.Before(competition.Enddate) {
+				result = append(result, competition)
+			}
+		}
+	} else if filter == "Future" {
+		for _, competition := range competitions {
+			if now.Before(competition.Startdate) {
+				result = append(result, competition)
+			}
+		}
+	}
+
+	c.IndentedJSON(http.StatusOK, result);
+}
+
+func getCompetitionById(c *gin.Context) {
+	id := c.Param("id")
+	competitions := allCompetitionData()
+	
+	idx := slices.IndexFunc(competitions, func (c CompetitionData) bool { return c.Id == id })
+	result := CompetitionData{}
+	if idx != -1 {
+		result = competitions[idx]
+	}
+
+	c.IndentedJSON(http.StatusOK, result)
 }

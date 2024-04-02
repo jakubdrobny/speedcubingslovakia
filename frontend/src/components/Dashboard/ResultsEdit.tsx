@@ -11,31 +11,35 @@ const ResultsEdit = () => {
     const [competitionEvent, setCompetitionEvent] = useState<string>();
     const [results, setResults] = useState<ResultEntry[]>([]);
     const [selectError, setSelectError] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<{results: boolean, events: boolean}>({results: false, events: false});
     const [error, setError] = useState<string>('');
 
     useEffect(() => {
+        setIsLoading(ps => ({...ps, events: true}));
         getAvailableEvents()
             .then(res => {
                 setAvailableEvents(res)
                 if (res.length > 0)
                     setCompetitionEvent(res[0].displayname);
+                setIsLoading(ps => ({...ps, events: false}));
             })
-            .catch(console.error);
+            .catch(err => {
+                setError(err.message)
+                setIsLoading(ps => ({...ps, events: false}));
+            });
     }, []);
 
     const fetchResults = () => {
-        setIsLoading(true);
-        setError('');
+        setIsLoading(ps => ({...ps, results: true}));
 
         getResults(competitorName, competitionName, availableEvents.find(e => e.displayname === competitionEvent))
             .then(res => {
                 console.log('res', res);
                 setResults(res)
-                setIsLoading(false);
+                setIsLoading(ps => ({...ps, results: false}));
             })
             .catch(err => {
-                setIsLoading(false);
+                setIsLoading(ps => ({...ps, results: false}));
                 setError(err.message);
             });
     }
@@ -136,6 +140,7 @@ const ResultsEdit = () => {
                                 </Box>
                             )}
                             color={selectError ? 'danger' : 'neutral'}
+                            disabled={isLoading.events}
                         >
                             {availableEvents.map((event: CompetitionEvent) => (
                                 <Option
@@ -150,7 +155,7 @@ const ResultsEdit = () => {
                         </Select>
                         {selectError && <FormHelperText sx={{color: 'red'}}>This field is required. Please choose an event.</FormHelperText>}
                     </FormControl>}
-                    <Button type="submit" onClick={handleQuery} loading={isLoading}>Query</Button>
+                    <Button type="submit" onClick={handleQuery} loading={isLoading.results || isLoading.events}>Query</Button>
                 </Stack>
             </Card>
             <Card>
