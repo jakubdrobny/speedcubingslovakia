@@ -1,4 +1,4 @@
-import { Box, Button, Card, Chip, FormControl, FormHelperText, FormLabel, Grid, Input, Option, Select, Stack, Typography } from "@mui/joy";
+import { Alert, Box, Button, Card, Chip, FormControl, FormHelperText, FormLabel, Grid, Input, Option, Select, Stack, Typography } from "@mui/joy";
 import { Check, Close } from "@mui/icons-material";
 import { CompetitionEvent, ResultEntry } from "../../Types";
 import { getAvailableEvents, getResults, reformatTime, saveValidation, sendResults } from "../../utils";
@@ -11,6 +11,8 @@ const ResultsEdit = () => {
     const [competitionEvent, setCompetitionEvent] = useState<string>();
     const [results, setResults] = useState<ResultEntry[]>([]);
     const [selectError, setSelectError] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>('');
 
     useEffect(() => {
         getAvailableEvents()
@@ -23,9 +25,19 @@ const ResultsEdit = () => {
     }, []);
 
     const fetchResults = () => {
+        setIsLoading(true);
+        setError('');
+
         getResults(competitorName, competitionName, availableEvents.find(e => e.displayname === competitionEvent))
-            .then(res => setResults(res))
-            .catch(console.error);
+            .then(res => {
+                console.log('res', res);
+                setResults(res)
+                setIsLoading(false);
+            })
+            .catch(err => {
+                setIsLoading(false);
+                setError(err.message);
+            });
     }
 
     const handleQuery = () => {
@@ -138,12 +150,13 @@ const ResultsEdit = () => {
                         </Select>
                         {selectError && <FormHelperText sx={{color: 'red'}}>This field is required. Please choose an event.</FormHelperText>}
                     </FormControl>}
-                    <Button type="submit" onClick={handleQuery}>Query</Button>
+                    <Button type="submit" onClick={handleQuery} loading={isLoading}>Query</Button>
                 </Stack>
             </Card>
             <Card>
                 <Stack spacing={2}>
                     <Typography level="h3" className="bottom-divider">Results</Typography>
+                    {error && <Alert color="danger">{error}</Alert>}
                     {results.map((result: ResultEntry, resultIdx: number) => (
                         <Card key={result.id}>
                             <Stack spacing={3} sx={{marginBottom: "0.25em"}}>
@@ -182,9 +195,9 @@ const ResultsEdit = () => {
                                             <div style={!result.status.approvalFinished ? {display: 'none'} : {}}>
                                                 <Typography level="h4">Status:</Typography>
                                                 {result.status.approved === true ? 
-                                                    <div className="mui-joy-btn mui-joy-btn-soft-danger">Denied</div>
+                                                    <div className="mui-joy-btn mui-joy-btn-soft-danger">{result.status.displayname}</div>
                                                 : result.status.approved === false ?
-                                                    <div className="mui-joy-btn mui-joy-btn-soft-success">Approved</div>
+                                                    <div className="mui-joy-btn mui-joy-btn-soft-success">{result.status.displayname}</div>
                                                 :
                                                     <></>
                                                 }
@@ -195,7 +208,7 @@ const ResultsEdit = () => {
                                         <Stack spacing={1}>
                                             {getSolveProps(resultIdx).map((solveProp, solveIdx) => {
                                                 return (
-                                                    <FormControl>
+                                                    <FormControl key={solveProp}>
                                                         <FormLabel>Solve {solveIdx+1}</FormLabel>
                                                         <Input
                                                             size="sm"

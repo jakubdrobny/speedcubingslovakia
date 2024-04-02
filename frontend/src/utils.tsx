@@ -1,5 +1,7 @@
 import { CompetitionData, CompetitionEvent, CompetitionState, FilterValue, InputMethod, ResultEntry, ResultsStatus, User } from "./Types";
 
+import axios from 'axios';
+
 const events: CompetitionEvent[] = [
     {
         'id': 1,
@@ -121,134 +123,134 @@ const approvedResultsStatus: ResultsStatus = {
     displayname: 'Approved',
 }
 
-const results: { [key: string]: ResultEntry } = {
-    '3x3x3': {
-        'id': 1,
-        'userid': 1,
-        'username': 'Janko Hrasko',
-        'competitionid': 4,
-        'competitionname': 'Weekly Competition 4',
-        'eventid': 1,
-        'eventname': '3x3x3',
-        'iconcode': '333',
-        'format': 'ao5',
-        'solve1': '12.55',
-        'solve2': '10.14',
-        'solve3': '8.81',
-        'solve4': 'DNF',
-        'solve5': '14.43',
-        'comment': '',
-        'status': waitingForApprovalResultsStatus,
-    },
-    '2x2x2': {
-        'id': 2,
-        'userid': 1,
-        'username': 'Janko Hrasko',
-        'competitionid': 4,
-        'competitionname': 'Weekly Competition 4',
-        'eventid': 2,
-        'eventname': '2x2x2',
-        'iconcode': '222',
-        'format': 'ao5',
-        'solve1': '2.55',
-        'solve2': '1.14',
-        'solve3': '8.81',
-        'solve4': '2.00',
-        'solve5': '1.43',
-        'comment': '',
-        'status': approvedResultsStatus,
-    },
-    '6x6x6': {
-        'id': 3,
-        'userid': 1,
-        'username': 'Janko Hrasko',
-        'competitionid': 4,
-        'competitionname': 'Weekly Competition 4',
-        'eventid': 3,
-        'eventname': '6x6x6',
-        'iconcode': '666',
-        'format': 'mo3',
-        'solve1': '2:00.55',
-        'solve2': '1:59.14',
-        'solve3': '1:58.80',
-        'solve4': '',
-        'solve5': '',
-        'comment': '',
-        'status': approvedResultsStatus,
-    },
-    'Mega': {
-        'id': 4,
-        'userid': 1,
-        'username': 'Janko Hrasko',
-        'competitionid': 4,
-        'competitionname': 'Weekly Competition 4',
-        'eventid': 5,
-        'eventname': 'Megaminx',
-        'iconcode': 'mega',
-        'format': 'ao5',
-        'solve1': '42.55',
-        'solve2': '41.14',
-        'solve3': '48.81',
-        'solve4': '42.00',
-        'solve5': '41.43',
-        'comment': '',
-        'status': deniedResultsStatus,
-    },
-    'Pyra': {
-        'id': 5,
-        'userid': 1,
-        'username': 'Janko Hrasko',
-        'competitionid': 4,
-        'competitionname': 'Weekly Competition 4',
-        'eventid': 5,
-        'eventname': 'Pyraminx',
-        'iconcode': 'pyra',
-        'format': 'ao5',
-        'solve1': '2.13',
-        'solve2': '1.01',
-        'solve3': '2.99',
-        'solve4': '2.00',
-        'solve5': '2.69',
-        'comment': '',
-        'status': waitingForApprovalResultsStatus,
-    },
-    '3BLD': {
-        'id': 6,
-        'userid': 1,
-        'username': 'Janko Hrasko',
-        'competitionid': 4,
-        'competitionname': 'Weekly Competition 4',
-        'eventid': 6,
-        'eventname': '3BLD',
-        'iconcode': '333bld',
-        'format': 'bo3',
-        'solve1': 'DNF',
-        'solve2': '1:00.05',
-        'solve3': 'DNS',
-        'solve4': '',
-        'solve5': '',
-        'comment': '',
-        'status': deniedResultsStatus,
-    },
-    'FMC': {
-        'id': 7,
-        'userid': 1,
-        'username': 'Janko Hrasko',
-        'competitionid': 4,
-        'competitionname': 'Weekly Competition 4',
-        'eventid': 7,
-        'eventname': 'FMC',
-        'iconcode': 'fmc',
-        'format': 'mo3',
-        'solve1': 'R U R\' U\'',
-        'solve2': 'abc',
-        'solve3': '',
-        'solve4': '',
-        'solve5': '',
-        'comment': '',
-        'status': approvedResultsStatus
-    },
-}
+// const results: { [key: string]: ResultEntry } = {
+//     '3x3x3': {
+//         'id': 1,
+//         'userid': 1,
+//         'username': 'Janko Hrasko',
+//         'competitionid': 4,
+//         'competitionname': 'Weekly Competition 4',
+//         'eventid': 1,
+//         'eventname': '3x3x3',
+//         'iconcode': '333',
+//         'format': 'ao5',
+//         'solve1': '12.55',
+//         'solve2': '10.14',
+//         'solve3': '8.81',
+//         'solve4': 'DNF',
+//         'solve5': '14.43',
+//         'comment': '',
+//         'status': waitingForApprovalResultsStatus,
+//     },
+//     '2x2x2': {
+//         'id': 2,
+//         'userid': 1,
+//         'username': 'Janko Hrasko',
+//         'competitionid': 4,
+//         'competitionname': 'Weekly Competition 4',
+//         'eventid': 2,
+//         'eventname': '2x2x2',
+//         'iconcode': '222',
+//         'format': 'ao5',
+//         'solve1': '2.55',
+//         'solve2': '1.14',
+//         'solve3': '8.81',
+//         'solve4': '2.00',
+//         'solve5': '1.43',
+//         'comment': '',
+//         'status': approvedResultsStatus,
+//     },
+//     '6x6x6': {
+//         'id': 3,
+//         'userid': 1,
+//         'username': 'Janko Hrasko',
+//         'competitionid': 4,
+//         'competitionname': 'Weekly Competition 4',
+//         'eventid': 3,
+//         'eventname': '6x6x6',
+//         'iconcode': '666',
+//         'format': 'mo3',
+//         'solve1': '2:00.55',
+//         'solve2': '1:59.14',
+//         'solve3': '1:58.80',
+//         'solve4': '',
+//         'solve5': '',
+//         'comment': '',
+//         'status': approvedResultsStatus,
+//     },
+//     'Mega': {
+//         'id': 4,
+//         'userid': 1,
+//         'username': 'Janko Hrasko',
+//         'competitionid': 4,
+//         'competitionname': 'Weekly Competition 4',
+//         'eventid': 5,
+//         'eventname': 'Megaminx',
+//         'iconcode': 'mega',
+//         'format': 'ao5',
+//         'solve1': '42.55',
+//         'solve2': '41.14',
+//         'solve3': '48.81',
+//         'solve4': '42.00',
+//         'solve5': '41.43',
+//         'comment': '',
+//         'status': deniedResultsStatus,
+//     },
+//     'Pyra': {
+//         'id': 5,
+//         'userid': 1,
+//         'username': 'Janko Hrasko',
+//         'competitionid': 4,
+//         'competitionname': 'Weekly Competition 4',
+//         'eventid': 5,
+//         'eventname': 'Pyraminx',
+//         'iconcode': 'pyra',
+//         'format': 'ao5',
+//         'solve1': '2.13',
+//         'solve2': '1.01',
+//         'solve3': '2.99',
+//         'solve4': '2.00',
+//         'solve5': '2.69',
+//         'comment': '',
+//         'status': waitingForApprovalResultsStatus,
+//     },
+//     '3BLD': {
+//         'id': 6,
+//         'userid': 1,
+//         'username': 'Janko Hrasko',
+//         'competitionid': 4,
+//         'competitionname': 'Weekly Competition 4',
+//         'eventid': 6,
+//         'eventname': '3BLD',
+//         'iconcode': '333bld',
+//         'format': 'bo3',
+//         'solve1': 'DNF',
+//         'solve2': '1:00.05',
+//         'solve3': 'DNS',
+//         'solve4': '',
+//         'solve5': '',
+//         'comment': '',
+//         'status': deniedResultsStatus,
+//     },
+//     'FMC': {
+//         'id': 7,
+//         'userid': 1,
+//         'username': 'Janko Hrasko',
+//         'competitionid': 4,
+//         'competitionname': 'Weekly Competition 4',
+//         'eventid': 7,
+//         'eventname': 'FMC',
+//         'iconcode': 'fmc',
+//         'format': 'mo3',
+//         'solve1': 'R U R\' U\'',
+//         'solve2': 'abc',
+//         'solve3': '',
+//         'solve4': '',
+//         'solve5': '',
+//         'comment': '',
+//         'status': approvedResultsStatus
+//     },
+// }
 
 const allCompetitionData = async (): Promise<CompetitionData[]> => {
     const result: CompetitionData[] = [];
@@ -297,8 +299,8 @@ export const getCompetitionById = async (id: string | undefined): Promise<Compet
 }
 
 export const getResultsFromCompetitionAndEvent = async (token: string, id: string | undefined, event: CompetitionEvent): Promise<ResultEntry> => {
-    const resultEntry = results[event.displayname];
-    return resultEntry;    
+    const response = await axios.get(`/api/results/${id}/${event.displayname}`)
+    return response.data;
 }
 
 const formattedToMiliseconds = (formattedTime: string): number => {
@@ -409,12 +411,15 @@ export const updateCompetition = (state: CompetitionState, edit: boolean) => {
 }
 
 export const getResults = async (competitorName: string, competitionName: string, competeEvent: CompetitionEvent | undefined) => {
-    const res: ResultEntry[] = [];
-    for (const [k, v] of Object.entries(results)) {
-        console.log(v);
-        res.push(v);
-    }
-    return res;
+    const response = await axios.get(
+        '/api/results', { data: {
+            competitorName: competitorName,
+            competitionName: competitionName,
+            eventName: competeEvent?.displayname
+        }}
+    )
+    const data = response.data;
+    return data;
 }
 
 export const initialCompetitionState: CompetitionState = {
