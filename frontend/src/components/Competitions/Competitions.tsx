@@ -17,7 +17,6 @@ const Competitions = () => {
         loadFilteredCompetitions(filterValue)
             .then(res => {
                 setIsLoading(false)
-                console.log(res)
                 setCompetitionData(res)
             })
             .catch(err => {

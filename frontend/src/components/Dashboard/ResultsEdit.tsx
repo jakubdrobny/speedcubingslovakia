@@ -34,7 +34,6 @@ const ResultsEdit = () => {
 
         getResults(competitorName, competitionName, availableEvents.find(e => e.displayname === competitionEvent))
             .then(res => {
-                console.log('res', res);
                 setResults(res)
                 setIsLoading(ps => ({...ps, results: false}));
             })

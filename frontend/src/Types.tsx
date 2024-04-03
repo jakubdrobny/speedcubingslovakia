@@ -4,8 +4,22 @@ export type CompetitionData = {
     startdate: string,
     enddate: string,
     events: CompetitionEvent[],
-    scrambles: string[][],
+    scrambles: ScrambleSet[],
     results?: ResultEntry
+}
+
+export type ScrambleSet = {
+    event: CompetitionEvent,
+    scrambles: string[]
+}
+
+export type CompetitionDBModel = {
+    id: string,
+    name: string,
+    startdate: string,
+    enddate: string,
+    events: CompetitionEvent[]
+    scrambles: ScrambleSet[]
 }
 
 export enum FilterValue {
@@ -56,7 +70,7 @@ export type ResultEntry = {
     id: number,
     userid: number,
     username: string,
-    competitionid: number,
+    competitionid: string,
     competitionname: string,
     eventid: number,
     eventname: string,

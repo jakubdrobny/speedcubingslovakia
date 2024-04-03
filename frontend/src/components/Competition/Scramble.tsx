@@ -1,4 +1,4 @@
-import { CompetitionContextType, TimerInputContextType, TimerInputCurrentState } from "../../Types";
+import { CompetitionContextType, ScrambleSet, TimerInputContextType, TimerInputCurrentState } from "../../Types";
 import { useEffect, useRef } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
@@ -10,8 +10,8 @@ const Scramble = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const { competitionState } = useContext(CompetitionContext) as CompetitionContextType
     const { timerInputState } = useContext(TimerInputContext) as TimerInputContextType
-    const scramble = competitionState && competitionState.currentEventIdx < competitionState.scrambles.length && competitionState.currentSolveIdx < competitionState.scrambles[competitionState.currentEventIdx].length ? competitionState.scrambles[competitionState.currentEventIdx][competitionState.currentSolveIdx] : "";
-    const puzzlecode = competitionState && competitionState.currentEventIdx < competitionState.events.length ? competitionState.events[competitionState.currentEventIdx].puzzlecode : "";
+    const scramble = competitionState && competitionState.scrambles && competitionState.events && competitionState.currentEventIdx < competitionState.events.length && competitionState.scrambles.find((s: ScrambleSet) => s.event.displayname === competitionState.events[competitionState.currentEventIdx].displayname) != undefined  ? (competitionState.scrambles.find((s: ScrambleSet) => s.event.displayname === competitionState.events[competitionState.currentEventIdx].displayname) as ScrambleSet).scrambles[competitionState.currentSolveIdx] : "";
+    const puzzlecode = competitionState && competitionState.events && competitionState.currentEventIdx < competitionState.events.length ? competitionState.events[competitionState.currentEventIdx].puzzlecode : "";
 
     useEffect(() => {
         if (!containerRef.current) return;

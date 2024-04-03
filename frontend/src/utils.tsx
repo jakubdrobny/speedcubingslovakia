@@ -1,10 +1,17 @@
-import { CompetitionData, CompetitionEvent, CompetitionState, FilterValue, InputMethod, ManageRolesUser, ResultEntry } from "./Types";
+import { CompetitionDBModel, CompetitionData, CompetitionEvent, CompetitionState, FilterValue, InputMethod, ManageRolesUser, ResultEntry, ScrambleSet } from "./Types";
 
+import { Alg } from 'cubing/alg'
 import axios from 'axios';
+import { randomScrambleForEvent } from "cubing/scramble"
+import { setSearchDebug } from 'cubing/search'
+
+setSearchDebug({
+    logPerf: false,
+    scramblePrefetchLevel: "none",
+});
 
 export const loadFilteredCompetitions = async (filterValue: FilterValue): Promise<CompetitionData[]> => {
     const response = await axios.get(`/api/competitions/${filterValue}`)
-    console.log(response.data, 'data')
     return response.data;
 }
 
@@ -14,7 +21,6 @@ export const getCompetitionById = async (id: string | undefined): Promise<Compet
     }
     
     const response = await axios.get(`/api/competition/${id}`)
-    console.log(response.data);
     return !response.data ? undefined : response.data;
 }
 
@@ -107,7 +113,6 @@ export const getManageUsers = async (): Promise<ManageRolesUser[]> => {
 
 export const updateUserRoles = async (newUsers: ManageRolesUser[]): Promise<ManageRolesUser[]> => {
     const response = await axios.put('/api/users/manage-roles', newUsers)
-    console.log(response.data);
     return response.data;
 }
 
@@ -116,28 +121,71 @@ export const getAvailableEvents = async (): Promise<CompetitionEvent[]> => {
     return response.data;
 }
 
-export const updateCompetition = (state: CompetitionState, edit: boolean) => {
-    console.log('editujem')
-    return;
+
+const cancels = async (scramble: string) => {
+    let cancelledScramble = new Alg(scramble).experimentalSimplify({cancel: true}).toString();
+    return scramble !== cancelledScramble;
+}
+
+const generateScrambleSetsFromEvents = async (events: CompetitionEvent[]): Promise<ScrambleSet[]> => {
+    let scrambleSets: ScrambleSet[] = [];
+
+    for (const event of events) {
+        const match = event.format.match(/\d+$/)?.[0]
+        const noOfSolves = match ? parseInt(match) : 1
+        
+        let scrambles: string[] = []
+        for (let i = 0; i < noOfSolves; i++) {
+            let scramble: string = (await randomScrambleForEvent(event.iconcode)).toString()
+            while (event.displayname === "FMC" && await cancels(scramble)) {
+                scramble = (await randomScrambleForEvent(event.iconcode)).toString();
+            }
+            scrambles.push(scramble)
+        }
+
+        scrambleSets.push({ event, scrambles });
+    }
+
+    return scrambleSets
+}
+
+export const updateCompetition = async (state: CompetitionState, edit: boolean): Promise<CompetitionState> => {
+    const reqBody: CompetitionDBModel = {
+        id: state.name.split(' ').join(''),
+        name: state.name,
+        startdate: state.startdate + ':00Z',
+        enddate: state.enddate + ':00Z',
+        events: state.events.toSorted((e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id),
+        scrambles: await generateScrambleSetsFromEvents(state.events)
+    }
+
+    const response = await axios({
+        method: edit ? 'PUT' : 'POST',
+        url: '/api/competition',
+        data: reqBody
+    })
+
+    return response.data;
 }
 
 export const getResults = async (competitorName: string, competitionName: string, competeEvent: CompetitionEvent | undefined) => {
-    const response = await axios.get(
-        '/api/results', { data: {
-            competitorName: competitorName,
-            competitionName: competitionName,
-            eventName: competeEvent?.displayname
-        }}
-    )
-    const data = response.data;
-    return data;
+    competitorName = competitorName === "" ? "_" : competitorName;
+    competitionName = competitionName === "" ? "_" : competitionName;
+    
+    const response = await axios.get(`/api/results/edit/${competitorName}/${competitionName}/${competeEvent?.displayname}`)
+    return response.data;
+}
+
+export const formatCompetitionDateForInput = (originalDate: string): string => {
+    const originalDateSplit = originalDate.split('.')[0].split(':')
+    return originalDateSplit.slice(0, 2).join(':');
 }
 
 export const initialCompetitionState: CompetitionState = {
     id: "",
     name: "",
-    startdate: new Date().toISOString(),
-    enddate: new Date().toISOString(),
+    startdate: formatCompetitionDateForInput(new Date().toISOString()),
+    enddate: formatCompetitionDateForInput(new Date().toISOString()),
     events: [],
     currentEventIdx: 0,
     noOfSolves: 1,
@@ -153,7 +201,7 @@ export const initialCompetitionState: CompetitionState = {
         id: 0,
         userid: 0,
         username: '',
-        competitionid: 0,
+        competitionid: '',
         competitionname: '',
         eventid: 0,
         eventname: '',
@@ -204,7 +252,8 @@ export const reformatTime = (oldFormattedTime: string, added: boolean = false): 
 }
 
 export const sendResults = async (resultEntry: ResultEntry) => {
-    console.log('zatial sa nic neudeje', resultEntry);
+    const response = await axios.post('/api/results/save', resultEntry)
+    return response.data;
 }
 
 export const saveValidation = async (resultEntry: ResultEntry, verdict: boolean) => {

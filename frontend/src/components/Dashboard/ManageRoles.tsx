@@ -40,7 +40,6 @@ const ManageRoles = () => {
         setIsLoading(true);
         updateUserRoles(users)
             .then((res: ManageRolesUser[]) => {
-                console.log(res, 'updateUserRoles response in handleUserRolesSubmit')
                 setUsers(res)
                 setIsLoading(false);
             })

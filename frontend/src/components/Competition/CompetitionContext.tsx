@@ -31,7 +31,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
     const updateCurrentEvent = async (idx: number) => {
         const match = competitionState.events[idx].format.match(/\d+$/)?.[0]
         const noOfSolves = match ? parseInt(match) : 1
-        setCompetitionState(ps => ({...ps, loadingState: {...ps.loadingState, results: true, error: ''}}))
+        setCompetitionState(ps => ({...ps, loadingState: {...ps.loadingState, results: true}}))
         getResultsFromCompetitionAndEvent(authState.token, competitionState.id, competitionState.events[idx])
             .then(resultEntry => {
                 setCompetitionState(ps => ({
@@ -53,12 +53,15 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({ childr
     const updateCompetitionName = (newName: string) => setCompetitionState(ps => ({...ps, name: newName}));
     const updateCompetitionEvents = (newEvents: CompetitionEvent[]) => setCompetitionState(ps => ({...ps, events: newEvents, currentEventIdx: 0}));
 
-    const saveResults = () => {
-        const solveProp: keyof ResultEntry= `solve${competitionState.currentSolveIdx+1}` as keyof ResultEntry;
-        const formattedTime = (competitionState.results[solveProp] || '').toString();
-        const finalFormattedTime = reformatWithPenalties(formattedTime, competitionState.penalties[competitionState.currentSolveIdx]);
-        console.log(`You saved a time of ${finalFormattedTime}!`);
-        sendResults(competitionState.results);
+    const saveResults = async () => {
+        setCompetitionState(ps => ({...ps, loadingState: {...ps.loadingState, results: true}}))
+        sendResults(competitionState.results)
+            .then((newResults: ResultEntry) => {
+                setCompetitionState(ps => ({...ps, results: newResults, loadingState: {...ps.loadingState, results: false}}))
+            })
+            .catch(err => {
+                setCompetitionState(ps => ({...ps, loadingState: {...ps.loadingState, results: false, error: err.message}}))
+            })
     }
 
     const addPenalty = (newPenalty: string) => {
