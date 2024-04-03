@@ -1,34 +1,53 @@
-import { Button, Card, Switch, Table, Typography } from "@mui/joy";
-import { Navigate, useNavigate } from "react-router-dom";
-import { getUsers, updateUsers } from "../../utils";
-import { useContext, useEffect, useState } from "react";
+import { Button, Card, CircularProgress, Switch, Table, Typography } from "@mui/joy";
+import { getManageUsers, updateUserRoles } from "../../utils";
+import { useCallback, useContext, useEffect, useState } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 import { AuthContextType } from "../../Types";
-import { User } from "../../Types";
+import { ManageRolesUser } from "../../Types";
+import { useNavigate } from "react-router-dom";
 
 const ManageRoles = () => {
-    const [users, setUsers] = useState<User[]>([]);
+    const [users, setUsers] = useState<ManageRolesUser[]>([]);
     const { authState } = useContext(AuthContext) as AuthContextType
     const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState<boolean>();
+    const [error, setError] = useState<string>('')
 
     useEffect(() => {
         if (!authState.authenticated || !authState.admin) {
             navigate("/");
         }
         
-        getUsers()
-            .then(res => setUsers(res))
-            .catch(console.error);
+        setIsLoading(true);
+        getManageUsers()
+            .then((res: ManageRolesUser[]) => {
+                setUsers(res)
+                setIsLoading(false);
+            })
+            .catch(err => {
+                setIsLoading(false)
+                setError(err.message)
+            });
     }, []);
 
     const handleUserRoleChange = (userid: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
         const checked: boolean = e.target.checked;
-        setUsers(users.map((u: User): User => u.id === userid ? {...u, isadmin: checked} : {...u}));
+        setUsers(users.map((u: ManageRolesUser): ManageRolesUser => u.id === userid ? {...u, isadmin: checked} : {...u}));
     }
 
     const handleUserRolesSubmit = () => {
-        updateUsers(users);
+        setIsLoading(true);
+        updateUserRoles(users)
+            .then((res: ManageRolesUser[]) => {
+                console.log(res, 'updateUserRoles response in handleUserRolesSubmit')
+                setUsers(res)
+                setIsLoading(false);
+            })
+            .catch(err => {
+                setIsLoading(false)
+                setError('')
+            })
     }
 
     return (
@@ -50,13 +69,13 @@ const ManageRoles = () => {
                                 <tr key={user.id}>
                                     <td>{user.name}</td>
                                     <td>
-                                        <Switch checked={user.isadmin} onChange={handleUserRoleChange(user.id)} />
+                                        {isLoading ? <CircularProgress /> : <Switch checked={user.isadmin} onChange={handleUserRoleChange(user.id)}/>}
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </Table>
-                    <Button sx={{marginTop: "1em"}} onClick={() => handleUserRolesSubmit()}>Save</Button>
+                    {isLoading ? <CircularProgress /> : <Button sx={{marginTop: "1em"}} onClick={() => handleUserRolesSubmit()}>Save</Button>}
                 </div>
             </Card>
         </div>

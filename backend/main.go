@@ -332,6 +332,25 @@ func allCompetitionData() []CompetitionData {
 	return res
 }
 
+type ManageRolesUser struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	Isadmin bool `json:"isadmin"`
+}
+
+var manageRolesUsers = []ManageRolesUser {
+	{
+		Id: 1,
+		Name: "Janko Hrasko",
+		Isadmin: true,
+	},
+	{
+		Id: 2,
+		Name: "Ferko Mrkvicka",
+		Isadmin: false,
+	},
+}
+
 func main() {
 	router := gin.Default()
 
@@ -350,6 +369,8 @@ func main() {
 	router.GET("/api/events", getEvents)
 	router.GET("/api/competitions/:filter", getFilteredCompetitions)
 	router.GET("/api/competition/:id", getCompetitionById)
+	router.GET("/api/users/manage-roles", getManageRolesUsers)
+	router.PUT("/api/users/manage-roles", putManageRolesUsers)
 
 	router.Run("localhost:8080")
 }
@@ -419,4 +440,29 @@ func getCompetitionById(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, result)
+}
+
+func getManageRolesUsers(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, manageRolesUsers)
+}
+
+func putManageRolesUsers(c *gin.Context) {
+	var newManageRolesUsers []ManageRolesUser
+
+	if err := c.BindJSON(&newManageRolesUsers); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, "");
+		return;
+	}
+
+	for _, cur_mru := range newManageRolesUsers {
+		idx := slices.IndexFunc(manageRolesUsers, func (mru ManageRolesUser) bool { return mru.Id == cur_mru.Id })
+		if idx == -1 {
+			c.IndentedJSON(http.StatusInternalServerError, fmt.Sprintf("User %v is not present!", cur_mru.Name));
+			return;
+		}
+
+		manageRolesUsers[idx] = cur_mru
+	}
+
+	c.IndentedJSON(http.StatusCreated, manageRolesUsers)
 }

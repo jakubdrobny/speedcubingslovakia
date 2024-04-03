@@ -111,7 +111,7 @@ export enum PenaltyType {
     PlusTwo, DNF
 }
 
-export type User = {
+export type ManageRolesUser = {
     id: number
     name: string
     isadmin: boolean

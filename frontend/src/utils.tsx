@@ -1,4 +1,4 @@
-import { CompetitionData, CompetitionEvent, CompetitionState, FilterValue, InputMethod, ResultEntry, ResultsStatus, User } from "./Types";
+import { CompetitionData, CompetitionEvent, CompetitionState, FilterValue, InputMethod, ManageRolesUser, ResultEntry } from "./Types";
 
 import axios from 'axios';
 
@@ -100,28 +100,18 @@ export const reformatWithPenalties = (oldFormattedTime: string, penalty: string)
     return newFormattedTime;
 }
 
-let users: User[] = [
-    {
-        id: 1,
-        name: "Janko Hrasko",
-        isadmin: true,
-    },
-    {
-        id: 2,
-        name: "Ferko Mrkvicka",
-        isadmin: false
-    }
-]
-
-export const getUsers = async () => {
-    return users;
+export const getManageUsers = async (): Promise<ManageRolesUser[]> => {
+    const response = await axios.get('/api/users/manage-roles')
+    return response.data;
 }
 
-export const updateUsers = async (newUsers: User[]) => {
-    users = [...newUsers];
+export const updateUserRoles = async (newUsers: ManageRolesUser[]): Promise<ManageRolesUser[]> => {
+    const response = await axios.put('/api/users/manage-roles', newUsers)
+    console.log(response.data);
+    return response.data;
 }
 
-export const getAvailableEvents = async () => {
+export const getAvailableEvents = async (): Promise<CompetitionEvent[]> => {
     const response = await axios.get('/api/events')
     return response.data;
 }
