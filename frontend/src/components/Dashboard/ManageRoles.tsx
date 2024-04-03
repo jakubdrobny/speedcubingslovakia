@@ -1,4 +1,4 @@
-import { Button, Card, CircularProgress, Switch, Table, Typography } from "@mui/joy";
+import { Alert, Button, Card, CircularProgress, Switch, Table, Typography } from "@mui/joy";
 import { getManageUsers, updateUserRoles } from "../../utils";
 import { useCallback, useContext, useEffect, useState } from "react";
 
@@ -57,25 +57,28 @@ const ManageRoles = () => {
                     <Typography fontWeight={"bold"}>Manage Roles</Typography>
                 </div>
                 <div>
-                    <Table borderAxis="both" size="md">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>IsAdmin</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {users.map((user) => (
-                                <tr key={user.id}>
-                                    <td>{user.name}</td>
-                                    <td>
-                                        {isLoading ? <CircularProgress /> : <Switch checked={user.isadmin} onChange={handleUserRoleChange(user.id)}/>}
-                                    </td>
+                    {error ? <Alert color="danger">{error}</Alert> :
+                    <>
+                        <Table borderAxis="both" size="md">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>IsAdmin</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                    {isLoading ? <CircularProgress /> : <Button sx={{marginTop: "1em"}} onClick={() => handleUserRolesSubmit()}>Save</Button>}
+                            </thead>
+                            <tbody>
+                                {users.map((user) => (
+                                    <tr key={user.id}>
+                                        <td>{user.name}</td>
+                                        <td>
+                                            {isLoading ? <CircularProgress /> : <Switch checked={user.isadmin} onChange={handleUserRoleChange(user.id)}/>}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                        {isLoading ? <CircularProgress /> : <Button sx={{marginTop: "1em"}} onClick={() => handleUserRolesSubmit()}>Save</Button>}
+                    </>}
                 </div>
             </Card>
         </div>
