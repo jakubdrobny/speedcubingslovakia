@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gocolly/colly"
 	"golang.org/x/exp/slices"
 )
 
@@ -252,7 +253,7 @@ var results = []ResultEntry {
         Competitionname: "Weekly Competition 4",
         Eventid: 5,
         Eventname: "Mega",
-        Iconcode: "mega",
+        Iconcode: "minx",
         Format: "ao5",
         Solve1: "42.55",
         Solve2: "41.14",
@@ -270,7 +271,7 @@ var results = []ResultEntry {
         Competitionname: "Weekly Competition 4",
         Eventid: 5,
         Eventname: "Pyra",
-        Iconcode: "pyra",
+        Iconcode: "pyram",
         Format: "ao5",
         Solve1: "2.13",
         Solve2: "1.01",
@@ -288,7 +289,7 @@ var results = []ResultEntry {
         Competitionname: "Weekly Competition 4",
         Eventid: 6,
         Eventname: "3BLD",
-        Iconcode: "333bld",
+        Iconcode: "333bf",
         Format: "bo3",
         Solve1: "DNF",
         Solve2: "1:00.05",
@@ -306,7 +307,7 @@ var results = []ResultEntry {
         Competitionname: "Weekly Competition 4",
         Eventid: 7,
         Eventname: "FMC",
-        Iconcode: "fmc",
+        Iconcode: "333fm",
         Format: "mo3",
         Solve1: "R U R' U'",
         Solve2: "abc",
@@ -621,7 +622,7 @@ func getResultsByIdAndEvent(c *gin.Context) {
 
 func tryParseSolve(s string) (float64, error) {
 	if !strings.Contains(s, ".") {
-		return 0, fmt.Errorf("invalid time or DNF/DNS");
+		s += ".00"
 	}
 
 	split := strings.Split(s, ".")
@@ -751,12 +752,38 @@ func (r *ResultEntry) average(noOfSolves int) float64 {
 	return float64(sum) / float64(3)
 }
 
-func getWorldRecordSingle(eventName string) float64 {
-	return 0
-}
+func getWorldRecords(eventName string) (float64, float64, error) {
+	c := colly.NewCollector()
 
-func getWorldRecordAverage(eventName string) float64 {
-	return 0
+	single, average := math.MaxFloat64, math.MaxFloat64
+	var err error
+
+	c.OnHTML("div#results-list h2 a", func(e *colly.HTMLElement) {
+		hrefSplit := strings.Split(e.Attr("href"), "/")
+		if len(hrefSplit) > 3 && hrefSplit[3] == eventName {
+			parentH2 := e.DOM.Parent()
+			nextTable := parentH2.Next()
+			singleTd := nextTable.Find("td.result").First()
+
+			single, err = tryParseSolve(strings.Trim(singleTd.Text(), " "))
+
+			if eventName != "333mbf" {
+				averageTd := singleTd.Parent().Next().Find("td.result").First()
+				average, err = tryParseSolve(strings.Trim(averageTd.Text(), " "))
+			}
+		}
+	})
+
+	c.OnError(func(_ *colly.Response, er error) {
+		err = er
+	})
+
+	err = c.Visit("https://www.worldcubeassociation.org/results/records")
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return single, average, nil
 }
 
 func getNoOfSolves(format string) (int, error) {
@@ -777,10 +804,13 @@ func isSuspicous(resultEntry ResultEntry) bool {
 	}
 
 	curSingle, curAverage := resultEntry.single(), resultEntry.average(noOfSolves)
-	fmt.Println("curSingle: ", curSingle, "curAverage: ", curAverage)
-	recSingle, recAverage := getWorldRecordSingle(resultEntry.Eventname), getWorldRecordAverage(resultEntry.Eventname)
 
-	return curSingle - recSingle < 1e-9 || curAverage - recAverage < 1e-9;
+	recSingle, recAverage, err := getWorldRecords(resultEntry.Iconcode)
+	if err != nil {
+		return false
+	}
+
+	return recSingle - curSingle > 1e-9 || recAverage - curAverage > 1e-9;
 }
 
 func postResults(c *gin.Context) {
