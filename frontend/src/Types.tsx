@@ -5,7 +5,6 @@ export type CompetitionData = {
   enddate: string;
   events: CompetitionEvent[];
   scrambles: ScrambleSet[];
-  results?: ResultEntry;
 };
 
 export type ScrambleSet = {
@@ -63,10 +62,10 @@ export type CompetitionContextType = {
   updateSolve: (newTime: string) => void;
   toggleInputMethod: () => void;
   addPenalty: (newPenalty: string) => void;
-  updateCompetitionName: (newName: string) => void;
-  updateCompetitionEvents: (newEvents: CompetitionEvent[]) => void;
   setCompetitionState: (newState: CompetitionState) => void;
   setCurrentResults: (newResults: ResultEntry) => void;
+  suspicousModalOpen: boolean;
+  setSuspicousModalOpen: (newOpen: boolean) => void;
 };
 
 export type ResultEntry = {

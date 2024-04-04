@@ -2,7 +2,11 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"math/rand"
@@ -247,7 +251,7 @@ var results = []ResultEntry {
         Competitionid: "WeeklyCompetition4",
         Competitionname: "Weekly Competition 4",
         Eventid: 5,
-        Eventname: "Megaminx",
+        Eventname: "Mega",
         Iconcode: "mega",
         Format: "ao5",
         Solve1: "42.55",
@@ -265,7 +269,7 @@ var results = []ResultEntry {
         Competitionid: "WeeklyCompetition4",
         Competitionname: "Weekly Competition 4",
         Eventid: 5,
-        Eventname: "Pyraminx",
+        Eventname: "Pyra",
         Iconcode: "pyra",
         Format: "ao5",
         Solve1: "2.13",
@@ -545,6 +549,7 @@ func main() {
 	router.GET("/api/results/edit/:uname/:cname/:ename", getResultsQuery)
 	router.GET("/api/results/:id/:event", getResultsByIdAndEvent)
 	router.POST("api/results/save", postResults);
+	router.POST("api/results/save-validation", postResultsValidation);
 	router.GET("/api/events", getEvents)
 	router.GET("/api/competitions/:filter", getFilteredCompetitions)
 	router.GET("/api/competition/:id", getCompetitionById)
@@ -614,12 +619,182 @@ func getResultsByIdAndEvent(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, r)
 }
 
+func tryParseSolve(s string) (float64, error) {
+	if !strings.Contains(s, ".") {
+		return 0, fmt.Errorf("invalid time or DNF/DNS");
+	}
+
+	split := strings.Split(s, ".")
+	
+	wholePart := strings.Split(split[0], ":")
+	decimalPart, err := strconv.ParseFloat(split[1], 64)
+
+	if err != nil {
+		return 0, fmt.Errorf("invalid time or DNF/DNS");
+	}
+
+	res := decimalPart * 10 // to milliseconds
+
+	var add float64
+	slices.Reverse(wholePart)
+	if len(wholePart) > 0 { 
+		add, err = strconv.ParseFloat(wholePart[0], 64)
+		res += add * 1000
+	}
+
+	if len(wholePart) > 1 { 
+		add, err = strconv.ParseFloat(wholePart[1], 64)
+		res += 60 * add * 1000
+	}
+
+	if len(wholePart) > 2 { 
+		add, err = strconv.ParseFloat(wholePart[2], 64)
+		res += 60 * 60 * add * 1000
+	}
+
+	if len(wholePart) > 3 { 
+		add, err = strconv.ParseFloat(wholePart[3], 64)
+		res += 24 * 60 * 60 * add * 1000
+	}
+
+	if err != nil {
+		return 0, fmt.Errorf("invalid time in formatted")
+	}
+
+	return res, nil
+}
+
+func compareSolves(t1 *float64, s2 string) {
+	t2, err := tryParseSolve(s2)
+	if err == nil && *t1 - t2 > 1e-9 {
+		*t1 = t2;
+	}
+}
+
+func (r *ResultEntry) single() float64 {
+	res := math.MaxFloat64
+
+	compareSolves(&res, r.Solve1)
+	compareSolves(&res, r.Solve2)
+	compareSolves(&res, r.Solve3)
+	compareSolves(&res, r.Solve4)
+	compareSolves(&res, r.Solve5)
+
+	return res
+}
+
+func (r *ResultEntry) getSolvesFromResultEntry() []float64 {
+	values := make([]float64, 0)
+
+	t1, err1 := tryParseSolve(r.Solve1)
+	if err1 != nil {
+		values = append(values, math.MaxFloat64)
+	} else {
+		values = append(values, t1)
+	}
+
+	t2, err2 := tryParseSolve(r.Solve2)
+	if err2 != nil {
+		values = append(values, math.MaxFloat64)
+	} else {
+		values = append(values, t2)
+	}
+	
+	t3, err3 := tryParseSolve(r.Solve3)
+	if err3 != nil {
+		values = append(values, math.MaxFloat64)
+	} else {
+		values = append(values, t3)
+	}
+
+	t4, err4 := tryParseSolve(r.Solve4)
+	if err4 != nil {
+		values = append(values, math.MaxFloat64)
+	} else {
+		values = append(values, t4)
+	}
+
+	t5, err5 := tryParseSolve(r.Solve5)
+	if err5 != nil {
+		values = append(values, math.MaxFloat64)
+	} else {
+		values = append(values, t5)
+	}
+
+	return values;
+}
+
+func (r *ResultEntry) average(noOfSolves int) float64 {
+	solves := r.getSolvesFromResultEntry()
+	slices.Sort(solves)
+
+	sum := 0.
+	cntBad := 0
+
+	for idx, solve := range solves {
+		if idx >= noOfSolves {
+			break
+		}
+
+		if solve == math.MaxFloat64 {
+			cntBad++
+			if (noOfSolves == 5 && cntBad > 1) || (noOfSolves == 3 && cntBad > 0) {
+				return math.MaxFloat64
+			}
+		}
+
+		if noOfSolves == 3 || (noOfSolves == 5 && idx > 0 && idx < 4) {
+			sum += solve
+		}
+	}
+
+	return float64(sum) / float64(3)
+}
+
+func getWorldRecordSingle(eventName string) float64 {
+	return 0
+}
+
+func getWorldRecordAverage(eventName string) float64 {
+	return 0
+}
+
+func getNoOfSolves(format string) (int, error) {
+	match := regexp.MustCompile(`\d+$`).FindString(format)
+	res, err := strconv.Atoi(match)
+
+	if err != nil {
+		return 0, fmt.Errorf("did not find a number at the end of format")
+	}
+
+	return res, nil
+}
+
+func isSuspicous(resultEntry ResultEntry) bool {
+	noOfSolves, err := getNoOfSolves(resultEntry.Format)
+	if err != nil {
+		return false
+	}
+
+	curSingle, curAverage := resultEntry.single(), resultEntry.average(noOfSolves)
+	fmt.Println("curSingle: ", curSingle, "curAverage: ", curAverage)
+	recSingle, recAverage := getWorldRecordSingle(resultEntry.Eventname), getWorldRecordAverage(resultEntry.Eventname)
+
+	return curSingle - recSingle < 1e-9 || curAverage - recAverage < 1e-9;
+}
+
 func postResults(c *gin.Context) {
 	var resultEntry ResultEntry
 
 	if err := c.BindJSON(&resultEntry); err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, "");
 		return;
+	}
+
+	if (isSuspicous(resultEntry)) {
+		resultEntry.Status.ApprovalFinished = false;
+	} else {
+		resultEntry.Status.ApprovalFinished = true;
 	}
 	
 	resultsIdx := slices.IndexFunc(results, func (r ResultEntry) bool { return r.Id == resultEntry.Id })
@@ -632,6 +807,34 @@ func postResults(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusCreated, resultEntry)
+}
+
+func postResultsValidation(c *gin.Context) {
+	type reqBody struct {
+		ResultId int `json:"resultId"`
+		Verdict bool `json:"verdict"`
+	}
+	var body reqBody
+
+	if err := c.BindJSON(&body); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, "");
+		return;
+	}
+
+	resultsIdx := slices.IndexFunc(results, func (r ResultEntry) bool { return r.Id == body.ResultId })
+	
+	if resultsIdx == -1 {
+		c.IndentedJSON(http.StatusInternalServerError, "");
+		return;
+	} else {
+		if body.Verdict {
+			results[resultsIdx].Status = approvedResultsStatus;
+		} else {
+			results[resultsIdx].Status = deniedResultsStatus;
+		}
+	}
+
+	c.IndentedJSON(http.StatusCreated, "")
 }
 
 func getEvents(c *gin.Context) {

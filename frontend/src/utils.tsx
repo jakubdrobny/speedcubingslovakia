@@ -305,7 +305,11 @@ export const saveValidation = async (
   resultEntry: ResultEntry,
   verdict: boolean
 ) => {
-  console.log("zatial sa nic neudeje", verdict, resultEntry);
+  const response = await axios.post("/api/results/save-validation", {
+    resultId: resultEntry.id,
+    verdict,
+  });
+  return response.data;
 };
 
 export const competitionOnGoing = (state: CompetitionState): boolean => {

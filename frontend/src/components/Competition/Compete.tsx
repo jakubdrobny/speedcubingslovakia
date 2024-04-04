@@ -26,6 +26,7 @@ const Compete = () => {
     toggleInputMethod,
     saveResults,
     setCurrentResults,
+    setSuspicousModalOpen,
   } = useContext(CompetitionContext) as CompetitionContextType;
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -48,6 +49,7 @@ const Compete = () => {
       .then((resultEntry: ResultEntry) => {
         setIsLoading(false);
         setCurrentResults(resultEntry);
+        if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
       })
       .catch((err) => {
         console.log(err);

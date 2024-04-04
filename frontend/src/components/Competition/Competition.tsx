@@ -1,22 +1,27 @@
 import "../../styles/cubing-icons.css";
 
-import { Alert, CircularProgress, Stack, Typography } from "@mui/joy";
 import {
-  AuthContextType,
-  CompetitionContextType,
-  CompetitionData,
-  ResultEntry,
-} from "../../Types";
+  Alert,
+  CircularProgress,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  Modal,
+  ModalClose,
+  ModalDialog,
+  Stack,
+  Typography,
+} from "@mui/joy";
+import { CompetitionContextType, CompetitionData } from "../../Types";
+import { PriorityHigh, Warning } from "@mui/icons-material";
 import {
   formatDate,
   getCompetitionById,
-  getResultsFromCompetitionAndEvent,
   initialCompetitionState,
 } from "../../utils";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { AuthContext } from "../../context/AuthContext";
 import { CompetitionContext } from "./CompetitionContext";
 import CompetitorArea from "./CompetitorArea";
 import { EventSelector } from "./EventSelector";
@@ -24,10 +29,13 @@ import { EventSelector } from "./EventSelector";
 const Competition = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { competitionState, setCompetitionState, updateBasicInfo } = useContext(
-    CompetitionContext
-  ) as CompetitionContextType;
-  const { authState } = useContext(AuthContext) as AuthContextType;
+  const {
+    suspicousModalOpen,
+    setSuspicousModalOpen,
+    competitionState,
+    setCompetitionState,
+    updateBasicInfo,
+  } = useContext(CompetitionContext) as CompetitionContextType;
 
   useEffect(() => {
     setCompetitionState({
@@ -62,6 +70,34 @@ const Competition = () => {
       spacing={3}
       sx={{ display: "flex", alignItems: "center", margin: "2em 0" }}
     >
+      <Modal
+        open={suspicousModalOpen}
+        onClose={() => setSuspicousModalOpen(false)}
+      >
+        <ModalDialog
+          color="danger"
+          layout="center"
+          size="lg"
+          variant="soft"
+          role="alertdialog"
+        >
+          <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
+            <Warning />
+            Suspicous result detected
+          </DialogTitle>
+          <ModalClose />
+          <Divider />
+          <DialogContent>
+            Your results were identified as suspicous, which means you likely
+            made a data entry error. If that's the case, please fix it, until
+            then, these results won't show up on the leaderboard.
+            <br />
+            <br />
+            If you achieved these results legitimately, please let us know and
+            your results will be approved.
+          </DialogContent>
+        </ModalDialog>
+      </Modal>
       {competitionState.loadingState.error ? (
         <Alert color="danger">{competitionState.loadingState.error}</Alert>
       ) : competitionState.loadingState.compinfo ? (
