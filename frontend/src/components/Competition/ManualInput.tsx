@@ -6,61 +6,70 @@ import { useContext, useEffect, useState } from "react";
 import { CompetitionContext } from "./CompetitionContext";
 
 const TimerInput = () => {
-    const [forceRerender, setForceRerender] = useState(false);
-    const { competitionState, updateSolve, saveResults } = useContext(CompetitionContext) as CompetitionContextType;
-    const solveProp: keyof ResultEntry= `solve${competitionState.currentSolveIdx+1}` as keyof ResultEntry;
-    const formattedTime = competitionState.results[solveProp].toString();
-    
-    useEffect(() => setForceRerender(!forceRerender), [competitionState.currentEventIdx]);
-    
-    const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
-        const newValue = e.currentTarget.value;
+  const [forceRerender, setForceRerender] = useState(false);
+  const { competitionState, updateSolve, saveResults, currentResults } =
+    useContext(CompetitionContext) as CompetitionContextType;
+  const solveProp: keyof ResultEntry = `solve${
+    competitionState.currentSolveIdx + 1
+  }` as keyof ResultEntry;
+  const formattedTime = currentResults[solveProp].toString();
 
-        if (competitionState.events[competitionState.currentEventIdx].displayname === "FMC") {
-            updateSolve(newValue);
-            return;
-        }
-        
-        // character deleted
-        if (newValue.length + 1 === formattedTime.length) {
-            if (newValue.endsWith('N')) {
-                updateSolve("0.00");
-                return;
-            } else {
-                updateSolve(reformatTime(newValue));
-            }
-        } else {
-            if (newValue.endsWith("d")) {
-                updateSolve("DNF");
-            } else if (newValue.endsWith("s")) {
-                updateSolve("DNS");
-            } else if (/\d$/.test(newValue.slice(-1))) {
-                updateSolve(reformatTime(newValue, true));
-            } else {
-                updateSolve("DNF");
-            }
-        }
+  useEffect(
+    () => setForceRerender(!forceRerender),
+    [competitionState.currentEventIdx]
+  );
+
+  const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const newValue = e.currentTarget.value;
+
+    if (
+      competitionState.events[competitionState.currentEventIdx].displayname ===
+      "FMC"
+    ) {
+      updateSolve(newValue);
+      return;
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            saveResults();
-        }
+    // character deleted
+    if (newValue.length + 1 === formattedTime.length) {
+      if (newValue.endsWith("N")) {
+        updateSolve("0.00");
+        return;
+      } else {
+        updateSolve(reformatTime(newValue));
+      }
+    } else {
+      if (newValue.endsWith("d")) {
+        updateSolve("DNF");
+      } else if (newValue.endsWith("s")) {
+        updateSolve("DNS");
+      } else if (/\d$/.test(newValue.slice(-1))) {
+        updateSolve(reformatTime(newValue, true));
+      } else {
+        updateSolve("DNF");
+      }
     }
+  };
 
-    return (
-        <div>
-            <Input
-                size="lg"
-                placeholder="Enter your time or solution..."
-                sx={{ marginBottom: 2, marginTop: 2}}
-                value={formattedTime}
-                onChange={handleTimeInputChange}
-                onKeyDown={handleKeyDown}
-                disabled={!competitionOnGoing(competitionState)}
-            />
-        </div>
-    )
-}
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      saveResults();
+    }
+  };
+
+  return (
+    <div>
+      <Input
+        size="lg"
+        placeholder="Enter your time or solution..."
+        sx={{ marginBottom: 2, marginTop: 2 }}
+        value={formattedTime}
+        onChange={handleTimeInputChange}
+        onKeyDown={handleKeyDown}
+        disabled={!competitionOnGoing(competitionState)}
+      />
+    </div>
+  );
+};
 
 export default TimerInput;

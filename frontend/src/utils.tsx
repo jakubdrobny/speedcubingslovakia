@@ -1,273 +1,321 @@
-import { CompetitionDBModel, CompetitionData, CompetitionEvent, CompetitionState, FilterValue, InputMethod, ManageRolesUser, ResultEntry, ScrambleSet } from "./Types";
+import {
+  CompetitionDBModel,
+  CompetitionData,
+  CompetitionEvent,
+  CompetitionState,
+  FilterValue,
+  InputMethod,
+  ManageRolesUser,
+  ResultEntry,
+  ScrambleSet,
+} from "./Types";
 
-import { Alg } from 'cubing/alg'
-import axios from 'axios';
-import { randomScrambleForEvent } from "cubing/scramble"
-import { setSearchDebug } from 'cubing/search'
+import { Alg } from "cubing/alg";
+import axios from "axios";
+import { randomScrambleForEvent } from "cubing/scramble";
+import { setSearchDebug } from "cubing/search";
 
 setSearchDebug({
-    logPerf: false,
-    scramblePrefetchLevel: "none",
+  logPerf: false,
+  scramblePrefetchLevel: "none",
 });
 
-export const loadFilteredCompetitions = async (filterValue: FilterValue): Promise<CompetitionData[]> => {
-    const response = await axios.get(`/api/competitions/${filterValue}`)
-    return response.data;
-}
-
-export const getCompetitionById = async (id: string | undefined): Promise<CompetitionData> => {
-    if (id === undefined) {
-        return Promise.reject("Invalid competition id.");
-    }
-    
-    const response = await axios.get(`/api/competition/${id}`)
-    return !response.data ? undefined : response.data;
-}
-
-export const getResultsFromCompetitionAndEvent = async (token: string, id: string | undefined, event: CompetitionEvent): Promise<ResultEntry> => {
-    const response = await axios.get(`/api/results/${id}/${event.displayname}`)
-    return response.data;
-}
-
-const formattedToMiliseconds = (formattedTime: string): number => {
-    let res = 0;
-
-    const formattedTimeSplit = formattedTime.split('.');
-    const wholePart = formattedTimeSplit[0].split(':').reverse(), decimalPart = formattedTimeSplit[1];
-
-    res += parseInt(decimalPart) * 10;
-    if (wholePart.length > 0)
-        res += parseInt(wholePart[0]) * 1000;
-    if (wholePart.length > 1)
-        res += 60 * parseInt(wholePart[1]) * 1000;
-    if (wholePart.length > 2)
-        res += 60 * 60 * parseInt(wholePart[2]) * 1000;
-    if (wholePart.length > 3)
-        res += 24 * 60 * 60 * parseInt(wholePart[3]) * 1000;
-
-    return res;
-}
-
-export const milisecondsToFormattedTime = (toFormat: number): string => {
-    if (toFormat === -1) {
-        return "DNF";
-    }
-
-    if (toFormat === -2) {
-        return "DNS";
-    }
-
-    let res = [];
-
-    let pw = 1000 * 60 * 60 * 24;
-    for (const mul of [24, 60, 60, 1000, 1]) {
-        const toPush = Math.floor(toFormat / pw).toString();
-        res.push(mul === 1 ? toPush.padStart(3, '0') : toPush);
-        toFormat %= pw;
-        pw = Math.floor(pw / mul);
-    }
-
-    res[res.length - 1] = res[res.length - 1].slice(0, res[res.length - 1].length - 1);
-    let sliceIdx = 0;
-    while (sliceIdx < res.length - 2 && res[sliceIdx] === '0')
-        sliceIdx += 1;
-    res = res.slice(sliceIdx);
-
-    let resString = "";
-    let resIdx: number;
-    for (resIdx = 0; resIdx < res.length - 1; resIdx++) {
-        resString += resIdx > 0 ? res[resIdx].padStart(2, '0') : res[resIdx];
-        resString += resIdx == res.length - 2 ? '.' : ':';
-    }
-    resString += res[resIdx].padStart(2, '0');
-
-    return resString;
-}
-
-export const reformatWithPenalties = (oldFormattedTime: string, penalty: string) => {
-    if (oldFormattedTime === "DNF") {
-        return oldFormattedTime;
-    }
-
-    if (oldFormattedTime === "DNS") {
-        return penalty === "DNF" ? "DNF" : "DNS";
-    }
-
-    let miliseconds = formattedToMiliseconds(oldFormattedTime);
-
-    if (penalty === "DNF") {
-        miliseconds = -1;
-    } else {
-        miliseconds += parseInt(penalty) * 1000;
-    }
-
-    let newFormattedTime = milisecondsToFormattedTime(miliseconds);
-
-    return newFormattedTime;
-}
-
-export const getManageUsers = async (): Promise<ManageRolesUser[]> => {
-    const response = await axios.get('/api/users/manage-roles')
-    return response.data;
-}
-
-export const updateUserRoles = async (newUsers: ManageRolesUser[]): Promise<ManageRolesUser[]> => {
-    const response = await axios.put('/api/users/manage-roles', newUsers)
-    return response.data;
-}
-
-export const getAvailableEvents = async (): Promise<CompetitionEvent[]> => {
-    const response = await axios.get('/api/events')
-    return response.data;
-}
-
-
-const cancels = async (scramble: string) => {
-    let cancelledScramble = new Alg(scramble).experimentalSimplify({cancel: true}).toString();
-    return scramble !== cancelledScramble;
-}
-
-const generateScrambleSetsFromEvents = async (events: CompetitionEvent[]): Promise<ScrambleSet[]> => {
-    let scrambleSets: ScrambleSet[] = [];
-
-    for (const event of events) {
-        const match = event.format.match(/\d+$/)?.[0]
-        const noOfSolves = match ? parseInt(match) : 1
-        
-        let scrambles: string[] = []
-        for (let i = 0; i < noOfSolves; i++) {
-            let scramble: string = (await randomScrambleForEvent(event.iconcode)).toString()
-            while (event.displayname === "FMC" && await cancels(scramble)) {
-                scramble = (await randomScrambleForEvent(event.iconcode)).toString();
-            }
-            scrambles.push(scramble)
-        }
-
-        scrambleSets.push({ event, scrambles });
-    }
-
-    return scrambleSets
-}
-
-export const updateCompetition = async (state: CompetitionState, edit: boolean): Promise<CompetitionState> => {
-    const reqBody: CompetitionDBModel = {
-        id: state.name.split(' ').join(''),
-        name: state.name,
-        startdate: state.startdate + ':00Z',
-        enddate: state.enddate + ':00Z',
-        events: state.events.toSorted((e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id),
-        scrambles: await generateScrambleSetsFromEvents(state.events)
-    }
-
-    const response = await axios({
-        method: edit ? 'PUT' : 'POST',
-        url: '/api/competition',
-        data: reqBody
-    })
-
-    return response.data;
-}
-
-export const getResults = async (competitorName: string, competitionName: string, competeEvent: CompetitionEvent | undefined) => {
-    competitorName = competitorName === "" ? "_" : competitorName;
-    competitionName = competitionName === "" ? "_" : competitionName;
-    
-    const response = await axios.get(`/api/results/edit/${competitorName}/${competitionName}/${competeEvent?.displayname}`)
-    return response.data;
-}
-
-export const formatCompetitionDateForInput = (originalDate: string): string => {
-    const originalDateSplit = originalDate.split('.')[0].split(':')
-    return originalDateSplit.slice(0, 2).join(':');
-}
-
-export const initialCompetitionState: CompetitionState = {
-    id: "",
-    name: "",
-    startdate: formatCompetitionDateForInput(new Date().toISOString()),
-    enddate: formatCompetitionDateForInput(new Date().toISOString()),
-    events: [],
-    currentEventIdx: 0,
-    noOfSolves: 1,
-    currentSolveIdx: 0,
-    scrambles: [],
-    inputMethod: InputMethod.Manual,
-    loadingState: {
-        results: false,
-        compinfo: false,
-        error: ''
-    },
-    results: {
-        id: 0,
-        userid: 0,
-        username: '',
-        competitionid: '',
-        competitionname: '',
-        eventid: 0,
-        eventname: '',
-        iconcode: '',
-        format: '',
-        solve1: '',
-        solve2: '',
-        solve3: '',
-        solve4: '',
-        solve5: '',
-        comment: '',
-        status: {
-            id: 0,
-            approvalFinished: true,
-            visible: true,
-            displayname: '',
-        }
-    },
-    penalties: Array(5).fill('0')
+export const loadFilteredCompetitions = async (
+  filterValue: FilterValue
+): Promise<CompetitionData[]> => {
+  const response = await axios.get(`/api/competitions/${filterValue}`);
+  return response.data;
 };
 
-export const reformatTime = (oldFormattedTime: string, added: boolean = false): string => {
-    if (added) {
-        let idx = 0;
-        while (idx < oldFormattedTime.length && /^\D/.test(oldFormattedTime[idx]) || oldFormattedTime[idx] === '0')
-            idx++;
-        oldFormattedTime = oldFormattedTime.slice(idx);
+export const getCompetitionById = async (
+  id: string | undefined
+): Promise<CompetitionData> => {
+  if (id === undefined) {
+    return Promise.reject("Invalid competition id.");
+  }
+
+  const response = await axios.get(`/api/competition/${id}`);
+  return !response.data ? undefined : response.data;
+};
+
+export const getResultsFromCompetitionAndEvent = async (
+  token: string,
+  id: string | undefined,
+  event: CompetitionEvent | undefined
+): Promise<ResultEntry> => {
+  const response = await axios.get(
+    `/api/results/${!id ? "_" : id}/${event?.displayname}`
+  );
+  return response.data;
+};
+
+const formattedToMiliseconds = (formattedTime: string): number => {
+  let res = 0;
+
+  const formattedTimeSplit = formattedTime.split(".");
+  const wholePart = formattedTimeSplit[0].split(":").reverse(),
+    decimalPart = formattedTimeSplit[1];
+
+  res += parseInt(decimalPart) * 10;
+  if (wholePart.length > 0) res += parseInt(wholePart[0]) * 1000;
+  if (wholePart.length > 1) res += 60 * parseInt(wholePart[1]) * 1000;
+  if (wholePart.length > 2) res += 60 * 60 * parseInt(wholePart[2]) * 1000;
+  if (wholePart.length > 3) res += 24 * 60 * 60 * parseInt(wholePart[3]) * 1000;
+
+  return res;
+};
+
+export const milisecondsToFormattedTime = (toFormat: number): string => {
+  if (toFormat === -1) {
+    return "DNF";
+  }
+
+  if (toFormat === -2) {
+    return "DNS";
+  }
+
+  let res = [];
+
+  let pw = 1000 * 60 * 60 * 24;
+  for (const mul of [24, 60, 60, 1000, 1]) {
+    const toPush = Math.floor(toFormat / pw).toString();
+    res.push(mul === 1 ? toPush.padStart(3, "0") : toPush);
+    toFormat %= pw;
+    pw = Math.floor(pw / mul);
+  }
+
+  res[res.length - 1] = res[res.length - 1].slice(
+    0,
+    res[res.length - 1].length - 1
+  );
+  let sliceIdx = 0;
+  while (sliceIdx < res.length - 2 && res[sliceIdx] === "0") sliceIdx += 1;
+  res = res.slice(sliceIdx);
+
+  let resString = "";
+  let resIdx: number;
+  for (resIdx = 0; resIdx < res.length - 1; resIdx++) {
+    resString += resIdx > 0 ? res[resIdx].padStart(2, "0") : res[resIdx];
+    resString += resIdx == res.length - 2 ? "." : ":";
+  }
+  resString += res[resIdx].padStart(2, "0");
+
+  return resString;
+};
+
+export const reformatWithPenalties = (
+  oldFormattedTime: string,
+  penalty: string
+) => {
+  if (oldFormattedTime === "DNF") {
+    return oldFormattedTime;
+  }
+
+  if (oldFormattedTime === "DNS") {
+    return penalty === "DNF" ? "DNF" : "DNS";
+  }
+
+  let miliseconds = formattedToMiliseconds(oldFormattedTime);
+
+  if (penalty === "DNF") {
+    miliseconds = -1;
+  } else {
+    miliseconds += parseInt(penalty) * 1000;
+  }
+
+  let newFormattedTime = milisecondsToFormattedTime(miliseconds);
+
+  return newFormattedTime;
+};
+
+export const getManageUsers = async (): Promise<ManageRolesUser[]> => {
+  const response = await axios.get("/api/users/manage-roles");
+  return response.data;
+};
+
+export const updateUserRoles = async (
+  newUsers: ManageRolesUser[]
+): Promise<ManageRolesUser[]> => {
+  const response = await axios.put("/api/users/manage-roles", newUsers);
+  return response.data;
+};
+
+export const getAvailableEvents = async (): Promise<CompetitionEvent[]> => {
+  const response = await axios.get("/api/events");
+  return response.data;
+};
+
+const cancels = async (scramble: string) => {
+  let cancelledScramble = new Alg(scramble)
+    .experimentalSimplify({ cancel: true })
+    .toString();
+  return scramble !== cancelledScramble;
+};
+
+const generateScrambleSetsFromEvents = async (
+  events: CompetitionEvent[]
+): Promise<ScrambleSet[]> => {
+  let scrambleSets: ScrambleSet[] = [];
+
+  for (const event of events) {
+    const match = event.format.match(/\d+$/)?.[0];
+    const noOfSolves = match ? parseInt(match) : 1;
+
+    let scrambles: string[] = [];
+    for (let i = 0; i < noOfSolves; i++) {
+      let scramble: string = (
+        await randomScrambleForEvent(event.iconcode)
+      ).toString();
+      while (event.displayname === "FMC" && (await cancels(scramble))) {
+        scramble = (await randomScrambleForEvent(event.iconcode)).toString();
+      }
+      scrambles.push(scramble);
     }
 
-    const matchedDigits = oldFormattedTime.match(/\d+/g);
-    let digits = !matchedDigits ? '' : matchedDigits.join('');
-    if (digits.length < 3)
-        digits = digits.padStart(3, '0');
+    scrambleSets.push({ event, scrambles });
+  }
 
-    let newFormattedTime = `${digits[digits.length - 1]}${digits[digits.length - 2]}.`;
-    let idx = digits.length - 3;
-    while (idx >= 0) {
-        newFormattedTime += digits[idx--];
-        if (idx >= 0)
-            newFormattedTime += digits[idx--];
-        if (idx >= 0)
-            newFormattedTime += ':';
-    }
+  return scrambleSets;
+};
 
-    newFormattedTime = newFormattedTime.split('').reverse().join('');
+export const updateCompetition = async (
+  state: CompetitionState,
+  edit: boolean
+): Promise<CompetitionState> => {
+  const reqBody: CompetitionDBModel = {
+    id: state.name.split(" ").join(""),
+    name: state.name,
+    startdate: state.startdate + ":00Z",
+    enddate: state.enddate + ":00Z",
+    events: state.events.toSorted(
+      (e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id
+    ),
+    scrambles: await generateScrambleSetsFromEvents(state.events),
+  };
 
-    return newFormattedTime;
-}
+  const response = await axios({
+    method: edit ? "PUT" : "POST",
+    url: "/api/competition",
+    data: reqBody,
+  });
+
+  return response.data;
+};
+
+export const getResults = async (
+  competitorName: string,
+  competitionName: string,
+  competeEvent: CompetitionEvent | undefined
+) => {
+  competitorName = competitorName === "" ? "_" : competitorName;
+  competitionName = competitionName === "" ? "_" : competitionName;
+
+  const response = await axios.get(
+    `/api/results/edit/${competitorName}/${competitionName}/${competeEvent?.displayname}`
+  );
+  return response.data;
+};
+
+export const formatCompetitionDateForInput = (originalDate: string): string => {
+  const originalDateSplit = originalDate.split(".")[0].split(":");
+  return originalDateSplit.slice(0, 2).join(":");
+};
+
+export const initialCompetitionState: CompetitionState = {
+  id: "",
+  name: "",
+  startdate: formatCompetitionDateForInput(new Date().toISOString()),
+  enddate: formatCompetitionDateForInput(new Date().toISOString()),
+  events: [],
+  currentEventIdx: 0,
+  noOfSolves: 1,
+  currentSolveIdx: 0,
+  scrambles: [],
+  inputMethod: InputMethod.Manual,
+  loadingState: {
+    compinfo: false,
+    error: "",
+  },
+  penalties: Array(5).fill("0"),
+};
+
+export const initialCurrentResults: ResultEntry = {
+  id: 0,
+  userid: 0,
+  username: "",
+  competitionid: "",
+  competitionname: "",
+  eventid: 0,
+  eventname: "",
+  iconcode: "",
+  format: "",
+  solve1: "",
+  solve2: "",
+  solve3: "",
+  solve4: "",
+  solve5: "",
+  comment: "",
+  status: {
+    id: 0,
+    approvalFinished: true,
+    visible: true,
+    displayname: "",
+  },
+};
+
+export const reformatTime = (
+  oldFormattedTime: string,
+  added: boolean = false
+): string => {
+  if (added) {
+    let idx = 0;
+    while (
+      (idx < oldFormattedTime.length && /^\D/.test(oldFormattedTime[idx])) ||
+      oldFormattedTime[idx] === "0"
+    )
+      idx++;
+    oldFormattedTime = oldFormattedTime.slice(idx);
+  }
+
+  const matchedDigits = oldFormattedTime.match(/\d+/g);
+  let digits = !matchedDigits ? "" : matchedDigits.join("");
+  if (digits.length < 3) digits = digits.padStart(3, "0");
+
+  let newFormattedTime = `${digits[digits.length - 1]}${
+    digits[digits.length - 2]
+  }.`;
+  let idx = digits.length - 3;
+  while (idx >= 0) {
+    newFormattedTime += digits[idx--];
+    if (idx >= 0) newFormattedTime += digits[idx--];
+    if (idx >= 0) newFormattedTime += ":";
+  }
+
+  newFormattedTime = newFormattedTime.split("").reverse().join("");
+
+  return newFormattedTime;
+};
 
 export const sendResults = async (resultEntry: ResultEntry) => {
-    const response = await axios.post('/api/results/save', resultEntry)
-    return response.data;
-}
+  const response = await axios.post("/api/results/save", resultEntry);
+  return response.data;
+};
 
-export const saveValidation = async (resultEntry: ResultEntry, verdict: boolean) => {
-    console.log('zatial sa nic neudeje', verdict, resultEntry);
-}
+export const saveValidation = async (
+  resultEntry: ResultEntry,
+  verdict: boolean
+) => {
+  console.log("zatial sa nic neudeje", verdict, resultEntry);
+};
 
 export const competitionOnGoing = (state: CompetitionState): boolean => {
-    const startdate = new Date(state.startdate)
-    const now = new Date();
-    const enddate = new Date(state.enddate)
-    return startdate < now && now < enddate;
-}
+  const startdate = new Date(state.startdate);
+  const now = new Date();
+  const enddate = new Date(state.enddate);
+  return startdate < now && now < enddate;
+};
 
 export const formatDate = (dateString: string): String => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString() + " " + date.toLocaleTimeString()
-}
+  const date = new Date(dateString);
+  return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+};
