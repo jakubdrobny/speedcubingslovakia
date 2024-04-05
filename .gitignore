@@ -1,0 +1,4 @@
+database/.env.local
+database/.env.development.local
+database/.env.test.local
+database/.env.production.local
