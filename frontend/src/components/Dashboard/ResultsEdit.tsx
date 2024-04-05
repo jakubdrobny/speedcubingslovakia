@@ -304,11 +304,13 @@ const ResultsEdit = () => {
                         }
                       >
                         <Typography level="h4">Status:</Typography>
-                        {result.status.approved === true ? (
+                        {result.status.approvalFinished &&
+                        result.status.approved === true ? (
                           <div className="mui-joy-btn mui-joy-btn-soft-success">
                             {result.status.displayname}
                           </div>
-                        ) : result.status.approved === false ? (
+                        ) : result.status.approvalFinished &&
+                          result.status.approved === false ? (
                           <div className="mui-joy-btn mui-joy-btn-soft-danger">
                             {result.status.displayname}
                           </div>
