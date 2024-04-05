@@ -12,15 +12,6 @@ export type ScrambleSet = {
   scrambles: string[];
 };
 
-export type CompetitionDBModel = {
-  id: string;
-  name: string;
-  startdate: string;
-  enddate: string;
-  events: CompetitionEvent[];
-  scrambles: ScrambleSet[];
-};
-
 export enum FilterValue {
   Current = "Current",
   Past = "Past",
@@ -98,6 +89,7 @@ export enum ResultEntrySolves {
 
 export type AuthState = {
   token: string;
+  userid: number;
   authenticated: boolean;
   admin: boolean;
 };

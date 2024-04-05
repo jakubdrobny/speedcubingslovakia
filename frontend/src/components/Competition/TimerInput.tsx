@@ -10,6 +10,7 @@ import { CompetitionContext } from "./CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
 import { Typography } from "@mui/joy";
 import { reformatWithPenalties } from "../../utils";
+import { useLocation } from "react-router-dom";
 
 const Timer = () => {
   const [forceRerender, setForceRerender] = useState(false);
@@ -23,11 +24,28 @@ const Timer = () => {
     competitionState.currentSolveIdx + 1
   }` as keyof ResultEntry;
   const formattedTime = currentResults[solveProp].toString();
+  const location = useLocation();
+  const { handleTimerInputKeyDown, handleTimerInputKeyUp } = useContext(
+    TimerInputContext
+  ) as TimerInputContextType;
 
   useEffect(
     () => setForceRerender(!forceRerender),
     [competitionState.currentEventIdx]
   );
+
+  useEffect(() => {
+    const routePattern = /^\/competition(?:\/.*)?$/;
+    if (routePattern.test(location.pathname)) {
+      window.addEventListener("keydown", handleTimerInputKeyDown);
+      window.addEventListener("keyup", handleTimerInputKeyUp);
+    }
+
+    return () => {
+      window.removeEventListener("keydwn", handleTimerInputKeyDown);
+      window.removeEventListener("keyup", handleTimerInputKeyUp);
+    };
+  }, [location.pathname, handleTimerInputKeyDown, handleTimerInputKeyUp]);
 
   return (
     <div

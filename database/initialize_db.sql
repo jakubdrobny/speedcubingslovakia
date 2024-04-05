@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS competitions (
-  competition_id BIGSERIAL PRIMARY KEY,
+  competition_id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   startdate TIMESTAMP NOT NULL,
   enddate TIMESTAMP NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS events (
 
 CREATE TABLE IF NOT EXISTS competition_events (
   competition_events_id BIGSERIAL PRIMARY KEY,
-  competition_id INTEGER REFERENCES competitions (competition_id) NOT NULL,
+  competition_id TEXT REFERENCES competitions (competition_id) NOT NULL,
   event_id INTEGER REFERENCES events (event_id) NOT NULL,
   timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -46,15 +46,15 @@ CREATE TABLE IF NOT EXISTS results_status (
 );
 
 CREATE TABLE IF NOT EXISTS results (
-  id BIGSERIAL PRIMARY KEY,
-  competition_id INTEGER REFERENCES competitions (competition_id) NOT NULL,
+  result_id BIGSERIAL PRIMARY KEY,
+  competition_id TEXT REFERENCES competitions (competition_id) NOT NULL,
   user_id INTEGER REFERENCES users (user_id) NOT NULL,
   event_id INTEGER REFERENCES events (event_id) NOT NULL,
-  solve1 TEXT,
-  solve2 TEXT,
-  solve3 TEXT,
-  solve4 TEXT,
-  solve5 TEXT,
+  solve1 TEXT NOT NULL,
+  solve2 TEXT NOT NULL,
+  solve3 TEXT NOT NULL,
+  solve4 TEXT NOT NULL,
+  solve5 TEXT NOT NULL,
   comment TEXT NOT NULL,
   status_id INTEGER REFERENCES results_status (results_status_id) NOT NULL,
   timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -64,7 +64,7 @@ CREATE TABLE scrambles (
   scramble_id BIGSERIAL PRIMARY KEY,
   scramble TEXT NOT NULL,
   event_id INTEGER REFERENCES events (event_id) NOT NULL,
-  competition_id INTEGER REFERENCES competitions (competition_id) NOT NULL,
+  competition_id TEXT REFERENCES competitions (competition_id) NOT NULL,
   "order" INTEGER NOT NULL,
   timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

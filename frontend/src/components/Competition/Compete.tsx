@@ -42,7 +42,7 @@ const Compete = () => {
     setIsLoading(true);
 
     getResultsFromCompetitionAndEvent(
-      authState.token,
+      authState.userid,
       competitionState.id,
       competitionState.events[competitionState.currentEventIdx]
     )
@@ -52,7 +52,6 @@ const Compete = () => {
         if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
       })
       .catch((err) => {
-        console.log(err);
         setIsLoading(false);
         setError(err.message);
       });

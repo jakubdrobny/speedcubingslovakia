@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Chip,
+  CircularProgress,
   FormControl,
   FormHelperText,
   FormLabel,
@@ -134,8 +135,10 @@ const ResultsEdit = () => {
     );
   };
 
-  const saveResult = (resultsIdx: number) => {
-    sendResults(results[resultsIdx]);
+  const saveResult = async (resultsIdx: number) => {
+    setIsLoading((ps) => ({ ...ps, results: true }));
+    await sendResults(results[resultsIdx]);
+    await fetchResults();
   };
 
   const validateResult = (resultsIdx: number, verdict: boolean) => {
@@ -231,142 +234,150 @@ const ResultsEdit = () => {
         </Stack>
       </Card>
       <Card>
+        {error && <Alert color="danger">{error}</Alert>}
         <Stack spacing={2}>
           <Typography level="h3" className="bottom-divider">
             Results
           </Typography>
-          {error && <Alert color="danger">{error}</Alert>}
-          {results.map((result: ResultEntry, resultIdx: number) => (
-            <Card key={result.id}>
-              <Stack spacing={3} sx={{ marginBottom: "0.25em" }}>
-                <Grid container>
-                  <Grid
-                    xs={6}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Stack spacing={2}>
-                      <div>
-                        <Typography level="h4">Name:</Typography>
-                        <Typography>{result.username}</Typography>
-                      </div>
-                      <div>
-                        <Typography level="h4">Competition:</Typography>
-                        <Typography>{result.competitionname}</Typography>
-                      </div>
-                      <div>
-                        <Typography level="h4">Event:</Typography>
-                        <Typography component="div">
-                          <Chip size="lg" color="primary">
-                            <span
-                              className={`cubing-icon event-${result.iconcode}`}
-                            >
-                              &nbsp;{result.eventname}
-                            </span>
-                          </Chip>
-                        </Typography>
-                      </div>
-                      <div
-                        style={
-                          result.status.approvalFinished
-                            ? { display: "none" }
-                            : {}
-                        }
+          {isLoading.results ? (
+            <CircularProgress />
+          ) : (
+            <>
+              {results.map((result: ResultEntry, resultIdx: number) => (
+                <Card key={result.id}>
+                  <Stack spacing={3} sx={{ marginBottom: "0.25em" }}>
+                    <Grid container>
+                      <Grid
+                        xs={6}
+                        sx={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
                       >
-                        <Typography level="h4">Resolve status:</Typography>
-                        <Stack spacing={2} direction="row">
-                          <Button
-                            color="danger"
-                            variant="soft"
-                            onClick={() => validateResult(resultIdx, false)}
+                        <Stack spacing={2}>
+                          <div>
+                            <Typography level="h4">Name:</Typography>
+                            <Typography>{result.username}</Typography>
+                          </div>
+                          <div>
+                            <Typography level="h4">Competition:</Typography>
+                            <Typography>{result.competitionname}</Typography>
+                          </div>
+                          <div>
+                            <Typography level="h4">Event:</Typography>
+                            <Typography component="div">
+                              <Chip size="lg" color="primary">
+                                <span
+                                  className={`cubing-icon event-${result.iconcode}`}
+                                >
+                                  &nbsp;{result.eventname}
+                                </span>
+                              </Chip>
+                            </Typography>
+                          </div>
+                          <div
+                            style={
+                              result.status.approvalFinished
+                                ? { display: "none" }
+                                : {}
+                            }
                           >
-                            <Close />
-                            Deny
-                          </Button>
-                          <Button
-                            color="success"
-                            variant="soft"
-                            onClick={() => validateResult(resultIdx, true)}
+                            <Typography level="h4">Resolve status:</Typography>
+                            <Stack spacing={2} direction="row">
+                              <Button
+                                color="danger"
+                                variant="soft"
+                                onClick={() => validateResult(resultIdx, false)}
+                              >
+                                <Close />
+                                Deny
+                              </Button>
+                              <Button
+                                color="success"
+                                variant="soft"
+                                onClick={() => validateResult(resultIdx, true)}
+                              >
+                                <Check />
+                                Approve
+                              </Button>
+                            </Stack>
+                          </div>
+                          <div
+                            style={
+                              !result.status.approvalFinished
+                                ? { display: "none" }
+                                : {}
+                            }
                           >
-                            <Check />
-                            Approve
-                          </Button>
+                            <Typography level="h4">Status:</Typography>
+                            {result.status.approvalFinished &&
+                            result.status.approved === true ? (
+                              <div className="mui-joy-btn mui-joy-btn-soft-success">
+                                {result.status.displayname}
+                              </div>
+                            ) : result.status.approvalFinished &&
+                              result.status.approved === false ? (
+                              <div className="mui-joy-btn mui-joy-btn-soft-danger">
+                                {result.status.displayname}
+                              </div>
+                            ) : (
+                              <></>
+                            )}
+                          </div>
                         </Stack>
-                      </div>
-                      <div
-                        style={
-                          !result.status.approvalFinished
-                            ? { display: "none" }
-                            : {}
-                        }
-                      >
-                        <Typography level="h4">Status:</Typography>
-                        {result.status.approvalFinished &&
-                        result.status.approved === true ? (
-                          <div className="mui-joy-btn mui-joy-btn-soft-success">
-                            {result.status.displayname}
-                          </div>
-                        ) : result.status.approvalFinished &&
-                          result.status.approved === false ? (
-                          <div className="mui-joy-btn mui-joy-btn-soft-danger">
-                            {result.status.displayname}
-                          </div>
-                        ) : (
-                          <></>
-                        )}
-                      </div>
-                    </Stack>
-                  </Grid>
-                  <Grid xs={6}>
-                    <Stack spacing={1}>
-                      {getSolveProps(resultIdx).map((solveProp, solveIdx) => {
-                        return (
-                          <FormControl key={solveProp}>
-                            <FormLabel>Solve {solveIdx + 1}</FormLabel>
-                            <Input
-                              size="sm"
-                              placeholder="Enter your time or solution..."
-                              value={results[resultIdx][
-                                solveProp as keyof ResultEntry
-                              ].toString()}
+                      </Grid>
+                      <Grid xs={6}>
+                        <Stack spacing={1}>
+                          {getSolveProps(resultIdx).map(
+                            (solveProp, solveIdx) => {
+                              return (
+                                <FormControl key={solveProp}>
+                                  <FormLabel>Solve {solveIdx + 1}</FormLabel>
+                                  <Input
+                                    size="sm"
+                                    placeholder="Enter your time or solution..."
+                                    value={results[resultIdx][
+                                      solveProp as keyof ResultEntry
+                                    ].toString()}
+                                    onChange={(e) =>
+                                      handleTimeInputChange(
+                                        e.target.value,
+                                        result[
+                                          solveProp as keyof ResultEntry
+                                        ].toString(),
+                                        resultIdx,
+                                        solveProp
+                                      )
+                                    }
+                                  />
+                                </FormControl>
+                              );
+                            }
+                          )}
+                          <FormControl>
+                            <FormLabel>Comment:</FormLabel>
+                            <Textarea
+                              value={results[resultIdx].comment}
                               onChange={(e) =>
-                                handleTimeInputChange(
-                                  e.target.value,
-                                  result[
-                                    solveProp as keyof ResultEntry
-                                  ].toString(),
-                                  resultIdx,
-                                  solveProp
-                                )
+                                handleCommentChange(e.target.value, resultIdx)
                               }
+                              placeholder="Enter a comment to your solutions..."
+                              minRows={4}
+                              style={{ marginBottom: "1.25em" }}
                             />
                           </FormControl>
-                        );
-                      })}
-                      <FormControl>
-                        <FormLabel>Comment:</FormLabel>
-                        <Textarea
-                          value={results[resultIdx].comment}
-                          onChange={(e) =>
-                            handleCommentChange(e.target.value, resultIdx)
-                          }
-                          placeholder="Enter a comment to your solutions..."
-                          minRows={4}
-                          style={{ marginBottom: "1.25em" }}
-                        />
-                      </FormControl>
-                    </Stack>
-                  </Grid>
-                </Grid>
-                <Button type="submit" onClick={() => saveResult(resultIdx)}>
-                  Save
-                </Button>
-              </Stack>
-            </Card>
-          ))}
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                    <Button type="submit" onClick={() => saveResult(resultIdx)}>
+                      Save
+                    </Button>
+                  </Stack>
+                </Card>
+              ))}
+            </>
+          )}
         </Stack>
       </Card>
     </Stack>

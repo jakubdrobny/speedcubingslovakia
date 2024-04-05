@@ -1,5 +1,4 @@
 import {
-  CompetitionDBModel,
   CompetitionData,
   CompetitionEvent,
   CompetitionState,
@@ -39,12 +38,14 @@ export const getCompetitionById = async (
 };
 
 export const getResultsFromCompetitionAndEvent = async (
-  token: string,
-  id: string | undefined,
+  uid: number,
+  cid: string | undefined,
   event: CompetitionEvent | undefined
 ): Promise<ResultEntry> => {
+  if (cid === undefined || event === undefined)
+    return Promise.reject("invalid competition/event id");
   const response = await axios.get(
-    `/api/results/${!id ? "_" : id}/${event?.displayname}`
+    `/api/results/compete/${uid}/${cid}/${event.id}`
   );
   return response.data;
 };
@@ -182,7 +183,7 @@ export const updateCompetition = async (
   state: CompetitionState,
   edit: boolean
 ): Promise<CompetitionState> => {
-  const reqBody: CompetitionDBModel = {
+  const reqBody: CompetitionData = {
     id: state.id,
     name: state.name,
     startdate: state.startdate.endsWith("Z")
@@ -194,7 +195,7 @@ export const updateCompetition = async (
     events: state.events.toSorted(
       (e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id
     ),
-    scrambles: await generateScrambleSetsFromEvents(state.events),
+    scrambles: edit ? [] : await generateScrambleSetsFromEvents(state.events),
   };
 
   const response = await axios({
@@ -207,15 +208,17 @@ export const updateCompetition = async (
 };
 
 export const getResults = async (
-  competitorName: string,
-  competitionName: string,
+  username: string,
+  cid: string,
   competeEvent: CompetitionEvent | undefined
 ) => {
-  competitorName = competitorName === "" ? "_" : competitorName;
-  competitionName = competitionName === "" ? "_" : competitionName;
+  if (competeEvent === undefined) return Promise.reject("proste nie");
+
+  username = username === "" ? "_" : username;
+  cid = cid === "" ? "_" : cid;
 
   const response = await axios.get(
-    `/api/results/edit/${competitorName}/${competitionName}/${competeEvent?.displayname}`
+    `/api/results/edit/${username}/${cid}/${competeEvent.id}`
   );
   return response.data;
 };

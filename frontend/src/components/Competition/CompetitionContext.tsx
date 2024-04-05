@@ -60,7 +60,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
       loadingState: { ...ps.loadingState, results: true },
     }));
     getResultsFromCompetitionAndEvent(
-      authState.token,
+      authState.userid,
       competitionState.id,
       competitionState.events[idx]
     )
@@ -97,7 +97,10 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
 
   const saveResults = async (): Promise<void> => {
     try {
-      const resultEntry = await sendResults(currentResults);
+      const resultEntry = await sendResults({
+        ...currentResults,
+        competitionid: competitionState.id,
+      });
       if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
       setCurrentResults(resultEntry);
       return Promise.resolve();

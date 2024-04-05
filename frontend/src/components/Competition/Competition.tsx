@@ -13,7 +13,6 @@ import {
   Typography,
 } from "@mui/joy";
 import { CompetitionContextType, CompetitionData } from "../../Types";
-import { PriorityHigh, Warning } from "@mui/icons-material";
 import {
   formatDate,
   getCompetitionById,
@@ -25,6 +24,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { CompetitionContext } from "./CompetitionContext";
 import CompetitorArea from "./CompetitorArea";
 import { EventSelector } from "./EventSelector";
+import { Warning } from "@mui/icons-material";
 
 const Competition = () => {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ const Competition = () => {
   useEffect(() => {
     setCompetitionState({
       ...competitionState,
-      loadingState: { compinfo: true, error: "" },
+      loadingState: { results: false, compinfo: true, error: "" },
     });
 
     getCompetitionById(id)
@@ -58,7 +58,11 @@ const Competition = () => {
       .catch((err) =>
         setCompetitionState({
           ...competitionState,
-          loadingState: { compinfo: false, error: err.message },
+          loadingState: {
+            ...competitionState.loadingState,
+            compinfo: false,
+            error: err.message,
+          },
         })
       );
 
@@ -93,8 +97,8 @@ const Competition = () => {
             then, these results won't show up on the leaderboard.
             <br />
             <br />
-            If you achieved these results legitimately, please let us know and
-            your results will be approved.
+            If you achieved these results legitimately, please let us know in
+            the comment box and your results will be approved.
           </DialogContent>
         </ModalDialog>
       </Modal>
