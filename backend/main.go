@@ -11,6 +11,7 @@ import (
 
 	"math/rand"
 
+	"github.com/alexsergivan/transliterator"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gocolly/colly"
@@ -913,17 +914,20 @@ func getCompetitionById(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, result)
 }
 
+func (competition *CompetitionData) recomputeCompetitionId() {
+	trans := transliterator.NewTransliterator(nil)
+	competition.Id = trans.Transliterate(strings.Join(strings.Split(competition.Name, " "), ""), "")
+}
+
 func postCompetition(c *gin.Context) {
 	var competition CompetitionData
 
 	if err := c.BindJSON(&competition); err != nil {
-		fmt.Println(err.Error())
-		c.IndentedJSON(http.StatusInternalServerError, err.Error())
+		c.IndentedJSON(http.StatusInternalServerError, "what bro")
 		return
 	}
 
-	fmt.Println("competition", competition)
-
+	competition.recomputeCompetitionId()
 	competitions = append(competitions, competition)
 
 	c.IndentedJSON(http.StatusCreated, competition)
@@ -943,6 +947,7 @@ func putCompetition(c *gin.Context) {
 		return
 	}
 
+	competition.recomputeCompetitionId()
 	competitions[idx] = competition
 
 	c.IndentedJSON(http.StatusCreated, competition)

@@ -3,6 +3,7 @@ module backend
 go 1.18
 
 require (
+	github.com/alexsergivan/transliterator v1.0.0
 	github.com/gin-contrib/cors v1.7.1
 	github.com/gin-gonic/gin v1.9.1
 	github.com/gocolly/colly v1.2.0

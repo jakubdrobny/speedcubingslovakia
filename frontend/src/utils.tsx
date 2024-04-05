@@ -183,10 +183,14 @@ export const updateCompetition = async (
   edit: boolean
 ): Promise<CompetitionState> => {
   const reqBody: CompetitionDBModel = {
-    id: state.name.split(" ").join(""),
+    id: state.id,
     name: state.name,
-    startdate: state.startdate + ":00Z",
-    enddate: state.enddate + ":00Z",
+    startdate: state.startdate.endsWith("Z")
+      ? state.startdate
+      : state.startdate + ":00Z",
+    enddate: state.enddate.endsWith("Z")
+      ? state.enddate
+      : state.enddate + ":00Z",
     events: state.events.toSorted(
       (e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id
     ),
