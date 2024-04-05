@@ -12,6 +12,7 @@ import {
   Option,
   Select,
   Stack,
+  Textarea,
   Typography,
 } from "@mui/joy";
 import { Check, Close } from "@mui/icons-material";
@@ -145,6 +146,13 @@ const ResultsEdit = () => {
         setIsLoading((ps) => ({ ...ps, results: false }));
         setError(err.message);
       });
+  };
+
+  const handleCommentChange = (newComment: string, resultsIdx: number) => {
+    const newResults = results.map((val, idx) =>
+      idx === resultsIdx ? { ...val, comment: newComment } : { ...val }
+    );
+    setResults(newResults);
   };
 
   return (
@@ -336,6 +344,18 @@ const ResultsEdit = () => {
                           </FormControl>
                         );
                       })}
+                      <FormControl>
+                        <FormLabel>Comment:</FormLabel>
+                        <Textarea
+                          value={results[resultIdx].comment}
+                          onChange={(e) =>
+                            handleCommentChange(e.target.value, resultIdx)
+                          }
+                          placeholder="Enter a comment to your solutions..."
+                          minRows={4}
+                          style={{ marginBottom: "1.25em" }}
+                        />
+                      </FormControl>
                     </Stack>
                   </Grid>
                 </Grid>
