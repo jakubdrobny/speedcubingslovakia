@@ -238,6 +238,7 @@ export const initialCompetitionState: CompetitionState = {
   inputMethod: InputMethod.Manual,
   loadingState: {
     compinfo: false,
+    results: false,
     error: "",
   },
   penalties: Array(5).fill("0"),
@@ -300,7 +301,9 @@ export const reformatTime = (
   return newFormattedTime;
 };
 
-export const sendResults = async (resultEntry: ResultEntry) => {
+export const sendResults = async (
+  resultEntry: ResultEntry
+): Promise<ResultEntry> => {
   const response = await axios.post("/api/results/save", resultEntry);
   return response.data;
 };

@@ -95,31 +95,15 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   const updateCurrentSolve = (idx: number) =>
     setCompetitionState({ ...competitionState, currentSolveIdx: idx });
 
-  const saveResults = async () => {
-    setCompetitionState((ps) => ({
-      ...ps,
-      loadingState: { ...ps.loadingState, results: true },
-    }));
-    sendResults(currentResults)
-      .then((resultEntry: ResultEntry) => {
-        if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
-
-        setCompetitionState((ps) => ({
-          ...ps,
-          loadingState: { ...ps.loadingState, results: false },
-        }));
-        setCurrentResults(resultEntry);
-      })
-      .catch((err) => {
-        setCompetitionState((ps) => ({
-          ...ps,
-          loadingState: {
-            ...ps.loadingState,
-            results: false,
-            error: err.message,
-          },
-        }));
-      });
+  const saveResults = async (): Promise<void> => {
+    try {
+      const resultEntry = await sendResults(currentResults);
+      if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
+      setCurrentResults(resultEntry);
+      return Promise.resolve();
+    } catch (e) {
+      return Promise.reject(e);
+    }
   };
 
   const addPenalty = (newPenalty: string) => {

@@ -47,6 +47,7 @@ export type CompetitionState = CompetitionData & {
   inputMethod: InputMethod;
   loadingState: {
     compinfo: boolean;
+    results: boolean;
     error: string;
   };
   penalties: string[];
@@ -58,7 +59,7 @@ export type CompetitionContextType = {
   updateBasicInfo: (info: CompetitionData) => void;
   updateCurrentEvent: (idx: number) => void;
   updateCurrentSolve: (idx: number) => void;
-  saveResults: () => void;
+  saveResults: () => Promise<void>;
   updateSolve: (newTime: string) => void;
   toggleInputMethod: () => void;
   addPenalty: (newPenalty: string) => void;

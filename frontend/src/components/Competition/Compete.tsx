@@ -58,6 +58,16 @@ const Compete = () => {
       });
   }, [competitionState.id, competitionState.events]);
 
+  const handleSaveResults = () => {
+    setIsLoading(true);
+    saveResults()
+      .then(() => setIsLoading(false))
+      .catch((err) => {
+        setIsLoading(false);
+        setError(err.message);
+      });
+  };
+
   return (
     <>
       {error ? (
@@ -159,9 +169,10 @@ const Compete = () => {
                   <Button
                     color="primary"
                     variant="solid"
-                    onClick={saveResults}
+                    onClick={handleSaveResults}
                     sx={{ width: "100%" }}
                     disabled={!competitionOnGoing(competitionState)}
+                    loading={isLoading}
                   >
                     Save
                   </Button>

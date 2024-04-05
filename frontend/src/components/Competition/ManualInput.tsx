@@ -13,6 +13,8 @@ const TimerInput = () => {
     competitionState.currentSolveIdx + 1
   }` as keyof ResultEntry;
   const formattedTime = currentResults[solveProp].toString();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>();
 
   useEffect(
     () => setForceRerender(!forceRerender),
@@ -53,7 +55,13 @@ const TimerInput = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      saveResults();
+      setIsLoading(true);
+      saveResults()
+        .then(() => setIsLoading(false))
+        .catch((err) => {
+          setIsLoading(false);
+          setError(err.message);
+        });
     }
   };
 
