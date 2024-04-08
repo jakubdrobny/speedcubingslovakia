@@ -1,4 +1,5 @@
 import {
+  AuthState,
   CompetitionData,
   CompetitionEvent,
   CompetitionState,
@@ -10,6 +11,7 @@ import {
 } from "./Types";
 
 import { Alg } from "cubing/alg";
+import Cookies from "universal-cookie";
 import axios from "axios";
 import { randomScrambleForEvent } from "cubing/scramble";
 import { setSearchDebug } from "cubing/search";
@@ -332,4 +334,61 @@ export const competitionOnGoing = (state: CompetitionState): boolean => {
 export const formatDate = (dateString: string): String => {
   const date = new Date(dateString);
   return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+};
+
+export const logIn = async (
+  searchParams: URLSearchParams
+): Promise<AuthState> => {
+  const code = searchParams.get("code");
+  if (code === null) {
+    return Promise.reject("Missing code.");
+  }
+
+  const response = await axios.post("/api/login", code);
+  const data: {
+    access_token: string;
+    expires_in: number;
+    userid: number;
+    isadmin: boolean;
+    avatarUrl: string;
+    wcaid: string;
+  } = response.data;
+
+  const result: AuthState = {
+    token: data.access_token,
+    userid: data.userid,
+    authenticated: true,
+    admin: data.isadmin,
+    avatarUrl: data.avatarUrl,
+    wcaid: data.wcaid,
+  };
+
+  const cookies = new Cookies(null, { path: "/" });
+
+  let key: keyof AuthState;
+  for (key in result) {
+    cookies.set(key, result[key], {
+      expires: new Date(new Date().getTime() + data.expires_in * 60 * 1000),
+    });
+  }
+
+  return result;
+};
+
+const cookies = new Cookies(null, { path: "/" });
+
+export const initialAuthState: AuthState = {
+  token: cookies.get("token") || "",
+  userid: parseInt(cookies.get("userid")) || -1,
+  authenticated: Boolean(cookies.get("authenticated")) || false,
+  admin: Boolean(cookies.get("admin")) || false,
+  avatarUrl: cookies.get("avatarUrl") || "",
+  wcaid: cookies.get("wcaid") || "",
+};
+
+export const logOut = () => {
+  let key: keyof AuthState;
+  for (key in initialAuthState) {
+    cookies.remove(key);
+  }
 };

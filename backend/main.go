@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -77,8 +80,29 @@ type ManageRolesUser struct {
 	Isadmin bool `json:"isadmin"`
 }
 
+type AuthorizationInfo struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn int `json:"expires_in"`
+	IsAdmin bool `json:"isadmin"`
+	WcaId string `json:"wcaid"`
+	AvatarUrl string `json:"avatarUrl"`
+	UserId int `json:"userid"`
+}
+
+type User struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	CountryId string `json:"country_id"`
+	Sex string `json:"sex"`
+	WcaId string `json:"wcaid"`
+	IsAdmin bool `json:"isadmin"`
+	Url string `json:"url"`
+	AvatarUrl string `json:"avatarurl"`
+}
+
+
 func main() {
-	envMap, err := godotenv.Read(".env.local")
+	envMap, err := godotenv.Read(".env.development")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to load enviromental variables from file: %v\n", err)
 		os.Exit(1)
@@ -114,8 +138,143 @@ func main() {
 	router.PUT("/api/competition", putCompetition(db))
 	router.GET("/api/users/manage-roles", getManageRolesUsers(db))
 	router.PUT("/api/users/manage-roles", putManageRolesUsers(db))
+	router.POST("/api/login", postLogIn(db, envMap))
 
 	router.Run("localhost:8080")
+}
+
+func getAuthInfo(code string, envMap map[string]string) (AuthorizationInfo, error) {
+	res, err := http.PostForm(envMap["WCA_TOKEN_URL"], url.Values{
+		"grant_type": {"authorization_code"},
+		"client_id": {envMap["WCA_CLIENT_ID"]},
+		"client_secret": {envMap["WCA_CLIENT_SECRET"]},
+		"code": {code},
+		"redirect_uri": {envMap["WCA_REDIRECT_URI"]},
+	})
+	if err != nil || res.StatusCode != http.StatusOK { return AuthorizationInfo{}, err }
+	defer res.Body.Close()
+
+	var authInfo AuthorizationInfo
+	err = json.NewDecoder(res.Body).Decode(&authInfo)
+	if err != nil { return AuthorizationInfo{}, err }
+
+	return authInfo, nil
+}
+
+func (u *User) Exists(db *pgxpool.Pool) (bool, error) {
+	rows, err := db.Query(context.Background(), `SELECT u.user_id FROM users u WHERE u.wcaid = $1;`, u.WcaId)
+	if err != nil { return false, err }
+
+	found := false
+	for rows.Next() {
+		var uid int
+		err = rows.Scan(&uid)
+		if err != nil { return false, err }
+		found = true
+		u.Id = uid
+		fmt.Println(u)
+	}
+
+	return found, nil
+}
+
+func (u *User) Update(db *pgxpool.Pool) error {
+	_, err := db.Exec(context.Background(), `UPDATE users SET name = $1, country_id = $2, sex = $3, url = $4, avatarurl = $5, isadmin = $6, timestamp = CURRENT_TIMESTAMP WHERE wcaid = $7;`, u.Name, u.CountryId, u.Sex, u.Url, u.AvatarUrl, u.IsAdmin, u.WcaId)
+	if err != nil { return err }
+
+	return nil
+}
+
+func (u *User) Insert(db *pgxpool.Pool) error {
+	_, err := db.Exec(context.Background(), `INSERT INTO users (name, country_id, sex, url, avatarurl, wcaid, isadmin) VALUES ($1,$2,$3,$4,$5,$6,false);`, u.Name, u.CountryId, u.Sex, u.Url, u.AvatarUrl, u.WcaId)
+	if err != nil { return err }
+
+	return nil
+}
+
+func getUserInfoFromWCA(authInfo *AuthorizationInfo, envMap map[string]string) (User, error) {
+	bearer := "Bearer " + authInfo.AccessToken
+	req, err := http.NewRequest("GET", envMap["WCA_API_ME_URL"], nil)
+	if err != nil { return User{}, err }
+
+	req.Header.Add("Authorization", bearer)
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil || res.StatusCode != http.StatusOK { return User{}, err }
+	defer res.Body.Close()
+	type Country struct { Id string `json:"id"`}
+	type Avatar struct { Url string `json:"url"`}
+	type ME struct {
+		Name string `json:"name"`
+		WcaId string `json:"wca_id"`
+		Sex string `json:"gender"`
+		Url string `json:"url"`
+		Country Country `json:"country"`
+		Avatar Avatar `json:"avatar"`
+	}
+	type WCAApiMe struct { Me ME `json:"me"` }
+
+	var apiMe WCAApiMe
+	err = json.NewDecoder(res.Body).Decode(&apiMe)
+	if err != nil { return User{}, err }
+
+	user := User{}
+	user.Name = apiMe.Me.Name
+	user.CountryId = apiMe.Me.Country.Id
+	user.Sex = apiMe.Me.Sex
+	user.WcaId = apiMe.Me.WcaId
+	user.IsAdmin = false
+	user.Url = apiMe.Me.Url
+	user.AvatarUrl = apiMe.Me.Avatar.Url
+
+	return user, nil
+}
+
+func postLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		reqBodyBytes, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		code := string(reqBodyBytes)
+		authInfo, err := getAuthInfo(code, envMap)
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		user, err := getUserInfoFromWCA(&authInfo, envMap)
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		exists, err := user.Exists(db)
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		if exists {
+			err = user.Update(db)
+		} else {
+			err = user.Insert(db)
+		}
+
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		authInfo.AvatarUrl = user.AvatarUrl
+		authInfo.WcaId = user.WcaId
+		authInfo.UserId = user.Id
+		
+		c.IndentedJSON(http.StatusOK, authInfo)
+	}
 }
 
 func ping(c *gin.Context) {
@@ -128,7 +287,6 @@ func getResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 		competitionId := c.Param("cid")
 		eventId, err := strconv.Atoi(c.Param("eid"))
 		if err != nil {
-			fmt.Println(1, err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
@@ -138,7 +296,6 @@ func getResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 		if competitionId == "_" && userName == "_" {
 			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re WHERE re.event_id = $1;`, eventId)
 			if err != nil {
-				fmt.Println(1, err)
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return
 			}
@@ -147,14 +304,12 @@ func getResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
 				if err != nil { 
-					fmt.Println(2, err)
 					c.IndentedJSON(http.StatusInternalServerError, err)
 					return
 				}
 
 				resultEntry, err := getResultEntryById(db, resultEntryId)
 				if err != nil {
-					fmt.Println(3, err)
 					c.IndentedJSON(http.StatusInternalServerError, err)
 					return
 				}
@@ -298,23 +453,14 @@ func getResultEntry(db *pgxpool.Pool, competitorId int, competitionId string, ev
 	return resultEntry, nil
 }
 
-type User struct {
-	Id int `json:"id"`
-	Name string `json:"name"`
-	Country string `json:"country"`
-	Sex string `json:"sex"`
-	WcaId string `json:"wcaid"`
-	IsAdmin bool `json:"isadmin"`
-}
-
 func getUserById(db *pgxpool.Pool, uid int) (User, error) {
-	rows, err := db.Query(context.Background(), `SELECT u.user_id, u.name, u.country, u.sex, u.wcaid, u.isadmin FROM users u WHERE u.user_id = $1;`, uid);
+	rows, err := db.Query(context.Background(), `SELECT u.user_id, u.name, u.country_id, u.sex, u.wcaid, u.isadmin, u.url, u.avatarurl FROM users u WHERE u.user_id = $1;`, uid);
 	if err != nil { return User{}, err }
 
 	var user User
 	found := false
 	for rows.Next() {
-		err = rows.Scan(&user.Id, &user.Name, &user.Country, &user.Sex, &user.WcaId, &user.IsAdmin)
+		err = rows.Scan(&user.Id, &user.Name, &user.CountryId, &user.Sex, &user.WcaId, &user.IsAdmin, &user.Url, &user.AvatarUrl)
 		if err != nil { return User{}, err }
 		found = true
 	}
@@ -328,7 +474,6 @@ func getResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 	return func (c *gin.Context) {
 		eventId, err := strconv.Atoi(c.Param("eid"))
 		if err != nil {
-			fmt.Println(1, err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
@@ -336,28 +481,24 @@ func getResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 		competitionId := c.Param("cid")
 		userId, err := strconv.Atoi(c.Param("uid"))
 		if err != nil {
-			fmt.Println(2, err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
 
 		user, err := getUserById(db, userId)
 		if err != nil {
-			fmt.Println(2.5, err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
 
 		event, err := getEventById(db, eventId)
 		if err != nil {
-			fmt.Println(3, err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
 
 		competition, err := getCompetitionByIdObject(db, competitionId)
 		if err != nil {
-			fmt.Println(4, err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return	
 		}
@@ -366,13 +507,11 @@ func getResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 
 		if err != nil {
 			if err.Error() != "not found" {
-				fmt.Println(5, err)
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return
 			} else {
 				approvedResultsStatus, err := getResultsStatus(db, 3)
 				if err != nil {
-					fmt.Println(6, err)
 					c.IndentedJSON(http.StatusInternalServerError, err)
 					return	
 				}
@@ -398,7 +537,6 @@ func getResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 
 				err = resultEntry.Insert(db)
 				if err != nil {
-					fmt.Println(6.5, err)
 					c.IndentedJSON(http.StatusInternalServerError, err)
 					return
 				}
@@ -406,7 +544,6 @@ func getResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 		} else {
 			currentStatus, err := getResultsStatus(db, resultEntry.Status.Id)
 			if err != nil {
-				fmt.Println(7, err)
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return
 			}
@@ -420,7 +557,6 @@ func getResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 
 			err = resultEntry.Update(db)
 			if err != nil {
-				fmt.Println(8, err)
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return
 			}
@@ -625,7 +761,6 @@ func (r *ResultEntry) isSuspicous() bool {
 func getResultsStatus(db *pgxpool.Pool, statusId int) (ResultsStatus, error) {
 	rows, err := db.Query(context.Background(), `SELECT rs.results_status_id, rs.approvalfinished, rs.approved, rs.visible, rs.displayname FROM results_status rs WHERE rs.results_status_id = $1;`, statusId);
 	if err != nil {
-		fmt.Println("here3.1")
 		return ResultsStatus{}, err
 	}
 
@@ -634,7 +769,6 @@ func getResultsStatus(db *pgxpool.Pool, statusId int) (ResultsStatus, error) {
 	for rows.Next() {
 		err = rows.Scan(&resultsStatus.Id, &resultsStatus.ApprovalFinished, &resultsStatus.Approved, &resultsStatus.Visible, &resultsStatus.Displayname)
 		if err != nil {
-			fmt.Println("here3.2")
 			return ResultsStatus{}, err
 		}
 		found = true
@@ -753,7 +887,6 @@ func postResultsValidation(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		resultEntry.Status = resultStatus
-		fmt.Println(body, resultEntry.Status)
 		err = resultEntry.Update(db, true)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err);

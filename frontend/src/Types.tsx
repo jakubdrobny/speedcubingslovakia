@@ -90,13 +90,16 @@ export enum ResultEntrySolves {
 export type AuthState = {
   token: string;
   userid: number;
+  wcaid: string;
   authenticated: boolean;
   admin: boolean;
+  avatarUrl: string;
 };
 
 export type AuthContextType = {
   authState: AuthState;
   updateAuthToken: (newToken: string) => void;
+  setAuthState: (newAuthState: AuthState) => void;
 };
 
 export type TimerInputContextType = {

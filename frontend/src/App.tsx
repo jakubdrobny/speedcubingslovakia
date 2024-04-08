@@ -1,7 +1,8 @@
 import { Grid, List, ListItemButton, ListItemDecorator } from "@mui/joy";
-import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { useContext, useEffect } from "react";
+import { Link, Navigate, Route, Routes } from "react-router-dom";
 
+import { AuthContext } from "./context/AuthContext";
+import { AuthContextType } from "./Types";
 import Competition from "./components/Competition/Competition";
 import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
 import Competitions from "./components/Competitions/Competitions";
@@ -9,11 +10,17 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import Home from "./components/Home/Home";
 import LanguageIcon from "@mui/icons-material/Language";
 import { ListAlt } from "@mui/icons-material";
+import LogIn from "./components/Login/LogIn";
 import ManageRoles from "./components/Dashboard/ManageRoles";
 import NotFound from "./components/NotFound/NotFound";
+import ProfileListItem from "./components/Profile/ProfileListItem";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
+import WCALogoNoText from "./images/WCALogoNoText";
+import { useContext } from "react";
 
 const App = () => {
+  const { authState } = useContext(AuthContext) as AuthContextType;
+
   return (
     <Grid container>
       <Grid
@@ -58,6 +65,19 @@ const App = () => {
               </ListItemDecorator>
               Dashboard
             </ListItemButton>
+            {authState.authenticated ? (
+              <ProfileListItem />
+            ) : (
+              <ListItemButton
+                component={Link}
+                to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+              >
+                <ListItemDecorator>
+                  <WCALogoNoText />
+                </ListItemDecorator>
+                Log In
+              </ListItemButton>
+            )}
           </Grid>
         </List>
       </Grid>
@@ -86,6 +106,7 @@ const App = () => {
           <Route path="/admin/dashboard" Component={Dashboard} />
           <Route path="/admin/manage-roles" Component={ManageRoles} />
           <Route path="/results/edit" Component={ResultsEdit} />
+          <Route path="/login" Component={LogIn} />
           <Route path="*" element={<Navigate to="/not-found" replace />} />
         </Routes>
       </Grid>
