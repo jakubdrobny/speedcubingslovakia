@@ -24,7 +24,7 @@ setSearchDebug({
 export const loadFilteredCompetitions = async (
   filterValue: FilterValue
 ): Promise<CompetitionData[]> => {
-  const response = await axios.get(`/api/competitions/${filterValue}`);
+  const response = await axios.get(`/api/competitions/filter/${filterValue}`);
   return response.data;
 };
 
@@ -35,19 +35,21 @@ export const getCompetitionById = async (
     return Promise.reject("Invalid competition id.");
   }
 
-  const response = await axios.get(`/api/competition/${id}`);
+  const response = await axios.get(`/api/competitions/id/${id}`);
   return !response.data ? undefined : response.data;
 };
 
 export const getResultsFromCompetitionAndEvent = async (
   uid: number,
   cid: string | undefined,
-  event: CompetitionEvent | undefined
+  event: CompetitionEvent | undefined,
+  token: string
 ): Promise<ResultEntry> => {
   if (cid === undefined || event === undefined)
     return Promise.reject("invalid competition/event id");
   const response = await axios.get(
-    `/api/results/compete/${uid}/${cid}/${event.id}`
+    `/api/results/compete/${uid}/${cid}/${event.id}`,
+    { headers: { Authorization: `Bearer ${token}`, UserId: uid } }
   );
   return response.data;
 };
@@ -202,7 +204,7 @@ export const updateCompetition = async (
 
   const response = await axios({
     method: edit ? "PUT" : "POST",
-    url: "/api/competition",
+    url: "/api/competitions",
     data: reqBody,
   });
 

@@ -20,6 +20,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gocolly/colly"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"golang.org/x/exp/slices"
@@ -126,21 +127,132 @@ func main() {
         MaxAge: 12 * time.Hour,
     }))
 
-	router.GET("/api/ping", ping)
-	router.GET("/api/results/edit/:uname/:cid/:eid", getResultsQuery(db))
-	router.GET("/api/results/compete/:uid/:cid/:eid", getResultsByIdAndEvent(db))
-	router.POST("api/results/save", postResults(db));
-	router.POST("api/results/save-validation", postResultsValidation(db));
-	router.GET("/api/events", getEvents(db))
-	router.GET("/api/competitions/:filter", getFilteredCompetitions(db))
-	router.GET("/api/competition/:id", getCompetitionById(db))
-	router.POST("/api/competition", postCompetition(db))
-	router.PUT("/api/competition", putCompetition(db))
-	router.GET("/api/users/manage-roles", getManageRolesUsers(db))
-	router.PUT("/api/users/manage-roles", putManageRolesUsers(db))
+	api_v1 := router.Group("/api")
+	
+	results := api_v1.Group("/results", authMiddleWare(db, envMap))
+	{
+		results.GET("/edit/:uname/:cid/:eid", getResultsQuery(db))
+		results.GET("/compete/:uid/:cid/:eid", getResultsByIdAndEvent(db))
+		results.POST("/save", postResults(db))
+		results.POST("/save-validation", postResultsValidation(db))
+	}
+
+	events := api_v1.Group("/events")
+	{
+		events.GET("/", getEvents(db))
+	}
+
+	competitions := api_v1.Group("/competitions")
+	{
+		competitions.GET("/filter/:filter", getFilteredCompetitions(db))
+		competitions.GET("/id/:id", getCompetitionById(db))
+		competitions.POST("/", postCompetition(db))
+		competitions.PUT("/", putCompetition(db))
+	}
+
+	users := api_v1.Group("/users")
+	users.GET("/manage-roles", getManageRolesUsers(db))
+	users.PUT("/manage-roles", putManageRolesUsers(db))
+
 	router.POST("/api/login", postLogIn(db, envMap))
 
 	router.Run("localhost:8080")
+}
+
+type AuthDetails struct {
+	Token string `json:"token"`
+	UserId int `json:"userid"`
+}
+
+func createToken(userid int, accessToken string, secretKey string) (string, error) {
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, 
+        jwt.MapClaims{ 
+			"userid": userid, 
+			"token": accessToken,
+        })
+
+    tokenString, err := token.SignedString([]byte(secretKey))
+    if err != nil {
+    	return "", err
+    }
+
+ 	return tokenString, nil
+}
+
+func extractPayload(tokenString *jwt.Token) (AuthDetails, error) {
+	claims, ok := tokenString.Claims.(jwt.MapClaims)
+
+	if !ok { return AuthDetails{}, fmt.Errorf("extracting payload from token failed") }
+
+	var authDetails AuthDetails
+	authDetails.Token, ok = claims["token"].(string)
+	if !ok { return AuthDetails{}, fmt.Errorf("failed to parse token") }
+	uidFloat, ok := claims["userid"].(float64)
+	if !ok { return AuthDetails{}, fmt.Errorf("failed to parse userid") }
+	authDetails.UserId = int(uidFloat)
+
+	return authDetails, nil
+}
+
+func verifyJWTToken(tokenString string, secretKey string) (AuthDetails, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	   return []byte(secretKey), nil
+	})
+   
+	if err != nil { return AuthDetails{}, err }
+	if !token.Valid { return AuthDetails{}, fmt.Errorf("invalid token") }
+   
+	authDetails, err := extractPayload(token)
+	if err != nil { return AuthDetails{}, err }
+
+	return authDetails, nil
+ }
+
+func getAuthDetailsFromHeader(c *gin.Context, secretKey string) (AuthDetails, error) {
+	headers := c.Request.Header["Authorization"]
+	if len(headers) <= 0 { return AuthDetails{}, fmt.Errorf("auth header missing") }
+
+	header := strings.Split(headers[0], " ")
+	if len(header) < 2 || header[0] != "Bearer" { return AuthDetails{}, fmt.Errorf("bad auth header") }
+
+	authDetails, err := verifyJWTToken(header[1], secretKey)
+	if err != nil { return AuthDetails{}, err }
+
+	return authDetails, nil
+}
+
+func authMiddleWare(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authDetails, err := getAuthDetailsFromHeader(c, envMap["JWT_SECRET_KEY"])
+
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		var authInfo AuthorizationInfo
+		authInfo.AccessToken = authDetails.Token
+		authInfo.UserId = authDetails.UserId
+		
+		possibleUser, err := getUserInfoFromWCA(&authInfo, envMap)
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		exists, err := possibleUser.Exists(db)
+		if err != nil || !exists {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		if possibleUser.Id != authInfo.UserId {
+			c.IndentedJSON(http.StatusUnauthorized, err)
+			return
+		}
+
+		c.Next()
+	}
 }
 
 func getAuthInfo(code string, envMap map[string]string) (AuthorizationInfo, error) {
@@ -172,7 +284,6 @@ func (u *User) Exists(db *pgxpool.Pool) (bool, error) {
 		if err != nil { return false, err }
 		found = true
 		u.Id = uid
-		fmt.Println(u)
 	}
 
 	return found, nil
@@ -272,13 +383,14 @@ func postLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		authInfo.AvatarUrl = user.AvatarUrl
 		authInfo.WcaId = user.WcaId
 		authInfo.UserId = user.Id
+		authInfo.AccessToken, err = createToken(authInfo.UserId, authInfo.AccessToken, envMap["JWT_SECRET_KEY"])
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
 		
 		c.IndentedJSON(http.StatusOK, authInfo)
 	}
-}
-
-func ping(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, "pong")
 }
 
 func getResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {

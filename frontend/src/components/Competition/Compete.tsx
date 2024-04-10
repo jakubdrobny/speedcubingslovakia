@@ -44,7 +44,8 @@ const Compete = () => {
     getResultsFromCompetitionAndEvent(
       authState.userid,
       competitionState.id,
-      competitionState.events[competitionState.currentEventIdx]
+      competitionState.events[competitionState.currentEventIdx],
+      authState.token
     )
       .then((resultEntry: ResultEntry) => {
         setIsLoading(false);

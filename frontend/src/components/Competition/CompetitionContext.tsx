@@ -62,7 +62,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     getResultsFromCompetitionAndEvent(
       authState.userid,
       competitionState.id,
-      competitionState.events[idx]
+      competitionState.events[idx],
+      authState.token
     )
       .then((resultEntry) => {
         setCompetitionState((ps) => ({
