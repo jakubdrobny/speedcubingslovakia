@@ -2,6 +2,7 @@ import {
   AuthState,
   CompetitionData,
   CompetitionEvent,
+  CompetitionResult,
   CompetitionState,
   FilterValue,
   InputMethod,
@@ -394,4 +395,14 @@ export const authorizeAdmin = async () => {
 
 export const setBearerIfPresent = (token: string) => {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+};
+
+export const getCompetitionResults = async (
+  competitionId: string,
+  event: CompetitionEvent
+): Promise<CompetitionResult[]> => {
+  const response = await axios.get(
+    `/api/competitions/results/${competitionId}/${event.id}`
+  );
+  return response.data;
 };

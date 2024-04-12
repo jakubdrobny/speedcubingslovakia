@@ -4,7 +4,7 @@ import { CompetitionContext } from "./CompetitionContext";
 import { CompetitionContextType } from "../../Types";
 import { useContext } from "react";
 
-const CommentBox = () => {
+const CommentBox: React.FC<{ disabled: boolean }> = ({ disabled }) => {
   const { currentResults, setCurrentResults } = useContext(
     CompetitionContext
   ) as CompetitionContextType;
@@ -25,6 +25,7 @@ const CommentBox = () => {
         placeholder="Enter a comment to your solutions..."
         minRows={4}
         style={{ marginBottom: "1.25em" }}
+        disabled={disabled}
       />
     </Card>
   );

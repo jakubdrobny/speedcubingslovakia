@@ -7,7 +7,7 @@ import Compete from "./Compete";
 import Guide from "./Guide";
 import { useContext } from "react";
 
-const CompetitorArea = () => {
+const CompetitorArea: React.FC<{ loading: boolean }> = ({ loading }) => {
   const { authState } = useContext(AuthContext) as AuthContextType;
 
   return (
@@ -27,7 +27,7 @@ const CompetitorArea = () => {
           <Grid xs={10} md={6}>
             <Stack spacing={2}>
               <Guide />
-              <CommentBox />
+              <CommentBox disabled={loading} />
             </Stack>
           </Grid>
         </>

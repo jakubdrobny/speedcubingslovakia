@@ -63,6 +63,10 @@ const Compete = () => {
     <>
       {error ? (
         <Alert color="danger">{error}</Alert>
+      ) : competitionState.loadingState.results ? (
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <CircularProgress />
+        </div>
       ) : (
         <Card>
           <Grid container>

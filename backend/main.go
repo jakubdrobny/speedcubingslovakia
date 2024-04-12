@@ -100,6 +100,14 @@ type User struct {
 	AvatarUrl string `json:"avatarurl"`
 }
 
+type CompetitionResult struct {
+	Username string `json:"username"`
+	CountryName string `json:"country_name"`
+	CountryIso2 string `json:"country_iso2"`
+	Single string `json:"single"`
+	Average string `json:"average"`
+	Times []string `json:"times"`
+}
 
 func main() {
 	envMap, err := godotenv.Read(".env.development")
@@ -147,6 +155,7 @@ func main() {
 		competitions.GET("/id/:id", getCompetitionById(db))
 		competitions.POST("/", authMiddleWare(db, envMap), adminMiddleWare(), postCompetition(db))
 		competitions.PUT("/", authMiddleWare(db, envMap), adminMiddleWare(), putCompetition(db))
+		competitions.GET("/results/:cid/:eid", getResultsFromCompetition(db))
 	}
 
 	users := api_v1.Group("/users")
@@ -160,6 +169,53 @@ func main() {
 	router.POST("/api/login", postLogIn(db, envMap))
 
 	router.Run("localhost:8080")
+}
+
+func formatTime(time float64) string {
+	return ""
+}
+
+func getResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int) ([]CompetitionResult, error) {
+	rows, err := db.Query(context.Background(), `SELECT u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id WHERE r.competition_id = $1 AND r.event_id = $2;`, cid, eid)
+	if err != nil { return []CompetitionResult{}, err }
+
+	var competitionResults []CompetitionResult
+	for rows.Next() {
+		var competitionResult CompetitionResult
+		var resultEntry ResultEntry
+		err = rows.Scan(&competitionResult.Username, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format)
+		if err != nil { return []CompetitionResult{}, err }
+		competitionResult.Single = formatTime(resultEntry.single())
+
+		noOfSolves, err := getNoOfSolves(resultEntry.Format)
+		if err != nil { return []CompetitionResult{}, err }
+		competitionResult.Average = formatTime(resultEntry.average(noOfSolves))
+		//competitionResult.Times = resultEntry.getFormattedTimes()
+		competitionResults = append(competitionResults, competitionResult)
+	}
+
+	return competitionResults, nil
+}
+
+func getResultsFromCompetition(db *pgxpool.Pool) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		cid := c.Param("cid")
+		eid, err := strconv.Atoi(c.Param("eid"))
+		if err != nil {
+			fmt.Println(err)
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		competitionResults, err:= getResultsFromCompetitionByEventName(db, cid, eid)
+		if err != nil {
+			fmt.Println(err)
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
+
+		c.IndentedJSON(http.StatusAccepted, competitionResults)
+	}
 }
 
 func adminMiddleWare() gin.HandlerFunc {

@@ -152,3 +152,17 @@ export type ResultsStatus = {
   visible: boolean;
   displayname: string;
 };
+
+export enum ResultsCompeteChoiceEnum {
+  Results,
+  Compete,
+}
+
+export type CompetitionResult = {
+  username: string;
+  country_name: string;
+  country_iso2: string;
+  single: string;
+  average: string;
+  times: string[];
+};

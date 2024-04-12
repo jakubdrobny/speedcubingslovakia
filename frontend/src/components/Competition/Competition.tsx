@@ -12,18 +12,24 @@ import {
   Stack,
   Typography,
 } from "@mui/joy";
-import { CompetitionContextType, CompetitionData } from "../../Types";
+import {
+  CompetitionContextType,
+  CompetitionData,
+  ResultsCompeteChoiceEnum,
+} from "../../Types";
 import {
   formatDate,
   getCompetitionById,
   initialCompetitionState,
 } from "../../utils";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CompetitionContext } from "./CompetitionContext";
+import CompetitionResults from "./CompetitionResults";
 import CompetitorArea from "./CompetitorArea";
 import { EventSelector } from "./EventSelector";
+import ResultsCompeteChoice from "./ResultsCompeteChoice";
 import { Warning } from "@mui/icons-material";
 
 const Competition = () => {
@@ -36,6 +42,8 @@ const Competition = () => {
     setCompetitionState,
     updateBasicInfo,
   } = useContext(CompetitionContext) as CompetitionContextType;
+  const [resultsCompeteChoice, setResultsCompeteChoice] =
+    useState<ResultsCompeteChoiceEnum>(ResultsCompeteChoiceEnum.Results);
 
   useEffect(() => {
     setCompetitionState({
@@ -114,8 +122,16 @@ const Competition = () => {
             {formatDate(competitionState.enddate)}
           </Typography>
           <EventSelector />
-          <br />
-          <CompetitorArea />
+          <ResultsCompeteChoice
+            resultsCompeteChoice={resultsCompeteChoice}
+            setResultsCompeteChoice={setResultsCompeteChoice}
+            loading={competitionState.loadingState.results}
+          />
+          {resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete ? (
+            <CompetitorArea loading={competitionState.loadingState.results} />
+          ) : (
+            <CompetitionResults />
+          )}
         </>
       )}
     </Stack>
