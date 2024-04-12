@@ -8,26 +8,18 @@ import {
   Typography,
 } from "@mui/joy";
 import { getManageUsers, updateUserRoles } from "../../utils";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { AuthContext } from "../../context/AuthContext";
-import { AuthContextType } from "../../Types";
 import { ManageRolesUser } from "../../Types";
-import { useNavigate } from "react-router-dom";
 
 const ManageRoles = () => {
   const [users, setUsers] = useState<ManageRolesUser[]>([]);
-  const { authState } = useContext(AuthContext) as AuthContextType;
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    if (!authState.authenticated || !authState.admin) {
-      navigate("/");
-    }
-
     setIsLoading(true);
+
     getManageUsers()
       .then((res: ManageRolesUser[]) => {
         setUsers(res);
@@ -59,7 +51,7 @@ const ManageRoles = () => {
       })
       .catch((err) => {
         setIsLoading(false);
-        setError("");
+        setError(err.message);
       });
   };
 

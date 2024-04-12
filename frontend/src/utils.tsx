@@ -40,17 +40,12 @@ export const getCompetitionById = async (
 };
 
 export const getResultsFromCompetitionAndEvent = async (
-  uid: number,
   cid: string | undefined,
-  event: CompetitionEvent | undefined,
-  token: string
+  event: CompetitionEvent | undefined
 ): Promise<ResultEntry> => {
   if (cid === undefined || event === undefined)
     return Promise.reject("invalid competition/event id");
-  const response = await axios.get(
-    `/api/results/compete/${uid}/${cid}/${event.id}`,
-    { headers: { Authorization: `Bearer ${token}`, UserId: uid } }
-  );
+  const response = await axios.get(`/api/results/compete/${cid}/${event.id}`);
   return response.data;
 };
 
@@ -350,17 +345,16 @@ export const logIn = async (
   const data: {
     access_token: string;
     expires_in: number;
-    userid: number;
     isadmin: boolean;
     avatarUrl: string;
     wcaid: string;
   } = response.data;
 
+  setBearerIfPresent(data.access_token);
+
   const result: AuthState = {
     token: data.access_token,
-    userid: data.userid,
-    authenticated: true,
-    admin: data.isadmin,
+    isadmin: data.isadmin,
     avatarUrl: data.avatarUrl,
     wcaid: data.wcaid,
   };
@@ -369,6 +363,7 @@ export const logIn = async (
 
   let key: keyof AuthState;
   for (key in result) {
+    if (key === "isadmin") continue;
     cookies.set(key, result[key], {
       expires: new Date(new Date().getTime() + data.expires_in * 60 * 1000),
     });
@@ -381,9 +376,7 @@ const cookies = new Cookies(null, { path: "/" });
 
 export const initialAuthState: AuthState = {
   token: cookies.get("token") || "",
-  userid: parseInt(cookies.get("userid")) || -1,
-  authenticated: Boolean(cookies.get("authenticated")) || false,
-  admin: Boolean(cookies.get("admin")) || false,
+  isadmin: false,
   avatarUrl: cookies.get("avatarUrl") || "",
   wcaid: cookies.get("wcaid") || "",
 };
@@ -393,4 +386,12 @@ export const logOut = () => {
   for (key in initialAuthState) {
     cookies.remove(key);
   }
+};
+
+export const authorizeAdmin = async () => {
+  return axios.get("/api/auth/admin");
+};
+
+export const setBearerIfPresent = (token: string) => {
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 };

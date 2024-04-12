@@ -1,7 +1,7 @@
 import { Alert, CircularProgress, Grid, Typography } from "@mui/joy";
 import { AuthContextType, AuthState } from "../../Types";
-import { Link, redirect, useNavigate, useSearchParams } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AuthContext } from "../../context/AuthContext";
 import { logIn } from "../../utils";
@@ -9,7 +9,7 @@ import { logIn } from "../../utils";
 const LogIn = () => {
   const { setAuthState } = useContext(AuthContext) as AuthContextType;
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState("");
+  const [__, setError] = useState("");
   const [searchParams, _] = useSearchParams();
   const navigate = useNavigate();
 
@@ -18,7 +18,7 @@ const LogIn = () => {
     logIn(searchParams)
       .then((res: AuthState) => {
         setAuthState(res);
-        navigate("/");
+        navigate("/", { replace: true });
       })
       .catch((err) => {
         setIsLoading(false);

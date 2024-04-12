@@ -1,10 +1,5 @@
 import { Alert, Button, Card, CircularProgress, Grid } from "@mui/joy";
-import {
-  AuthContextType,
-  CompetitionContextType,
-  InputMethod,
-  ResultEntry,
-} from "../../Types";
+import { CompetitionContextType, InputMethod, ResultEntry } from "../../Types";
 import { East, Keyboard, Timer, West } from "@mui/icons-material";
 import {
   competitionOnGoing,
@@ -12,7 +7,6 @@ import {
 } from "../../utils";
 import { useContext, useEffect, useState } from "react";
 
-import { AuthContext } from "../../context/AuthContext";
 import { CompetitionContext } from "./CompetitionContext";
 import ManualInput from "./ManualInput";
 import Penalties from "./Penalties";
@@ -30,7 +24,6 @@ const Compete = () => {
   } = useContext(CompetitionContext) as CompetitionContextType;
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const { authState } = useContext(AuthContext) as AuthContextType;
 
   useEffect(() => {
     if (
@@ -42,10 +35,8 @@ const Compete = () => {
     setIsLoading(true);
 
     getResultsFromCompetitionAndEvent(
-      authState.userid,
       competitionState.id,
-      competitionState.events[competitionState.currentEventIdx],
-      authState.token
+      competitionState.events[competitionState.currentEventIdx]
     )
       .then((resultEntry: ResultEntry) => {
         setIsLoading(false);

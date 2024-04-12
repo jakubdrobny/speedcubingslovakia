@@ -84,10 +84,9 @@ type ManageRolesUser struct {
 type AuthorizationInfo struct {
 	AccessToken string `json:"access_token"`
 	ExpiresIn int `json:"expires_in"`
-	IsAdmin bool `json:"isadmin"`
 	WcaId string `json:"wcaid"`
 	AvatarUrl string `json:"avatarUrl"`
-	UserId int `json:"userid"`
+	IsAdmin bool `json:"isadmin"`
 }
 
 type User struct {
@@ -131,10 +130,10 @@ func main() {
 	
 	results := api_v1.Group("/results", authMiddleWare(db, envMap))
 	{
-		results.GET("/edit/:uname/:cid/:eid", getResultsQuery(db))
-		results.GET("/compete/:uid/:cid/:eid", getResultsByIdAndEvent(db))
+		results.GET("/edit/:uname/:cid/:eid", adminMiddleWare(), getResultsQuery(db))
+		results.GET("/compete/:cid/:eid", getResultsByIdAndEvent(db))
 		results.POST("/save", postResults(db))
-		results.POST("/save-validation", postResultsValidation(db))
+		results.POST("/save-validation", adminMiddleWare(), postResultsValidation(db))
 	}
 
 	events := api_v1.Group("/events")
@@ -146,29 +145,46 @@ func main() {
 	{
 		competitions.GET("/filter/:filter", getFilteredCompetitions(db))
 		competitions.GET("/id/:id", getCompetitionById(db))
-		competitions.POST("/", postCompetition(db))
-		competitions.PUT("/", putCompetition(db))
+		competitions.POST("/", authMiddleWare(db, envMap), adminMiddleWare(), postCompetition(db))
+		competitions.PUT("/", authMiddleWare(db, envMap), adminMiddleWare(), putCompetition(db))
 	}
 
 	users := api_v1.Group("/users")
-	users.GET("/manage-roles", getManageRolesUsers(db))
-	users.PUT("/manage-roles", putManageRolesUsers(db))
+	{
+		users.GET("/manage-roles", authMiddleWare(db, envMap), getManageRolesUsers(db))
+		users.PUT("/manage-roles", authMiddleWare(db, envMap), adminMiddleWare(), putManageRolesUsers(db))
+	}
+
+	router.GET("/api/auth/admin", authMiddleWare(db, envMap), adminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized")});
 
 	router.POST("/api/login", postLogIn(db, envMap))
 
 	router.Run("localhost:8080")
 }
 
-type AuthDetails struct {
-	Token string `json:"token"`
-	UserId int `json:"userid"`
+func adminMiddleWare() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		isadmin := c.MustGet("isadmin").(bool)
+		if !isadmin {
+			c.IndentedJSON(http.StatusUnauthorized, "unauthorized")
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
 }
 
-func createToken(userid int, accessToken string, secretKey string) (string, error) {
+type AuthDetails struct {
+	UserId int `json:"userid"`
+	ExpiresIn int64 `json:"expiresin"`
+}
+
+func createToken(userid int, secretKey string) (string, error) {
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, 
         jwt.MapClaims{ 
 			"userid": userid, 
-			"token": accessToken,
+			"exp": time.Now().Add(time.Hour * 12).Unix(),
         })
 
     tokenString, err := token.SignedString([]byte(secretKey))
@@ -185,8 +201,6 @@ func extractPayload(tokenString *jwt.Token) (AuthDetails, error) {
 	if !ok { return AuthDetails{}, fmt.Errorf("extracting payload from token failed") }
 
 	var authDetails AuthDetails
-	authDetails.Token, ok = claims["token"].(string)
-	if !ok { return AuthDetails{}, fmt.Errorf("failed to parse token") }
 	uidFloat, ok := claims["userid"].(float64)
 	if !ok { return AuthDetails{}, fmt.Errorf("failed to parse userid") }
 	authDetails.UserId = int(uidFloat)
@@ -224,32 +238,21 @@ func getAuthDetailsFromHeader(c *gin.Context, secretKey string) (AuthDetails, er
 func authMiddleWare(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authDetails, err := getAuthDetailsFromHeader(c, envMap["JWT_SECRET_KEY"])
-
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-			return
-		}
-
-		var authInfo AuthorizationInfo
-		authInfo.AccessToken = authDetails.Token
-		authInfo.UserId = authDetails.UserId
-		
-		possibleUser, err := getUserInfoFromWCA(&authInfo, envMap)
-		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-			return
-		}
-
-		exists, err := possibleUser.Exists(db)
-		if err != nil || !exists {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-			return
-		}
-
-		if possibleUser.Id != authInfo.UserId {
 			c.IndentedJSON(http.StatusUnauthorized, err)
+			c.Abort()
 			return
 		}
+		
+		user, err := getUserById(db, authDetails.UserId)
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			c.Abort()
+			return
+		}
+
+		c.Set("uid", user.Id)
+		c.Set("isadmin", user.IsAdmin)
 
 		c.Next()
 	}
@@ -274,16 +277,14 @@ func getAuthInfo(code string, envMap map[string]string) (AuthorizationInfo, erro
 }
 
 func (u *User) Exists(db *pgxpool.Pool) (bool, error) {
-	rows, err := db.Query(context.Background(), `SELECT u.user_id FROM users u WHERE u.wcaid = $1;`, u.WcaId)
+	rows, err := db.Query(context.Background(), `SELECT u.user_id, u.isadmin FROM users u WHERE u.wcaid = $1;`, u.WcaId)
 	if err != nil { return false, err }
 
 	found := false
 	for rows.Next() {
-		var uid int
-		err = rows.Scan(&uid)
+		err = rows.Scan(&u.Id, &u.IsAdmin)
 		if err != nil { return false, err }
 		found = true
-		u.Id = uid
 	}
 
 	return found, nil
@@ -382,8 +383,8 @@ func postLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 
 		authInfo.AvatarUrl = user.AvatarUrl
 		authInfo.WcaId = user.WcaId
-		authInfo.UserId = user.Id
-		authInfo.AccessToken, err = createToken(authInfo.UserId, authInfo.AccessToken, envMap["JWT_SECRET_KEY"])
+		authInfo.AccessToken, err = createToken(user.Id, envMap["JWT_SECRET_KEY"])
+		authInfo.IsAdmin = user.IsAdmin
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
@@ -591,11 +592,7 @@ func getResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		competitionId := c.Param("cid")
-		userId, err := strconv.Atoi(c.Param("uid"))
-		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
-			return
-		}
+		userId := c.MustGet("uid").(int)
 
 		user, err := getUserById(db, userId)
 		if err != nil {
@@ -917,11 +914,13 @@ func (r *ResultEntry) Validate(db *pgxpool.Pool) (error) {
 }
 
 func (r *ResultEntry) Update(db *pgxpool.Pool, valid ...bool) error {
-	if r.Solve1 == "" { r.Solve1 = "DNS" }
-	if r.Solve2 == "" { r.Solve2 = "DNS" }
-	if r.Solve3 == "" { r.Solve3 = "DNS" }
-	if r.Solve4 == "" { r.Solve4 = "DNS" }
-	if r.Solve5 == "" { r.Solve5 = "DNS" }
+	if r.Solve1 != "" || r.Solve2 != "" || r.Solve3 != "" || r.Solve4 != "" || r.Solve5 != "" {
+		r.Solve1 = "DNS"
+		r.Solve2 = "DNS"
+		r.Solve3 = "DNS"
+		r.Solve4 = "DNS"
+		r.Solve5 = "DNS"
+	}
 
 	if len(valid) == 0 || (len(valid) > 0 && !valid[0]) {
 		err := r.Validate(db)
@@ -1291,6 +1290,8 @@ func getManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
+		uid := c.MustGet("uid").(int)
+
 		for rows.Next() {
 			var manageRolesUser ManageRolesUser
 			err = rows.Scan(&manageRolesUser.Id, &manageRolesUser.Name, &manageRolesUser.Isadmin)
@@ -1298,7 +1299,9 @@ func getManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return
 			}
-			manageRolesUsers = append(manageRolesUsers, manageRolesUser)
+			if uid != manageRolesUser.Id {
+				manageRolesUsers = append(manageRolesUsers, manageRolesUser)
+			}
 		}
 
 		c.IndentedJSON(http.StatusOK, manageRolesUsers)

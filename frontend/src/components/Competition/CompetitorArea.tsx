@@ -12,7 +12,7 @@ const CompetitorArea = () => {
 
   return (
     <Grid container style={{ width: "100%" }} spacing={2}>
-      {!authState.authenticated ? (
+      {!authState.token ? (
         <Alert color="warning" sx={{ width: "100%", margin: "0 1em" }}>
           You are not authenticated! Please log in to compete.
         </Alert>

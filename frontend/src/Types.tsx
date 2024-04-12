@@ -89,10 +89,8 @@ export enum ResultEntrySolves {
 
 export type AuthState = {
   token: string;
-  userid: number;
   wcaid: string;
-  authenticated: boolean;
-  admin: boolean;
+  isadmin: boolean;
   avatarUrl: string;
 };
 

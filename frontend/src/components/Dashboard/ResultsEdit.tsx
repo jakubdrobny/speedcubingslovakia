@@ -16,11 +16,13 @@ import {
   Textarea,
   Typography,
 } from "@mui/joy";
+import { AuthContextType, CompetitionEvent, ResultEntry } from "../../Types";
 import { Check, Close } from "@mui/icons-material";
-import { CompetitionEvent, ResultEntry } from "../../Types";
 import {
+  authorizeAdmin,
   getAvailableEvents,
   getResults,
+  logOut,
   reformatTime,
   saveValidation,
   sendResults,
@@ -44,6 +46,7 @@ const ResultsEdit = () => {
 
   useEffect(() => {
     setIsLoading((ps) => ({ ...ps, events: true }));
+
     getAvailableEvents()
       .then((res) => {
         setAvailableEvents(res);

@@ -22,6 +22,7 @@ import {
   CompetitionState,
 } from "../../Types";
 import {
+  authorizeAdmin,
   formatCompetitionDateForInput,
   getAvailableEvents,
   initialCompetitionState,
@@ -48,10 +49,6 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    if (!authState.authenticated || !authState.admin) {
-      navigate("/");
-    }
-
     setIsLoading(true);
     setError("");
 

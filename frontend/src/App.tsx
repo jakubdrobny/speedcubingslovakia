@@ -1,5 +1,7 @@
 import { Grid, List, ListItemButton, ListItemDecorator } from "@mui/joy";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { authorizeAdmin, setBearerIfPresent } from "./utils";
+import { useContext, useEffect } from "react";
 
 import { AuthContext } from "./context/AuthContext";
 import { AuthContextType } from "./Types";
@@ -14,12 +16,24 @@ import LogIn from "./components/Login/LogIn";
 import ManageRoles from "./components/Dashboard/ManageRoles";
 import NotFound from "./components/NotFound/NotFound";
 import ProfileListItem from "./components/Profile/ProfileListItem";
+import ProtectedRoute from "./components/Login/ProtectedRoute";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
 import WCALogoNoText from "./images/WCALogoNoText";
-import { useContext } from "react";
 
 const App = () => {
-  const { authState } = useContext(AuthContext) as AuthContextType;
+  const { authState, setAuthState } = useContext(
+    AuthContext
+  ) as AuthContextType;
+
+  useEffect(() => {
+    setBearerIfPresent(authState.token);
+
+    if (authState.token) {
+      authorizeAdmin()
+        .then((_) => setAuthState({ ...authState, isadmin: true }))
+        .catch((_) => null);
+    }
+  }, []);
 
   return (
     <Grid container>
@@ -59,13 +73,15 @@ const App = () => {
               </ListItemDecorator>
               Online Competitions
             </ListItemButton>
-            <ListItemButton component={Link} to="/admin/dashboard">
-              <ListItemDecorator>
-                <ListAlt />
-              </ListItemDecorator>
-              Dashboard
-            </ListItemButton>
-            {authState.authenticated ? (
+            {authState.isadmin && (
+              <ListItemButton component={Link} to="/admin/dashboard">
+                <ListItemDecorator>
+                  <ListAlt />
+                </ListItemDecorator>
+                Dashboard
+              </ListItemButton>
+            )}
+            {authState.token ? (
               <ProfileListItem />
             ) : (
               <ListItemButton
@@ -94,19 +110,21 @@ const App = () => {
           <Route path="/" Component={Home} />
           <Route path="/competitions" Component={Competitions} />
           <Route path="/competition/:id" Component={Competition} />
-          <Route
-            path="/competition/:id/edit"
-            Component={() => <CompetitionEdit edit={true} />}
-          />
-          <Route
-            path="/competition/create"
-            Component={() => <CompetitionEdit edit={false} />}
-          />
           <Route path="/not-found" Component={NotFound} />
-          <Route path="/admin/dashboard" Component={Dashboard} />
-          <Route path="/admin/manage-roles" Component={ManageRoles} />
-          <Route path="/results/edit" Component={ResultsEdit} />
           <Route path="/login" Component={LogIn} />
+          <Route Component={ProtectedRoute}>
+            <Route
+              path="/competition/:id/edit"
+              Component={() => <CompetitionEdit edit={true} />}
+            />
+            <Route
+              path="/competition/create"
+              Component={() => <CompetitionEdit edit={false} />}
+            />
+            <Route path="/admin/dashboard" Component={Dashboard} />
+            <Route path="/admin/manage-roles" Component={ManageRoles} />
+            <Route path="/results/edit" Component={ResultsEdit} />
+          </Route>
           <Route path="*" element={<Navigate to="/not-found" replace />} />
         </Routes>
       </Grid>

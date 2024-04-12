@@ -24,8 +24,7 @@ const ProfileListItem = () => {
   const handleLogOut = () => {
     setAuthState(initialAuthState);
     logOut();
-    window.location.reload();
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   return (

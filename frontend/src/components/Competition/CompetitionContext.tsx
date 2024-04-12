@@ -30,7 +30,6 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   const [currentResults, setCurrentResults] = useState<ResultEntry>(
     initialCurrentResults
   );
-  const { authState } = useContext(AuthContext) as AuthContextType;
   const [suspicousModalOpen, setSuspicousModalOpen] = useState<boolean>(false);
 
   const updateBasicInfo = (info: CompetitionData) => {
@@ -60,10 +59,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
       loadingState: { ...ps.loadingState, results: true },
     }));
     getResultsFromCompetitionAndEvent(
-      authState.userid,
       competitionState.id,
-      competitionState.events[idx],
-      authState.token
+      competitionState.events[idx]
     )
       .then((resultEntry) => {
         setCompetitionState((ps) => ({
