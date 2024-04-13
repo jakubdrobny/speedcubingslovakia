@@ -1,21 +1,23 @@
 import {
-  AuthContextType,
   CompetitionContextType,
   CompetitionData,
+  CompetitionLoadingState,
+  CompetitionResult,
   CompetitionState,
   InputMethod,
   ResultEntry,
+  ResultsCompeteChoiceEnum,
 } from "../../Types";
-import React, { ReactNode, createContext, useContext, useState } from "react";
+import React, { ReactNode, createContext, useState } from "react";
 import {
   competitionOnGoing,
+  getCompetitionResults,
   getResultsFromCompetitionAndEvent,
+  initialCompetitionLoadingState,
   initialCompetitionState,
   initialCurrentResults,
   sendResults,
 } from "../../utils";
-
-import { AuthContext } from "../../context/AuthContext";
 
 export const CompetitionContext = createContext<CompetitionContextType | null>(
   null
@@ -31,6 +33,12 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     initialCurrentResults
   );
   const [suspicousModalOpen, setSuspicousModalOpen] = useState<boolean>(false);
+  const [resultsCompeteChoice, setResultsCompeteChoice] =
+    useState<ResultsCompeteChoiceEnum>(ResultsCompeteChoiceEnum.Results);
+  const [results, setResults] = useState<CompetitionResult[]>([]);
+  const [loadingState, setLoadingState] = useState<CompetitionLoadingState>(
+    initialCompetitionLoadingState
+  );
 
   const updateBasicInfo = (info: CompetitionData) => {
     const match =
@@ -43,12 +51,56 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         noOfSolves: noOfSolves,
         currentEventIdx: 0,
         currentSolveIdx: 0,
-        loadingState: {
-          ...ps.loadingState,
-          results: false,
-        },
       };
     });
+    setLoadingState({ ...loadingState, compinfo: false });
+  };
+
+  const fetchCompeteResultEntry = () => {
+    setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
+
+    getResultsFromCompetitionAndEvent(
+      competitionState.id,
+      competitionState.events[competitionState.currentEventIdx]
+    )
+      .then((resultEntry) => {
+        setCurrentResults(resultEntry);
+        if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
+        setLoadingState((ps) => ({
+          ...ps,
+          results: false,
+        }));
+      })
+      .catch((err) =>
+        setLoadingState((ps) => ({
+          ...ps,
+          results: false,
+          error: err.message,
+        }))
+      );
+  };
+
+  const fetchCompetitionResults = () => {
+    setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
+
+    getCompetitionResults(
+      competitionState.id,
+      competitionState.events[competitionState.currentEventIdx]
+    )
+      .then((res) => {
+        setResults(res);
+        setLoadingState((ps) => ({
+          ...ps,
+          results: false,
+        }));
+      })
+      .catch((err) => {
+        setLoadingState((ps) => ({
+          ...ps,
+          results: false,
+          error: err.message,
+        }));
+      });
   };
 
   const updateCurrentEvent = async (idx: number) => {
@@ -56,38 +108,20 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     const noOfSolves = match ? parseInt(match) : 1;
     setCompetitionState((ps) => ({
       ...ps,
-      loadingState: { ...ps.loadingState, results: true },
+      currentEventIdx: idx,
+      noOfSolves: noOfSolves,
+      currentSolveIdx: 0,
+      penalties: Array(5).fill("0"),
+      inputMethod:
+        competitionState.events[idx].displayname === "FMC"
+          ? InputMethod.Manual
+          : ps.inputMethod,
     }));
-    getResultsFromCompetitionAndEvent(
-      competitionState.id,
-      competitionState.events[idx]
-    )
-      .then((resultEntry) => {
-        setCompetitionState((ps) => ({
-          ...ps,
-          currentEventIdx: idx,
-          noOfSolves: noOfSolves,
-          currentSolveIdx: 0,
-          penalties: Array(5).fill("0"),
-          inputMethod:
-            competitionState.events[idx].displayname === "FMC"
-              ? InputMethod.Manual
-              : ps.inputMethod,
-          loadingState: { ...ps.loadingState, results: false },
-        }));
-        setCurrentResults(resultEntry);
-        if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
-      })
-      .catch((err) =>
-        setCompetitionState((ps) => ({
-          ...ps,
-          loadingState: {
-            ...ps.loadingState,
-            results: false,
-            error: err.message,
-          },
-        }))
-      );
+    setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
+
+    if (resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete)
+      fetchCompeteResultEntry();
+    else fetchCompetitionResults();
   };
 
   const updateCurrentSolve = (idx: number) =>
@@ -175,6 +209,13 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         setCurrentResults,
         suspicousModalOpen,
         setSuspicousModalOpen,
+        results,
+        setResults,
+        resultsCompeteChoice,
+        setResultsCompeteChoice,
+        loadingState,
+        setLoadingState,
+        fetchCompetitionResults,
       }}
     >
       {children}

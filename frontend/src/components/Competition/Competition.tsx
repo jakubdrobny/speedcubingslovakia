@@ -22,7 +22,7 @@ import {
   getCompetitionById,
   initialCompetitionState,
 } from "../../utils";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CompetitionContext } from "./CompetitionContext";
@@ -41,22 +41,18 @@ const Competition = () => {
     competitionState,
     setCompetitionState,
     updateBasicInfo,
+    loadingState,
+    setLoadingState,
+    resultsCompeteChoice,
+    setResultsCompeteChoice,
   } = useContext(CompetitionContext) as CompetitionContextType;
-  const [resultsCompeteChoice, setResultsCompeteChoice] =
-    useState<ResultsCompeteChoiceEnum>(ResultsCompeteChoiceEnum.Results);
 
   useEffect(() => {
-    setCompetitionState({
-      ...competitionState,
-      loadingState: { results: false, compinfo: true, error: "" },
-    });
+    setLoadingState({ results: false, compinfo: true, error: "" });
 
     getCompetitionById(id)
       .then((info: CompetitionData | undefined) => {
-        setCompetitionState({
-          ...competitionState,
-          loadingState: { ...competitionState.loadingState, compinfo: false },
-        });
+        setLoadingState({ ...loadingState, compinfo: false });
 
         if (info === undefined) navigate("/not-found");
         else {
@@ -64,13 +60,10 @@ const Competition = () => {
         }
       })
       .catch((err) =>
-        setCompetitionState({
-          ...competitionState,
-          loadingState: {
-            ...competitionState.loadingState,
-            compinfo: false,
-            error: err.message,
-          },
+        setLoadingState({
+          ...loadingState,
+          compinfo: false,
+          error: err.message,
         })
       );
 
@@ -110,9 +103,9 @@ const Competition = () => {
           </DialogContent>
         </ModalDialog>
       </Modal>
-      {competitionState.loadingState.error ? (
-        <Alert color="danger">{competitionState.loadingState.error}</Alert>
-      ) : competitionState.loadingState.compinfo ? (
+      {loadingState.error ? (
+        <Alert color="danger">{loadingState.error}</Alert>
+      ) : loadingState.compinfo ? (
         <CircularProgress />
       ) : (
         <>
@@ -125,10 +118,10 @@ const Competition = () => {
           <ResultsCompeteChoice
             resultsCompeteChoice={resultsCompeteChoice}
             setResultsCompeteChoice={setResultsCompeteChoice}
-            loading={competitionState.loadingState.results}
+            loading={loadingState.results}
           />
           {resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete ? (
-            <CompetitorArea loading={competitionState.loadingState.results} />
+            <CompetitorArea loading={loadingState.results} />
           ) : (
             <CompetitionResults />
           )}

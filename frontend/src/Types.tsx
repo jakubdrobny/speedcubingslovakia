@@ -31,16 +31,17 @@ export enum InputMethod {
   Timer,
 }
 
+export type CompetitionLoadingState = {
+  compinfo: boolean;
+  results: boolean;
+  error: string;
+};
+
 export type CompetitionState = CompetitionData & {
   currentEventIdx: number;
   currentSolveIdx: number;
   noOfSolves: number;
   inputMethod: InputMethod;
-  loadingState: {
-    compinfo: boolean;
-    results: boolean;
-    error: string;
-  };
   penalties: string[];
 };
 
@@ -58,6 +59,13 @@ export type CompetitionContextType = {
   setCurrentResults: (newResults: ResultEntry) => void;
   suspicousModalOpen: boolean;
   setSuspicousModalOpen: (newOpen: boolean) => void;
+  results: CompetitionResult[];
+  setResults: (newResults: CompetitionResult[]) => void;
+  resultsCompeteChoice: ResultsCompeteChoiceEnum;
+  setResultsCompeteChoice: (newChoice: ResultsCompeteChoiceEnum) => void;
+  loadingState: CompetitionLoadingState;
+  setLoadingState: (newState: CompetitionLoadingState) => void;
+  fetchCompetitionResults: () => void;
 };
 
 export type ResultEntry = {

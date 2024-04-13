@@ -5,7 +5,7 @@ import { CompetitionContext } from "./CompetitionContext";
 import { useContext } from "react";
 
 export const EventSelector = () => {
-  const { competitionState, updateCurrentEvent } = useContext(
+  const { competitionState, updateCurrentEvent, loadingState } = useContext(
     CompetitionContext
   ) as CompetitionContextType;
 
@@ -21,7 +21,7 @@ export const EventSelector = () => {
                 idx === competitionState.currentEventIdx ? "solid" : "soft"
               }
               color="primary"
-              loading={competitionState.loadingState.results}
+              loading={loadingState.results}
             >
               <span className={`cubing-icon event-${e.iconcode}`}>&ensp;</span>
               {e.displayname}

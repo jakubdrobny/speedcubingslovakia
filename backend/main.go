@@ -171,15 +171,35 @@ func main() {
 	router.Run("localhost:8080")
 }
 
-func formatTime(time float64) string {
-	return ""
+func formatTime(fTimeInMiliseconds float64) string {
+	if fTimeInMiliseconds == math.MaxFloat64 {
+		return "DNF"
+	}
+	timeInMiliseconds := int(fTimeInMiliseconds)
+	wholePart := ""
+	decimalPart := ""
+
+	pw := 1000 * 60 * 60 * 24
+	for _, mul := range []int{1, 24, 60, 60} {
+		times := timeInMiliseconds / pw
+		if times > 0 || wholePart != "" { 
+			strTimes := fmt.Sprintf("%02d", times)
+			if len(wholePart) > 0 { wholePart += ":" }
+			wholePart += strTimes
+		}
+
+		timeInMiliseconds %= pw
+		pw /= mul
+	}
+
+	return wholePart + "." + decimalPart
 }
 
 func getResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int) ([]CompetitionResult, error) {
 	rows, err := db.Query(context.Background(), `SELECT u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id WHERE r.competition_id = $1 AND r.event_id = $2;`, cid, eid)
 	if err != nil { return []CompetitionResult{}, err }
 
-	var competitionResults []CompetitionResult
+	competitionResults := make([]CompetitionResult, 0)
 	for rows.Next() {
 		var competitionResult CompetitionResult
 		var resultEntry ResultEntry
@@ -202,14 +222,12 @@ func getResultsFromCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 		cid := c.Param("cid")
 		eid, err := strconv.Atoi(c.Param("eid"))
 		if err != nil {
-			fmt.Println(err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
 
-		competitionResults, err:= getResultsFromCompetitionByEventName(db, cid, eid)
+		competitionResults, err := getResultsFromCompetitionByEventName(db, cid, eid)
 		if err != nil {
-			fmt.Println(err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return
 		}
@@ -956,7 +974,6 @@ func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
 }
 
 func (r *ResultEntry) Validate(db *pgxpool.Pool) (error) {
-
 	var err error
 	if (r.isSuspicous()) {
 		r.Status, err = getResultsStatus(db, 1) // waitingForApproval
@@ -966,21 +983,28 @@ func (r *ResultEntry) Validate(db *pgxpool.Pool) (error) {
 		if err != nil { return err }
 	}
 
+	competition, err := getCompetitionByIdObject(db, r.Competitionid)
+	if err != nil { return err }
+
+	if time.Now().Before(competition.Startdate) || time.Now().After(competition.Enddate) {
+		return fmt.Errorf("competition has not started yet or has already finished")
+	}
+
 	return nil
 }
 
 func (r *ResultEntry) Update(db *pgxpool.Pool, valid ...bool) error {
-	if r.Solve1 != "" || r.Solve2 != "" || r.Solve3 != "" || r.Solve4 != "" || r.Solve5 != "" {
-		r.Solve1 = "DNS"
-		r.Solve2 = "DNS"
-		r.Solve3 = "DNS"
-		r.Solve4 = "DNS"
-		r.Solve5 = "DNS"
-	}
-
 	if len(valid) == 0 || (len(valid) > 0 && !valid[0]) {
 		err := r.Validate(db)
 		if err != nil { return err }
+	}
+
+	if r.Solve1 != "" || r.Solve2 != "" || r.Solve3 != "" || r.Solve4 != "" || r.Solve5 != "" {
+		if r.Solve1 == "" { r.Solve1 = "DNS" }
+		if r.Solve2 == "" { r.Solve2 = "DNS" }
+		if r.Solve3 == "" { r.Solve3 = "DNS" }
+		if r.Solve4 == "" { r.Solve4 = "DNS" }
+		if r.Solve5 == "" { r.Solve5 = "DNS" }
 	}
 	
 	_, err := db.Exec(context.Background(), `UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP;`, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id)

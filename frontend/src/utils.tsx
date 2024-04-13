@@ -239,11 +239,6 @@ export const initialCompetitionState: CompetitionState = {
   currentSolveIdx: 0,
   scrambles: [],
   inputMethod: InputMethod.Manual,
-  loadingState: {
-    compinfo: false,
-    results: false,
-    error: "",
-  },
   penalties: Array(5).fill("0"),
 };
 
@@ -405,4 +400,10 @@ export const getCompetitionResults = async (
     `/api/competitions/results/${competitionId}/${event.id}`
   );
   return response.data;
+};
+
+export const initialCompetitionLoadingState = {
+  results: false,
+  compinfo: false,
+  error: "",
 };

@@ -6,19 +6,14 @@ import {
   Table,
   Typography,
 } from "@mui/joy";
-import { CompetitionContextType, CompetitionResult } from "../../Types";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
-import { getCompetitionResults } from "../../utils";
+import { CompetitionContextType } from "../../Types";
 
 const CompetitionResults = () => {
-  const { competitionState } = useContext(
-    CompetitionContext
-  ) as CompetitionContextType;
-  const [results, setResult] = useState<CompetitionResult[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const { competitionState, results, loadingState, fetchCompetitionResults } =
+    useContext(CompetitionContext) as CompetitionContextType;
   const averageFirst = (() => {
     const format =
       competitionState?.events[competitionState?.currentEventIdx]?.format;
@@ -26,42 +21,25 @@ const CompetitionResults = () => {
     return format[0] != "b";
   })();
 
-  useEffect(() => {
-    setIsLoading(true);
-    setError("");
-
-    getCompetitionResults(
-      competitionState.id,
-      competitionState.events[competitionState.currentEventIdx]
-    )
-      .then((res) => {
-        setResult(res);
-        setIsLoading(false);
-        setError("");
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        setError(err.message);
-      });
-  }, [competitionState.currentEventIdx]);
-
   const columnNames = () => {
     return averageFirst
       ? ["", "#", "Name", "Country", "Average", "Single", "Times", ""]
       : ["", "#", "Name", "Country", "Single", "Average", "Times", ""];
   };
 
+  useEffect(() => fetchCompetitionResults(), []);
+
   return (
     <>
-      {isLoading || competitionState.loadingState.results ? (
+      {loadingState.results ? (
         <>
           <Typography level="h3" sx={{ display: "flex", alignItems: "center" }}>
             <CircularProgress />
             &nbsp; Loading results ...
           </Typography>
         </>
-      ) : error ? (
-        <Alert color="danger">{error}</Alert>
+      ) : loadingState.error ? (
+        <Alert color="danger">{loadingState.error}</Alert>
       ) : (
         <Card sx={{ margin: 0, padding: 0 }}>
           <Table size="md">
@@ -85,7 +63,7 @@ const CompetitionResults = () => {
             </thead>
             <tbody>
               {results.map((result, idx) => (
-                <tr>
+                <tr key={idx}>
                   <td style={{ height: "1em", width: "1%" }}></td>
                   <td style={{ height: "1em", width: "3%" }}>{idx + 1}.</td>
                   <td style={{ height: "1em" }}>{result.username}</td>

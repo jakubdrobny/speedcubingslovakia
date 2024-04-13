@@ -21,6 +21,7 @@ const Compete = () => {
     saveResults,
     setCurrentResults,
     setSuspicousModalOpen,
+    loadingState,
   } = useContext(CompetitionContext) as CompetitionContextType;
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -63,7 +64,7 @@ const Compete = () => {
     <>
       {error ? (
         <Alert color="danger">{error}</Alert>
-      ) : competitionState.loadingState.results ? (
+      ) : loadingState.results ? (
         <div style={{ display: "flex", justifyContent: "center" }}>
           <CircularProgress />
         </div>
