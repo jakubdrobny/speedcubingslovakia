@@ -18,7 +18,7 @@ func Reverse[S ~[]E, E any](s S)  {
     }
 }
 
-func TryParseSolveToMilliseconds(s string) int {
+func ParseSolveToMilliseconds(s string) int {
 	if s == "DNF" { return constants.DNF }
 	if s == "DNS" { return constants.DNS }
 
@@ -62,7 +62,7 @@ func TryParseSolveToMilliseconds(s string) int {
 }
 
 func CompareSolves(t1 *int, s2 string) {
-	t2 := TryParseSolveToMilliseconds(s2)
+	t2 := ParseSolveToMilliseconds(s2)
 	if float64(*t1 - t2) > 1e-9 {
 		*t1 = t2;
 	}
@@ -81,12 +81,12 @@ func GetWorldRecords(eventName string) (int, int, error) {
 			nextTable := parentH2.Next()
 			singleTd := nextTable.Find("td.result").First()
 
-			single = TryParseSolveToMilliseconds(strings.Trim(singleTd.Text(), " "))
+			single = ParseSolveToMilliseconds(strings.Trim(singleTd.Text(), " "))
 
 			// TODO: handle 333mbf parsing
 			if eventName != "333mbf" {
 				averageTd := singleTd.Parent().Next().Find("td.result").First()
-				average = TryParseSolveToMilliseconds(strings.Trim(averageTd.Text(), " "))
+				average = ParseSolveToMilliseconds(strings.Trim(averageTd.Text(), " "))
 			}
 		}
 	})
@@ -129,33 +129,51 @@ func CreateToken(userid int, secretKey string) (string, error) {
  	return tokenString, nil
 }
 
+func LeftPad(s string, cnt int, ch string) string {
+	for ; len(s) < cnt; { s = ch + s }
+	return s
+}
+
 func FormatTime(timeInMiliseconds int) string {
 	if timeInMiliseconds == constants.DNF { return "DNF" }
 	if timeInMiliseconds == constants.DNS { return "DNS" }
 
-	wholePart := ""
-	decimalPart := ""
+	if timeInMiliseconds % 10 >= 5 {
+		timeInMiliseconds += 10 - (timeInMiliseconds % 10)
+	}
+
+	res := make([]string, 0)
 
 	pw := 1000 * 60 * 60 * 24
-	for _, mul := range []int{1, 24, 60, 60, 1} {
-		times := timeInMiliseconds / pw
-		if times > 0 || wholePart != "" {
-			strTimes := fmt.Sprintf("%02d", times)
-			if len(wholePart) > 0 { wholePart += ":" }
-			wholePart += strTimes
-		}
-
-		fmt.Println(timeInMiliseconds, times, wholePart)
-
+	for _, mul := range []int{24, 60, 60, 1000, 1} {
+		toPush := fmt.Sprint(timeInMiliseconds / pw)
+		if mul == 1 { toPush = LeftPad(toPush, 3, "0") }	
+		res = append(res, toPush)
 		timeInMiliseconds %= pw
 		pw /= mul
 	}
 
-	if wholePart == "" { wholePart += "0" }
+	res[len(res) - 1] = res[len(res) - 1][:len(res[len(res) - 1]) - 1]
+	sliceIdx := 0
+	for ; sliceIdx < len(res) - 2 && res[sliceIdx][0] == '0'; sliceIdx++ {}
+	res = res[sliceIdx:]
 
-	decimalPart = fmt.Sprintf("%02d", timeInMiliseconds / 10)
+	resString := ""
+	resIdx := 0
+	for ; resIdx < len(res) - 1; resIdx++ {
+		if resIdx > 0 {
+			resString += LeftPad(res[resIdx], 2, "0")
+		} else {
+			resString += res[resIdx] 
+		}
 
-	fmt.Println("hahahahaha", wholePart, decimalPart)
+		if resIdx == len(res) - 2 {
+			resString += "."
+		} else {
+			resString += ":" 
+		}
+	}
+	resString += LeftPad(res[resIdx], 2, "0")
 
-	return wholePart + "." + decimalPart
+	return resString
 }

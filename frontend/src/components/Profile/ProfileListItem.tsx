@@ -13,18 +13,17 @@ import { AuthContext } from "../../context/AuthContext";
 import { AuthContextType } from "../../Types";
 import { Logout } from "@mui/icons-material";
 import { useContext } from "react";
-import { useNavigate } from "react-router-dom";
 
 const ProfileListItem = () => {
   const { authState, setAuthState } = useContext(
     AuthContext
   ) as AuthContextType;
-  const navigate = useNavigate();
 
   const handleLogOut = () => {
     setAuthState(initialAuthState);
     logOut();
-    navigate("/", { replace: true });
+    document.location.href = "/";
+    document.location.reload();
   };
 
   return (

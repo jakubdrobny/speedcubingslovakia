@@ -48,7 +48,7 @@ const Compete = () => {
         setIsLoading(false);
         setError(err.message);
       });
-  }, [competitionState.id, competitionState.events]);
+  }, []);
 
   const handleSaveResults = () => {
     setIsLoading(true);

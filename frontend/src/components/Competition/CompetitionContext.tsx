@@ -1,6 +1,7 @@
 import {
   CompetitionContextType,
   CompetitionData,
+  CompetitionEvent,
   CompetitionLoadingState,
   CompetitionResult,
   CompetitionState,
@@ -11,6 +12,7 @@ import {
 import React, { ReactNode, createContext, useState } from "react";
 import {
   competitionOnGoing,
+  emptyEvent,
   getCompetitionResults,
   getResultsFromCompetitionAndEvent,
   initialCompetitionLoadingState,
@@ -44,6 +46,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     const match =
       info.events[competitionState.currentEventIdx].format.match(/\d+$/)?.[0];
     const noOfSolves = match ? parseInt(match) : 1;
+
     setCompetitionState((ps) => {
       return {
         ...ps,
@@ -53,16 +56,22 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         currentSolveIdx: 0,
       };
     });
-    setLoadingState({ ...loadingState, compinfo: false });
+
+    setLoadingState({ ...loadingState, compinfo: false, error: "" });
+
+    if (resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete)
+      fetchCompeteResultEntry(info.events[0], info.id);
+    else fetchCompetitionResults(info.events[0], info.id);
   };
 
-  const fetchCompeteResultEntry = () => {
+  const fetchCompeteResultEntry = (
+    event: CompetitionEvent = competitionState.events[
+      competitionState.currentEventIdx
+    ],
+    compId: string = competitionState.id
+  ) => {
     setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
-
-    getResultsFromCompetitionAndEvent(
-      competitionState.id,
-      competitionState.events[competitionState.currentEventIdx]
-    )
+    getResultsFromCompetitionAndEvent(compId, event)
       .then((resultEntry) => {
         setCurrentResults(resultEntry);
         if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
@@ -80,13 +89,15 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
       );
   };
 
-  const fetchCompetitionResults = () => {
+  const fetchCompetitionResults = (
+    event: CompetitionEvent = competitionState.events[
+      competitionState.currentEventIdx
+    ],
+    compId: string = competitionState.id
+  ) => {
     setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
 
-    getCompetitionResults(
-      competitionState.id,
-      competitionState.events[competitionState.currentEventIdx]
-    )
+    getCompetitionResults(compId, event)
       .then((res) => {
         setResults(res);
         setLoadingState((ps) => ({
@@ -121,7 +132,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
 
     if (resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete)
       fetchCompeteResultEntry();
-    else fetchCompetitionResults();
+    else fetchCompetitionResults(competitionState.events[idx]);
   };
 
   const updateCurrentSolve = (idx: number) =>

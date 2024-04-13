@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -28,8 +27,7 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 		err = rows.Scan(&competitionResult.Username, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible)
 		if err != nil { return []CompetitionResult{}, err }
 
-		if !resultEntry.Competed() { return []CompetitionResult{}, fmt.Errorf("has not competed yet") }
-		if !resultEntry.Status.Visible { return []CompetitionResult{}, fmt.Errorf("suspicous or denied") }
+		if !resultEntry.Competed() || !resultEntry.Status.Visible { continue; }
 
 		competitionResult.Single = resultEntry.SingleFormatted()
 		
@@ -37,7 +35,10 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 		if err != nil { return []CompetitionResult{}, err }
 		competitionResult.Average = avg
 
-		//competitionResult.Times = resultEntry.getFormattedTimes()
+		formattedTimes, err := resultEntry.GetFormattedTimes()
+		if err != nil { return []CompetitionResult{}, err }
+		competitionResult.Times = formattedTimes
+
 		competitionResults = append(competitionResults, competitionResult)
 	}
 

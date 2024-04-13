@@ -66,7 +66,7 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, valid ...bool) error {
 		if err != nil { return err }
 	}
 	
-	_, err := db.Exec(context.Background(), `UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP;`, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id)
+	_, err := db.Exec(context.Background(), `UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP WHERE user_id = $8 AND competition_id = $9 AND event_id = $10;`, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id, r.Userid, r.Competitionid, r.Eventid)
 	if err != nil { return err }
 
 	return nil;
@@ -100,20 +100,32 @@ func (r *ResultEntry) IsSuspicous() bool {
 	return float64(recSingle - curSingle) > 1e-9 || float64(recAverage - curAverage) > 1e-9;
 }
 
-func (r *ResultEntry) GetSolvesFromResultEntry() []int {
+func (r *ResultEntry) GetSolvesInMiliseconds() []int {
 	values := make([]int, 0)
 
-	values = append(values, utils.TryParseSolveToMilliseconds(r.Solve1))
-	values = append(values, utils.TryParseSolveToMilliseconds(r.Solve2))
-	values = append(values, utils.TryParseSolveToMilliseconds(r.Solve3))
-	values = append(values, utils.TryParseSolveToMilliseconds(r.Solve4))
-	values = append(values, utils.TryParseSolveToMilliseconds(r.Solve5))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve1))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve2))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve3))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve4))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve5))
+
+	return values;
+}
+
+func (r *ResultEntry) GetSolves() []string {
+	values := make([]string, 0)
+
+	values = append(values, r.Solve1)
+	values = append(values, r.Solve2)
+	values = append(values, r.Solve3)
+	values = append(values, r.Solve4)
+	values = append(values, r.Solve5)
 
 	return values;
 }
 
 func (r *ResultEntry) Average(noOfSolves int) int {
-	solves := r.GetSolvesFromResultEntry()
+	solves := r.GetSolvesInMiliseconds()
 	sort.Ints(solves)
 
 	sum := 0
@@ -127,6 +139,7 @@ func (r *ResultEntry) Average(noOfSolves int) int {
 		if solve >= constants.VERY_SLOW {
 			cntBad++
 			if (noOfSolves == 5 && cntBad > 1) || (noOfSolves == 3 && cntBad > 0) {
+				if !r.Competed() { return constants.DNS }
 				return constants.DNF
 			}
 		}
@@ -187,3 +200,29 @@ func (r *ResultEntry) AverageFormatted() (string, error) {
 
 	return utils.FormatTime(r.Average(noOfSolves)), nil
 }
+
+func (r *ResultEntry) GetFormattedTimes() ([]string, error) {
+	noOfSolves, err := utils.GetNoOfSolves(r.Format)
+	if err != nil { return []string{}, err }
+
+	solves := r.GetSolves()
+	if noOfSolves == 3 { return solves, nil }
+
+	type SolveTuple struct {
+		FormattedTime string
+		TimeInMiliseconds int
+		Index int
+	}
+	sortedSolves := make([]SolveTuple, 0)
+
+	for idx, val := range solves {
+		sortedSolves = append(sortedSolves, SolveTuple{val, utils.ParseSolveToMilliseconds(val), idx})
+	}
+
+	sort.Slice(sortedSolves, func (i int, j int) bool { return sortedSolves[i].TimeInMiliseconds < sortedSolves[j].TimeInMiliseconds })
+	solves[sortedSolves[0].Index] = "(" + solves[sortedSolves[0].Index] + ")"
+	solves[sortedSolves[len(sortedSolves) - 1].Index] = "(" + solves[sortedSolves[len(sortedSolves) - 1].Index] + ")"
+
+	return solves, nil
+}
+

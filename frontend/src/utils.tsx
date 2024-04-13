@@ -2,6 +2,7 @@ import {
   AuthState,
   CompetitionData,
   CompetitionEvent,
+  CompetitionLoadingState,
   CompetitionResult,
   CompetitionState,
   FilterValue,
@@ -337,7 +338,7 @@ export const logIn = async (
     return Promise.reject("Missing code.");
   }
 
-  const response = await axios.post("/api/login", code);
+  const response = await axios.post("/api/users/login", code);
   const data: {
     access_token: string;
     expires_in: number;
@@ -377,7 +378,7 @@ export const initialAuthState: AuthState = {
   wcaid: cookies.get("wcaid") || "",
 };
 
-export const logOut = () => {
+export const logOut = async () => {
   let key: keyof AuthState;
   for (key in initialAuthState) {
     cookies.remove(key);
@@ -385,7 +386,7 @@ export const logOut = () => {
 };
 
 export const authorizeAdmin = async () => {
-  return axios.get("/api/auth/admin");
+  return axios.get("/api/users/auth/admin");
 };
 
 export const setBearerIfPresent = (token: string) => {
@@ -402,8 +403,16 @@ export const getCompetitionResults = async (
   return response.data;
 };
 
-export const initialCompetitionLoadingState = {
+export const initialCompetitionLoadingState: CompetitionLoadingState = {
   results: false,
   compinfo: false,
   error: "",
+};
+
+export const emptyEvent: CompetitionEvent = {
+  id: -1,
+  displayname: "",
+  format: "",
+  iconcode: "",
+  puzzlecode: "",
 };

@@ -27,7 +27,10 @@ const CompetitionResults = () => {
       : ["", "#", "Name", "Country", "Single", "Average", "Times", ""];
   };
 
-  useEffect(() => fetchCompetitionResults(), []);
+  useEffect(() => {
+    if (competitionState.id !== undefined && competitionState.id !== "")
+      fetchCompetitionResults();
+  }, []);
 
   return (
     <>
@@ -52,11 +55,15 @@ const CompetitionResults = () => {
                         ? { height: "1em", width: "0%" }
                         : val === "#"
                         ? { height: "1em", width: "3%" }
+                        : val === "Times"
+                        ? { height: "1em", width: "30%" }
+                        : val === "Name"
+                        ? { height: "1em", width: "20%" }
                         : { height: "1em" }
                     }
                     key={idx}
                   >
-                    {val}
+                    <b>{val}</b>
                   </th>
                 ))}
               </tr>
@@ -74,10 +81,10 @@ const CompetitionResults = () => {
                     &nbsp;&nbsp;{result.country_name}
                   </td>
                   <td style={{ height: "1em" }}>
-                    {!averageFirst ? result.single : result.average}
+                    <b>{!averageFirst ? result.single : result.average}</b>
                   </td>
                   <td style={{ height: "1em" }}>
-                    {averageFirst ? result.average : result.single}
+                    {averageFirst ? result.single : result.average}
                   </td>
                   <td style={{ height: "1em" }}>{result.times?.join(", ")}</td>
                   <td style={{ height: "1em", width: "0%" }}></td>
