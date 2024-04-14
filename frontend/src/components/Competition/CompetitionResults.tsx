@@ -1,15 +1,21 @@
 import {
   Alert,
+  Box,
   Card,
   CircularProgress,
-  Sheet,
+  Stack,
   Table,
+  Tooltip,
   Typography,
 } from "@mui/joy";
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { CompetitionContextType } from "../../Types";
+import { Help } from "@mui/icons-material";
+
+const WIN_SMALL = 900;
+const WIN_VERYSMALL = 400;
 
 const CompetitionResults = () => {
   const { competitionState, results, loadingState, fetchCompetitionResults } =
@@ -21,6 +27,8 @@ const CompetitionResults = () => {
     return format[0] != "b";
   })();
   const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
+  const isOverall =
+    competitionState?.events[competitionState?.currentEventIdx]?.id === -1;
 
   useEffect(() => {
     const handleResize = () => {
@@ -46,8 +54,17 @@ const CompetitionResults = () => {
     ];
     if (!averageFirst)
       [columnNames[4], columnNames[5]] = [columnNames[5], columnNames[4]];
-    if (windowWidth < 1000)
-      columnNames = [...columnNames.slice(0, 3), ...columnNames.slice(4)];
+    if (isOverall) {
+      columnNames.splice(
+        4 - Number(windowWidth < WIN_VERYSMALL),
+        3 + Number(windowWidth < WIN_VERYSMALL),
+        "Score"
+      );
+    } else {
+      if (windowWidth < WIN_SMALL)
+        columnNames = [...columnNames.slice(0, 3), ...columnNames.slice(4)];
+    }
+
     return columnNames;
   };
 
@@ -72,26 +89,58 @@ const CompetitionResults = () => {
           <Table size="md">
             <thead>
               <tr>
-                {columnNames().map((val, idx) => (
-                  <th
-                    style={
-                      val === ""
-                        ? { height: "1em", width: "0%" }
-                        : val === "#"
-                        ? { height: "1em", width: "3%" }
-                        : val === "Times"
-                        ? { height: "1em", width: "25%" }
-                        : val === "Name"
-                        ? { height: "1em", width: "20%" }
-                        : val == "Average" || val == "Single"
-                        ? { height: "1em", width: "10%" }
-                        : { height: "1em" }
-                    }
-                    key={idx}
-                  >
-                    <b>{val}</b>
-                  </th>
-                ))}
+                {columnNames().map((val, idx) => {
+                  let style1: Object = isOverall
+                    ? val === ""
+                      ? { height: "1em", width: "0%" }
+                      : val === "#"
+                      ? { height: "1em", width: "3%" }
+                      : { height: "1em" }
+                    : val === ""
+                    ? { height: "1em", width: "0%" }
+                    : val === "#"
+                    ? { height: "1em", width: "3%" }
+                    : val === "Times"
+                    ? { height: "1em", width: "25%" }
+                    : val === "Name"
+                    ? { height: "1em", width: "20%" }
+                    : val == "Average" || val == "Single"
+                    ? { height: "1em", width: "10%" }
+                    : { height: "1em" };
+                  let thStyle = style1;
+                  return (
+                    <th style={thStyle} key={idx}>
+                      <Stack direction="row" alignItems="flex-end">
+                        <b>{val}</b>
+                        {val === "Score" && (
+                          <Tooltip
+                            placement="right"
+                            title={
+                              <Box style={{ textAlign: "center" }}>
+                                <Typography>
+                                  <b>Kinch score</b>
+                                </Typography>
+                                For more information click{" "}
+                                <a href="https://www.speedsolving.com/threads/all-round-rankings-kinchranks.53353/">
+                                  here
+                                </a>
+                                .
+                              </Box>
+                            }
+                            variant="outlined"
+                            color="primary"
+                            enterTouchDelay={0}
+                          >
+                            <span style={{ height: "21px" }}>
+                              &nbsp;
+                              <Help fontSize="small" />
+                            </span>
+                          </Tooltip>
+                        )}
+                      </Stack>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
@@ -100,7 +149,8 @@ const CompetitionResults = () => {
                   <td style={{ height: "1em", width: "1%" }}></td>
                   <td style={{ height: "1em", width: "3%" }}>{idx + 1}.</td>
                   <td style={{ height: "1em" }}>{result.username}</td>
-                  {windowWidth >= 1000 && (
+                  {(windowWidth >= WIN_SMALL ||
+                    (isOverall && windowWidth >= WIN_VERYSMALL)) && (
                     <td style={{ height: "1em" }}>
                       <span
                         className={`fi fi-${result.country_iso2.toLowerCase()}`}
@@ -108,13 +158,23 @@ const CompetitionResults = () => {
                       &nbsp;&nbsp;{result.country_name}
                     </td>
                   )}
-                  <td style={{ height: "1em" }}>
-                    <b>{!averageFirst ? result.single : result.average}</b>
-                  </td>
-                  <td style={{ height: "1em" }}>
-                    {averageFirst ? result.single : result.average}
-                  </td>
-                  <td style={{ height: "1em" }}>{result.times?.join(", ")}</td>
+                  {isOverall ? (
+                    <td style={{ height: "1em" }}>
+                      <b>{result.score}</b>
+                    </td>
+                  ) : (
+                    <>
+                      <td style={{ height: "1em" }}>
+                        <b>{!averageFirst ? result.single : result.average}</b>
+                      </td>
+                      <td style={{ height: "1em" }}>
+                        {averageFirst ? result.single : result.average}
+                      </td>
+                      <td style={{ height: "1em" }}>
+                        {result.times?.join(", ")}
+                      </td>
+                    </>
+                  )}
                   <td style={{ height: "1em", width: "0%" }}></td>
                 </tr>
               ))}

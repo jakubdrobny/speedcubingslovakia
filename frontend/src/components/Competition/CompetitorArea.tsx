@@ -13,8 +13,11 @@ const CompetitorArea: React.FC<{ loading: boolean }> = ({ loading }) => {
   return (
     <Grid container style={{ width: "100%" }} spacing={2}>
       {!authState.token ? (
-        <Alert color="warning" sx={{ width: "100%", margin: "0 1em" }}>
-          You are not authenticated! Please log in to compete.
+        <Alert color="warning" sx={{ width: "100%", margin: "0 1em", gap: 0 }}>
+          You are not authenticated! Please{" "}
+          <span style={{ fontSize: "1em" }}>&nbsp;</span>
+          <a href={process.env.REACT_APP_WCA_GET_CODE_URL || ""}>log in</a>
+          <span style={{ fontSize: "1em" }}>&nbsp;</span> to compete.
         </Alert>
       ) : (
         <>

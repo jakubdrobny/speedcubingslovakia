@@ -173,6 +173,7 @@ export type CompetitionResult = {
   single: string;
   average: string;
   times: string[];
+  score: string;
 };
 
 export type NavContextType = {

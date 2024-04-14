@@ -12,7 +12,7 @@ import { useContext } from "react";
 
 const NavItems = () => {
   const { authState } = useContext(AuthContext) as AuthContextType;
-  const { navOpen, toggleNavOpen } = useContext(NavContext) as NavContextType;
+  const { navOpen, setNavOpen } = useContext(NavContext) as NavContextType;
 
   return (
     <Stack direction={navOpen ? "column" : "row"}>
@@ -20,7 +20,7 @@ const NavItems = () => {
         component={Link}
         to="/competitions"
         sx={navOpen ? { justifyContent: "center", mb: 1 } : {}}
-        onClick={toggleNavOpen}
+        onClick={() => setNavOpen(false)}
       >
         <ListItemDecorator>
           <LanguageIcon />
@@ -42,7 +42,7 @@ const NavItems = () => {
           component={Link}
           to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
           sx={navOpen ? { justifyContent: "center" } : {}}
-          onClick={toggleNavOpen}
+          onClick={() => setNavOpen(false)}
         >
           <ListItemDecorator>
             <WCALogoNoText />
