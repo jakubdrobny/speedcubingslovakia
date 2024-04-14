@@ -1,3 +1,4 @@
+import { AuthContextType, NavContextType } from "../../Types";
 import {
   Avatar,
   Box,
@@ -10,20 +11,22 @@ import {
 import { initialAuthState, logOut } from "../../utils";
 
 import { AuthContext } from "../../context/AuthContext";
-import { AuthContextType } from "../../Types";
 import { Logout } from "@mui/icons-material";
+import { NavContext } from "../../context/NavContext";
 import { useContext } from "react";
 
 const ProfileListItem = () => {
   const { authState, setAuthState } = useContext(
     AuthContext
   ) as AuthContextType;
+  const { navOpen, setNavOpen } = useContext(NavContext) as NavContextType;
 
   const handleLogOut = () => {
     setAuthState(initialAuthState);
+    setNavOpen(false);
     logOut();
-    document.location.href = "/";
     document.location.reload();
+    document.location.href = "/";
   };
 
   return (
@@ -39,8 +42,9 @@ const ProfileListItem = () => {
           </ListItemButton>
         </List>
       }
+      enterTouchDelay={0}
     >
-      <ListItem>
+      <ListItem sx={navOpen ? { justifyContent: "center" } : {}}>
         <Avatar src={authState.avatarUrl} />
         {authState.wcaid}
       </ListItem>

@@ -38,7 +38,9 @@ const Timer = () => {
     const routePattern = /^\/competition(?:\/.*)?$/;
     if (routePattern.test(location.pathname)) {
       window.addEventListener("keydown", handleTimerInputKeyDown);
+      window.addEventListener("touchstart", handleTimerInputKeyDown);
       window.addEventListener("keyup", handleTimerInputKeyUp);
+      window.addEventListener("touchend", handleTimerInputKeyUp);
     }
 
     return () => {

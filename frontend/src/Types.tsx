@@ -174,3 +174,8 @@ export type CompetitionResult = {
   average: string;
   times: string[];
 };
+
+export type NavContextType = {
+  navOpen: boolean;
+  setNavOpen: (newNavOpen: boolean) => void;
+};

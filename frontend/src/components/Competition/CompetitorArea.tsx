@@ -18,13 +18,13 @@ const CompetitorArea: React.FC<{ loading: boolean }> = ({ loading }) => {
         </Alert>
       ) : (
         <>
-          <Grid xs={1} md={0} sx={{ padding: 0, margin: 0 }}></Grid>
-          <Grid xs={10} md={6}>
+          <Grid xs={0} sx={{ padding: 0, margin: 0 }}></Grid>
+          <Grid xs={12} md={6}>
             <Compete />
           </Grid>
-          <Grid xs={1} md={0} sx={{ padding: 0, margin: 0 }}></Grid>
-          <Grid xs={1} md={0} sx={{ padding: 0, margin: 0 }}></Grid>
-          <Grid xs={10} md={6}>
+          <Grid xs={0} sx={{ padding: 0, margin: 0 }}></Grid>
+          <Grid xs={0} sx={{ padding: 0, margin: 0 }}></Grid>
+          <Grid xs={12} md={6}>
             <Stack spacing={2}>
               <Guide />
               <CommentBox disabled={loading} />

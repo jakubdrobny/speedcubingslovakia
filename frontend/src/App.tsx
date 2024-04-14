@@ -1,29 +1,43 @@
-import { Grid, List, ListItemButton, ListItemDecorator } from "@mui/joy";
+import { AuthContextType, NavContextType } from "./Types";
+import { Button, Grid, List, ListItemButton, Stack } from "@mui/joy";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { authorizeAdmin, setBearerIfPresent } from "./utils";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { AuthContext } from "./context/AuthContext";
-import { AuthContextType } from "./Types";
 import Competition from "./components/Competition/Competition";
 import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
 import Competitions from "./components/Competitions/Competitions";
 import Dashboard from "./components/Dashboard/Dashboard";
+import { DensityMedium } from "@mui/icons-material";
 import Home from "./components/Home/Home";
-import LanguageIcon from "@mui/icons-material/Language";
-import { ListAlt } from "@mui/icons-material";
 import LogIn from "./components/Login/LogIn";
 import ManageRoles from "./components/Dashboard/ManageRoles";
+import { NavContext } from "./context/NavContext";
+import NavItems from "./components/NavItems";
 import NotFound from "./components/NotFound/NotFound";
-import ProfileListItem from "./components/Profile/ProfileListItem";
 import ProtectedRoute from "./components/Login/ProtectedRoute";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
-import WCALogoNoText from "./images/WCALogoNoText";
+
+const WIN_SMALL = 900;
 
 const App = () => {
   const { authState, setAuthState } = useContext(
     AuthContext
   ) as AuthContextType;
+  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
+  const { navOpen, setNavOpen } = useContext(NavContext) as NavContextType;
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     setBearerIfPresent(authState.token);
@@ -41,7 +55,7 @@ const App = () => {
         xs={0}
         md={1}
         lg={2}
-        borderBottom={"2px solid lightgrey"}
+        borderBottom={windowWidth < WIN_SMALL ? "" : "2px solid lightgrey"}
         width={"100%"}
       />
       <Grid
@@ -59,40 +73,33 @@ const App = () => {
             width: "100%",
           }}
         >
-          <Grid sx={{ display: "flex", justifyContent: "center" }}>
-            <ListItemButton component={Link} to="/">
+          <Grid sx={{ display: "flex", justifyContent: "flex-start" }}>
+            <ListItemButton
+              component={Link}
+              to="/"
+              onClick={() => setNavOpen(false)}
+            >
               Speedcubing Slovakia
             </ListItemButton>
           </Grid>
+
           <Grid
-            sx={{ display: "flex", justifyContent: "flex-end", width: "100%" }}
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              width: "100%",
+            }}
           >
-            <ListItemButton component={Link} to="/competitions">
-              <ListItemDecorator>
-                <LanguageIcon />
-              </ListItemDecorator>
-              Online Competitions
-            </ListItemButton>
-            {authState.isadmin && (
-              <ListItemButton component={Link} to="/admin/dashboard">
-                <ListItemDecorator>
-                  <ListAlt />
-                </ListItemDecorator>
-                Dashboard
-              </ListItemButton>
-            )}
-            {authState.token ? (
-              <ProfileListItem />
-            ) : (
-              <ListItemButton
-                component={Link}
-                to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+            {windowWidth < WIN_SMALL ? (
+              <Button
+                onClick={() => setNavOpen(true)}
+                variant={navOpen ? "solid" : "outlined"}
+                color="neutral"
               >
-                <ListItemDecorator>
-                  <WCALogoNoText />
-                </ListItemDecorator>
-                Log In
-              </ListItemButton>
+                <DensityMedium />
+              </Button>
+            ) : (
+              <NavItems />
             )}
           </Grid>
         </List>
@@ -101,11 +108,23 @@ const App = () => {
         xs={0}
         md={1}
         lg={2}
-        borderBottom={"2px solid lightgrey"}
+        borderBottom={windowWidth < WIN_SMALL ? "" : "2px solid lightgrey"}
         width={"100%"}
       />
-      <Grid xs={0} md={1} lg={2} />
-      <Grid xs={12} md={10} lg={8}>
+      {windowWidth < 900 && navOpen && (
+        <Grid
+          xs={12}
+          flexDirection="column"
+          borderBottom={"2px solid lightgrey"}
+          padding="0.5em"
+        >
+          <List>
+            <NavItems />
+          </List>
+        </Grid>
+      )}
+      <Grid xs={0} sm={1} md={2} />
+      <Grid xs={12} sm={10} md={8}>
         <Routes>
           <Route path="/" Component={Home} />
           <Route path="/competitions" Component={Competitions} />

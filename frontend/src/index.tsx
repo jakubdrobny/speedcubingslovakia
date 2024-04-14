@@ -4,6 +4,7 @@ import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { BrowserRouter } from "react-router-dom";
 import { CompetitionProvider } from "./components/Competition/CompetitionContext";
+import { NavProvider } from "./context/NavContext";
 import ReactDOM from "react-dom/client";
 import { TimerInputProvider } from "./context/TimerInputContext";
 
@@ -15,7 +16,9 @@ root.render(
     <AuthProvider>
       <CompetitionProvider>
         <TimerInputProvider>
-          <App />
+          <NavProvider>
+            <App />
+          </NavProvider>
         </TimerInputProvider>
       </CompetitionProvider>
     </AuthProvider>

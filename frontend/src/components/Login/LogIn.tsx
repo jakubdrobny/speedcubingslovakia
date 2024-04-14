@@ -8,21 +8,22 @@ import { logIn } from "../../utils";
 
 const LogIn = () => {
   const { setAuthState } = useContext(AuthContext) as AuthContextType;
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [__, setError] = useState("");
+  const [loadingState, setLoadingState] = useState<{
+    loading: boolean;
+    error: "";
+  }>({ loading: false, error: "" });
   const [searchParams, _] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    setIsLoading(true);
+    setLoadingState({ loading: true, error: "" });
     logIn(searchParams)
       .then((res: AuthState) => {
         setAuthState(res);
         navigate("/", { replace: true });
       })
       .catch((err) => {
-        setIsLoading(false);
-        setError(err.message);
+        setLoadingState({ loading: false, error: err.message });
       });
   }, []);
 
@@ -36,7 +37,7 @@ const LogIn = () => {
         transform: "translate(-50%, -50%)",
       }}
     >
-      {isLoading ? (
+      {loadingState.loading ? (
         <>
           <Typography level="h3" sx={{ display: "flex", alignItems: "center" }}>
             <CircularProgress /> &nbsp; Logging in...
