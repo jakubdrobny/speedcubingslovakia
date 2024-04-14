@@ -56,9 +56,11 @@ const CompetitionResults = () => {
                         : val === "#"
                         ? { height: "1em", width: "3%" }
                         : val === "Times"
-                        ? { height: "1em", width: "30%" }
+                        ? { height: "1em", width: "25%" }
                         : val === "Name"
                         ? { height: "1em", width: "20%" }
+                        : val == "Average" || val == "Single"
+                        ? { height: "1em", width: "10%" }
                         : { height: "1em" }
                     }
                     key={idx}

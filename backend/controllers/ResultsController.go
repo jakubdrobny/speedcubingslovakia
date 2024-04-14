@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"math/rand"
 	"net/http"
 	"strconv"
 
@@ -167,7 +166,7 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 
 		competitionId := c.Param("cid")
 		userId := c.MustGet("uid").(int)
-
+		
 		user, err := models.GetUserById(db, userId)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
@@ -200,7 +199,6 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 				}
 
 				resultEntry = models.ResultEntry{
-					Id: rand.Int(),
 					Userid: userId,
 					Username: user.Name,
 					Competitionid: competitionId,
@@ -245,7 +243,6 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 			}
 		}
 
-
 		c.IndentedJSON(http.StatusOK, resultEntry)
 	}
 }
@@ -259,7 +256,7 @@ func PostResults(db *pgxpool.Pool) gin.HandlerFunc {
 			c.IndentedJSON(http.StatusInternalServerError, err);
 			return;
 		}
-		
+
 		err = resultEntry.Update(db)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)

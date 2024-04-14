@@ -111,6 +111,7 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 
 		authInfo.AvatarUrl = user.AvatarUrl
 		authInfo.WcaId = user.WcaId
+		if user.WcaId == "" { authInfo.WcaId = user.Name }
 		authInfo.AccessToken, err = utils.CreateToken(user.Id, envMap["JWT_SECRET_KEY"])
 		authInfo.IsAdmin = user.IsAdmin
 		if err != nil {

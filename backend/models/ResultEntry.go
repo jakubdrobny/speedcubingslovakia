@@ -32,7 +32,7 @@ type ResultEntry struct {
 }
 
 func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
-	_, err := db.Exec(context.Background(), `INSERT INTO results (competition_id, user_id, event_id, solve1, solve2, solve3, solve4, solve5, comment, status_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`, r.Competitionid, 1, r.Eventid, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id)
+	_, err := db.Exec(context.Background(), `INSERT INTO results (competition_id, user_id, event_id, solve1, solve2, solve3, solve4, solve5, comment, status_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`, r.Competitionid, r.Userid, r.Eventid, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id)
 	if err != nil {
 		return err
 	}

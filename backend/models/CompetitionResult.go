@@ -2,8 +2,10 @@ package models
 
 import (
 	"context"
+	"sort"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
 type CompetitionResult struct {
@@ -20,6 +22,7 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 	if err != nil { return []CompetitionResult{}, err }
 
 	competitionResults := make([]CompetitionResult, 0)
+	format := ""
 	for rows.Next() {
 		var competitionResult CompetitionResult
 		var resultEntry ResultEntry
@@ -40,6 +43,14 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 		competitionResult.Times = formattedTimes
 
 		competitionResults = append(competitionResults, competitionResult)
+		format = resultEntry.Format
+	}
+
+	if len(format) > 0 {
+		sort.Slice(competitionResults, func (i int, j int) bool {
+			if format[0] == 'b' { return utils.ParseSolveToMilliseconds(competitionResults[i].Single) < utils.ParseSolveToMilliseconds(competitionResults[j].Single)}
+			return utils.ParseSolveToMilliseconds(competitionResults[i].Average) < utils.ParseSolveToMilliseconds(competitionResults[j].Average)
+		})
 	}
 
 	return competitionResults, nil
