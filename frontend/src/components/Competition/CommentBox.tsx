@@ -5,13 +5,13 @@ import { CompetitionContextType } from "../../Types";
 import { useContext } from "react";
 
 const CommentBox: React.FC<{ disabled: boolean }> = ({ disabled }) => {
-  const { currentResults, setCurrentResults } = useContext(
+  const { setCurrentResults, currentResultsRef } = useContext(
     CompetitionContext
   ) as CompetitionContextType;
 
   const handleCommentChange = (newComment: string) => {
     setCurrentResults({
-      ...currentResults,
+      ...currentResultsRef.current,
       comment: newComment,
     });
   };
@@ -20,7 +20,7 @@ const CommentBox: React.FC<{ disabled: boolean }> = ({ disabled }) => {
     <Card>
       <h3 style={{ textAlign: "center", margin: "0.25em 0" }}>Comment:</h3>
       <Textarea
-        value={currentResults.comment}
+        value={currentResultsRef.current.comment}
         onChange={(e) => handleCommentChange(e.target.value)}
         placeholder="Enter a comment to your solutions..."
         minRows={4}

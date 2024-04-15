@@ -4,7 +4,7 @@ import {
   TimerInputContextType,
   TimerInputCurrentState,
 } from "../../Types";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
@@ -13,26 +13,21 @@ import { reformatWithPenalties } from "../../utils";
 import { useLocation } from "react-router-dom";
 
 const Timer = () => {
-  const [forceRerender, setForceRerender] = useState(false);
-  const { competitionState, currentResults } = useContext(
-    CompetitionContext
-  ) as CompetitionContextType;
-  const { timerInputState } = useContext(
+  const { competitionState, currentResultsRef, competitionStateRef } =
+    useContext(CompetitionContext) as CompetitionContextType;
+  const { timerInputState /*,timerElementRef*/ } = useContext(
     TimerInputContext
   ) as TimerInputContextType;
-  const solveProp: keyof ResultEntry = `solve${
-    competitionState.currentSolveIdx + 1
-  }` as keyof ResultEntry;
-  const formattedTime = currentResults[solveProp].toString();
+  const formattedTime =
+    currentResultsRef.current[
+      `solve${
+        competitionStateRef.current.currentSolveIdx + 1
+      }` as keyof ResultEntry
+    ].toString();
   const location = useLocation();
   const { handleTimerInputKeyDown, handleTimerInputKeyUp } = useContext(
     TimerInputContext
   ) as TimerInputContextType;
-
-  useEffect(
-    () => setForceRerender(!forceRerender),
-    [competitionState.currentEventIdx]
-  );
 
   useEffect(() => {
     const routePattern = /^\/competition(?:\/.*)?$/;
@@ -56,7 +51,11 @@ const Timer = () => {
         width: "100%",
       }}
     >
-      <Typography level="h1" style={{ color: timerInputState.color }}>
+      <Typography
+        level="h1"
+        style={{ color: timerInputState.color }}
+        // ref={timerElementRef}
+      >
         {timerInputState.currentState === TimerInputCurrentState.Ready
           ? "Ready"
           : timerInputState.currentState === TimerInputCurrentState.Solving

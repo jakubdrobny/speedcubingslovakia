@@ -1,5 +1,11 @@
 import { Alert, Button, Card, CircularProgress, Grid, Stack } from "@mui/joy";
-import { CompetitionContextType, InputMethod, ResultEntry } from "../../Types";
+import {
+  CompetitionContextType,
+  InputMethod,
+  ResultEntry,
+  TimerInputContextType,
+  TimerInputCurrentState,
+} from "../../Types";
 import { East, Keyboard, Timer, West } from "@mui/icons-material";
 import {
   competitionOnGoing,
@@ -12,6 +18,7 @@ import ManualInput from "./ManualInput";
 import Penalties from "./Penalties";
 import Scramble from "./Scramble";
 import TimerInput from "./TimerInput";
+import { TimerInputContext } from "../../context/TimerInputContext";
 
 const Compete = () => {
   const {
@@ -23,6 +30,9 @@ const Compete = () => {
     setLoadingState,
     fetchCompeteResultEntry,
   } = useContext(CompetitionContext) as CompetitionContextType;
+  const { timerInputState } = useContext(
+    TimerInputContext
+  ) as TimerInputContextType;
 
   useEffect(() => {
     if (
@@ -67,6 +77,10 @@ const Compete = () => {
                       competitionState.noOfSolves
                   )
                 }
+                disabled={
+                  timerInputState.currentState !==
+                  TimerInputCurrentState.NotSolving
+                }
               >
                 <West />
                 &nbsp;
@@ -91,6 +105,10 @@ const Compete = () => {
                     (competitionState.currentSolveIdx + 1) %
                       competitionState.noOfSolves
                   )
+                }
+                disabled={
+                  timerInputState.currentState !==
+                  TimerInputCurrentState.NotSolving
                 }
               >
                 Next&nbsp;
@@ -153,7 +171,11 @@ const Compete = () => {
                     variant="solid"
                     onClick={handleSaveResults}
                     sx={{ width: "100%" }}
-                    disabled={!competitionOnGoing(competitionState)}
+                    disabled={
+                      !competitionOnGoing(competitionState) ||
+                      timerInputState.currentState !==
+                        TimerInputCurrentState.NotSolving
+                    }
                     loading={loadingState.results}
                   >
                     Save

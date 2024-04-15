@@ -1,4 +1,4 @@
-import { Alert, Card, Divider, Typography } from "@mui/joy";
+import { Alert, Card, Divider, Grid, Typography } from "@mui/joy";
 import { CompetitionContextType, InputMethod } from "../../Types";
 import { Keyboard, Timer } from "@mui/icons-material";
 
@@ -74,13 +74,14 @@ const Guide = () => {
       </Typography>
       <Divider />
       <Alert color="warning">
-        <Typography
-          sx={{ display: "flex", alignItems: "center", fontWeight: "bold" }}
-        >
-          You can switch timing methods by clicking on Manual&nbsp;
-          <Keyboard />
-          &nbsp;/ Timer&nbsp; <Timer />.
-        </Typography>
+        <Grid container direction="row" alignItems="center">
+          You can switch timing methods by clicking on Manual
+          <span style={{ fontSize: "1em" }}>&nbsp;</span>
+          <Keyboard /> <span style={{ fontSize: "1em" }}>&nbsp;</span>/
+          <span style={{ fontSize: "1em" }}>&nbsp;</span> Timer{" "}
+          <span style={{ fontSize: "0.75em" }}>&nbsp;</span>
+          <Timer />.
+        </Grid>
       </Alert>
     </Card>
   );

@@ -17,6 +17,7 @@ const NavVertical: React.FC<{ windowWidth: number }> = ({ windowWidth }) => {
       padding="0.5em"
       sx={{
         display: navReallyOpen ? "flex" : "none",
+        background: "white",
       }}
     >
       <NavItems direction="column" windowWidth={windowWidth} />

@@ -9,7 +9,7 @@ import {
   ResultEntry,
   ResultsCompeteChoiceEnum,
 } from "../../Types";
-import React, { ReactNode, createContext, useState } from "react";
+import React, { ReactNode, createContext } from "react";
 import {
   competitionOnGoing,
   getCompetitionResults,
@@ -20,6 +20,8 @@ import {
   sendResults,
 } from "../../utils";
 
+import useState from "react-usestateref";
+
 export const CompetitionContext = createContext<CompetitionContextType | null>(
   null
 );
@@ -27,12 +29,10 @@ export const CompetitionContext = createContext<CompetitionContextType | null>(
 export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   children,
 }) => {
-  const [competitionState, setCompetitionState] = useState<CompetitionState>(
-    initialCompetitionState
-  );
-  const [currentResults, setCurrentResults] = useState<ResultEntry>(
-    initialCurrentResults
-  );
+  const [competitionState, setCompetitionState, competitionStateRef] =
+    useState<CompetitionState>(initialCompetitionState);
+  const [currentResults, setCurrentResults, currentResultsRef] =
+    useState<ResultEntry>(initialCurrentResults);
   const [suspicousModalOpen, setSuspicousModalOpen] = useState<boolean>(false);
   const [resultsCompeteChoice, setResultsCompeteChoice] =
     useState<ResultsCompeteChoiceEnum>(ResultsCompeteChoiceEnum.Results);
@@ -43,7 +43,9 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
 
   const updateBasicInfo = (info: CompetitionData) => {
     const match =
-      info.events[competitionState.currentEventIdx].format.match(/\d+$/)?.[0];
+      info.events[competitionStateRef.current.currentEventIdx].format.match(
+        /\d+$/
+      )?.[0];
     const noOfSolves = match ? parseInt(match) : 1;
 
     setCompetitionState((ps) => {
@@ -60,8 +62,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   };
 
   const fetchCompeteResultEntry = (
-    event: CompetitionEvent = competitionState.events[
-      competitionState.currentEventIdx
+    event: CompetitionEvent = competitionStateRef.current.events[
+      competitionStateRef.current.currentEventIdx
     ],
     compId: string = competitionState.id
   ) => {
@@ -97,8 +99,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   };
 
   const fetchCompetitionResults = (
-    event: CompetitionEvent = competitionState.events[
-      competitionState.currentEventIdx
+    event: CompetitionEvent = competitionStateRef.current.events[
+      competitionStateRef.current.currentEventIdx
     ],
     compId: string = competitionState.id
   ) => {
@@ -148,7 +150,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   const saveResults = async (): Promise<void> => {
     try {
       const resultEntry = await sendResults({
-        ...currentResults,
+        ...currentResultsRef.current,
         competitionid: competitionState.id,
       });
       if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
@@ -182,12 +184,12 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
 
   const updateSolve = (newTime: string) => {
     const solveProp: keyof ResultEntry = `solve${
-      competitionState.currentSolveIdx + 1
+      competitionStateRef.current.currentSolveIdx + 1
     }` as keyof ResultEntry;
-    setCurrentResults({
-      ...currentResults,
+    setCurrentResults((ps) => ({
+      ...ps,
       [solveProp]: newTime,
-    });
+    }));
   };
 
   const toggleInputMethod = () => {
@@ -235,6 +237,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         setLoadingState,
         fetchCompetitionResults,
         fetchCompeteResultEntry,
+        competitionStateRef,
+        currentResultsRef,
       }}
     >
       {children}

@@ -8,12 +8,12 @@ import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
 
 const TimerInput = () => {
   const [forceRerender, setForceRerender] = useState(false);
-  const { competitionState, updateSolve, saveResults, currentResults } =
+  const { competitionState, updateSolve, saveResults, currentResultsRef } =
     useContext(CompetitionContext) as CompetitionContextType;
   const solveProp: keyof ResultEntry = `solve${
     competitionState.currentSolveIdx + 1
   }` as keyof ResultEntry;
-  const formattedTime = currentResults[solveProp].toString();
+  const formattedTime = currentResultsRef.current[solveProp].toString();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 

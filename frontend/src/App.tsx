@@ -47,7 +47,7 @@ const App = () => {
   }, []);
 
   return (
-    <Grid container sx={{ background: "white" }}>
+    <Grid container>
       <Grid
         xs={0}
         lg={1}

@@ -67,6 +67,8 @@ export type CompetitionContextType = {
   setLoadingState: (newState: CompetitionLoadingState) => void;
   fetchCompetitionResults: (event?: CompetitionEvent, compId?: string) => void;
   fetchCompeteResultEntry: (event?: CompetitionEvent, compId?: string) => void;
+  competitionStateRef: { current: CompetitionState };
+  currentResultsRef: { current: ResultEntry };
 };
 
 export type ResultEntry = {
@@ -113,6 +115,7 @@ export type TimerInputContextType = {
   timerInputState: TimerInputState;
   handleTimerInputKeyDown: EventListener;
   handleTimerInputKeyUp: EventListener;
+  //   timerElementRef: { current: HTMLElement | null };
 };
 
 export type TimerInputState = {
