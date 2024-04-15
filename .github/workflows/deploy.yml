@@ -12,6 +12,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
+          script_stop: true
           script: |
             cd ${{ secrets.WORKDIR }}
             git pull
@@ -24,6 +25,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
+          script_stop: true
           script: |
             cd ${{ secrets.WORKDIR }}/backend
             /usr/local/go/bin/go get ./constants ./controllers ./main ./middlewares ./models ./utils
@@ -39,6 +41,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
+          script_stop: true
           script: |
             cd ${{ secrets.WORKDIR }}/frontend
             rm -rf build
