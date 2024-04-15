@@ -1,4 +1,2 @@
-.env
-.env.local
-.env.test
-.env.dev
+.env.production
+.env.development
