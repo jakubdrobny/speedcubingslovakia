@@ -2,11 +2,11 @@ name: Deploy to server
 on: [push]
 
 jobs:
-  build:
-    name: Build
+  Deploy:
+    name: Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy
+      - name: Pull latest code
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
@@ -16,6 +16,27 @@ jobs:
             cd ${{ secrets.WORKDIR }}
             git pull
 
-            cd backend/main
+      - name: Rebuild and restart backend
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script: |
+            cd ${{ secrets.WORKDIR }}/backend/main
             go build main.go
-            sudo service backend reload
+            sudo systemctl daemon-reload
+
+      - name: Rebuild and restart frontend
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script: |
+            cd ${{ secrets.WORKDIR }}/frontend
+            rm -rf build
+            npm run build
+            rm -rf ${{ secrets.FRONTEND_DEPLOY_DIR }}
+            mv ./build ${{ secrets.FRONTEND_DEPLOY_DIR }}
+            sudo service nginx reload
