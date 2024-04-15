@@ -12,7 +12,6 @@ import {
 import React, { ReactNode, createContext, useState } from "react";
 import {
   competitionOnGoing,
-  emptyEvent,
   getCompetitionResults,
   getResultsFromCompetitionAndEvent,
   initialCompetitionLoadingState,
@@ -58,10 +57,6 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     });
 
     setLoadingState({ ...loadingState, compinfo: false, error: "" });
-
-    if (resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete)
-      fetchCompeteResultEntry(info.events[0], info.id);
-    else fetchCompetitionResults(info.events[0], info.id);
   };
 
   const fetchCompeteResultEntry = (
@@ -70,6 +65,18 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     ],
     compId: string = competitionState.id
   ) => {
+    if (event.displayname === "Overall") {
+      console.log(
+        event,
+        competitionState.events[competitionState.currentEventIdx - 1]
+      );
+      event = competitionState.events[competitionState.currentEventIdx - 1];
+      setCompetitionState((ps) => ({
+        ...ps,
+        currentEventIdx: ps.currentEventIdx - 1,
+      }));
+    }
+
     setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
     getResultsFromCompetitionAndEvent(compId, event)
       .then((resultEntry) => {
@@ -227,6 +234,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         loadingState,
         setLoadingState,
         fetchCompetitionResults,
+        fetchCompeteResultEntry,
       }}
     >
       {children}

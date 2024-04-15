@@ -19,12 +19,10 @@ const Compete = () => {
     updateCurrentSolve,
     toggleInputMethod,
     saveResults,
-    setCurrentResults,
-    setSuspicousModalOpen,
     loadingState,
+    setLoadingState,
+    fetchCompeteResultEntry,
   } = useContext(CompetitionContext) as CompetitionContextType;
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (
@@ -33,37 +31,24 @@ const Compete = () => {
     )
       return;
 
-    setIsLoading(true);
-
-    getResultsFromCompetitionAndEvent(
-      competitionState.id,
-      competitionState.events[competitionState.currentEventIdx]
-    )
-      .then((resultEntry: ResultEntry) => {
-        setIsLoading(false);
-        setCurrentResults(resultEntry);
-        if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
-      })
-      .catch((err) => {
-        setIsLoading(false);
-        setError(err.message);
-      });
+    fetchCompeteResultEntry();
   }, []);
 
   const handleSaveResults = () => {
-    setIsLoading(true);
+    setLoadingState({ ...loadingState, results: true, compinfo: false });
     saveResults()
-      .then(() => setIsLoading(false))
-      .catch((err) => {
-        setIsLoading(false);
-        setError(err.message);
-      });
+      .then(() =>
+        setLoadingState({ ...loadingState, results: false, error: "" })
+      )
+      .catch((err) =>
+        setLoadingState({ ...loadingState, results: false, error: err.message })
+      );
   };
 
   return (
     <>
-      {error ? (
-        <Alert color="danger">{error}</Alert>
+      {loadingState.error ? (
+        <Alert color="danger">{loadingState.error}</Alert>
       ) : loadingState.results ? (
         <div style={{ display: "flex", justifyContent: "center" }}>
           <CircularProgress />
@@ -139,7 +124,7 @@ const Compete = () => {
                 )}
               </h3>
             </Grid>
-            {isLoading ? (
+            {loadingState.results ? (
               <Grid
                 xs={12}
                 sx={{
@@ -168,7 +153,7 @@ const Compete = () => {
                     onClick={handleSaveResults}
                     sx={{ width: "100%" }}
                     disabled={!competitionOnGoing(competitionState)}
-                    loading={isLoading}
+                    loading={loadingState.results}
                   >
                     Save
                   </Button>

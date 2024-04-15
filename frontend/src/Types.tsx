@@ -66,6 +66,7 @@ export type CompetitionContextType = {
   loadingState: CompetitionLoadingState;
   setLoadingState: (newState: CompetitionLoadingState) => void;
   fetchCompetitionResults: (event?: CompetitionEvent, compId?: string) => void;
+  fetchCompeteResultEntry: (event?: CompetitionEvent, compId?: string) => void;
 };
 
 export type ResultEntry = {
