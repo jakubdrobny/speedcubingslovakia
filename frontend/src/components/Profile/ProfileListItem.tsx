@@ -13,17 +13,20 @@ import { initialAuthState, logOut } from "../../utils";
 import { AuthContext } from "../../context/AuthContext";
 import { Logout } from "@mui/icons-material";
 import { NavContext } from "../../context/NavContext";
+import { WIN_SMALL } from "../../constants";
 import { useContext } from "react";
 
-const ProfileListItem = () => {
+const ProfileListItem: React.FC<{ windowWidth: number }> = ({
+  windowWidth,
+}) => {
   const { authState, setAuthState } = useContext(
     AuthContext
   ) as AuthContextType;
-  const { navOpen, setNavOpen } = useContext(NavContext) as NavContextType;
+  const { closeNav } = useContext(NavContext) as NavContextType;
 
   const handleLogOut = () => {
     setAuthState(initialAuthState);
-    setNavOpen(false);
+    closeNav();
     logOut();
     document.location.reload();
     document.location.href = "/";
@@ -42,9 +45,10 @@ const ProfileListItem = () => {
           </ListItemButton>
         </List>
       }
+      placement={windowWidth < WIN_SMALL ? "bottom-start" : "bottom"}
       enterTouchDelay={0}
     >
-      <ListItem sx={navOpen ? { justifyContent: "center" } : {}}>
+      <ListItem>
         <Avatar src={authState.avatarUrl} />
         {authState.wcaid}
       </ListItem>

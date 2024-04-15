@@ -39,7 +39,7 @@ const Competitions = () => {
     setFilterValue(newFilterValue);
 
   return (
-    <Card sx={{ margin: "1em 0" }}>
+    <Card sx={{ margin: "1em 0.5em" }}>
       <Typography
         level="h2"
         sx={{ margin: "0.25em 0", borderBottom: "1px solid #CDD7E1" }}

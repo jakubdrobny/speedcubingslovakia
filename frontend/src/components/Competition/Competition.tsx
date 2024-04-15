@@ -71,7 +71,7 @@ const Competition = () => {
   }, []);
 
   return (
-    <Stack spacing={3} sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+    <Stack spacing={3} sx={{ display: "flex", alignItems: "center", mt: 4 }}>
       <Modal
         open={suspicousModalOpen}
         onClose={() => setSuspicousModalOpen(false)}

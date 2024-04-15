@@ -1,32 +1,29 @@
-import { AuthContextType, NavContextType } from "../Types";
+import { AuthContextType, NavContextType } from "../../Types";
 import { Grid, List, ListItemButton, ListItemDecorator, Stack } from "@mui/joy";
 import { Language, ListAlt } from "@mui/icons-material";
 
-import { AuthContext } from "../context/AuthContext";
+import { AuthContext } from "../../context/AuthContext";
 import LanguageIcon from "@mui/icons-material/Language";
 import { Link } from "react-router-dom";
-import { NavContext } from "../context/NavContext";
-import ProfileListItem from "./Profile/ProfileListItem";
-import WCALogoNoText from "../images/WCALogoNoText";
+import { NavContext } from "../../context/NavContext";
+import ProfileListItem from "../Profile/ProfileListItem";
+import WCALogoNoText from "../../images/WCALogoNoText";
 import { useContext } from "react";
 
-const WIN_SMALL = 900;
-
-const NavItems = () => {
+const NavItems: React.FC<{
+  direction: "row" | "row-reverse" | "column" | "column-reverse";
+  windowWidth: number;
+}> = ({ direction, windowWidth }) => {
   const { authState } = useContext(AuthContext) as AuthContextType;
-  const { navOpen, closeNav } = useContext(NavContext) as NavContextType;
+  const { closeNav } = useContext(NavContext) as NavContextType;
 
   return (
-    <Stack
-      direction={navOpen && window.innerWidth < WIN_SMALL ? "column" : "row"}
-      spacing={1}
+    <List
+      sx={{
+        flexDirection: direction,
+      }}
     >
-      <ListItemButton
-        component={Link}
-        to="/competitions"
-        sx={navOpen ? { justifyContent: "center", mb: 1 } : {}}
-        onClick={closeNav}
-      >
+      <ListItemButton component={Link} to="/competitions" onClick={closeNav}>
         <ListItemDecorator>
           <LanguageIcon />
         </ListItemDecorator>
@@ -36,7 +33,7 @@ const NavItems = () => {
         <ListItemButton
           component={Link}
           to="/admin/dashboard"
-          sx={navOpen ? { justifyContent: "center" } : {}}
+          onClick={closeNav}
         >
           <ListItemDecorator>
             <ListAlt />
@@ -45,12 +42,11 @@ const NavItems = () => {
         </ListItemButton>
       )}
       {authState.token ? (
-        <ProfileListItem />
+        <ProfileListItem windowWidth={windowWidth} />
       ) : (
         <ListItemButton
           component={Link}
           to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
-          sx={navOpen ? { justifyContent: "center" } : {}}
           onClick={closeNav}
         >
           <ListItemDecorator>
@@ -59,7 +55,7 @@ const NavItems = () => {
           Log In
         </ListItemButton>
       )}
-    </Stack>
+    </List>
   );
 };
 

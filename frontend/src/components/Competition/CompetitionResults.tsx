@@ -8,14 +8,12 @@ import {
   Tooltip,
   Typography,
 } from "@mui/joy";
+import { WIN_SMALL, WIN_VERYSMALL } from "../../constants";
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { CompetitionContextType } from "../../Types";
 import { Help } from "@mui/icons-material";
-
-const WIN_SMALL = 900;
-const WIN_VERYSMALL = 400;
 
 const CompetitionResults = () => {
   const { competitionState, results, loadingState, fetchCompetitionResults } =
