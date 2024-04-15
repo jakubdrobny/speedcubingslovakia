@@ -64,8 +64,8 @@ const App = () => {
         width={"100%"}
       />
       <NavVertical windowWidth={windowWidth} />
-      <Grid xs={0} sm={1} md={2} />
-      <Grid xs={12} sm={10} md={8}>
+      <Grid xs={0} lg={1} xl={2} />
+      <Grid xs={12} lg={10} xl={8}>
         <Routes>
           <Route path="/" Component={Home} />
           <Route path="/competitions" Component={Competitions} />
@@ -88,7 +88,7 @@ const App = () => {
           <Route path="*" element={<Navigate to="/not-found" replace />} />
         </Routes>
       </Grid>
-      <Grid xs={0} sm={1} md={2} />
+      <Grid xs={0} lg={1} xl={2} />
     </Grid>
   );
 };

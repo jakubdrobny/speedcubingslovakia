@@ -41,7 +41,7 @@ const NavHorizontal: React.FC<{ windowWidth: number }> = ({ windowWidth }) => {
             component={Link}
             to="/"
             onClick={closeNav}
-            sx={WIN_SMALL ? { pl: 1 } : {}}
+            sx={WIN_SMALL ? { ml: -1 } : {}}
           >
             <img src={mainLogo} height="48" width="48"></img>
             <Typography level="h4">Speedcubing Slovakia</Typography>
@@ -61,6 +61,7 @@ const NavHorizontal: React.FC<{ windowWidth: number }> = ({ windowWidth }) => {
               onClick={toggleNavOpen}
               variant={navOpen ? "solid" : "outlined"}
               color="neutral"
+              sx={{ mr: 1 }}
             >
               <DensityMedium />
             </Button>

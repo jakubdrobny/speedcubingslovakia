@@ -1,5 +1,12 @@
 import { AuthContextType, NavContextType } from "../../Types";
-import { Grid, List, ListItemButton, ListItemDecorator, Stack } from "@mui/joy";
+import {
+  Grid,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemDecorator,
+  Stack,
+} from "@mui/joy";
 import { Language, ListAlt } from "@mui/icons-material";
 
 import { AuthContext } from "../../context/AuthContext";
@@ -21,9 +28,15 @@ const NavItems: React.FC<{
     <List
       sx={{
         flexDirection: direction,
+        justifyContent: "flex-end",
       }}
     >
-      <ListItemButton component={Link} to="/competitions" onClick={closeNav}>
+      <ListItemButton
+        component={Link}
+        to="/competitions"
+        onClick={closeNav}
+        sx={{ justifyContent: "flex-end" }}
+      >
         <ListItemDecorator>
           <LanguageIcon />
         </ListItemDecorator>
@@ -34,6 +47,7 @@ const NavItems: React.FC<{
           component={Link}
           to="/admin/dashboard"
           onClick={closeNav}
+          sx={{ justifyContent: "flex-end" }}
         >
           <ListItemDecorator>
             <ListAlt />
@@ -48,6 +62,7 @@ const NavItems: React.FC<{
           component={Link}
           to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
           onClick={closeNav}
+          sx={{ justifyContent: "flex-end" }}
         >
           <ListItemDecorator>
             <WCALogoNoText />

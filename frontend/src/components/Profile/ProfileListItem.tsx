@@ -13,7 +13,6 @@ import { initialAuthState, logOut } from "../../utils";
 import { AuthContext } from "../../context/AuthContext";
 import { Logout } from "@mui/icons-material";
 import { NavContext } from "../../context/NavContext";
-import { WIN_SMALL } from "../../constants";
 import { useContext } from "react";
 
 const ProfileListItem: React.FC<{ windowWidth: number }> = ({
@@ -45,13 +44,13 @@ const ProfileListItem: React.FC<{ windowWidth: number }> = ({
           </ListItemButton>
         </List>
       }
-      placement={windowWidth < WIN_SMALL ? "bottom-start" : "bottom"}
+      arrow
       enterTouchDelay={0}
     >
-      <ListItem>
+      <ListItemButton sx={{ justifyContent: "flex-end" }}>
         <Avatar src={authState.avatarUrl} />
         {authState.wcaid}
-      </ListItem>
+      </ListItemButton>
     </Tooltip>
   );
 };
