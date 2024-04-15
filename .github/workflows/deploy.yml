@@ -25,7 +25,9 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-            cd ${{ secrets.WORKDIR }}/backend/main
+            cd ${{ secrets.WORKDIR }}/backend
+            /usr/local/go/bin/go get ./constants ./controllers ./main ./middlewares ./models ./utils
+            cd main
             /usr/local/go/bin/go build main.go
             systemctl daemon-reload && systemctl restart ${{ secrets.BACKEND_SERVICE_NAME }}
 
@@ -40,9 +42,10 @@ jobs:
           script: |
             cd ${{ secrets.WORKDIR }}/frontend
             rm -rf build
+            npm install
             npm run build
-            rm -rf ${{ secrets.FRONTEND_DEPLOY_DIR }}
-            mv ./build ${{ secrets.FRONTEND_DEPLOY_DIR }}
+            rm -rf ${{ secrets.FRONTEND_DEPLOY_DIR }}/*
+            mv ./build/* ${{ secrets.FRONTEND_DEPLOY_DIR }}
             sudo service nginx reload
 
             echo 'Frontend rebuilt and deployment finished.'
