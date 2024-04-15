@@ -27,7 +27,7 @@ jobs:
           script: |
             cd ${{ secrets.WORKDIR }}/backend/main
             /usr/local/go/bin/go build main.go
-            sudo systemctl daemon-reload
+            systemctl daemon-reaload && systemctl restart ${{ secrets.BACKEND_SERVICE_NAME }}
 
             echo 'Backend rebuilt and deployment finished.'
 
