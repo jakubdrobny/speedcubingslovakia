@@ -178,5 +178,7 @@ export type CompetitionResult = {
 
 export type NavContextType = {
   navOpen: boolean;
-  setNavOpen: (newNavOpen: boolean) => void;
+  openNav: () => void;
+  closeNav: () => void;
+  toggleNavOpen: () => void;
 };

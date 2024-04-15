@@ -26,7 +26,9 @@ const App = () => {
     AuthContext
   ) as AuthContextType;
   const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
-  const { navOpen, setNavOpen } = useContext(NavContext) as NavContextType;
+  const { navOpen, toggleNavOpen, closeNav } = useContext(
+    NavContext
+  ) as NavContextType;
 
   useEffect(() => {
     const handleResize = () => {
@@ -74,11 +76,7 @@ const App = () => {
           }}
         >
           <Grid sx={{ display: "flex", justifyContent: "flex-start" }}>
-            <ListItemButton
-              component={Link}
-              to="/"
-              onClick={() => setNavOpen(false)}
-            >
+            <ListItemButton component={Link} to="/" onClick={closeNav}>
               Speedcubing Slovakia
             </ListItemButton>
           </Grid>
@@ -92,7 +90,7 @@ const App = () => {
           >
             {windowWidth < WIN_SMALL ? (
               <Button
-                onClick={() => setNavOpen(true)}
+                onClick={toggleNavOpen}
                 variant={navOpen ? "solid" : "outlined"}
                 color="neutral"
               >
@@ -111,7 +109,7 @@ const App = () => {
         borderBottom={windowWidth < WIN_SMALL ? "" : "2px solid lightgrey"}
         width={"100%"}
       />
-      {windowWidth < 900 && navOpen && (
+      {windowWidth < WIN_SMALL && navOpen && (
         <Grid
           xs={12}
           flexDirection="column"

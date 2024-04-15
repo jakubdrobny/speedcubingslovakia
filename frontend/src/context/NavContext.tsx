@@ -9,8 +9,12 @@ export const NavProvider: React.FC<{ children?: ReactNode }> = ({
 }) => {
   const [navOpen, setNavOpen] = useState<boolean>(false);
 
+  const openNav = () => setNavOpen(true);
+  const closeNav = () => setNavOpen(false);
+  const toggleNavOpen = () => setNavOpen((p) => !p);
+
   return (
-    <NavContext.Provider value={{ navOpen, setNavOpen }}>
+    <NavContext.Provider value={{ navOpen, openNav, closeNav, toggleNavOpen }}>
       {children}
     </NavContext.Provider>
   );

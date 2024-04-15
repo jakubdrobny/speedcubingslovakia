@@ -10,17 +10,22 @@ import ProfileListItem from "./Profile/ProfileListItem";
 import WCALogoNoText from "../images/WCALogoNoText";
 import { useContext } from "react";
 
+const WIN_SMALL = 900;
+
 const NavItems = () => {
   const { authState } = useContext(AuthContext) as AuthContextType;
-  const { navOpen, setNavOpen } = useContext(NavContext) as NavContextType;
+  const { navOpen, closeNav } = useContext(NavContext) as NavContextType;
 
   return (
-    <Stack direction={navOpen ? "column" : "row"}>
+    <Stack
+      direction={navOpen && window.innerWidth < WIN_SMALL ? "column" : "row"}
+      spacing={1}
+    >
       <ListItemButton
         component={Link}
         to="/competitions"
         sx={navOpen ? { justifyContent: "center", mb: 1 } : {}}
-        onClick={() => setNavOpen(false)}
+        onClick={closeNav}
       >
         <ListItemDecorator>
           <LanguageIcon />
@@ -28,7 +33,11 @@ const NavItems = () => {
         Online Competitions
       </ListItemButton>
       {authState.isadmin && (
-        <ListItemButton component={Link} to="/admin/dashboard">
+        <ListItemButton
+          component={Link}
+          to="/admin/dashboard"
+          sx={navOpen ? { justifyContent: "center" } : {}}
+        >
           <ListItemDecorator>
             <ListAlt />
           </ListItemDecorator>
@@ -42,7 +51,7 @@ const NavItems = () => {
           component={Link}
           to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
           sx={navOpen ? { justifyContent: "center" } : {}}
-          onClick={() => setNavOpen(false)}
+          onClick={closeNav}
         >
           <ListItemDecorator>
             <WCALogoNoText />
