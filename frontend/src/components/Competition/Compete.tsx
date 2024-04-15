@@ -1,4 +1,4 @@
-import { Alert, Button, Card, CircularProgress, Grid } from "@mui/joy";
+import { Alert, Button, Card, CircularProgress, Grid, Stack } from "@mui/joy";
 import { CompetitionContextType, InputMethod, ResultEntry } from "../../Types";
 import { East, Keyboard, Timer, West } from "@mui/icons-material";
 import {
@@ -69,7 +69,8 @@ const Compete = () => {
                 }
               >
                 <West />
-                &nbsp; Previous
+                &nbsp;
+                <div> Previous</div>
               </Button>
             </Grid>
             <Grid
