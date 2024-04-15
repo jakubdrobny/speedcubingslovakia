@@ -73,6 +73,7 @@ const ResultsEdit = () => {
       .then((res) => {
         setResults(res);
         setIsLoading((ps) => ({ ...ps, results: false }));
+        setError("");
       })
       .catch((err) => {
         setIsLoading((ps) => ({ ...ps, results: false }));

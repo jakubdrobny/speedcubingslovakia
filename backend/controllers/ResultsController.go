@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -20,7 +21,7 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 		
-		var resultEntries []models.ResultEntry
+		resultEntries := make([]models.ResultEntry, 0)
 
 		if competitionId == "_" && userName == "_" {
 			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re WHERE re.event_id = $1;`, eventId)
@@ -45,7 +46,7 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 				resultEntries = append(resultEntries, resultEntry)
 			}
 		} else if competitionId == "_" && userName != "_" {
-			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re JOIN users u ON u.user_id = re.user_id WHERE re.event_id = $1 AND u.name = $2;`, eventId, userName)
+			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re JOIN users u ON u.user_id = re.user_id WHERE re.event_id = $1 AND UPPER(u.name) LIKE UPPER('%' || $2 || '%');`, eventId, userName)
 			if err != nil {
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return
@@ -67,7 +68,8 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 				resultEntries = append(resultEntries, resultEntry)
 			}
 		} else if competitionId != "_" && userName == "_" {
-			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re WHERE re.event_id = $1 AND re.competition_id = $2;`, eventId, competitionId)
+			fmt.Println("ty by si mohol nieco vratit")
+			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re WHERE re.event_id = $1 AND UPPER(re.competition_id) LIKE UPPER('%' || $2 || '%');`, eventId, competitionId)
 			if err != nil {
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return
@@ -89,7 +91,7 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 				resultEntries = append(resultEntries, resultEntry)
 			}
 		} else {
-			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re JOIN users u ON u.user_id = re.user_id WHERE re.event_id = $1 AND re.competition_id = $2 AND u.name = $3;`, eventId, competitionId, userName)
+			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re JOIN users u ON u.user_id = re.user_id WHERE re.event_id = $1 AND UPPER(re.competition_id) LIKE UPPER('%' || $2 || '%') AND UPPER(u.name) LIKE UPPER('%' || $3 || '%');`, eventId, competitionId, userName)
 			if err != nil {
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				return

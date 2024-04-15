@@ -45,7 +45,7 @@ func main() {
 	
 	results := api_v1.Group("/results", middlewares.AuthMiddleWare(db, envMap))
 	{
-		results.GET("/edit/:uname/:cid/:eid", middlewares.AdminMiddleWare(), controllers.GetResultsQuery(db))
+		results.GET("/edit/:cid/:uname/:eid", middlewares.AdminMiddleWare(), controllers.GetResultsQuery(db))
 		results.GET("/compete/:cid/:eid", controllers.GetResultsByIdAndEvent(db))
 		results.POST("/save", controllers.PostResults(db))
 		results.POST("/save-validation", middlewares.AdminMiddleWare(), controllers.PostResultsValidation(db))
