@@ -89,6 +89,8 @@ const App = () => {
         </Routes>
       </Grid>
       <Grid xs={0} lg={1} xl={2} />
+      <Grid xs={12} sx={{ height: "3em" }} />{" "}
+      {/* padding at the bottom of page */}
     </Grid>
   );
 };

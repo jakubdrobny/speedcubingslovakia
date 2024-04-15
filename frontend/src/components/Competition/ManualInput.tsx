@@ -4,6 +4,7 @@ import { competitionOnGoing, reformatTime } from "../../utils";
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
+import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
 
 const TimerInput = () => {
   const [forceRerender, setForceRerender] = useState(false);
@@ -31,6 +32,8 @@ const TimerInput = () => {
       updateSolve(newValue);
       return;
     }
+
+    if (newValue.length > MAX_MANUAL_INPUT_LENGTH) return;
 
     // character deleted
     if (newValue.length + 1 === formattedTime.length) {

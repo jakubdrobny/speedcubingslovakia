@@ -5,6 +5,7 @@ import {
   Card,
   Chip,
   CircularProgress,
+  Divider,
   FormControl,
   FormHelperText,
   FormLabel,
@@ -28,6 +29,8 @@ import {
   sendResults,
 } from "../../utils";
 import { useEffect, useState } from "react";
+
+import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
 
 const ResultsEdit = () => {
   const [availableEvents, setAvailableEvents] = useState<CompetitionEvent[]>(
@@ -108,6 +111,8 @@ const ResultsEdit = () => {
       return;
     }
 
+    if (newValue.length > MAX_MANUAL_INPUT_LENGTH) return;
+
     // character deleted
     if (newValue.length + 1 === oldValue.length) {
       if (newValue.endsWith("N")) {
@@ -163,7 +168,12 @@ const ResultsEdit = () => {
 
   return (
     <Stack spacing={4} sx={{ marginTop: "2em", marginBottom: "2em" }}>
-      <Typography level="h2">Edit results</Typography>
+      <Typography
+        level="h2"
+        sx={{ pl: 1, borderBottom: "1px solid #636d7433" }}
+      >
+        Edit results
+      </Typography>
       <Card>
         <Stack spacing={2}>
           <Typography level="h3" className="bottom-divider">
@@ -338,6 +348,7 @@ const ResultsEdit = () => {
                                 <FormControl key={solveProp}>
                                   <FormLabel>Solve {solveIdx + 1}</FormLabel>
                                   <Input
+                                    autoFocus
                                     size="sm"
                                     placeholder="Enter your time or solution..."
                                     value={results[resultIdx][

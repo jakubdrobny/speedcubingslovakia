@@ -1,5 +1,6 @@
-import { Card, Typography } from "@mui/joy";
+import { Alert, Card, Divider, Typography } from "@mui/joy";
 import { CompetitionContextType, InputMethod } from "../../Types";
+import { Keyboard, Timer } from "@mui/icons-material";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { useContext } from "react";
@@ -10,7 +11,7 @@ const Guide = () => {
   ) as CompetitionContextType;
 
   return (
-    <Card style={{ paddingBottom: "2em" }}>
+    <Card style={{ paddingBottom: "1em" }}>
       <h3 style={{ textAlign: "center", marginBottom: 0 }}>
         How to submit results?
       </h3>
@@ -68,9 +69,19 @@ const Guide = () => {
           </ul>
         </div>
       )}
-      <Typography>
+      <Typography sx={{ paddingBottom: "1em" }}>
         After you are done, don't forget to save your results!
       </Typography>
+      <Divider />
+      <Alert color="warning">
+        <Typography
+          sx={{ display: "flex", alignItems: "center", fontWeight: "bold" }}
+        >
+          You can switch timing methods by clicking on Manual&nbsp;
+          <Keyboard />
+          &nbsp;/ Timer&nbsp; <Timer />.
+        </Typography>
+      </Alert>
     </Card>
   );
 };
