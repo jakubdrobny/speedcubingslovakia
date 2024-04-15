@@ -16,6 +16,8 @@ jobs:
             cd ${{ secrets.WORKDIR }}
             git pull
 
+            echo 'Latest code pulled from repository.'
+
       - name: Rebuild and restart backend
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -24,8 +26,10 @@ jobs:
           key: ${{ secrets.KEY }}
           script: |
             cd ${{ secrets.WORKDIR }}/backend/main
-            go build main.go
+            /usr/local/go/bin/go build main.go
             sudo systemctl daemon-reload
+
+            echo 'Backend rebuilt and deployment finished.'
 
       - name: Rebuild and restart frontend
         uses: appleboy/ssh-action@v1.0.3
@@ -40,3 +44,5 @@ jobs:
             rm -rf ${{ secrets.FRONTEND_DEPLOY_DIR }}
             mv ./build ${{ secrets.FRONTEND_DEPLOY_DIR }}
             sudo service nginx reload
+
+            echo 'Frontend rebuilt and deployment finished.'
