@@ -11,4 +11,8 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          script: whoami
+          script: |
+            cd ${{ secrets.WORKDIR }}
+            git pull
+
+            cd frontend
