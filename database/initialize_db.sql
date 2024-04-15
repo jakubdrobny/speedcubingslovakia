@@ -134,11 +134,11 @@ VALUES ('Clock', 'ao5', 'clock', 'clock')
 ON CONFLICT (displayname, format, iconcode, puzzlecode) DO NOTHING;
 
 INSERT INTO events (displayname, format, iconcode, puzzlecode)
-VALUES ('Mega', 'ao5', 'megaminx', 'megaminx')
+VALUES ('Mega', 'ao5', 'minx', 'megaminx')
 ON CONFLICT (displayname, format, iconcode, puzzlecode) DO NOTHING;
 
 INSERT INTO events (displayname, format, iconcode, puzzlecode)
-VALUES ('Pyra', 'ao5', 'pyraminx', 'pyraminx')
+VALUES ('Pyra', 'ao5', 'pyram', 'pyraminx')
 ON CONFLICT (displayname, format, iconcode, puzzlecode) DO NOTHING;
 
 INSERT INTO events (displayname, format, iconcode, puzzlecode)

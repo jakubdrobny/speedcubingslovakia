@@ -73,5 +73,5 @@ func main() {
 		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized")});
 	}
 
-	router.Run("localhost:8080")
+	router.Run("localhost:8000")
 }
