@@ -1,11 +1,12 @@
-name: remote ssh command
+name: Deploy to server
 on: [push]
+
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: executing remote ssh commands using password
+      - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOST }}
@@ -15,4 +16,6 @@ jobs:
             cd ${{ secrets.WORKDIR }}
             git pull
 
-            cd frontend
+            cd backend/main
+            go build main.go
+            sudo service backend reload
