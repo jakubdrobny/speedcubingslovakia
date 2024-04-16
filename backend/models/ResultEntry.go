@@ -220,6 +220,7 @@ func (r *ResultEntry) GetFormattedTimes() ([]string, error) {
 	}
 
 	sort.Slice(sortedSolves, func (i int, j int) bool { return sortedSolves[i].TimeInMiliseconds < sortedSolves[j].TimeInMiliseconds })
+	solves = solves[:noOfSolves]
 	solves[sortedSolves[0].Index] = "(" + solves[sortedSolves[0].Index] + ")"
 	solves[sortedSolves[len(sortedSolves) - 1].Index] = "(" + solves[sortedSolves[len(sortedSolves) - 1].Index] + ")"
 
