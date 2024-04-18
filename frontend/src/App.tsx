@@ -1,10 +1,9 @@
-import { AuthContextType, NavContextType } from "./Types";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { WIN_LG, WIN_SMALL } from "./constants";
 import { authorizeAdmin, setBearerIfPresent } from "./utils";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 
 import { AuthContext } from "./context/AuthContext";
+import { AuthContextType } from "./Types";
 import Competition from "./components/Competition/Competition";
 import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
 import Competitions from "./components/Competitions/Competitions";
@@ -13,12 +12,13 @@ import { Grid } from "@mui/joy";
 import Home from "./components/Home/Home";
 import LogIn from "./components/Login/LogIn";
 import ManageRoles from "./components/Dashboard/ManageRoles";
-import { NavContext } from "./context/NavContext";
 import NavHorizontal from "./components/Nav/NavHorizontal";
 import NavVertical from "./components/Nav/NavVertical";
 import NotFound from "./components/NotFound/NotFound";
 import ProtectedRoute from "./components/Login/ProtectedRoute";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
+import { WIN_LG } from "./constants";
+import useState from "react-usestateref";
 
 const App = () => {
   const { authState, setAuthState } = useContext(
@@ -35,14 +35,25 @@ const App = () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+  const [authorizationLoadingState, setAuthorizationLoadingState] = useState<{
+    loading: boolean;
+    error: string;
+  }>({ loading: authState.token != "", error: "" });
 
   useEffect(() => {
     setBearerIfPresent(authState.token);
 
     if (authState.token) {
       authorizeAdmin()
-        .then((_) => setAuthState({ ...authState, isadmin: true }))
-        .catch((_) => null);
+        .then((_) => {
+          setAuthState({ ...authState, isadmin: true });
+          setAuthorizationLoadingState((ps) => ({ ...ps, loading: false }));
+        })
+        .catch((_) => {
+          setAuthorizationLoadingState({ loading: false, error: "" });
+        });
+    } else {
+      setAuthorizationLoadingState({ loading: false, error: "" });
     }
   }, []);
 
@@ -72,7 +83,11 @@ const App = () => {
           <Route path="/competition/:id" Component={Competition} />
           <Route path="/not-found" Component={NotFound} />
           <Route path="/login" Component={LogIn} />
-          <Route Component={ProtectedRoute}>
+          <Route
+            Component={() => (
+              <ProtectedRoute loadingState={authorizationLoadingState} />
+            )}
+          >
             <Route
               path="/competition/:id/edit"
               Component={() => <CompetitionEdit edit={true} />}
