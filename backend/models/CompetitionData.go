@@ -1,11 +1,16 @@
 package models
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"io"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/alexsergivan/transliterator"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -19,27 +24,18 @@ type CompetitionData struct {
 	Results ResultEntry `json:"results"`
 }
 
-func (c *CompetitionData) RemoveAllEvents(db *pgxpool.Pool) error {
-	_, err := db.Exec(context.Background(), `DELETE FROM competition_events WHERE competition_id = $1;`, c.Id)
+func (c *CompetitionData) RemoveAllEvents(db *pgxpool.Pool, tx pgx.Tx) error {
+	_, err := tx.Exec(context.Background(), `DELETE FROM competition_events WHERE competition_id = $1;`, c.Id)
 	return err
 }
 
-func (c *CompetitionData) AddEvents(db *pgxpool.Pool) error {
-	tx, err := db.Begin(context.Background())
-	if err != nil {
-		tx.Rollback(context.Background())
-		return err
-	}
-
+func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx) error {
 	for _, event := range c.Events {
-		_, err = tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1, $2);`, c.Id, event.Id)
-		if err != nil {
-			tx.Rollback(context.Background())
-			return err 
-		}
+		_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1, $2);`, c.Id, event.Id)
+		if err != nil { return err }
 	}
 
-	return tx.Commit(context.Background());
+	return nil;
 }
 
 func (competition *CompetitionData) RecomputeCompetitionId() {
@@ -122,4 +118,23 @@ func GetAllCompetitions(db *pgxpool.Pool) ([]CompetitionData, error) {
 	}
 
 	return competitions, nil
+}
+
+func (c *CompetitionData) GenerateScrambles() (error) {
+	req, err := http.NewRequest("POST", "http://localhost:2014/frontend/puzzle/pyram/scramble", bytes.NewBuffer([]byte("{\"B\":\"#0000ff\",\"R\":\"#ff0000\",\"D\":\"#ffff00\",\"U\":\"#ffffff\",\"F\":\"#00ff00\",\"L\":\"#ff8000\"}")))
+	if err != nil { return err }
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Accept", "application/json, text/plain, */*")
+
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil { return err }
+    defer resp.Body.Close()
+
+    fmt.Println("response Status:", resp.Status)
+    fmt.Println("response Headers:", resp.Header)
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println("response Body:", string(body))
+
+	return nil
 }

@@ -155,16 +155,31 @@ func PutCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		_, err := db.Exec(context.Background(), `UPDATE competitions SET name = $1, startdate = $2, enddate = $3, timestamp = CURRENT_TIMESTAMP WHERE competition_id = $4;`, competition.Name, competition.Startdate, competition.Enddate, competition.Id)
+		tx, err := db.Begin(context.Background())
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
+			tx.Rollback(context.Background())
 			return
 		}
 
-		err = models.UpdateCompetitionEvents(&competition, db)
+		_, err = tx.Exec(context.Background(), `UPDATE competitions SET name = $1, startdate = $2, enddate = $3, timestamp = CURRENT_TIMESTAMP WHERE competition_id = $4;`, competition.Name, competition.Startdate, competition.Enddate, competition.Id)
 		if err != nil {
 			c.IndentedJSON(http.StatusInternalServerError, err)
+			tx.Rollback(context.Background())
 			return
+		}
+
+		err = models.UpdateCompetitionEvents(&competition, db, tx)
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			tx.Rollback(context.Background())
+			return
+		}
+
+		err = tx.Commit(context.Background())
+		if err != nil {
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return	
 		}
 
 		c.IndentedJSON(http.StatusCreated, competition)

@@ -1,6 +1,9 @@
 package models
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
 type CompetitionEvents struct {
 	Id int
@@ -8,8 +11,8 @@ type CompetitionEvents struct {
 	Event_id int
 }
 
-func UpdateCompetitionEvents(competition *CompetitionData, db *pgxpool.Pool) error {
-	if err := competition.RemoveAllEvents(db); err != nil { return err }
-	if err := competition.AddEvents(db); err != nil { return err }
+func UpdateCompetitionEvents(competition *CompetitionData, db *pgxpool.Pool, tx pgx.Tx) error {
+	if err := competition.RemoveAllEvents(db, tx); err != nil { return err }
+	if err := competition.AddEvents(db, tx); err != nil { return err }
 	return nil;
 }
