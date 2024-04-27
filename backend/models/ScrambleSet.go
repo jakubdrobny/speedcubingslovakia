@@ -2,9 +2,14 @@ package models
 
 type ScrambleSet struct {
 	Event CompetitionEvent `json:"event"`
-	Scrambles []string `json:"scrambles"`
+	Scrambles []Scramble `json:"scrambles"`
 }
 
-func (s *ScrambleSet) AddScramble(scramble string) {
+type Scramble struct {
+	Scramble string `json:"scramble"`
+	Svgimg string `json:"svgimg"`
+}
+
+func (s *ScrambleSet) AddScramble(scramble Scramble) {
 	s.Scrambles = append(s.Scrambles, scramble)
 }

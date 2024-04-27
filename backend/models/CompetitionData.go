@@ -1,8 +1,8 @@
 package models
 
 import (
-	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +12,7 @@ import (
 	"github.com/alexsergivan/transliterator"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
 type CompetitionData struct {
@@ -47,13 +48,13 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) (error) {
 	scrambleSets := make([]ScrambleSet, 0)
 
 	for _, event := range c.Events {
-		rows, err := db.Query(context.Background(), `SELECT s.scramble, e.event_id, e.displayname, e.format, e.iconcode, e.puzzlecode FROM scrambles s LEFT JOIN events e ON s.event_id = e.event_id WHERE s.competition_id = $1 AND s.event_id = $2 ORDER BY e.event_id, s."order";`, c.Id, event.Id)
+		rows, err := db.Query(context.Background(), `SELECT s.scramble, e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode, s.svgimg FROM scrambles s LEFT JOIN events e ON s.event_id = e.event_id WHERE s.competition_id = $1 AND s.event_id = $2 ORDER BY e.event_id, s."order";`, c.Id, event.Id)
 		if err != nil { return err }
 
 		var scrambleSet ScrambleSet
 		for rows.Next() {
-			var scramble string
-			err := rows.Scan(&scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Puzzlecode)
+			var scramble Scramble
+			err := rows.Scan(&scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Svgimg)
 			if err != nil { return err }
 			scrambleSet.AddScramble(scramble)
 		}
@@ -69,12 +70,12 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) (error) {
 func (c *CompetitionData) GetEvents(db *pgxpool.Pool) (error) {
 	events := make([]CompetitionEvent, 0)
 	
-	rows, err := db.Query(context.Background(), `SELECT e.event_id, e.displayname, e.format, e.iconcode, e.puzzlecode FROM competition_events ce JOIN events e ON ce.event_id = e.event_id WHERE ce.competition_id = $1 ORDER BY e.event_id`, c.Id)
+	rows, err := db.Query(context.Background(), `SELECT e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode FROM competition_events ce JOIN events e ON ce.event_id = e.event_id WHERE ce.competition_id = $1 ORDER BY e.event_id`, c.Id)
 	if err != nil { return err }
 	
 	for rows.Next() {
 		var event CompetitionEvent
-		err := rows.Scan(&event.Id, &event.Displayname, &event.Format, &event.Iconcode, &event.Puzzlecode)
+		err := rows.Scan(&event.Id, &event.Displayname, &event.Format, &event.Iconcode, &event.Scramblingcode)
 		if err != nil { return err }
 		events = append(events, event)
 	}
@@ -120,21 +121,61 @@ func GetAllCompetitions(db *pgxpool.Pool) ([]CompetitionData, error) {
 	return competitions, nil
 }
 
+func GenerateScramblesForEvent(scramblingcode string, noOfSolves int) ([]string, error) {
+	resp, err := http.Get(fmt.Sprintf("http://localhost:2014/api/v0/scramble/%s?numScrambles=%d", scramblingcode, noOfSolves))
+	if err != nil { return []string{}, err }
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+	scrambles := make([]string, 0)
+	json.Unmarshal(respBody, &scrambles)
+	
+	return scrambles, nil
+}
+
+func GenerateImagesForScrambles(scrambles []string, scramblingcode string) ([]string, error) {
+	images := make([]string, 0)
+
+	for _, scramble := range scrambles {
+		scramble = strings.ReplaceAll(scramble, "\n", " ")
+		url := strings.ReplaceAll(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble), " ", "%20")
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil { return []string{}, err }
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil { return []string{}, err }
+		defer resp.Body.Close()
+
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil { return []string{}, err }
+
+		images = append(images, string(respBody))
+	}
+
+	return images, nil
+}
+
 func (c *CompetitionData) GenerateScrambles() (error) {
-	req, err := http.NewRequest("POST", "http://localhost:2014/frontend/puzzle/pyram/scramble", bytes.NewBuffer([]byte("{\"B\":\"#0000ff\",\"R\":\"#ff0000\",\"D\":\"#ffff00\",\"U\":\"#ffffff\",\"F\":\"#00ff00\",\"L\":\"#ff8000\"}")))
-	if err != nil { return err }
+	for _, event := range c.Events {
+		noOfSolves, err := utils.GetNoOfSolves(event.Format)
+		if err != nil { return err }
 
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Accept", "application/json, text/plain, */*")
+		scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves)
+		if err != nil { return err }
 
-    resp, err := http.DefaultClient.Do(req)
-    if err != nil { return err }
-    defer resp.Body.Close()
-
-    fmt.Println("response Status:", resp.Status)
-    fmt.Println("response Headers:", resp.Header)
-    body, _ := io.ReadAll(resp.Body)
-    fmt.Println("response Body:", string(body))
+		images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode)
+		if err != nil { return err }
+		
+		var scrambleSet ScrambleSet
+		scrambleSet.Event = event
+		for idx, scrambleText := range scrambles { 
+			var scramble Scramble
+			scramble.Scramble = scrambleText
+			scramble.Svgimg = images[idx]
+			scrambleSet.Scrambles = append(scrambleSet.Scrambles, scramble)
+		}
+		c.Scrambles = append(c.Scrambles, scrambleSet)
+	}
 
 	return nil
 }

@@ -147,38 +147,28 @@ export const getAvailableEvents = async (): Promise<CompetitionEvent[]> => {
   return response.data;
 };
 
-const cancels = async (scramble: string) => {
-  let cancelledScramble = new Alg(scramble)
-    .experimentalSimplify({ cancel: true })
-    .toString();
-  return scramble !== cancelledScramble;
-};
+// const generateScrambleSetsFromEvents = async (
+//   events: CompetitionEvent[]
+// ): Promise<ScrambleSet[]> => {
+//   let scrambleSets: ScrambleSet[] = [];
 
-const generateScrambleSetsFromEvents = async (
-  events: CompetitionEvent[]
-): Promise<ScrambleSet[]> => {
-  let scrambleSets: ScrambleSet[] = [];
+//   for (const event of events) {
+//     const match = event.format.match(/\d+$/)?.[0];
+//     const noOfSolves = match ? parseInt(match) : 1;
 
-  for (const event of events) {
-    const match = event.format.match(/\d+$/)?.[0];
-    const noOfSolves = match ? parseInt(match) : 1;
+//     let scrambles: string[] = [];
+//     for (let i = 0; i < noOfSolves; i++) {
+//       let scramble: string = (
+//         await randomScrambleForEvent(event.iconcode)
+//       ).toString();
+//       scrambles.push(scramble);
+//     }
 
-    let scrambles: string[] = [];
-    for (let i = 0; i < noOfSolves; i++) {
-      let scramble: string = (
-        await randomScrambleForEvent(event.iconcode)
-      ).toString();
-      while (event.displayname === "FMC" && (await cancels(scramble))) {
-        scramble = (await randomScrambleForEvent(event.iconcode)).toString();
-      }
-      scrambles.push(scramble);
-    }
+//     scrambleSets.push({ event, scrambles });
+//   }
 
-    scrambleSets.push({ event, scrambles });
-  }
-
-  return scrambleSets;
-};
+//   return scrambleSets;
+// };
 
 export const updateCompetition = async (
   state: CompetitionState,
@@ -196,7 +186,7 @@ export const updateCompetition = async (
     events: state.events.toSorted(
       (e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id
     ),
-    scrambles: edit ? [] : await generateScrambleSetsFromEvents(state.events),
+    scrambles: [],
   };
 
   const response = await axios({
@@ -414,5 +404,5 @@ export const emptyEvent: CompetitionEvent = {
   displayname: "",
   format: "",
   iconcode: "",
-  puzzlecode: "",
+  scramblingcode: "",
 };

@@ -4,15 +4,15 @@ import {
   TimerInputContextType,
   TimerInputCurrentState,
 } from "../../Types";
-import { useEffect, useRef } from "react";
+import { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
 import { Typography } from "@mui/joy";
-import { useContext } from "react";
+import { useRef } from "react";
 
 const Scramble = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const scrambleImgRef = useRef<HTMLDivElement>(null);
   const { competitionState } = useContext(
     CompetitionContext
   ) as CompetitionContextType;
@@ -36,33 +36,32 @@ const Scramble = () => {
               competitionState.events[competitionState.currentEventIdx]
                 .displayname
           ) as ScrambleSet
-        ).scrambles[competitionState.currentSolveIdx]
-      : "";
-  const puzzlecode =
-    competitionState &&
-    competitionState.events &&
-    competitionState.currentEventIdx < competitionState.events.length
-      ? competitionState.events[competitionState.currentEventIdx].puzzlecode
+        ).scrambles[competitionState.currentSolveIdx].scramble
       : "";
 
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    const scrambleDisplay = document.createElement("twisty-player");
-    scrambleDisplay.setAttribute("alg", scramble);
-    scrambleDisplay.setAttribute("hint-facelets", "none");
-    scrambleDisplay.setAttribute("background", "none");
-    scrambleDisplay.setAttribute("control-panel", "none");
-    scrambleDisplay.setAttribute("puzzle", puzzlecode);
-    scrambleDisplay.setAttribute("visualization", "2D");
-    containerRef.current.appendChild(scrambleDisplay);
-
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.removeChild(scrambleDisplay);
-      }
-    };
-  }, [scramble]);
+    if (
+      competitionState &&
+      competitionState.scrambles &&
+      competitionState.events &&
+      competitionState.currentEventIdx < competitionState.events.length &&
+      competitionState.scrambles.find(
+        (s: ScrambleSet) =>
+          s.event.displayname ===
+          competitionState.events[competitionState.currentEventIdx].displayname
+      ) != undefined &&
+      scrambleImgRef != null &&
+      scrambleImgRef.current != null
+    ) {
+      const scrambleSet = competitionState.scrambles.find(
+        (s: ScrambleSet) =>
+          s.event.displayname ===
+          competitionState.events[competitionState.currentEventIdx].displayname
+      ) as ScrambleSet;
+      scrambleImgRef.current.innerHTML =
+        scrambleSet.scrambles[competitionState.currentSolveIdx].svgimg;
+    }
+  }, []);
 
   return (
     <div
@@ -78,7 +77,7 @@ const Scramble = () => {
       <h3>Scramble:</h3>
       <Typography style={{ whiteSpace: "pre-line" }}>{scramble}</Typography>
       <h3>Preview:</h3>
-      <div ref={containerRef}></div>
+      <div ref={scrambleImgRef}></div>
     </div>
   );
 };

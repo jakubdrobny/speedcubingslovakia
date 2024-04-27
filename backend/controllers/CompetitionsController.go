@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -96,14 +97,22 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 		var competition models.CompetitionData
 
 		if err := c.BindJSON(&competition); err != nil {
+			log.Println("1", err)
 			c.IndentedJSON(http.StatusInternalServerError, "what bro")
 			return
 		}
 
 		competition.RecomputeCompetitionId()
+		err := competition.GenerateScrambles()
+		if err != nil {
+			log.Println("2", err)
+			c.IndentedJSON(http.StatusInternalServerError, err)
+			return
+		}
 
 		tx, err := db.Begin(context.Background())
 		if err != nil {
+			log.Println("3", err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			tx.Rollback(context.Background())
 			return
@@ -111,6 +120,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 
 		_, err = tx.Exec(context.Background(), `INSERT INTO competitions (competition_id, name, startdate, enddate) VALUES ($1,$2,$3,$4);`, competition.Id, competition.Name, competition.Startdate, competition.Enddate)
 		if err != nil {
+			log.Println("4", err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			tx.Rollback(context.Background())
 			return
@@ -119,6 +129,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 		for _, event := range competition.Events {
 			_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1,$2);`, competition.Id, event.Id)
 			if err != nil {
+				log.Println("5", err)
 				c.IndentedJSON(http.StatusInternalServerError, err)
 				tx.Rollback(context.Background())
 				return
@@ -127,8 +138,9 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 
 		for _, scrambleSet := range competition.Scrambles {
 			for scrambleIdx, scramble := range scrambleSet.Scrambles {
-				_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order") VALUES ($1,$2,$3,$4);`, scramble, scrambleSet.Event.Id, competition.Id, scrambleIdx + 1)
+				_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order", svgimg) VALUES ($1,$2,$3,$4,$5);`, scramble.Scramble, scrambleSet.Event.Id, competition.Id, scrambleIdx + 1, scramble.Svgimg)
 				if err != nil {
+					log.Println("6", err)
 					c.IndentedJSON(http.StatusInternalServerError, err)
 					tx.Rollback(context.Background())
 					return
@@ -138,6 +150,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 
 		err = tx.Commit(context.Background())
 		if err != nil {
+			log.Fatal("7", err)
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			return	
 		}

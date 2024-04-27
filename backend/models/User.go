@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -34,7 +35,7 @@ func (u *User) Exists(db *pgxpool.Pool) (bool, error) {
 }
 
 func (u *User) Update(db *pgxpool.Pool) error {
-	_, err := db.Exec(context.Background(), `UPDATE users SET name = $1, country_id = $2, sex = $3, url = $4, avatarurl = $5, isadmin = $6, timestamp = CURRENT_TIMESTAMP WHERE wcaid = $7;`, u.Name, u.CountryId, u.Sex, u.Url, u.AvatarUrl, u.IsAdmin, u.WcaId)
+	_, err := db.Exec(context.Background(), `UPDATE users SET country_id = $1, sex = $2, url = $3, avatarurl = $4, isadmin = $5, timestamp = CURRENT_TIMESTAMP WHERE wcaid = $6 AND name = $7;`, u.CountryId, u.Sex, u.Url, u.AvatarUrl, u.IsAdmin, u.WcaId, u.Name)
 	if err != nil { return err }
 
 	return nil
@@ -43,6 +44,8 @@ func (u *User) Update(db *pgxpool.Pool) error {
 func (u *User) Insert(db *pgxpool.Pool) error {
 	_, err := db.Exec(context.Background(), `INSERT INTO users (name, country_id, sex, url, avatarurl, wcaid, isadmin) VALUES ($1,$2,$3,$4,$5,$6,false);`, u.Name, u.CountryId, u.Sex, u.Url, u.AvatarUrl, u.WcaId)
 	if err != nil { return err }
+	exists, err := u.Exists(db)
+	if !exists || err != nil { return fmt.Errorf("%s %t", err, exists)}
 
 	return nil
 }

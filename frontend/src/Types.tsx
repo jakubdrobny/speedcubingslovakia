@@ -7,9 +7,14 @@ export type CompetitionData = {
   scrambles: ScrambleSet[];
 };
 
+export type Scramble = {
+  scramble: string;
+  svgimg: string;
+};
+
 export type ScrambleSet = {
   event: CompetitionEvent;
-  scrambles: string[];
+  scrambles: Scramble[];
 };
 
 export enum FilterValue {
@@ -23,7 +28,7 @@ export type CompetitionEvent = {
   displayname: string;
   format: string;
   iconcode: string;
-  puzzlecode: string;
+  scramblingcode: string;
 };
 
 export enum InputMethod {

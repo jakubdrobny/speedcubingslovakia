@@ -38,7 +38,6 @@ import { getCompetitionById } from "../../utils";
 const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { authState } = useContext(AuthContext) as AuthContextType;
   const [availableEvents, setAvailableEvents] = useState<CompetitionEvent[]>(
     []
   );
@@ -99,6 +98,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
       .then((res: CompetitionState) => {
         setCompetitionState(res);
         setIsLoading(false);
+        setError("");
       })
       .catch((err) => {
         setIsLoading(false);
