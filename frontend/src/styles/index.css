@@ -85,3 +85,7 @@ body {
 .bottom-divider {
   border-bottom: 1px solid #636d7433;
 }
+
+.profile-cubing-icon-mock:hover {
+  opacity: 70%;
+}

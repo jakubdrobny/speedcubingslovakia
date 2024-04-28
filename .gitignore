@@ -3,3 +3,5 @@ backend/.env.production
 
 frontend/.env.development
 frontend/.env.production
+
+backend/scrambler/tnoodle.log

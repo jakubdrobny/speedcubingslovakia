@@ -7,6 +7,11 @@ export type CompetitionData = {
   scrambles: ScrambleSet[];
 };
 
+export enum Permission {
+  ADMIN,
+  USER,
+}
+
 export type Scramble = {
   scramble: string;
   svgimg: string;
@@ -190,4 +195,59 @@ export type NavContextType = {
   openNav: () => void;
   closeNav: () => void;
   toggleNavOpen: () => void;
+};
+
+export type LoadingState = {
+  isLoading: boolean;
+  error: string;
+};
+
+export type ProfileTypeBasics = {
+  name: string;
+  imageurl: string;
+  region: {
+    name: string;
+    iso2: string;
+  };
+  wcaid: string;
+  sex: string;
+  noOfCompetitions: number;
+  completedSolves: number;
+};
+
+export type PersonalBestEntry = {
+  nr: number;
+  cr: number;
+  wr: number;
+  value: string;
+};
+
+export type ProfileTypePersonalBests = {
+  eventName: string;
+  eventIconcode: string;
+  average: PersonalBestEntry;
+  single: PersonalBestEntry;
+};
+
+export type ProfileTypeResultHistoryEntry = {
+  competitionId: string;
+  competitionName: string;
+  place: number;
+  single: string;
+  average: string;
+  solves: string[];
+};
+
+export type ProfileTypeResultHistory = {
+  eventName: string;
+  eventIconcode: string;
+  history: ProfileTypeResultHistoryEntry[];
+};
+
+export type ProfileType = {
+  basics: ProfileTypeBasics;
+  personalBests: ProfileTypePersonalBests[];
+  medalCollection: { gold: number; silver: number; bronze: number };
+  recordCollection: { wr: number; cr: number; nr: number };
+  resultsHistory: ProfileTypeResultHistory[];
 };

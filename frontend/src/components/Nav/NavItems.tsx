@@ -56,7 +56,7 @@ const NavItems: React.FC<{
         </ListItemButton>
       )}
       {authState.token ? (
-        <ProfileListItem windowWidth={windowWidth} />
+        <ProfileListItem />
       ) : (
         <ListItemButton
           component={Link}

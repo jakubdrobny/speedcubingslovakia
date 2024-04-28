@@ -1,27 +1,25 @@
 import { AuthContextType, NavContextType } from "../../Types";
 import {
   Avatar,
-  Box,
   List,
-  ListItem,
   ListItemButton,
   ListItemDecorator,
   Tooltip,
 } from "@mui/joy";
+import { Logout, Person } from "@mui/icons-material";
 import { initialAuthState, logOut } from "../../utils";
 
 import { AuthContext } from "../../context/AuthContext";
-import { Logout } from "@mui/icons-material";
 import { NavContext } from "../../context/NavContext";
 import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 
-const ProfileListItem: React.FC<{ windowWidth: number }> = ({
-  windowWidth,
-}) => {
+const ProfileListItem = () => {
   const { authState, setAuthState } = useContext(
     AuthContext
   ) as AuthContextType;
   const { closeNav } = useContext(NavContext) as NavContextType;
+  const navigate = useNavigate();
 
   const handleLogOut = () => {
     setAuthState(initialAuthState);
@@ -31,11 +29,22 @@ const ProfileListItem: React.FC<{ windowWidth: number }> = ({
     document.location.href = "/";
   };
 
+  const goToProfile = () => {
+    closeNav();
+    navigate(`/profile/${authState.wcaid}`);
+  };
+
   return (
     <Tooltip
       variant="soft"
       title={
         <List size="sm">
+          <ListItemButton onClick={goToProfile}>
+            <ListItemDecorator>
+              <Person />
+            </ListItemDecorator>
+            My profile
+          </ListItemButton>
           <ListItemButton onClick={handleLogOut}>
             <ListItemDecorator>
               <Logout />

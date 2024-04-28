@@ -7,21 +7,14 @@ import {
   CompetitionState,
   FilterValue,
   InputMethod,
+  LoadingState,
   ManageRolesUser,
+  ProfileType,
   ResultEntry,
-  ScrambleSet,
 } from "./Types";
 
-import { Alg } from "cubing/alg";
 import Cookies from "universal-cookie";
 import axios from "axios";
-import { randomScrambleForEvent } from "cubing/scramble";
-import { setSearchDebug } from "cubing/search";
-
-setSearchDebug({
-  logPerf: false,
-  scramblePrefetchLevel: "none",
-});
 
 export const loadFilteredCompetitions = async (
   filterValue: FilterValue
@@ -146,29 +139,6 @@ export const getAvailableEvents = async (): Promise<CompetitionEvent[]> => {
   const response = await axios.get("/api/events");
   return response.data;
 };
-
-// const generateScrambleSetsFromEvents = async (
-//   events: CompetitionEvent[]
-// ): Promise<ScrambleSet[]> => {
-//   let scrambleSets: ScrambleSet[] = [];
-
-//   for (const event of events) {
-//     const match = event.format.match(/\d+$/)?.[0];
-//     const noOfSolves = match ? parseInt(match) : 1;
-
-//     let scrambles: string[] = [];
-//     for (let i = 0; i < noOfSolves; i++) {
-//       let scramble: string = (
-//         await randomScrambleForEvent(event.iconcode)
-//       ).toString();
-//       scrambles.push(scramble);
-//     }
-
-//     scrambleSets.push({ event, scrambles });
-//   }
-
-//   return scrambleSets;
-// };
 
 export const updateCompetition = async (
   state: CompetitionState,
@@ -405,4 +375,93 @@ export const emptyEvent: CompetitionEvent = {
   format: "",
   iconcode: "",
   scramblingcode: "",
+};
+
+export const initialLoadingState: LoadingState = {
+  isLoading: false,
+  error: "",
+};
+
+export const getProfile = async (id: string): Promise<ProfileType> => {
+  return Promise.resolve(defaultProfile);
+  const response = await axios.get(`/api/profile/${id}`);
+  return response.data;
+};
+
+export const defaultProfile: ProfileType = {
+  basics: {
+    name: "Jakub Drobný",
+    imageurl:
+      "https://www.worldcubeassociation.org/assets/missing_avatar_thumb-d77f478a307a91a9d4a083ad197012a391d5410f6dd26cb0b0e3118a5de71438.png",
+    region: {
+      name: "Slovakia",
+      iso2: "SK",
+    },
+    wcaid: "2016DROB01",
+    sex: "Male",
+    noOfCompetitions: 10,
+    completedSolves: 100,
+  },
+  personalBests: [
+    {
+      eventName: "3x3x3 Cube",
+      eventIconcode: "333",
+      average: { nr: 2, cr: 2, wr: 2, value: "9.99" },
+      single: { nr: 3, cr: 6, wr: 10, value: "7.21" },
+    },
+    {
+      eventName: "Pyraminx",
+      eventIconcode: "pyram",
+      average: { nr: 1, cr: 69, wr: 124, value: "2.29" },
+      single: { nr: 1, cr: 21, wr: 45, value: "1.22" },
+    },
+  ],
+  medalCollection: { gold: 5, silver: 2, bronze: 2 },
+  recordCollection: { wr: 0, cr: 1, nr: 99 },
+  resultsHistory: [
+    {
+      eventName: "3x3x3 Cube",
+      eventIconcode: "333",
+      history: [
+        {
+          competitionId: "testos",
+          competitionName: "testos",
+          place: 1,
+          single: "7.12",
+          average: "9.99",
+          solves: ["(7.12)", "9.99", "8.99", "11.00", "(44.20)"],
+        },
+        {
+          competitionId: "los testos",
+          competitionName: "los testos",
+          place: 2,
+          single: "12.12",
+          average: "DNF",
+          solves: ["(12.12)", "16.69", "(DNF)", "DNF", "44.20"],
+        },
+      ],
+    },
+    {
+      eventName: "Pyraminx",
+      eventIconcode: "pyram",
+      history: [
+        {
+          competitionId: "testnumerodos",
+          competitionName: "test numero dos",
+          place: 6,
+          single: "1.12",
+          average: "1.99",
+          solves: ["(1.12)", "1.99", "1.99", "2.00", "(44.20)"],
+        },
+        {
+          competitionId: "testnumerodos",
+          competitionName: "test numero dos",
+          place: 2,
+          single: "3.00",
+          average: "DNF",
+          solves: ["(DNF)", "DNF", "DNF", "44.20", "(3.00)"],
+        },
+      ],
+    },
+  ],
 };

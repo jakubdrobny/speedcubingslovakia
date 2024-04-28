@@ -15,6 +15,7 @@ import ManageRoles from "./components/Dashboard/ManageRoles";
 import NavHorizontal from "./components/Nav/NavHorizontal";
 import NavVertical from "./components/Nav/NavVertical";
 import NotFound from "./components/NotFound/NotFound";
+import Profile from "./components/Profile/Profile";
 import ProtectedRoute from "./components/Login/ProtectedRoute";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
 import { WIN_LG } from "./constants";
@@ -100,6 +101,7 @@ const App = () => {
             <Route path="/admin/manage-roles" Component={ManageRoles} />
             <Route path="/results/edit" Component={ResultsEdit} />
           </Route>
+          <Route path="/profile/:id" Component={Profile} />
           <Route path="*" element={<Navigate to="/not-found" replace />} />
         </Routes>
       </Grid>
