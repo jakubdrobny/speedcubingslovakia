@@ -10,8 +10,8 @@ const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
       <Grid xs={6}>
         <Stack spacing={1}>
           {["Region", "WCA ID", "Sex", "Competitions", "Completed solves"].map(
-            (title) => (
-              <Typography>
+            (title, idx) => (
+              <Typography key={idx}>
                 <b>{title}</b>
               </Typography>
             )
@@ -29,8 +29,8 @@ const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
             basics.sex,
             basics.noOfCompetitions,
             basics.completedSolves,
-          ].map((content) => (
-            <Typography>{content}</Typography>
+          ].map((content, idx) => (
+            <Typography key={idx}>{content}</Typography>
           ))}
         </Stack>
       </Grid>

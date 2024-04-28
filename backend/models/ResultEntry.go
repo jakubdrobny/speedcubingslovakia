@@ -50,14 +50,14 @@ func (r *ResultEntry) Validate(db *pgxpool.Pool) (error) {
 		if err != nil { return err }
 	}
 
-	competition, err := GetCompetitionByIdObject(db, r.Competitionid)
-	if err != nil { return err }
-
-	if time.Now().Before(competition.Startdate) || time.Now().After(competition.Enddate) {
-		return fmt.Errorf("competition has not started yet or has already finished")
-	}
-
 	return nil
+}
+
+func IsValidTimePeriod(db *pgxpool.Pool, competitionId string) (bool, error) {
+	competition, err := GetCompetitionByIdObject(db, competitionId)
+	if err != nil { return false, err }
+
+	return competition.Startdate.Before(time.Now()) && time.Now().Before(competition.Enddate), nil
 }
 
 func (r *ResultEntry) Update(db *pgxpool.Pool, valid ...bool) error {
@@ -65,9 +65,14 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, valid ...bool) error {
 		err := r.Validate(db)
 		if err != nil { return err }
 	}
-	
-	_, err := db.Exec(context.Background(), `UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP WHERE user_id = $8 AND competition_id = $9 AND event_id = $10;`, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id, r.Userid, r.Competitionid, r.Eventid)
+
+	ok, err := IsValidTimePeriod(db, r.Competitionid)
 	if err != nil { return err }
+
+	if ok {
+		_, err := db.Exec(context.Background(), `UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP WHERE user_id = $8 AND competition_id = $9 AND event_id = $10;`, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id, r.Userid, r.Competitionid, r.Eventid)
+		if err != nil { return err }
+	}
 
 	return nil;
 }

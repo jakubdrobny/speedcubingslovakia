@@ -73,5 +73,10 @@ func main() {
 		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized")});
 	}
 
+	rankings := api_v1.Group("/rankings")
+	{
+		rankings.GET("/profile/:id", controllers.GetProfileResults(db))
+	}
+
 	router.Run("localhost:8000")
 }

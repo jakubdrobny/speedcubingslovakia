@@ -11,21 +11,22 @@ import { useParams } from "react-router-dom";
 
 const Profile = () => {
   const { id = "trolko" } = useParams<{ id: string }>();
-  const [loadingState, setLoadingState] =
-    useState<LoadingState>(initialLoadingState);
+  const [loadingState, setLoadingState] = useState<LoadingState>({
+    isLoading: true,
+    error: "",
+  });
   const [profile, setProfile] = useState<ProfileType>(defaultProfile);
 
   useEffect(() => {
-    setLoadingState({ isLoading: true, error: "" });
     getProfile(id)
       .then((p: ProfileType) => {
         setProfile(p);
         setLoadingState({ isLoading: false, error: "" });
       })
       .catch((err) => {
-        setLoadingState({ isLoading: false, error: err.message });
+        setLoadingState({ isLoading: false, error: err.response.data });
       });
-  }, [id]);
+  }, []);
 
   return (
     <div style={{ margin: "2em" }}>

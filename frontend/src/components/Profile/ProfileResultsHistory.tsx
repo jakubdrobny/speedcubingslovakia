@@ -112,7 +112,7 @@ const ProfileResultsHistory: React.FC<{
                   </Link>
                 </td>
                 {[entry.place, entry.single, entry.average].map((val, idx1) => (
-                  <td key={idx1} style={idx1 === 0 ? left : right}>
+                  <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
                     {idx1 === 0 ? val : <b>{val}</b>}
                   </td>
                 ))}

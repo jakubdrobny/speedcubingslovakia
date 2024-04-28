@@ -31,15 +31,17 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                 "",
               ].map((columnTitle, idx) => (
                 <th
-                  key={columnTitle}
+                  key={idx}
                   style={{
                     ...(columnTitle != "Event" ? right : goodHeight),
                     ...(idx === 0 || idx === 10
                       ? { width: idx === 0 ? "0.5%" : "2%" }
-                      : idx === 2
+                      : (idx >= 2 && idx < 5) || (idx > 7 && idx < 10)
                       ? { width: "4%" }
                       : idx === 1
-                      ? { width: "12%" }
+                      ? { width: "28%" }
+                      : idx === 7
+                      ? { width: "7%" }
                       : {}),
                   }}
                 >
@@ -49,46 +51,47 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
             </tr>
           </thead>
           <tbody>
-            {pbs.map((entry) => (
-              <tr key={entry.eventIconcode}>
-                <td style={{ ...goodHeight, width: "2%" }}></td>
-                <td
-                  style={{
-                    ...goodHeight,
-                    display: "flex",
-                    alignItems: "center",
-                    height: "1.5em",
-                  }}
-                >
-                  <span
-                    className={`cubing-icon event-${entry.eventIconcode}`}
-                  />
-                  &nbsp;{entry.eventName}
-                </td>
-                {[
-                  entry.single.nr,
-                  entry.single.cr,
-                  entry.single.wr,
-                  entry.single.value,
-                  entry.average.value,
-                  entry.average.wr,
-                  entry.average.cr,
-                  entry.average.nr,
-                  "",
-                ].map((val, idx) => (
+            {pbs &&
+              pbs.map((entry) => (
+                <tr key={entry.eventIconcode}>
+                  <td style={{ ...goodHeight, width: "2%" }}></td>
                   <td
-                    key={idx}
-                    style={
-                      val !== ""
-                        ? { ...right, width: idx === 0 ? "3%" : "auto" }
-                        : { ...goodHeight, width: "2%" }
-                    }
+                    style={{
+                      ...goodHeight,
+                      display: "flex",
+                      alignItems: "center",
+                      height: "1.5em",
+                    }}
                   >
-                    {idx == 3 || idx == 4 ? <b>{val}</b> : val}
+                    <span
+                      className={`cubing-icon event-${entry.eventIconcode}`}
+                    />
+                    &nbsp;{entry.eventName}
                   </td>
-                ))}
-              </tr>
-            ))}
+                  {[
+                    entry.single.nr,
+                    entry.single.cr,
+                    entry.single.wr,
+                    entry.single.value,
+                    entry.average.value,
+                    entry.average.wr,
+                    entry.average.cr,
+                    entry.average.nr,
+                    "",
+                  ].map((val, idx) => (
+                    <td
+                      key={idx}
+                      style={
+                        val !== ""
+                          ? { ...right, width: idx === 0 ? "3%" : "auto" }
+                          : { ...goodHeight, width: "2%" }
+                      }
+                    >
+                      {idx == 3 || idx == 4 ? <b>{val}</b> : val}
+                    </td>
+                  ))}
+                </tr>
+              ))}
           </tbody>
         </Table>
       </Card>

@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -162,7 +163,8 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 	return func (c *gin.Context) {
 		eventId, err := strconv.Atoi(c.Param("eid"))
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR strconv.eid in GetResultsByIdAndEvent: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed parsing eventId.")
 			return
 		}
 
@@ -171,19 +173,22 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 		
 		user, err := models.GetUserById(db, userId)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR GetUserById in GetResultsByIdAndEvent: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed getting user information from database.")
 			return
 		}
 
 		event, err := models.GetEventById(db, eventId)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR GetEventById in GetResultsByIdAndEvent: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed getting event information from database.")
 			return
 		}
 
 		competition, err := models.GetCompetitionByIdObject(db, competitionId)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR GetCompetitionByIdObject in GetResultsByIdAndEvent: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed getting competition information from database.")
 			return	
 		}
 
@@ -191,12 +196,14 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 
 		if err != nil {
 			if err.Error() != "not found" {
-				c.IndentedJSON(http.StatusInternalServerError, err)
+				log.Println("ERR GetResultEntry in GetResultsByIdAndEvent: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed getting result entry from database.")
 				return
 			} else {
 				approvedResultsStatus, err := models.GetResultsStatus(db, 3)
 				if err != nil {
-					c.IndentedJSON(http.StatusInternalServerError, err)
+					log.Println("ERR GetResultsStatus.approved in GetResultsByIdAndEvent: " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed getting result status in database.")
 					return	
 				}
 
@@ -220,14 +227,16 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 
 				err = resultEntry.Insert(db)
 				if err != nil {
-					c.IndentedJSON(http.StatusInternalServerError, err)
+					log.Println("ERR resultEntry.Insert in GetResultsByIdAndEvent: " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed inserting results into database.")
 					return
 				}
 			}
 		} else {
 			currentStatus, err := models.GetResultsStatus(db, resultEntry.Status.Id)
 			if err != nil {
-				c.IndentedJSON(http.StatusInternalServerError, err)
+				log.Println("ERR GetResultsStatus.resultEntry.Status.Id in GetResultsByIdAndEvent: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed getting result status in database.")
 				return
 			}
 			
@@ -240,7 +249,8 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 
 			err = resultEntry.Update(db)
 			if err != nil {
-				c.IndentedJSON(http.StatusInternalServerError, err)
+				log.Println("ERR resultEntry.Update in GetResultsByIdAndEvent: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed updating results in database.")
 				return
 			}
 		}
@@ -255,16 +265,50 @@ func PostResults(db *pgxpool.Pool) gin.HandlerFunc {
 		var err error
 
 		if err = c.BindJSON(&resultEntry); err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err);
+			log.Println("ERR BindJSON in PostResults: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed parsing data.")
 			return;
 		}
 
 		err = resultEntry.Update(db)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR resultEntry.Update in PostResults: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed updating results in database.")
 			return
 		}
 
 		c.IndentedJSON(http.StatusCreated, resultEntry)
+	}
+}
+
+func GetProfileResults(db *pgxpool.Pool) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		id := c.Param("id")
+
+		uid, err := models.GetUserByWCAID(db, id)
+		if err != nil {
+			log.Println("ERR in GetProfileResults in GetUserByWCAID: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Finding user by WCA ID in database failed.")
+			return
+		}
+
+		if uid == 0 {
+			uid, err = models.GetUserByName(db, id)
+			if err != nil {
+				log.Println("ERR in GetProfileResults in GetUserByName: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Finding user by name in database failed.")
+				return
+			}
+		}
+
+		var profileResults models.ProfileType
+		err = profileResults.Load(db, uid)
+		if err != nil {
+			log.Println("ERR in GetProfileResults in ProfileType.Load: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Retrieving profile results failed.")
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, profileResults)
 	}
 }

@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -9,6 +12,7 @@ import (
 
 	"github.com/gocolly/colly"
 	"github.com/golang-jwt/jwt"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 )
 
@@ -63,9 +67,7 @@ func ParseSolveToMilliseconds(s string) int {
 
 func CompareSolves(t1 *int, s2 string) {
 	t2 := ParseSolveToMilliseconds(s2)
-	if float64(*t1 - t2) > 1e-9 {
-		*t1 = t2;
-	}
+	if *t1 > t2 { *t1 = t2 }
 }
 
 func GetWorldRecords(eventName string) (int, int, error) {
@@ -176,4 +178,23 @@ func FormatTime(timeInMiliseconds int) string {
 	resString += LeftPad(res[resIdx], 2, "0")
 
 	return resString
+}
+
+func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble string, scramblingcode string) (error) {
+	scramble = strings.ReplaceAll(scramble, "\n", " ")
+	url := strings.ReplaceAll(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble), " ", "%20")
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil { return err }
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil { return err }
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil { return err }
+
+	_, err = db.Exec(context.Background(), `UPDATE scrambles SET svgimg = $1 WHERE scramble_id = $2;`, string(respBody), scrambleId)
+	if err != nil { return err }
+
+	return nil
 }

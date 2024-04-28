@@ -59,13 +59,13 @@ const Competition = () => {
           updateBasicInfo(info);
         }
       })
-      .catch((err) =>
+      .catch((err) => {
         setLoadingState({
           ...loadingState,
           compinfo: false,
-          error: err.message,
-        })
-      );
+          error: err.response.data,
+        });
+      });
 
     return () => setCompetitionState(initialCompetitionState);
   }, []);

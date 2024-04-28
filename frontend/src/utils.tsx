@@ -383,85 +383,25 @@ export const initialLoadingState: LoadingState = {
 };
 
 export const getProfile = async (id: string): Promise<ProfileType> => {
-  return Promise.resolve(defaultProfile);
-  const response = await axios.get(`/api/profile/${id}`);
+  const response = await axios.get(`/api/rankings/profile/${id}`);
   return response.data;
 };
 
 export const defaultProfile: ProfileType = {
   basics: {
-    name: "Jakub Drobný",
-    imageurl:
-      "https://www.worldcubeassociation.org/assets/missing_avatar_thumb-d77f478a307a91a9d4a083ad197012a391d5410f6dd26cb0b0e3118a5de71438.png",
+    name: "",
+    imageurl: "",
     region: {
-      name: "Slovakia",
-      iso2: "SK",
+      name: "",
+      iso2: "",
     },
-    wcaid: "2016DROB01",
-    sex: "Male",
-    noOfCompetitions: 10,
-    completedSolves: 100,
+    wcaid: "",
+    sex: "",
+    noOfCompetitions: 0,
+    completedSolves: 0,
   },
-  personalBests: [
-    {
-      eventName: "3x3x3 Cube",
-      eventIconcode: "333",
-      average: { nr: 2, cr: 2, wr: 2, value: "9.99" },
-      single: { nr: 3, cr: 6, wr: 10, value: "7.21" },
-    },
-    {
-      eventName: "Pyraminx",
-      eventIconcode: "pyram",
-      average: { nr: 1, cr: 69, wr: 124, value: "2.29" },
-      single: { nr: 1, cr: 21, wr: 45, value: "1.22" },
-    },
-  ],
-  medalCollection: { gold: 5, silver: 2, bronze: 2 },
-  recordCollection: { wr: 0, cr: 1, nr: 99 },
-  resultsHistory: [
-    {
-      eventName: "3x3x3 Cube",
-      eventIconcode: "333",
-      history: [
-        {
-          competitionId: "testos",
-          competitionName: "testos",
-          place: 1,
-          single: "7.12",
-          average: "9.99",
-          solves: ["(7.12)", "9.99", "8.99", "11.00", "(44.20)"],
-        },
-        {
-          competitionId: "los testos",
-          competitionName: "los testos",
-          place: 2,
-          single: "12.12",
-          average: "DNF",
-          solves: ["(12.12)", "16.69", "(DNF)", "DNF", "44.20"],
-        },
-      ],
-    },
-    {
-      eventName: "Pyraminx",
-      eventIconcode: "pyram",
-      history: [
-        {
-          competitionId: "testnumerodos",
-          competitionName: "test numero dos",
-          place: 6,
-          single: "1.12",
-          average: "1.99",
-          solves: ["(1.12)", "1.99", "1.99", "2.00", "(44.20)"],
-        },
-        {
-          competitionId: "testnumerodos",
-          competitionName: "test numero dos",
-          place: 2,
-          single: "3.00",
-          average: "DNF",
-          solves: ["(DNF)", "DNF", "DNF", "44.20", "(3.00)"],
-        },
-      ],
-    },
-  ],
+  personalBests: [],
+  medalCollection: { gold: "", silver: "", bronze: "" },
+  recordCollection: { wr: "", cr: "", nr: "" },
+  resultsHistory: [],
 };

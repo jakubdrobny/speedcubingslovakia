@@ -5,7 +5,7 @@ import React from "react";
 const MedalRecordColletion: React.FC<{
   title: string;
   headers: string[];
-  values: number[];
+  values: string[];
 }> = ({ title, headers, values }) => {
   const center: React.CSSProperties = { textAlign: "center", height: "1em" };
 
@@ -18,8 +18,8 @@ const MedalRecordColletion: React.FC<{
         <Table>
           <thead>
             <tr>
-              {headers.map((columnTitle) => (
-                <th style={center}>
+              {headers.map((columnTitle, idx) => (
+                <th key={idx} style={center}>
                   <b>{columnTitle}</b>
                 </th>
               ))}
@@ -27,8 +27,10 @@ const MedalRecordColletion: React.FC<{
           </thead>
           <tbody>
             <tr>
-              {values.map((columnContent) => (
-                <td style={center}>{columnContent}</td>
+              {values.map((columnContent, idx) => (
+                <td key={idx} style={center}>
+                  {columnContent}
+                </td>
               ))}
             </tr>
           </tbody>

@@ -68,6 +68,31 @@ func GetUserById(db *pgxpool.Pool, uid int) (User, error) {
 	return user, nil
 }
 
+func GetUserByWCAID(db *pgxpool.Pool, wcaid string) (int, error) {
+	rows, err := db.Query(context.Background(), `SELECT u.user_id FROM users u WHERE u.wcaid = $1;`, wcaid);
+	if err != nil { return 0, err }
+
+	var uid int
+	for rows.Next() {
+		err = rows.Scan(&uid)
+		if err != nil { return 0, err }
+	}
+
+	return uid, nil
+}
+
+func GetUserByName(db *pgxpool.Pool, name string) (int, error) {
+	rows, err := db.Query(context.Background(), `SELECT u.user_id FROM users u WHERE u.name = $1;`, name);
+	if err != nil { return 0, err }
+
+	var uid int
+	for rows.Next() {
+		err = rows.Scan(&uid)
+		if err != nil { return 0, err }
+	}
+
+	return uid, nil
+}
 
 func GetUserInfoFromWCA(authInfo *AuthorizationInfo, envMap map[string]string) (User, error) {
 	bearer := "Bearer " + authInfo.AccessToken

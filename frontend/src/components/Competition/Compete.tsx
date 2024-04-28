@@ -51,7 +51,11 @@ const Compete = () => {
         setLoadingState({ ...loadingState, results: false, error: "" })
       )
       .catch((err) =>
-        setLoadingState({ ...loadingState, results: false, error: err.message })
+        setLoadingState({
+          ...loadingState,
+          results: false,
+          error: err.response.data,
+        })
       );
   };
 

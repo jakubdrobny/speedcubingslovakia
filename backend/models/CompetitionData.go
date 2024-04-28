@@ -48,17 +48,25 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) (error) {
 	scrambleSets := make([]ScrambleSet, 0)
 
 	for _, event := range c.Events {
-		rows, err := db.Query(context.Background(), `SELECT s.scramble, e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode, s.svgimg FROM scrambles s LEFT JOIN events e ON s.event_id = e.event_id WHERE s.competition_id = $1 AND s.event_id = $2 ORDER BY e.event_id, s."order";`, c.Id, event.Id)
+		rows, err := db.Query(context.Background(), `SELECT s.scramble_id, s.scramble, e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode, s.svgimg FROM scrambles s LEFT JOIN events e ON s.event_id = e.event_id WHERE s.competition_id = $1 AND s.event_id = $2 ORDER BY e.event_id, s."order";`, c.Id, event.Id)
 		if err != nil { return err }
 
 		var scrambleSet ScrambleSet
 		for rows.Next() {
 			var scramble Scramble
-			err := rows.Scan(&scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Svgimg)
-			if err != nil { return err }
+			var scrambleId int
+			err := rows.Scan(&scrambleId, &scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Svgimg)
+			if err != nil || scramble.Svgimg == "" {
+				if scramble.Svgimg == "" || err.Error() == "can't scan into dest[7]: cannot scan NULL into *string" {
+					err = utils.RegenerateImageForScramble(db, scrambleId, scramble.Scramble, scrambleSet.Event.Scramblingcode)
+					if err != nil { return err }
+				} else {
+					return err
+				}
+			}
 			scrambleSet.AddScramble(scramble)
 		}
-
+		
 		scrambleSets = append(scrambleSets, scrambleSet)
 	}
 

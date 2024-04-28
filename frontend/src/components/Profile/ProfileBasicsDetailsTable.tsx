@@ -17,8 +17,8 @@ const ProfileBasicsDetailsTable: React.FC<{ basics: ProfileTypeBasics }> = ({
               "Sex",
               "Competitions",
               "Completed solves",
-            ].map((columnTitle) => (
-              <th style={center}>
+            ].map((columnTitle, idx) => (
+              <th key={idx} style={center}>
                 <b>{columnTitle}</b>
               </th>
             ))}
@@ -35,8 +35,10 @@ const ProfileBasicsDetailsTable: React.FC<{ basics: ProfileTypeBasics }> = ({
               basics.sex,
               basics.noOfCompetitions,
               basics.completedSolves,
-            ].map((columnContent) => (
-              <td style={center}>{columnContent}</td>
+            ].map((columnContent, idx) => (
+              <td key={idx} style={center}>
+                {columnContent}
+              </td>
             ))}
           </tr>
         </tbody>

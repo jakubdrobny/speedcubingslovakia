@@ -216,9 +216,9 @@ export type ProfileTypeBasics = {
 };
 
 export type PersonalBestEntry = {
-  nr: number;
-  cr: number;
-  wr: number;
+  nr: string;
+  cr: string;
+  wr: string;
   value: string;
 };
 
@@ -232,7 +232,7 @@ export type ProfileTypePersonalBests = {
 export type ProfileTypeResultHistoryEntry = {
   competitionId: string;
   competitionName: string;
-  place: number;
+  place: string;
   single: string;
   average: string;
   solves: string[];
@@ -247,7 +247,7 @@ export type ProfileTypeResultHistory = {
 export type ProfileType = {
   basics: ProfileTypeBasics;
   personalBests: ProfileTypePersonalBests[];
-  medalCollection: { gold: number; silver: number; bronze: number };
-  recordCollection: { wr: number; cr: number; nr: number };
+  medalCollection: { gold: string; silver: string; bronze: string };
+  recordCollection: { wr: string; cr: string; nr: string };
   resultsHistory: ProfileTypeResultHistory[];
 };

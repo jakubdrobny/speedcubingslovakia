@@ -89,13 +89,13 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
           results: false,
         }));
       })
-      .catch((err) =>
+      .catch((err) => {
         setLoadingState((ps) => ({
           ...ps,
           results: false,
-          error: err.message,
-        }))
-      );
+          error: err.response.data,
+        }));
+      });
   };
 
   const fetchCompetitionResults = (
