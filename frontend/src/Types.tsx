@@ -251,3 +251,8 @@ export type ProfileType = {
   recordCollection: { wr: string; cr: string; nr: string };
   resultsHistory: ProfileTypeResultHistory[];
 };
+
+export type SearchUser = {
+  username: string;
+  wcaid: string;
+};

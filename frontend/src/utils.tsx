@@ -11,6 +11,7 @@ import {
   ManageRolesUser,
   ProfileType,
   ResultEntry,
+  SearchUser,
 } from "./Types";
 import axios, { AxiosError } from "axios";
 
@@ -410,4 +411,11 @@ export const getError = (err: AxiosError): string => {
   if (err.response?.status === 401)
     return "Unauthorized/token expired. Try to re-login.";
   return err.response?.data as string;
+};
+
+export const getUsers = async (searchQuery: string): Promise<SearchUser[]> => {
+  if (searchQuery === "") searchQuery = "_";
+  return Promise.resolve([{ username: "Jakub Drobny", wcaid: "2016DROB01" }]);
+  const response = await axios.get(`/api/users/search?query=${searchQuery}`);
+  return response.data;
 };

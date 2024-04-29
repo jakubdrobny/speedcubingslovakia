@@ -18,6 +18,7 @@ import NotFound from "./components/NotFound/NotFound";
 import Profile from "./components/Profile/Profile";
 import ProtectedRoute from "./components/Login/ProtectedRoute";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
+import Users from "./components/Users/Users";
 import { WIN_LG } from "./constants";
 import useState from "react-usestateref";
 
@@ -102,6 +103,7 @@ const App = () => {
             <Route path="/results/edit" Component={ResultsEdit} />
           </Route>
           <Route path="/profile/:id" Component={Profile} />
+          <Route path="/users" Component={Users} />
           <Route path="*" element={<Navigate to="/not-found" replace />} />
         </Routes>
       </Grid>
