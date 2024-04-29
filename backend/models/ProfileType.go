@@ -2,7 +2,9 @@ package models
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
@@ -74,7 +76,7 @@ type ProfileType struct {
 }
 
 func GetNoOfCompetitions(db *pgxpool.Pool, uid int) (int, error) {
-	rows, err := db.Query(context.Background(), `SELECT COUNT(*) FROM (SELECT r.competition_id FROM results r WHERE r.user_id = $1 GROUP BY r.competition_id);`, uid);
+	rows, err := db.Query(context.Background(), `SELECT COUNT(*) FROM (SELECT r.competition_id FROM results r WHERE r.user_id = $1 AND ((r.solve1 NOT LIKE 'DNS' AND r.solve1 NOT LIKE 'DNF') OR (r.solve2 NOT LIKE 'DNS' AND r.solve2 NOT LIKE 'DNF') OR (r.solve3 NOT LIKE 'DNS' AND r.solve3 NOT LIKE 'DNF') OR (r.solve4 NOT LIKE 'DNS' AND r.solve4 NOT LIKE 'DNF') OR (r.solve5 NOT LIKE 'DNS' AND r.solve5 NOT LIKE 'DNF')) GROUP BY r.competition_id);`, uid);
 	if err != nil { return 0, err }
 
 	var noOfCompetitions int
@@ -122,15 +124,53 @@ func (p *ProfileType) LoadBasics(db *pgxpool.Pool, uid int) (error) {
 	return nil
 }
 
-func (p *ProfileTypePersonalBests) LoadAverage(db *pgxpool.Pool, uid int) (error) {
+func LoadBestAverage(db *pgxpool.Pool, user User, eid int) (string, error) {
+	rows, err := db.Query(context.Background(), `SELECT r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 AND r.event_id = $2;`, user.Id, eid);
+	if err != nil { return "", err }
+
+	average := constants.DNS
+
+	for rows.Next() {
+		var resultEntry ResultEntry
+		err = rows.Scan(&resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format)
+		if err != nil { return "", err }
+
+		averageCandidate, err := resultEntry.AverageFormatted()
+		if err != nil { return "", err }
+		utils.CompareSolves(&average, averageCandidate)
+	}
+
+	return utils.FormatTime(average), nil
+}
+
+func (p *ProfileTypePersonalBests) LoadAverage(db *pgxpool.Pool, user User) (error) {
+	average, err := LoadBestAverage(db, user, p.EventId)
+	if err != nil { return err }
+
+	if utils.ParseSolveToMilliseconds(average) >= constants.VERY_SLOW { return err }
+
+	nrRank, err := LoadNRRank(db, user, average, 1, p.EventId)
+	if err != nil { return err }
+
+	crRank, err := LoadCRRank(db, user, average, 1, p.EventId)
+	if err != nil { return err }
+
+	wrRank, err := LoadWRRank(db, user, average, 1, p.EventId)
+	if err != nil { return err }
+
+	p.Average.Value = average
+	p.Average.NR = nrRank
+	p.Average.CR = crRank
+	p.Average.WR = wrRank
+
 	return nil
 }
 
-func LoadBestSingle(db *pgxpool.Pool, uid int, eid int) (string, error) {
-	rows, err := db.Query(context.Background(), `SELECT r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 AND r.event_id = $2;`, uid, eid);
+func LoadBestSingle(db *pgxpool.Pool, user User, eid int) (string, error) {
+	rows, err := db.Query(context.Background(), `SELECT r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 AND r.event_id = $2;`, user.Id, eid);
 	if err != nil { return "", err }
 
-	single := constants.VERY_SLOW
+	single := constants.DNS
 
 	for rows.Next() {
 		var resultEntry ResultEntry
@@ -143,31 +183,79 @@ func LoadBestSingle(db *pgxpool.Pool, uid int, eid int) (string, error) {
 	return utils.FormatTime(single), nil
 }
 
-func LoadNRRank(db *pgxpool.Pool, uid int, single string) (string, error) {
-	return "", nil
+func LoadRankFromRows(rows pgx.Rows, result string, average int) (string, error) {
+	results := make(map[int]int)
+
+	for rows.Next() {
+		var resultEntry ResultEntry
+		err := rows.Scan(&resultEntry.Userid, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format)
+		if err != nil { return "", err }
+
+		val, ok := results[resultEntry.Userid]; 
+		if !ok { val = constants.DNS }
+		if average == 0 {
+			utils.CompareSolves(&val, resultEntry.SingleFormatted())
+		} else { 
+			tmpAverageFormatted, err := resultEntry.AverageFormatted()
+			if err != nil { return "", err }
+			utils.CompareSolves(&val, tmpAverageFormatted) 
+		}
+		results[resultEntry.Userid] = val
+	}
+
+	resultsArr := make([]int, 0)
+	for _, _result := range results {
+		if _result < constants.VERY_SLOW {
+			resultsArr = append(resultsArr, _result)
+		}
+	}
+
+	resultInMili := utils.ParseSolveToMilliseconds(result)
+	rank := 1
+	for ; rank <= len(resultsArr) && resultsArr[rank - 1] < resultInMili; rank++ {
+		fmt.Println(result, resultInMili, resultsArr[rank - 1])
+	}
+
+	return fmt.Sprint(rank), nil
 }
 
-func LoadCRRank(db *pgxpool.Pool, uid int, single string) (string, error) {
-	return "", nil
+func LoadNRRank(db *pgxpool.Pool, user User, result string, average int, eid int) (string, error) {
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN events e ON e.event_id = r.event_id JOIN users u ON r.user_id = u.user_id JOIN countries c ON c.country_id = u.country_id WHERE u.country_id = $1 AND r.user_id = $2 AND r.event_id = $3;`, user.CountryId, user.Id, eid);
+	if err != nil { return "", err }
+	
+	return LoadRankFromRows(rows, result, average)
 }
 
-func LoadWRRank(db *pgxpool.Pool, uid int, single string) (string, error) {
-	return "", nil
+func LoadCRRank(db *pgxpool.Pool, user User, result string, average int, eid int) (string, error) {
+	err := user.LoadContinent(db)
+	if err != nil { return "", err }
+
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN events e ON e.event_id = r.event_id JOIN users u ON r.user_id = u.user_id JOIN countries c ON c.country_id = u.country_id JOIN continents con ON con.continent_id = c.continent_id WHERE c.continent_id = $1 AND r.user_id = $2 AND r.event_id = $3;`, user.ContinentId, user.Id, eid);
+	if err != nil { return "", err }
+
+	return LoadRankFromRows(rows, result, average)
 }
 
-func (p *ProfileTypePersonalBests) LoadSingle(db *pgxpool.Pool, uid int) (error) {
-	single, err := LoadBestSingle(db, uid, p.EventId)
+func LoadWRRank(db *pgxpool.Pool, user User, result string, average int, eid int) (string, error) {
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN events e ON e.event_id = r.event_id JOIN users u ON r.user_id = u.user_id WHERE r.user_id = $1 AND r.event_id = $2;`, user.Id, eid);
+	if err != nil { return "", err }
+
+	return LoadRankFromRows(rows, result, average)
+}
+
+func (p *ProfileTypePersonalBests) LoadSingle(db *pgxpool.Pool, user User) (error) {
+	single, err := LoadBestSingle(db, user, p.EventId)
 	if err != nil { return err }
 
 	if utils.ParseSolveToMilliseconds(single) >= constants.VERY_SLOW { return err }
 
-	nrRank, err := LoadNRRank(db, uid, single)
+	nrRank, err := LoadNRRank(db, user, single, 0, p.EventId)
 	if err != nil { return err }
 
-	crRank, err := LoadCRRank(db, uid, single)
+	crRank, err := LoadCRRank(db, user, single, 0, p.EventId)
 	if err != nil { return err }
 
-	wrRank, err := LoadWRRank(db, uid, single)
+	wrRank, err := LoadWRRank(db, user, single, 0, p.EventId)
 	if err != nil { return err }
 
 	p.Single.Value = single
@@ -177,9 +265,23 @@ func (p *ProfileTypePersonalBests) LoadSingle(db *pgxpool.Pool, uid int) (error)
 
 	return nil
 }
+
+func (p *ProfileTypePersonalBests) ClearSingle() {
+	p.Single.Value = ""
+	p.Single.NR = ""
+	p.Single.CR = ""
+	p.Single.WR = ""
+}
+
+func (p *ProfileTypePersonalBests) ClearAverage() {
+	p.Average.Value = ""
+	p.Average.NR = ""
+	p.Average.CR = ""
+	p.Average.WR = ""
+}
  
-func (p *ProfileType) LoadPersonBests(db *pgxpool.Pool, uid int) (error) {
-	rows, err := db.Query(context.Background(), `SELECT e.fulldisplayname, e.iconcode, e.event_id FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 GROUP BY e.fulldisplayname, e.iconcode, e.event_id ORDER BY e.event_id;`, uid);
+func (p *ProfileType) LoadPersonBests(db *pgxpool.Pool, user User) (error) {
+	rows, err := db.Query(context.Background(), `SELECT e.fulldisplayname, e.iconcode, e.event_id FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 GROUP BY e.fulldisplayname, e.iconcode, e.event_id ORDER BY e.event_id;`, user.Id);
 	if err != nil { return err }
 
 	p.PersonalBests = make([]ProfileTypePersonalBests, 0)
@@ -191,13 +293,28 @@ func (p *ProfileType) LoadPersonBests(db *pgxpool.Pool, uid int) (error) {
 		p.PersonalBests = append(p.PersonalBests, pbEntry)
 	}
 	
+	newPersonalBests := make([]ProfileTypePersonalBests, 0)
 	for idx := range p.PersonalBests {
-		err = p.PersonalBests[idx].LoadAverage(db, uid)
+		err = p.PersonalBests[idx].LoadAverage(db, user)
 		if err != nil { return err }
 		
-		err = p.PersonalBests[idx].LoadSingle(db, uid)
+		err = p.PersonalBests[idx].LoadSingle(db, user)
 		if err != nil { return err }
+
+		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value) >= constants.VERY_SLOW && utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value) >= constants.VERY_SLOW {
+			continue			
+		}
+
+		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value) >= constants.VERY_SLOW {
+			p.PersonalBests[idx].ClearSingle()
+		} else if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value) >= constants.VERY_SLOW {
+			p.PersonalBests[idx].ClearAverage()
+		}
+
+		newPersonalBests = append(newPersonalBests, p.PersonalBests[idx])
 	}
+
+	p.PersonalBests = newPersonalBests
 
 	return nil
 }
@@ -206,7 +323,10 @@ func (p *ProfileType) Load(db *pgxpool.Pool, uid int) (error) {
 	err := p.LoadBasics(db, uid)
 	if err != nil { return err }
 
-	err = p.LoadPersonBests(db, uid)
+	user, err := GetUserById(db, uid)
+	if err != nil { return err }
+
+	err = p.LoadPersonBests(db, user)
 	if err != nil { return err }
 
 	return nil

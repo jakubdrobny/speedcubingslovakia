@@ -13,6 +13,7 @@ type User struct {
 	Id int `json:"id"`
 	Name string `json:"name"`
 	CountryId string `json:"country_id"`
+	ContinentId string `json:"continent_id`
 	Sex string `json:"sex"`
 	WcaId string `json:"wcaid"`
 	IsAdmin bool `json:"isadmin"`
@@ -131,4 +132,16 @@ func GetUserInfoFromWCA(authInfo *AuthorizationInfo, envMap map[string]string) (
 	user.AvatarUrl = apiMe.Me.Avatar.Url
 
 	return user, nil
+}
+
+func (u *User) LoadContinent(db *pgxpool.Pool) (error) {
+	rows, err := db.Query(context.Background(), `SELECT continents.continent_id FROM continents JOIN countries ON countries.continent_id = continents.continent_id WHERE countries.country_id = $1;`, u.CountryId);
+	if err != nil { return err }
+
+	for rows.Next() {
+		err = rows.Scan(&u.ContinentId)
+		if err != nil { return err }
+	}
+
+	return nil
 }
