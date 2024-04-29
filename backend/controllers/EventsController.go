@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,8 @@ func GetEvents(db *pgxpool.Pool) gin.HandlerFunc {
 	return func (c *gin.Context) {
 		events, err := models.GetAvailableEvents(db)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR GetAvailableEvents in GetEvents: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed querying events from database.")
 		} else {
 			c.IndentedJSON(http.StatusOK, events);
 		}
