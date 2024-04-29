@@ -21,7 +21,7 @@ func GetFilteredCompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 		result := make([]models.CompetitionData, 0);
 		competitions, err := models.GetAllCompetitions(db)
 		if err != nil {
-			fmt.Println("Failed to get all competitions in GetFilteredCompetitions: " + err.Error())
+			fmt.Println("ERR GetAllCompetitions in GetFilteredCompetitions: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to query all competitions in database.");
 			return
 		}
@@ -57,7 +57,7 @@ func GetCompetitionById(db *pgxpool.Pool) gin.HandlerFunc {
 		
 		rows, err := db.Query(context.Background(), `SELECT c.competition_id, c.name, c.startdate, c.enddate FROM competitions c WHERE c.competition_id = $1;`, id)
 		if err != nil {
-			log.Println("Failed querying competition in GetCompetitionById: " + err.Error())
+			log.Println("ERR db.Query in GetCompetitionById: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed querying competition by id.")
 			return;
 		}
@@ -68,7 +68,7 @@ func GetCompetitionById(db *pgxpool.Pool) gin.HandlerFunc {
 		for rows.Next() {
 			err := rows.Scan(&competition.Id, &competition.Name, &competition.Startdate, &competition.Enddate)
 			if err != nil {
-				log.Println("Failed parsing competition in GetCompetitionById: " + err.Error())
+				log.Println("ERR scanning competition data in GetCompetitionById: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed parsing competition from database.")
 				return;
 			}
@@ -76,20 +76,21 @@ func GetCompetitionById(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		if !found {
+			log.Println("ERR competition with id: ", id, " not found in GetCompetitionById.")
 			c.IndentedJSON(http.StatusInternalServerError, "Competition not found.")	
 			return;
 		}
 
 		err = competition.GetEvents(db)
 		if err != nil {
-			log.Println("Failed to get competition events in GetCompetitionById: " + err.Error())
+			log.Println("ERR GetEvents in GetCompetitionById: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to get competition events.")
 			return;
 		}
 
 		err = competition.GetScrambles(db)
 		if err != nil {
-			log.Println("Failed to get competition scrambles in GetCompetitionById: " + err.Error())
+			log.Println("ERR GetScrambles in GetCompetitionById: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to get competition scrambles.")
 			return;
 		}
@@ -103,7 +104,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 		var competition models.CompetitionData
 
 		if err := c.BindJSON(&competition); err != nil {
-			log.Println("Failed to BindJSON(&competition) in PostCompetition: " + err.Error())
+			log.Println("ERR BindJSON(&competition) in PostCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse competition data.")
 			return
 		}
@@ -111,14 +112,14 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 		competition.RecomputeCompetitionId()
 		err := competition.GenerateScrambles()
 		if err != nil {
-			log.Println("Failed generating scrambles in PostCompetition: " + err.Error())
+			log.Println("ERR GenerateScrambles in PostCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to generate scrambles.")
 			return
 		}
 
 		tx, err := db.Begin(context.Background())
 		if err != nil {
-			log.Println("Failed starting trasaction in PostCompetition: " + err.Error())
+			log.Println("ERR db.Begin in PostCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to start transaction.")
 			tx.Rollback(context.Background())
 			return
@@ -126,7 +127,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 
 		_, err = tx.Exec(context.Background(), `INSERT INTO competitions (competition_id, name, startdate, enddate) VALUES ($1,$2,$3,$4);`, competition.Id, competition.Name, competition.Startdate, competition.Enddate)
 		if err != nil {
-			log.Println("Failed inserting competition into db in PostCompetition: " + err.Error())
+			log.Println("ERR tx.Exec INSERT INTO competitions in PostCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed inserting competition into database.")
 			tx.Rollback(context.Background())
 			return
@@ -135,7 +136,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 		for _, event := range competition.Events {
 			_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1,$2);`, competition.Id, event.Id)
 			if err != nil {
-				log.Println("Failed inserting competition events into db in PostCompetition: " + err.Error())
+				log.Println("ERR tx.Exec INSERT INTO competition_events in PostCompetition: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to insert competition events connections into database.")
 				tx.Rollback(context.Background())
 				return
@@ -146,7 +147,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 			for scrambleIdx, scramble := range scrambleSet.Scrambles {
 				_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order", svgimg) VALUES ($1,$2,$3,$4,$5);`, scramble.Scramble, scrambleSet.Event.Id, competition.Id, scrambleIdx + 1, scramble.Svgimg)
 				if err != nil {
-					log.Println("Failed insert scrambles into db in PostCompetition: " + err.Error())
+					log.Println("ERR tx.Exec INSERT INTO scrambles in PostCompetition: " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed to insert scrambles into database.")
 					tx.Rollback(context.Background())
 					return
@@ -156,7 +157,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 
 		err = tx.Commit(context.Background())
 		if err != nil {
-			log.Println("Failed commiting trasaction in PostCompetition: " + err.Error())
+			log.Println("ERR tx.commit in PostCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to finish transaction.")
 			return	
 		}
@@ -170,14 +171,14 @@ func PutCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 		var competition models.CompetitionData
 
 		if err := c.BindJSON(&competition); err != nil {
-			log.Println("Failed to BindJSON(&competition) in PutCompetition: " + err.Error())
+			log.Println("ERR BindJSON(&competition) in PutCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse competition data.")
 			return
 		}
 
 		tx, err := db.Begin(context.Background())
 		if err != nil {
-			log.Println("Failed starting trasaction in PutCompetition: " + err.Error())
+			log.Println("ERR db.begin in PutCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to start transaction.")
 			tx.Rollback(context.Background())
 			return
@@ -185,7 +186,7 @@ func PutCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 
 		_, err = tx.Exec(context.Background(), `UPDATE competitions SET name = $1, startdate = $2, enddate = $3, timestamp = CURRENT_TIMESTAMP WHERE competition_id = $4;`, competition.Name, competition.Startdate, competition.Enddate, competition.Id)
 		if err != nil {
-			log.Println("Failed updating competition info in PutCompetition: " + err.Error())
+			log.Println("ERR tx.Exec UPDATE competitions in PutCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to update competition info in database.")
 			tx.Rollback(context.Background())
 			return
@@ -193,7 +194,7 @@ func PutCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 
 		err = models.UpdateCompetitionEvents(&competition, db, tx)
 		if err != nil {
-			log.Println("Failed updating competition events in PutCompetition: " + err.Error())
+			log.Println("ERR UpdateCompetitionEvents in PutCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to update competition event connections in database.")
 			tx.Rollback(context.Background())
 			return
@@ -201,7 +202,7 @@ func PutCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 
 		err = tx.Commit(context.Background())
 		if err != nil {
-			log.Println("Failed commiting trasaction in PutCompetition: " + err.Error())
+			log.Println("ERR tx.commit in in PutCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to finish transaction.")
 			return	
 		}
@@ -215,14 +216,14 @@ func GetResultsFromCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 		cid := c.Param("cid")
 		eid, err := strconv.Atoi(c.Param("eid"))
 		if err != nil {
-			log.Println("Failed strconv eventId in GetResultsFromCompetition: " + err.Error())
+			log.Println("ERR strconv(eventId) in GetResultsFromCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse eventId.")
 			return
 		}
 		
 		competitionResults, err := models.GetResultsFromCompetitionByEventName(db, cid, eid)
 		if err != nil {
-			log.Println("Failed to get competition in GetResultsFromCompetition.GetResultsFromCompetitionByEventName: " + err.Error())
+			log.Println("ERR GetResultsFromCompetitionByEventName in GetResultsFromCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to get competition results.")
 			return
 		}

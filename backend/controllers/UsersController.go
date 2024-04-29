@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,8 @@ func GetManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
 
 		rows, err := db.Query(context.Background(), `SELECT u.user_id, u.name, u.isadmin FROM users u;`)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR db.Query SELECT from users in GetManageRolesUsers: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to query users from database.")
 			return
 		}
 
@@ -27,7 +29,8 @@ func GetManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
 			var manageRolesUser models.ManageRolesUser
 			err = rows.Scan(&manageRolesUser.Id, &manageRolesUser.Name, &manageRolesUser.Isadmin)
 			if err != nil {
-				c.IndentedJSON(http.StatusInternalServerError, err)
+				log.Println("ERR scanning ManageRolesUser in GetManageRolesUsers: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to query users from database.")
 				return
 			}
 			if uid != manageRolesUser.Id {
@@ -44,13 +47,15 @@ func PutManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
 		var manageRolesUsers []models.ManageRolesUser
 
 		if err := c.BindJSON(&manageRolesUsers); err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err);
+			log.Println("ERR BindJSON(&manageRolesUsers) in PutManageRolesUsers: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse incoming data.")
 			return;
 		}
 
 		tx, err := db.Begin(context.Background())
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err);
+			log.Println("ERR db.Begin in GetManageRolesUsers: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to start transaction.")
 			tx.Rollback(context.Background())
 			return;
 		}
@@ -58,13 +63,19 @@ func PutManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
 		for _, manageRolesUser := range manageRolesUsers {
 			_, err = tx.Exec(context.Background(), `UPDATE users SET isadmin = $1 WHERE user_id = $2;`, manageRolesUser.Isadmin, manageRolesUser.Id)
 			if err != nil {
-				c.IndentedJSON(http.StatusInternalServerError, err);
+				log.Println("ERR tx.Exec UPDATE users in GetManageRolesUsers: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to update user roles in database.")
 				tx.Rollback(context.Background())
 				return
 			}
 		}
 
-		tx.Commit(context.Background())
+		err = tx.Commit(context.Background())
+		if err != nil {
+			log.Println("ERR tx.Commit in GetManageRolesUsers: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to commit transaction.")
+			return
+		}
 
 		c.IndentedJSON(http.StatusCreated, manageRolesUsers)
 	}
@@ -75,26 +86,30 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func (c *gin.Context) {
 		reqBodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR io.ReadAll in PostLogIn: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse incoming data.")
 			return
 		}
 
 		code := string(reqBodyBytes)
 		authInfo, err := models.GetAuthInfo(code, envMap)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR GetAuthInfo in PostLogIn: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed getting auth info for WCA.")
 			return
 		}
 
 		user, err := models.GetUserInfoFromWCA(&authInfo, envMap)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR GetUserInfoFromWCA in PostLogIn: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed getting user info from WCA.")
 			return
 		}
 
 		exists, err := user.Exists(db)
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR user.Exists in PostLogIn: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed getting user info from database.")
 			return
 		}
 
@@ -105,7 +120,8 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		}
 
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR (", exists, ")user.Update or (", !exists, ")user.Insert in PostLogIn: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed updating/insert user data into database.")
 			return
 		}
 
@@ -115,7 +131,8 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		authInfo.AccessToken, err = utils.CreateToken(user.Id, envMap["JWT_SECRET_KEY"])
 		authInfo.IsAdmin = user.IsAdmin
 		if err != nil {
-			c.IndentedJSON(http.StatusInternalServerError, err)
+			log.Println("ERR CreateToken in PostLogIn: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed creating token.")
 			return
 		}
 		
