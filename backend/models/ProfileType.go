@@ -212,9 +212,7 @@ func LoadRankFromRows(rows pgx.Rows, result string, average int) (string, error)
 
 	resultInMili := utils.ParseSolveToMilliseconds(result)
 	rank := 1
-	for ; rank <= len(resultsArr) && resultsArr[rank - 1] < resultInMili; rank++ {
-		fmt.Println(result, resultInMili, resultsArr[rank - 1])
-	}
+	for ; rank <= len(resultsArr) && resultsArr[rank - 1] < resultInMili; rank++ {}
 
 	return fmt.Sprint(rank), nil
 }

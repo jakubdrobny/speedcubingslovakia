@@ -13,7 +13,7 @@ type User struct {
 	Id int `json:"id"`
 	Name string `json:"name"`
 	CountryId string `json:"country_id"`
-	ContinentId string `json:"continent_id`
+	ContinentId string `json:"continent_id"`
 	Sex string `json:"sex"`
 	WcaId string `json:"wcaid"`
 	IsAdmin bool `json:"isadmin"`

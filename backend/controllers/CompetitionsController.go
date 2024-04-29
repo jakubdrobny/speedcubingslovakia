@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -21,7 +20,7 @@ func GetFilteredCompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 		result := make([]models.CompetitionData, 0);
 		competitions, err := models.GetAllCompetitions(db)
 		if err != nil {
-			fmt.Println("ERR GetAllCompetitions in GetFilteredCompetitions: " + err.Error())
+			log.Println("ERR GetAllCompetitions in GetFilteredCompetitions: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to query all competitions in database.");
 			return
 		}

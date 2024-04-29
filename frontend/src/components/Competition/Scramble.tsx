@@ -61,7 +61,7 @@ const Scramble = () => {
       scrambleImgRef.current.innerHTML =
         scrambleSet.scrambles[competitionState.currentSolveIdx].svgimg;
     }
-  }, []);
+  }, [competitionState.currentSolveIdx]);
 
   return (
     <div

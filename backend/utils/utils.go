@@ -180,21 +180,34 @@ func FormatTime(timeInMiliseconds int) string {
 	return resString
 }
 
-func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble string, scramblingcode string) (error) {
+func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble string, scramblingcode string) (string, error) {
 	scramble = strings.ReplaceAll(scramble, "\n", " ")
+	if scramblingcode == "clock" { scramble = strings.ReplaceAll(scramble, "+", "%2B") }
+	if scramblingcode == "222" { scramble = strings.ReplaceAll(scramble, "2'", "2") }
+	if scramblingcode == "sq1" {
+		fmt.Println("before", scramble)
+		scramble = strings.ReplaceAll(scramble, ", ", ",") 
+		fmt.Println("after", scramble)
+	}
 	url := strings.ReplaceAll(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble), " ", "%20")
 	req, err := http.NewRequest("GET", url, nil)
-	if err != nil { return err }
+	if err != nil { return "", err }
 
 	resp, err := http.DefaultClient.Do(req)
-	if err != nil { return err }
+	if err != nil { return "", err }
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
-	if err != nil { return err }
+	if err != nil { return "", err }
+	respBodyStr := string(respBody)
 
-	_, err = db.Exec(context.Background(), `UPDATE scrambles SET svgimg = $1 WHERE scramble_id = $2;`, string(respBody), scrambleId)
-	if err != nil { return err }
+	_, err = db.Exec(context.Background(), `UPDATE scrambles SET svgimg = $1 WHERE scramble_id = $2;`, respBodyStr, scrambleId)
+	if err != nil { return "", err }
 
-	return nil
+	if scramblingcode == "sq1" {
+		_, err = db.Exec(context.Background(), `UPDATE scrambles SET scramble = $1 WHERE scramble_id = $2;`, scramble, scrambleId)
+		if err != nil { return "", err }
+	}
+
+	return respBodyStr, nil
 }

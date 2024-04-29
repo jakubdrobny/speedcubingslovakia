@@ -56,10 +56,11 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) (error) {
 			var scramble Scramble
 			var scrambleId int
 			err := rows.Scan(&scrambleId, &scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Svgimg)
-			if err != nil || scramble.Svgimg == "" {
-				if scramble.Svgimg == "" || err.Error() == "can't scan into dest[7]: cannot scan NULL into *string" {
-					err = utils.RegenerateImageForScramble(db, scrambleId, scramble.Scramble, scrambleSet.Event.Scramblingcode)
+			if true || err != nil || scramble.Svgimg == "" {
+				if true || scramble.Svgimg == "" || err.Error() == "can't scan into dest[7]: cannot scan NULL into *string" {
+					newScrambleImg, err := utils.RegenerateImageForScramble(db, scrambleId, scramble.Scramble, scrambleSet.Event.Scramblingcode)
 					if err != nil { return err }
+					scramble.Svgimg = newScrambleImg
 				} else {
 					return err
 				}
@@ -146,6 +147,7 @@ func GenerateImagesForScrambles(scrambles []string, scramblingcode string) ([]st
 
 	for _, scramble := range scrambles {
 		scramble = strings.ReplaceAll(scramble, "\n", " ")
+		if scramblingcode == "clock" { scramble = strings.ReplaceAll(scramble, "+", "%2B") }
 		url := strings.ReplaceAll(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble), " ", "%20")
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil { return []string{}, err }
