@@ -3,6 +3,8 @@ package models
 import (
 	"context"
 	"fmt"
+	"sort"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -41,15 +43,15 @@ type ProfileTypePersonalBests struct {
 }
 
 type MedalCollection struct {
-	Gold string `json:"gold"`
-	Silver string `json:"silver"`
-	Bronze string `json:"bronze"`
+	Gold int `json:"gold"`
+	Silver int `json:"silver"`
+	Bronze int `json:"bronze"`
 }
 
 type RecordCollection struct {
-	NR string `json:"nr"`
-	CR string `json:"cr"`
-	WR string `json:"wr"`
+	NR int `json:"nr"`
+	CR int `json:"cr"`
+	WR int `json:"wr"`
 }
 
 type ProfileTypeResultHistoryEntry struct {
@@ -62,6 +64,7 @@ type ProfileTypeResultHistoryEntry struct {
 }
 
 type ProfileTypeResultHistory struct {
+	EventId int `json:"eventId"`
 	EventName string `json:"eventName"`
 	EventIconCode string `json:"eventIconcode"`
 	History []ProfileTypeResultHistoryEntry `json:"history"`
@@ -278,7 +281,7 @@ func (p *ProfileTypePersonalBests) ClearAverage() {
 	p.Average.WR = ""
 }
  
-func (p *ProfileType) LoadPersonBests(db *pgxpool.Pool, user User) (error) {
+func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user User) (error) {
 	rows, err := db.Query(context.Background(), `SELECT e.fulldisplayname, e.iconcode, e.event_id FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 GROUP BY e.fulldisplayname, e.iconcode, e.event_id ORDER BY e.event_id;`, user.Id);
 	if err != nil { return err }
 
@@ -317,14 +320,235 @@ func (p *ProfileType) LoadPersonBests(db *pgxpool.Pool, user User) (error) {
 	return nil
 }
 
+func ComputePlacement(db *pgxpool.Pool, uname string, cid string, eid int) (string, error) {
+	competitionResults, err := GetResultsFromCompetitionByEventName(db, cid, eid)
+	if err != nil { return "", err }
+
+	placement := 1
+	for ; placement <= len(competitionResults) && competitionResults[placement - 1].Username != uname; placement++ {}
+
+	return fmt.Sprint(placement), nil
+}
+
+func CreateEventHistoryForUser(db *pgxpool.Pool, user User, event CompetitionEvent, p *ProfileType) (ProfileTypeResultHistory, error) {
+	var history ProfileTypeResultHistory
+
+	history.EventId = event.Id
+	history.EventName = event.Fulldisplayname
+	history.EventIconCode = event.Iconcode
+
+	rows, err := db.Query(context.Background(), `SELECT r.competition_id, c.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, u.name, e.format FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 AND r.event_id = $2 ORDER BY c.enddate DESC;`, user.Id, event.Id)
+	if err != nil { return ProfileTypeResultHistory{}, err }
+
+	history.History = make([]ProfileTypeResultHistoryEntry, 0)
+	for rows.Next() {
+		var resultEntry ResultEntry
+		err = rows.Scan(&resultEntry.Competitionid, &resultEntry.Competitionname, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Username, &resultEntry.Format)
+		if err != nil { return ProfileTypeResultHistory{}, err }
+
+		var historyEntry ProfileTypeResultHistoryEntry
+		historyEntry.CompetitionId = resultEntry.Competitionid
+		historyEntry.CompetitionName = resultEntry.Competitionname
+		historyEntry.Single = resultEntry.SingleFormatted()
+		if historyEntry.Single == "DNS" { continue }
+		historyEntry.Average, err = resultEntry.AverageFormatted()
+		if err != nil { return ProfileTypeResultHistory{}, err }
+		historyEntry.Solves = resultEntry.GetSolves()
+		historyEntry.Place, err = ComputePlacement(db, resultEntry.Username, resultEntry.Competitionid, resultEntry.Eventid)
+		if err != nil { return ProfileTypeResultHistory{}, err }
+		
+		switch historyEntry.Place {
+		case "1":
+			p.MedalCollection.Gold++
+		case "2":
+			p.MedalCollection.Silver++
+		case "3":
+			p.MedalCollection.Bronze++
+		}
+
+		history.History = append(history.History, historyEntry)
+	}
+
+	return history, nil
+}
+
+func (p *ProfileType) LoadHistory(db *pgxpool.Pool, user User) (error) {
+	events, err := GetAvailableEvents(db)
+	if err != nil { return err }
+
+	p.ResultsHistory = make([]ProfileTypeResultHistory, 0)
+	for _, event := range events {
+		eventHistory, err := CreateEventHistoryForUser(db, user, event, p)
+		if err != nil { return err }
+		if len(eventHistory.History) > 0 {
+			p.ResultsHistory = append(p.ResultsHistory, eventHistory)
+		}
+	}
+
+	return nil
+}
+
+type RecordersEntry struct {
+	time time.Time
+	single int
+	singleRecorders []int
+	average int
+	averageRecorders []int
+}
+
+func IsRecorder(recordersEntry *RecordersEntry, uid int, records *int) {
+	for _, id := range recordersEntry.singleRecorders {
+		if id == uid {
+			*records++
+			break
+		}
+	}
+
+	for _, id := range recordersEntry.averageRecorders {
+		if id == uid {
+			*records++
+			break
+		}
+	}
+}
+
+func IsRecorder2(recorders []int, uid int, records *int) {
+	for _, id := range recorders {
+		if id == uid {
+			*records++
+			break
+		}
+	}
+}
+
+func UpdateRecordersEntry(oldRecordersEntry *RecordersEntry, newRecordersEntry RecordersEntry, uid int, records *int) {
+	if newRecordersEntry.single <= oldRecordersEntry.single { IsRecorder2(newRecordersEntry.singleRecorders, uid, records) }
+
+	if newRecordersEntry.single < oldRecordersEntry.single {
+		oldRecordersEntry.single = newRecordersEntry.single
+		oldRecordersEntry.singleRecorders = newRecordersEntry.singleRecorders
+	} else if newRecordersEntry.single == oldRecordersEntry.single {
+		oldRecordersEntry.singleRecorders = append(oldRecordersEntry.singleRecorders, newRecordersEntry.singleRecorders...)
+	}
+	
+	if newRecordersEntry.average <= oldRecordersEntry.average { IsRecorder2(newRecordersEntry.averageRecorders, uid, records) }
+
+	if newRecordersEntry.average < oldRecordersEntry.average {
+		oldRecordersEntry.average = newRecordersEntry.average
+		oldRecordersEntry.averageRecorders = newRecordersEntry.averageRecorders
+	} else if newRecordersEntry.average == oldRecordersEntry.average {
+		oldRecordersEntry.averageRecorders = append(oldRecordersEntry.averageRecorders, newRecordersEntry.averageRecorders...)
+	}
+}
+
+func CountRecordsInEventFromRows(rows pgx.Rows, uid int) (int, error) {
+	recorders := make(map[time.Time]RecordersEntry)
+
+	for rows.Next() {
+		var resultEntry ResultEntry
+		var date time.Time
+		err := rows.Scan(&resultEntry.Userid, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &date, &resultEntry.Format)
+		if err != nil { return 0, err }
+
+		single := resultEntry.SingleFormatted()
+		average, err := resultEntry.AverageFormatted()
+		if err != nil { return 0, err }
+		singleMili := utils.ParseSolveToMilliseconds(single)
+		averageMili := utils.ParseSolveToMilliseconds(average)
+		
+		recordersEntry, ok := recorders[date]
+		if !ok {
+			recorders[date] = RecordersEntry{date, constants.DNS, make([]int, 0), constants.DNS, make([]int ,0)}
+			recordersEntry = recorders[date]
+		}
+
+		if singleMili < constants.VERY_SLOW {
+			if singleMili < recordersEntry.single { recordersEntry.singleRecorders = make([]int, 0)}
+			if singleMili <= recordersEntry.single { recordersEntry.singleRecorders = append(recordersEntry.singleRecorders, resultEntry.Userid) }
+		}
+
+		if averageMili < constants.VERY_SLOW {
+			if averageMili < recordersEntry.average { recordersEntry.averageRecorders = make([]int, 0)}
+			if averageMili <= recordersEntry.average { recordersEntry.averageRecorders = append(recordersEntry.averageRecorders, resultEntry.Userid) }
+		}
+
+		recorders[date] = recordersEntry
+	}
+
+	
+	recordersArr := make([]RecordersEntry, 0)
+	for _, v := range recorders { recordersArr = append(recordersArr, v) }
+	sort.Slice(recordersArr, func (i int, j int) bool { return recordersArr[i].time.Before(recordersArr[j].time) })
+	
+	if len(recorders) == 0 { return 0, nil }
+	
+	records := 0
+
+	recordersEntry := recordersArr[0]
+	IsRecorder(&recordersEntry, uid, &records)
+	
+	for idx := 1; idx < len(recordersArr); idx++ {
+		UpdateRecordersEntry(&recordersEntry, recordersArr[idx], uid, &records)
+	}
+
+	return records, nil
+}
+
+func CountWRs(db *pgxpool.Pool, user User, eid int) (int, error) {
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id WHERE r.event_id = $1;`, eid);
+	if err != nil { return 0, err }
+
+	return CountRecordsInEventFromRows(rows, user.Id)
+}
+
+func CountCRs(db *pgxpool.Pool, user User, eid int) (int, error) {
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN countries ON countries.country_id = u.country_id WHERE r.event_id = $1 AND countries.continent_id = $2;`, eid, user.ContinentId);
+	if err != nil { return 0, err }
+
+	return CountRecordsInEventFromRows(rows, user.Id)
+}
+
+func CountNRsInEvent(db *pgxpool.Pool, user User, eid int) (int, error) {
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id WHERE r.event_id = $1 AND u.country_id = $2;`, eid, user.CountryId);
+	if err != nil { return 0, err }
+
+	return CountRecordsInEventFromRows(rows, user.Id)
+}
+
+func (p *ProfileType) LoadRecordCollection(db *pgxpool.Pool, user User) (error) {
+	for _, history := range p.ResultsHistory {
+		wr, err := CountWRs(db, user, history.EventId)
+		if err != nil { return err }
+		p.RecordCollection.WR += wr
+
+		cr, err := CountCRs(db, user, history.EventId)
+		if err != nil { return err }
+		p.RecordCollection.CR += cr
+
+		nr, err := CountNRsInEvent(db, user, history.EventId)
+		if err != nil { return err }
+		p.RecordCollection.NR += nr
+	}
+
+	return nil
+}
+
 func (p *ProfileType) Load(db *pgxpool.Pool, uid int) (error) {
 	err := p.LoadBasics(db, uid)
 	if err != nil { return err }
 
 	user, err := GetUserById(db, uid)
 	if err != nil { return err }
+	err = user.LoadContinent(db)
+	if err != nil { return err }
 
-	err = p.LoadPersonBests(db, user)
+	err = p.LoadPersonalBests(db, user)
+	if err != nil { return err }
+
+	err = p.LoadHistory(db, user)
+	if err != nil { return err }
+
+	err = p.LoadRecordCollection(db, user)
 	if err != nil { return err }
 
 	return nil

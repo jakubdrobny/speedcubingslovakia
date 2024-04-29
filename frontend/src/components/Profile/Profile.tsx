@@ -1,6 +1,11 @@
 import { Alert, CircularProgress, Grid, Stack, Typography } from "@mui/joy";
 import { LoadingState, ProfileType } from "../../Types";
-import { defaultProfile, getProfile, initialLoadingState } from "../../utils";
+import {
+  defaultProfile,
+  getError,
+  getProfile,
+  initialLoadingState,
+} from "../../utils";
 import { useEffect, useState } from "react";
 
 import MedalRecordColletion from "./MedalRecordColletion";
@@ -31,7 +36,13 @@ const Profile = () => {
   return (
     <div style={{ margin: "2em" }}>
       {loadingState.isLoading ? (
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <CircularProgress />
           &nbsp; <Typography level="h3">Loading profile...</Typography>
         </div>

@@ -184,11 +184,7 @@ func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble strin
 	scramble = strings.ReplaceAll(scramble, "\n", " ")
 	if scramblingcode == "clock" { scramble = strings.ReplaceAll(scramble, "+", "%2B") }
 	if scramblingcode == "222" { scramble = strings.ReplaceAll(scramble, "2'", "2") }
-	if scramblingcode == "sq1" {
-		fmt.Println("before", scramble)
-		scramble = strings.ReplaceAll(scramble, ", ", ",") 
-		fmt.Println("after", scramble)
-	}
+	if scramblingcode == "sq1" { scramble = strings.ReplaceAll(scramble, ", ", ",") }
 	url := strings.ReplaceAll(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble), " ", "%20")
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil { return "", err }

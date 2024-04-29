@@ -88,7 +88,7 @@ func (c *CompetitionData) GetEvents(db *pgxpool.Pool) (error) {
 		if err != nil { return err }
 		events = append(events, event)
 	}
-	events = append(events, CompetitionEvent{-1, "Overall", "", "", ""})
+	events = append(events, CompetitionEvent{-1, "", "Overall", "", "", ""})
 
 	c.Events = events
 
