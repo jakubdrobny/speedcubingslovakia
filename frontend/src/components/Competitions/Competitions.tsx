@@ -31,7 +31,7 @@ const Competitions = () => {
       })
       .catch((err) => {
         setIsLoading(false);
-        setError(err.message);
+        setError(getError(err));
       });
   }, [filterValue]);
 

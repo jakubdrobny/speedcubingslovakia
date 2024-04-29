@@ -13,6 +13,7 @@ import React, { ReactNode, createContext } from "react";
 import {
   competitionOnGoing,
   getCompetitionResults,
+  getError,
   getResultsFromCompetitionAndEvent,
   initialCompetitionLoadingState,
   initialCompetitionState,
@@ -93,7 +94,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         setLoadingState((ps) => ({
           ...ps,
           results: false,
-          error: err.response.data,
+          error: getError(err),
         }));
       });
   };
@@ -118,7 +119,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         setLoadingState((ps) => ({
           ...ps,
           results: false,
-          error: err.message,
+          error: getError(err),
         }));
       });
   };

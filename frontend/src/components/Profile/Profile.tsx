@@ -24,7 +24,7 @@ const Profile = () => {
         setLoadingState({ isLoading: false, error: "" });
       })
       .catch((err) => {
-        setLoadingState({ isLoading: false, error: err.response.data });
+        setLoadingState({ isLoading: false, error: getError(err) });
       });
   }, []);
 

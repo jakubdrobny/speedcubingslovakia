@@ -20,6 +20,7 @@ import {
 import {
   formatDate,
   getCompetitionById,
+  getError,
   initialCompetitionState,
 } from "../../utils";
 import { useContext, useEffect } from "react";
@@ -63,7 +64,7 @@ const Competition = () => {
         setLoadingState({
           ...loadingState,
           compinfo: false,
-          error: err.response.data,
+          error: getError(err),
         });
       });
 

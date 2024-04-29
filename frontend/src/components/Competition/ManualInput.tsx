@@ -1,6 +1,6 @@
 import { Button, Input } from "@mui/joy";
 import { CompetitionContextType, ResultEntry } from "../../Types";
-import { competitionOnGoing, reformatTime } from "../../utils";
+import { competitionOnGoing, getError, reformatTime } from "../../utils";
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
@@ -63,7 +63,7 @@ const TimerInput = () => {
         .then(() => setIsLoading(false))
         .catch((err) => {
           setIsLoading(false);
-          setError(err.message);
+          setError(getError(err));
         });
     }
   };

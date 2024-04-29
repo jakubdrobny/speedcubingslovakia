@@ -7,7 +7,7 @@ import {
   Table,
   Typography,
 } from "@mui/joy";
-import { getManageUsers, updateUserRoles } from "../../utils";
+import { getError, getManageUsers, updateUserRoles } from "../../utils";
 import { useEffect, useState } from "react";
 
 import { ManageRolesUser } from "../../Types";
@@ -27,7 +27,7 @@ const ManageRoles = () => {
       })
       .catch((err) => {
         setIsLoading(false);
-        setError(err.message);
+        setError(getError(err));
       });
   }, []);
 
@@ -51,7 +51,7 @@ const ManageRoles = () => {
       })
       .catch((err) => {
         setIsLoading(false);
-        setError(err.message);
+        setError(getError(err));
       });
   };
 

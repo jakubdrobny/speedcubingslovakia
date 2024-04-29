@@ -9,6 +9,7 @@ import {
 import { East, Keyboard, Timer, West } from "@mui/icons-material";
 import {
   competitionOnGoing,
+  getError,
   getResultsFromCompetitionAndEvent,
 } from "../../utils";
 import { useContext, useEffect, useState } from "react";
@@ -54,7 +55,7 @@ const Compete = () => {
         setLoadingState({
           ...loadingState,
           results: false,
-          error: err.response.data,
+          error: getError(err),
         })
       );
   };

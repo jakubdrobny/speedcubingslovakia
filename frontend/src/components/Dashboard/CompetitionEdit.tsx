@@ -25,6 +25,7 @@ import {
   authorizeAdmin,
   formatCompetitionDateForInput,
   getAvailableEvents,
+  getError,
   initialCompetitionState,
   updateCompetition,
 } from "../../utils";
@@ -61,7 +62,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
           }
         })
         .catch((err) => {
-          setError(err.message);
+          setError(getError(err));
         });
     }
 
@@ -72,7 +73,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
       })
       .catch((err) => {
         setIsLoading(false);
-        setError(err.message);
+        setError(getError(err));
       });
   }, []);
 
@@ -102,7 +103,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
       })
       .catch((err) => {
         setIsLoading(false);
-        setError(err.message);
+        setError(getError(err));
       });
   };
 

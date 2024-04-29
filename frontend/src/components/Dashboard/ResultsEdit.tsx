@@ -22,6 +22,7 @@ import { Check, Close } from "@mui/icons-material";
 import {
   authorizeAdmin,
   getAvailableEvents,
+  getError,
   getResults,
   logOut,
   reformatTime,
@@ -57,7 +58,7 @@ const ResultsEdit = () => {
         setIsLoading((ps) => ({ ...ps, events: false }));
       })
       .catch((err) => {
-        setError(err.message);
+        setError(getError(err));
         setIsLoading((ps) => ({ ...ps, events: false }));
       });
   }, []);
@@ -77,7 +78,7 @@ const ResultsEdit = () => {
       })
       .catch((err) => {
         setIsLoading((ps) => ({ ...ps, results: false }));
-        setError(err.message);
+        setError(getError(err));
       });
   };
 
@@ -156,7 +157,7 @@ const ResultsEdit = () => {
       .then((res) => fetchResults())
       .catch((err) => {
         setIsLoading((ps) => ({ ...ps, results: false }));
-        setError(err.message);
+        setError(getError(err));
       });
   };
 

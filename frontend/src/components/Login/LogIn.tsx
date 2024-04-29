@@ -1,16 +1,16 @@
 import { Alert, CircularProgress, Grid, Typography } from "@mui/joy";
 import { AuthContextType, AuthState } from "../../Types";
+import { getError, logIn } from "../../utils";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AuthContext } from "../../context/AuthContext";
-import { logIn } from "../../utils";
 
 const LogIn = () => {
   const { setAuthState } = useContext(AuthContext) as AuthContextType;
   const [loadingState, setLoadingState] = useState<{
     loading: boolean;
-    error: "";
+    error: string;
   }>({ loading: false, error: "" });
   const [searchParams, _] = useSearchParams();
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const LogIn = () => {
         navigate("/", { replace: true });
       })
       .catch((err) => {
-        setLoadingState({ loading: false, error: err.message });
+        setLoadingState({ loading: false, error: getError(err) });
       });
   }, []);
 

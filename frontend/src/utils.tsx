@@ -12,9 +12,9 @@ import {
   ProfileType,
   ResultEntry,
 } from "./Types";
+import axios, { AxiosError } from "axios";
 
 import Cookies from "universal-cookie";
-import axios from "axios";
 
 export const loadFilteredCompetitions = async (
   filterValue: FilterValue
@@ -404,4 +404,10 @@ export const defaultProfile: ProfileType = {
   medalCollection: { gold: "", silver: "", bronze: "" },
   recordCollection: { wr: "", cr: "", nr: "" },
   resultsHistory: [],
+};
+
+export const getError = (err: AxiosError): string => {
+  if (err.response?.status === 401)
+    return "Unauthorized/token expired. Try to re-login.";
+  return err.response?.data as string;
 };
