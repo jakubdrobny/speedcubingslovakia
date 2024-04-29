@@ -415,7 +415,6 @@ export const getError = (err: AxiosError): string => {
 
 export const getUsers = async (searchQuery: string): Promise<SearchUser[]> => {
   if (searchQuery === "") searchQuery = "_";
-  return Promise.resolve([{ username: "Jakub Drobny", wcaid: "2016DROB01" }]);
   const response = await axios.get(`/api/users/search?query=${searchQuery}`);
   return response.data;
 };

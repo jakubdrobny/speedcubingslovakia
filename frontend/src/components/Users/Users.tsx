@@ -37,7 +37,7 @@ const Users = () => {
   };
 
   return (
-    <Stack sx={{ margin: "1em 0" }} spacing={2}>
+    <Stack sx={{ margin: "1em" }} spacing={2}>
       <Typography level="h2">Find users</Typography>
       <FormControl disabled={loadingState.isLoading}>
         <FormLabel>Enter WCA ID or username:</FormLabel>
@@ -45,6 +45,8 @@ const Users = () => {
           placeholder="Enter WCA ID or username... (eg. 2016DROB01)"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => (e.key === "Enter" ? searchForUsers() : null)}
+          autoFocus
           startDecorator={
             <Button
               startDecorator={<Search />}
@@ -56,7 +58,10 @@ const Users = () => {
             </Button>
           }
         />
-        <FormHelperText>Leave empty for all users.</FormHelperText>
+        <FormHelperText>
+          Leave empty for all users. Matches WCA ID exactly, but name as a part
+          case insensitive.
+        </FormHelperText>
       </FormControl>
       {users.map((u: SearchUser) => (
         <Card sx={{ display: "flex", flexDirection: "row" }}>

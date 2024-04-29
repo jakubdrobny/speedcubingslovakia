@@ -70,6 +70,7 @@ func main() {
 		users.GET("/manage-roles", middlewares.AuthMiddleWare(db, envMap), controllers.GetManageRolesUsers(db))
 		users.PUT("/manage-roles", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutManageRolesUsers(db))
 		users.POST("/login", controllers.PostLogIn(db, envMap))
+		users.GET("/search", controllers.GetSearchUsers(db))
 		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized")});
 	}
 

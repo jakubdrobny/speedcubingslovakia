@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -137,5 +138,76 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		}
 		
 		c.IndentedJSON(http.StatusOK, authInfo)
+	}
+}
+
+func GetSearchUsers(db *pgxpool.Pool) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		query := c.Query("query")
+
+		searchUsers := make([]models.SearchUser, 0)
+		fmt.Println("query", query)
+		if query == "_" {
+			rows, err := db.Query(context.Background(), `SELECT u.name, (CASE WHEN u.wcaid LIKE '' THEN u.name ELSE u.wcaid END) AS wcaid FROM users u ORDER BY u.name;`)
+			if err != nil {
+				log.Println("ERR db.Query all in GetSearchUsers (" + query + "): " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed querying all users.")
+				return
+			}
+
+			for rows.Next() {
+				var searchUser models.SearchUser
+				err = rows.Scan(&searchUser.Username, &searchUser.WCAID)
+				if err != nil {
+					log.Println("ERR scanning all in GetSearchUsers with query (" + query + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed querying all users.")
+					return
+				}
+
+				searchUsers = append(searchUsers, searchUser)
+			}
+		} else {
+			rows, err := db.Query(context.Background(), `SELECT u.name, (CASE WHEN u.wcaid LIKE '' THEN u.name ELSE u.wcaid END) AS wcaid FROM users u WHERE u.wcaid LIKE $1 ORDER BY u.name;`, query)
+			if err != nil {
+				log.Println("ERR db.Query wcaid in GetSearchUsers (" + query + "): " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed querying users by WCAID.")
+				return
+			}
+
+			for rows.Next() {
+				var searchUser models.SearchUser
+				err = rows.Scan(&searchUser.Username, &searchUser.WCAID)
+				if err != nil {
+					log.Println("ERR scanning wcaid in GetSearchUsers (" + query + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed querying users by WCAID.")
+					return
+				}
+
+				searchUsers = append(searchUsers, searchUser)
+			}
+
+			if len(searchUsers) == 0 {
+				rows, err := db.Query(context.Background(), `SELECT u.name, (CASE WHEN u.wcaid LIKE '' THEN u.name ELSE u.wcaid END) AS wcaid FROM users u WHERE LOWER(u.name) LIKE LOWER('%' || $1 || '%') ORDER BY u.name;`, query)
+				if err != nil {
+					log.Println("ERR db.Query name in GetSearchUsers (" + query + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed querying users by name.")
+					return
+				}
+
+				for rows.Next() {
+					var searchUser models.SearchUser
+					err = rows.Scan(&searchUser.Username, &searchUser.WCAID)
+					if err != nil {
+						log.Println("ERR scanning name in GetSearchUsers (" + query + "): " + err.Error())
+						c.IndentedJSON(http.StatusInternalServerError, "Failed querying users by name.")
+						return
+					}
+
+					searchUsers = append(searchUsers, searchUser)
+				}
+			}
+		}
+
+		c.IndentedJSON(http.StatusOK, searchUsers)
 	}
 }
