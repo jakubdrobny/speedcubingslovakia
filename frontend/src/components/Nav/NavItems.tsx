@@ -7,7 +7,7 @@ import {
   ListItemDecorator,
   Stack,
 } from "@mui/joy";
-import { Language, ListAlt, Search } from "@mui/icons-material";
+import { Language, Leaderboard, ListAlt, Search } from "@mui/icons-material";
 
 import { AuthContext } from "../../context/AuthContext";
 import LanguageIcon from "@mui/icons-material/Language";
@@ -52,6 +52,17 @@ const NavItems: React.FC<{
           <Search />
         </ListItemDecorator>
         Users
+      </ListItemButton>
+      <ListItemButton
+        component={Link}
+        to="/rankings"
+        onClick={closeNav}
+        sx={{ justifyContent: "flex-end" }}
+      >
+        <ListItemDecorator>
+          <Leaderboard />
+        </ListItemDecorator>
+        Rankings
       </ListItemButton>
       {authState.isadmin && (
         <ListItemButton

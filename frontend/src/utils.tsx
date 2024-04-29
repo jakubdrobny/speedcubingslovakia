@@ -10,6 +10,8 @@ import {
   LoadingState,
   ManageRolesUser,
   ProfileType,
+  RankingsEntry,
+  RegionSelectGroup,
   ResultEntry,
   SearchUser,
 } from "./Types";
@@ -416,5 +418,23 @@ export const getError = (err: AxiosError): string => {
 export const getUsers = async (searchQuery: string): Promise<SearchUser[]> => {
   if (searchQuery === "") searchQuery = "_";
   const response = await axios.get(`/api/users/search?query=${searchQuery}`);
+  return response.data;
+};
+
+export const getRegionGroups = async (): Promise<RegionSelectGroup[]> => {
+  const response = await axios.get("/api/rankings/regions/grouped");
+  return response.data;
+};
+
+export const getRankings = async (
+  eid: number,
+  single: boolean,
+  region: string
+): Promise<RankingsEntry[]> => {
+  const response = await axios.get(
+    `/api/rankings/results?eid=${eid}&type=${
+      single ? "single" : "average"
+    }&region=${region}`
+  );
   return response.data;
 };

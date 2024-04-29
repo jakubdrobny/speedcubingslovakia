@@ -256,3 +256,18 @@ export type SearchUser = {
   username: string;
   wcaid: string;
 };
+
+export type RegionSelectGroup = {
+  groupName: string;
+  groupMembers: string[];
+};
+
+export type RankingsEntry = {
+  username: string;
+  country_iso2: string;
+  country_name: string;
+  result: string;
+  competitionName: string;
+  competitionId: string;
+  times: string[];
+};

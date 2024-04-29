@@ -76,6 +76,8 @@ func main() {
 
 	rankings := api_v1.Group("/rankings")
 	{
+		rankings.GET("/results", controllers.GetRankings(db))
+		rankings.GET("/regions/grouped", controllers.GetRegionsGrouped(db))
 		rankings.GET("/profile/:id", controllers.GetProfileResults(db))
 	}
 

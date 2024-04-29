@@ -207,3 +207,35 @@ func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble strin
 
 	return respBodyStr, nil
 }
+
+func GetContinents(db *pgxpool.Pool) ([]string, error) {
+	rows, err := db.Query(context.Background(), `SELECT c.name FROM continents c;`)
+	if err != nil { return []string{}, err }
+
+	continents := make([]string, 0)
+	for rows.Next() {
+		var continentName string
+		err = rows.Scan(&continentName)
+		if err != nil { return []string{}, err }
+
+		continents = append(continents, continentName)
+	}
+	
+	return continents, nil
+}
+
+func GetCountries(db *pgxpool.Pool) ([]string, error) {
+	rows, err := db.Query(context.Background(), `SELECT c.name FROM countries c;`)
+	if err != nil { return []string{}, err }
+
+	countries := make([]string, 0)
+	for rows.Next() {
+		var countryName string
+		err = rows.Scan(&countryName)
+		if err != nil { return []string{}, err }
+
+		countries = append(countries, countryName)
+	}
+	
+	return countries, nil
+}
