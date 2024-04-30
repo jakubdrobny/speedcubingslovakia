@@ -4,12 +4,13 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
@@ -50,11 +51,25 @@ type RankingsEntry struct {
 	Result string `json:"result"`
 	CompetitionId string `json:"competitionId"`
 	CompetitionName string `json:"competitionName"`
-	Times []string `json:"solves"`
+	Times []string `json:"times"`
 }
 
-func ProcessRankingsRows(rows pgx.Rows, single bool) ([]RankingsEntry, error) {
-	return []RankingsEntry{}, nil
+func MergeNonUniqueRankings(rankings []RankingsEntry) ([]RankingsEntry) {
+	result := make([]RankingsEntry, 0)
+	best := make(map[string]RankingsEntry)
+
+	for _, rankingsEntry := range rankings {
+		entry, ok := best[rankingsEntry.Username]
+		if !ok || utils.ParseSolveToMilliseconds(entry.Result) > utils.ParseSolveToMilliseconds(rankingsEntry.Result) {
+			best[rankingsEntry.Username] = rankingsEntry
+		}
+	}
+
+	for _, v := range best { result = append(result, v) }
+
+	sort.Slice(result, func (i int, j int) bool { return utils.ParseSolveToMilliseconds(result[i].Result) < utils.ParseSolveToMilliseconds(result[j].Result)})
+
+	return result
 }
 
 func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
@@ -67,56 +82,93 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		_type := c.Query("type")
-		if _type != "Single" && _type != "Average" {
-			log.Println("ERR invalid type in GetRankings (" + _type + "): " + err.Error())
+		if _type != "single" && _type != "average" {
+			log.Println("ERR invalid type in GetRankings (" + _type + "): invalid type, should be single/average.")
 			c.IndentedJSON(http.StatusInternalServerError, "Invalid type (neither single nor average).")
 			return
 		}
-		single := _type == "Single"
+		single := _type == "single"
 
-		region := c.Query("region")
-		regionSplit := strings.Split(region, "|")
-		if len(regionSplit) != 2 || (regionSplit[1] != "World" && regionSplit[1] != "Continent" && regionSplit[1] != "Country") {
-			log.Println("ERR region in GetRankings (" + region + "): " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Invalid region/region format.")
-			return
-		}
-		regionType := regionSplit[0]
-		regionPrecise := regionSplit[1]
+		regionType := c.Query("regionGroup")
+		regionPrecise := c.Query("region")
 
-		var rankings []RankingsEntry
+		rankings := make([]RankingsEntry, 0)
 
 		if regionType == "World" {
-			rows, err := db.Query(context.Background(), `SELECT u.name, c.iso2, c.name, r.competition_id, comp.name FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.user_id JOIN competitions comp ON comp.competition_id = r.competition_id WHERE r.event_id = $1;`, eid)
+			rows, err := db.Query(context.Background(), `SELECT u.name, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN events e ON e.event_id = r.event_id WHERE r.event_id = $1;`, eid)
 			if err != nil {
-				log.Println("ERR db.Query (World) in GetRankings (" + region + "): " + err.Error())
+				log.Println("ERR db.Query (World) in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rankings entries from database.")
 				return
 			}
 
-			rankings, err = ProcessRankingsRows(rows, single)
-			if err != nil {
-				log.Println("ERR ProcessRankingsRows in GetRankings (" + region + "): " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to process rankings entries from database.")
-				return
+			for rows.Next() {
+				var rankingsEntry RankingsEntry
+				var resultsEntry models.ResultEntry
+				err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format)
+				if err != nil {
+					log.Println("ERR scanning rows in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
+					return
+				}
+
+				if single {
+					rankingsEntry.Result = resultsEntry.SingleFormatted()
+					if utils.ParseSolveToMilliseconds(rankingsEntry.Result) >= constants.VERY_SLOW { continue; }
+					rankingsEntry.Times = make([]string, 0)
+				} else {
+					resultFormatted, err := resultsEntry.AverageFormatted()
+					if err != nil {
+						log.Println("ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+						c.IndentedJSON(http.StatusInternalServerError, "Failed to calculate average in rankings entry.")
+						return
+					}
+					rankingsEntry.Result = resultFormatted
+					if utils.ParseSolveToMilliseconds(rankingsEntry.Result) >= constants.VERY_SLOW { continue; }
+					rankingsEntry.Times, _ = resultsEntry.GetFormattedTimes()
+				}
+				rankings = append(rankings, rankingsEntry)
 			}
 		} else {
 			regionTypeColumn := "cont.name"
 			if regionType == "Country" { regionTypeColumn = "c.name" }
-			rows, err := db.Query(context.Background(), `SELECT u.name, c.iso2, c.name, r.competition_id, comp.name FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.user_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id WHERE r.event_id = $1 AND ` + regionTypeColumn + ` = $2;`, eid, regionPrecise)
+			rows, err := db.Query(context.Background(), `SELECT u.name, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id WHERE r.event_id = $1 AND ` + regionTypeColumn + ` = $2;`, eid, regionPrecise)
 			if err != nil {
-				log.Println("ERR db.Query (" + regionType + ") in GetRankings (" + region + "): " + err.Error())
+				log.Println("ERR db.Query (" + regionType + ") in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rankings entries from database.")
 				return
 			}
 
-			rankings, err = ProcessRankingsRows(rows, single)
-			if err != nil {
-				log.Println("ERR ProcessRankingsRows (" + regionType + ") in GetRankings (" + region + "): " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to process rankings entries from database.")
-				return
+			for rows.Next() {
+				var rankingsEntry RankingsEntry
+				var resultsEntry models.ResultEntry
+				err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format)
+				if err != nil {
+					log.Println("ERR scanning rows in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
+					return
+				}
+
+				if single {
+					rankingsEntry.Result = resultsEntry.SingleFormatted()
+					if utils.ParseSolveToMilliseconds(rankingsEntry.Result) >= constants.VERY_SLOW { continue; }
+					rankingsEntry.Times = make([]string, 0)
+				} else {
+					resultFormatted, err := resultsEntry.AverageFormatted()
+					if err != nil {
+						log.Println("ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+						c.IndentedJSON(http.StatusInternalServerError, "Failed to calculate average in rankings entry.")
+						return
+					}
+					rankingsEntry.Result = resultFormatted
+					if utils.ParseSolveToMilliseconds(rankingsEntry.Result) >= constants.VERY_SLOW { continue; }
+					rankingsEntry.Times = resultsEntry.GetSolves()
+				}
+				rankings = append(rankings, rankingsEntry)
 			}
 		}
+
+		rankings = MergeNonUniqueRankings(rankings)
 
 		c.IndentedJSON(http.StatusOK, rankings)
 	}

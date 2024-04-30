@@ -429,12 +429,14 @@ export const getRegionGroups = async (): Promise<RegionSelectGroup[]> => {
 export const getRankings = async (
   eid: number,
   single: boolean,
+  regionGroup: string,
   region: string
 ): Promise<RankingsEntry[]> => {
   const response = await axios.get(
     `/api/rankings/results?eid=${eid}&type=${
       single ? "single" : "average"
-    }&region=${region}`
+    }&regionGroup=${regionGroup}&region=${region}`
   );
+  console.log(response.data);
   return response.data;
 };

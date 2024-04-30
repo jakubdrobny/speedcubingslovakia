@@ -1,19 +1,10 @@
-import {
-  Button,
-  ButtonGroup,
-  List,
-  ListItem,
-  Select,
-  Stack,
-  Typography,
-} from "@mui/joy";
+import { Alert, Button, ButtonGroup, Stack, Typography } from "@mui/joy";
 import {
   CompetitionEvent,
   LoadingState,
   RankingsEntry,
   RegionSelectGroup,
 } from "../../Types";
-import Option, { optionClasses } from "@mui/joy/Option";
 import {
   getAvailableEvents,
   getError,
@@ -61,7 +52,8 @@ const Rankings = () => {
     getRankings(
       eventsRef.current[currentEventIdxRef.current].id,
       singleRef.current,
-      regionValueRef.current
+      regionValueRef.current.split("+")[0],
+      regionValueRef.current.split("+")[1]
     )
       .then((res: RankingsEntry[]) => {
         setRankings(res);
@@ -146,7 +138,15 @@ const Rankings = () => {
           ))}
         </select>
       </Stack>
-      <RankingsTable rankings={rankings} single={single} />
+      {loadingState.error ? (
+        <Alert color="danger">{loadingState.error}</Alert>
+      ) : (
+        <RankingsTable
+          rankings={rankings}
+          single={single}
+          loading={loadingState.isLoading}
+        />
+      )}
     </Stack>
   );
 };

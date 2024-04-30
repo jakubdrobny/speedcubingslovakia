@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Table from "@mui/joy/Table";
+import { getError } from "../../utils";
 
 const Competitions = () => {
   const [competitionData, setCompetitionData] = useState<CompetitionData[]>([]);
