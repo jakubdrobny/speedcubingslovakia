@@ -239,3 +239,14 @@ func GetCountries(db *pgxpool.Pool) ([]string, error) {
 	
 	return countries, nil
 }
+
+func NextMonday() (time.Time) {
+	res := time.Now()
+
+	offset := (7 - int(res.Weekday() - time.Monday)) % 7
+	res = res.AddDate(0, 0, offset)
+
+	res = time.Date(res.Year(), res.Month(), res.Day(), 0, 0, 0, 0, res.Location())
+
+	return res
+}

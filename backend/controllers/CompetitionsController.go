@@ -2,14 +2,17 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
 
@@ -98,6 +101,47 @@ func GetCompetitionById(db *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
+func CreateCompetition(db *pgxpool.Pool, competition models.CompetitionData) (string, string) {
+	competition.RecomputeCompetitionId()
+	err := competition.GenerateScrambles()
+	if err != nil { return "ERR GenerateScrambles in PostCompetition: " + err.Error(), "Failed to generate scrambles." }
+
+	tx, err := db.Begin(context.Background())
+	if err != nil {
+		tx.Rollback(context.Background())
+		return "ERR db.Begin in PostCompetition: " + err.Error(), "Failed to start transaction."
+	}
+
+	_, err = tx.Exec(context.Background(), `INSERT INTO competitions (competition_id, name, startdate, enddate) VALUES ($1,$2,$3,$4);`, competition.Id, competition.Name, competition.Startdate, competition.Enddate)
+	if err != nil {
+		tx.Rollback(context.Background())
+		return "ERR tx.Exec INSERT INTO competitions in PostCompetition: " + err.Error(), "Failed inserting competition into database."
+	}
+
+	for _, event := range competition.Events {
+		_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1,$2);`, competition.Id, event.Id)
+		if err != nil {
+			tx.Rollback(context.Background())
+			return "ERR tx.Exec INSERT INTO competition_events in PostCompetition: " + err.Error(), "Failed to insert competition events connections into database."
+		}
+	}
+
+	for _, scrambleSet := range competition.Scrambles {
+		for scrambleIdx, scramble := range scrambleSet.Scrambles {
+			_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order", svgimg) VALUES ($1,$2,$3,$4,$5);`, scramble.Scramble, scrambleSet.Event.Id, competition.Id, scrambleIdx + 1, scramble.Svgimg)
+			if err != nil {
+				tx.Rollback(context.Background())
+				return "ERR tx.Exec INSERT INTO scrambles in PostCompetition: " + err.Error(), "Failed to insert scrambles into database."
+			}
+		}
+	}
+
+	err = tx.Commit(context.Background())
+	if err != nil { return "ERR tx.commit in PostCompetition: " + err.Error(), "Failed to finish transaction." }
+
+	return "", ""
+}
+
 func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var competition models.CompetitionData
@@ -108,57 +152,11 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		competition.RecomputeCompetitionId()
-		err := competition.GenerateScrambles()
-		if err != nil {
-			log.Println("ERR GenerateScrambles in PostCompetition: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to generate scrambles.")
+		errLog, errOut := CreateCompetition(db, competition)
+		if errLog != "" && errOut != "" {
+			log.Println(errLog)
+			c.IndentedJSON(http.StatusInternalServerError, errOut)
 			return
-		}
-
-		tx, err := db.Begin(context.Background())
-		if err != nil {
-			log.Println("ERR db.Begin in PostCompetition: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to start transaction.")
-			tx.Rollback(context.Background())
-			return
-		}
-
-		_, err = tx.Exec(context.Background(), `INSERT INTO competitions (competition_id, name, startdate, enddate) VALUES ($1,$2,$3,$4);`, competition.Id, competition.Name, competition.Startdate, competition.Enddate)
-		if err != nil {
-			log.Println("ERR tx.Exec INSERT INTO competitions in PostCompetition: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed inserting competition into database.")
-			tx.Rollback(context.Background())
-			return
-		}
-
-		for _, event := range competition.Events {
-			_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1,$2);`, competition.Id, event.Id)
-			if err != nil {
-				log.Println("ERR tx.Exec INSERT INTO competition_events in PostCompetition: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to insert competition events connections into database.")
-				tx.Rollback(context.Background())
-				return
-			}
-		}
-
-		for _, scrambleSet := range competition.Scrambles {
-			for scrambleIdx, scramble := range scrambleSet.Scrambles {
-				_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order", svgimg) VALUES ($1,$2,$3,$4,$5);`, scramble.Scramble, scrambleSet.Event.Id, competition.Id, scrambleIdx + 1, scramble.Svgimg)
-				if err != nil {
-					log.Println("ERR tx.Exec INSERT INTO scrambles in PostCompetition: " + err.Error())
-					c.IndentedJSON(http.StatusInternalServerError, "Failed to insert scrambles into database.")
-					tx.Rollback(context.Background())
-					return
-				}
-			}
-		}
-
-		err = tx.Commit(context.Background())
-		if err != nil {
-			log.Println("ERR tx.commit in PostCompetition: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to finish transaction.")
-			return	
 		}
 
 		c.IndentedJSON(http.StatusCreated, competition)
@@ -229,4 +227,55 @@ func GetResultsFromCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 
 		c.IndentedJSON(http.StatusAccepted, competitionResults)
 	}
+}
+
+func GetNewWeeklyCompetitionInfo(db *pgxpool.Pool) (models.CompetitionData, error) {
+	var competition models.CompetitionData
+
+	rows, err := db.Query(context.Background(), `SELECT c.name, c.enddate FROM competitions c WHERE c.competition_id LIKE ('WeeklyCompetition%') ORDER BY c.competition_id DESC;`)
+	if err != nil { return models.CompetitionData{}, err }
+
+	competition.Name = "Weekly Competition 1"
+	competition.Startdate = utils.NextMonday()
+	for rows.Next() {
+		var latest models.CompetitionData
+		err = rows.Scan(&latest.Name, &latest.Enddate)
+		if err != nil { return models.CompetitionData{}, err }
+
+		nameSplit := strings.Split(latest.Name, " ")
+		if len(nameSplit) != 3 { return models.CompetitionData{}, fmt.Errorf("Invalid last competition name format: " + latest.Name + ". Should be Weekly Competition {number}")}
+
+		newCompNum, err := strconv.Atoi(nameSplit[2])
+		if err != nil { return models.CompetitionData{}, err }
+
+		competition.Name = "Weekly Competition " + fmt.Sprint(newCompNum + 1)
+		competition.Startdate = latest.Enddate
+		break
+	}
+
+	competition.Enddate = competition.Startdate.AddDate(0, 0, 7)
+
+	events, err := models.GetAvailableEvents(db)
+	if err != nil { return models.CompetitionData{}, err }
+	competition.Events = events
+
+	return competition, nil
+}
+
+func AddNewWeeklyCompetition(db *pgxpool.Pool) {
+	competition, err := GetNewWeeklyCompetitionInfo(db)
+	if err != nil {
+		log.Println("ERR failed GetNewWeeklyCompetitionInfo in AddNewWeeklyCompetition: " + err.Error())
+		return
+	}
+
+	errLog, errOut := CreateCompetition(db, competition)
+	if errLog != "" && errOut != "" {
+		log.Println(errLog)
+		log.Println("ERR_OUT: " + errOut)
+		return
+	}
+
+	log.Println("Competition successfully created !!!")
+	log.Println(competition)
 }

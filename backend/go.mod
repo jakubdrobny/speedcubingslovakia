@@ -13,6 +13,7 @@ require (
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/joho/godotenv v1.5.1
+	github.com/robfig/cron v1.2.0
 	github.com/tdewolff/canvas v0.0.0-20240420213651-d5a04e36ef50
 	github.com/tdewolff/minify/v2 v2.20.20
 )

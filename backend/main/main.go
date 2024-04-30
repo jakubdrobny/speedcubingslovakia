@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/robfig/cron"
 )
 
 func main() {
@@ -29,6 +30,10 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
+
+	cronScheduler := cron.New()
+	cronScheduler.AddFunc("@every 7d", func () { controllers.AddNewWeeklyCompetition(db) })
+	cronScheduler.Start()
 
 	router := gin.Default()
 

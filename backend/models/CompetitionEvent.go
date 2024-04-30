@@ -17,7 +17,7 @@ type CompetitionEvent struct {
 }
 
 func GetEventById(db *pgxpool.Pool, eventId int) (CompetitionEvent, error) {
-	rows, err := db.Query(context.Background(), "SELECT e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode FROM events e WHERE e.event_id = $1 ORDER BY e.\"order\";", eventId);
+	rows, err := db.Query(context.Background(), "SELECT e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode FROM events e WHERE e.event_id = $1;", eventId);
 	if err != nil { return CompetitionEvent{}, err }
 
 	var event CompetitionEvent
