@@ -115,7 +115,7 @@ const App = () => {
       <Grid
         xs={12}
         sx={{
-          position: "absolute",
+          position: "fixed",
           bottom: 0,
           width: "100%",
           display: "flex",
