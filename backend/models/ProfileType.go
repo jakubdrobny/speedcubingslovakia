@@ -357,7 +357,7 @@ func CreateEventHistoryForUser(db *pgxpool.Pool, user User, event CompetitionEve
 		if err != nil { return ProfileTypeResultHistory{}, err }
 		historyEntry.Solves, err = resultEntry.GetFormattedTimes()
 		if err != nil { return ProfileTypeResultHistory{}, err }
-		historyEntry.Place, err = ComputePlacement(db, resultEntry.Username, resultEntry.Competitionid, resultEntry.Eventid)
+		historyEntry.Place, err = ComputePlacement(db, resultEntry.Username, resultEntry.Competitionid, event.Id)
 		if err != nil { return ProfileTypeResultHistory{}, err }
 		
 		canIncreaseMedalCount := (event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single) < constants.VERY_SLOW) || ((event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average) < constants.VERY_SLOW))
