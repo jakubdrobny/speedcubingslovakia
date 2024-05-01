@@ -111,7 +111,7 @@ const App = () => {
         </Routes>
       </Grid>
       <Grid xs={0} lg={1} xl={2} />
-      <Grid xs={12} sx={{ height: "3em" }} />{" "}
+      <Grid xs={12} sx={{ height: "8em" }} />{" "}
       <Grid
         xs={12}
         sx={{
