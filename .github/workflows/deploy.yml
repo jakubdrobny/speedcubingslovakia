@@ -45,6 +45,8 @@ jobs:
           script: |
             cd ${{ secrets.WORKDIR }}/frontend
             rm -rf build
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
             npm install
             npm run build
             rm -rf ${{ secrets.FRONTEND_DEPLOY_DIR }}/*
