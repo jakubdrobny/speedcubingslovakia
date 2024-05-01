@@ -56,15 +56,7 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) (error) {
 			var scramble Scramble
 			var scrambleId int
 			err := rows.Scan(&scrambleId, &scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Svgimg)
-			if true || err != nil || scramble.Svgimg == "" {
-				if true || scramble.Svgimg == "" || err.Error() == "can't scan into dest[7]: cannot scan NULL into *string" {
-					newScrambleImg, err := utils.RegenerateImageForScramble(db, scrambleId, scramble.Scramble, scrambleSet.Event.Scramblingcode)
-					if err != nil { return err }
-					scramble.Svgimg = newScrambleImg
-				} else {
-					return err
-				}
-			}
+			if err != nil { return err }
 			scrambleSet.AddScramble(scramble)
 		}
 		
