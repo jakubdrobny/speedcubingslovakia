@@ -67,6 +67,7 @@ type ProfileTypeResultHistory struct {
 	EventId int `json:"eventId"`
 	EventName string `json:"eventName"`
 	EventIconCode string `json:"eventIconcode"`
+	EventFormat string `json:"eventFormat"`
 	History []ProfileTypeResultHistoryEntry `json:"history"`
 }
 
@@ -336,6 +337,7 @@ func CreateEventHistoryForUser(db *pgxpool.Pool, user User, event CompetitionEve
 	history.EventId = event.Id
 	history.EventName = event.Fulldisplayname
 	history.EventIconCode = event.Iconcode
+	history.EventFormat = event.Format
 
 	rows, err := db.Query(context.Background(), `SELECT r.competition_id, c.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, u.name, e.format FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 AND r.event_id = $2 ORDER BY c.enddate DESC;`, user.Id, event.Id)
 	if err != nil { return ProfileTypeResultHistory{}, err }
@@ -358,13 +360,16 @@ func CreateEventHistoryForUser(db *pgxpool.Pool, user User, event CompetitionEve
 		historyEntry.Place, err = ComputePlacement(db, resultEntry.Username, resultEntry.Competitionid, resultEntry.Eventid)
 		if err != nil { return ProfileTypeResultHistory{}, err }
 		
-		switch historyEntry.Place {
-		case "1":
-			p.MedalCollection.Gold++
-		case "2":
-			p.MedalCollection.Silver++
-		case "3":
-			p.MedalCollection.Bronze++
+		canIncreaseMedalCount := (event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single) < constants.VERY_SLOW) || ((event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average) < constants.VERY_SLOW))
+		if canIncreaseMedalCount {
+			switch historyEntry.Place {
+				case "1":
+					p.MedalCollection.Gold++
+				case "2":
+					p.MedalCollection.Silver++
+				case "3":
+					p.MedalCollection.Bronze++
+			}
 		}
 
 		history.History = append(history.History, historyEntry)

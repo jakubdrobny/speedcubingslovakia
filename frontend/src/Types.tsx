@@ -241,6 +241,7 @@ export type ProfileTypeResultHistoryEntry = {
 export type ProfileTypeResultHistory = {
   eventName: string;
   eventIconcode: string;
+  eventFormat: string;
   history: ProfileTypeResultHistoryEntry[];
 };
 
