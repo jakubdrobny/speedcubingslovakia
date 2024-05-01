@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Grid, Stack, Typography } from "@mui/joy";
+import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { authorizeAdmin, setBearerIfPresent } from "./utils";
 import { useContext, useEffect } from "react";
 
@@ -8,9 +9,9 @@ import Competition from "./components/Competition/Competition";
 import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
 import Competitions from "./components/Competitions/Competitions";
 import Dashboard from "./components/Dashboard/Dashboard";
-import { Grid } from "@mui/joy";
 import Home from "./components/Home/Home";
 import LogIn from "./components/Login/LogIn";
+import { Mail } from "@mui/icons-material";
 import ManageRoles from "./components/Dashboard/ManageRoles";
 import NavHorizontal from "./components/Nav/NavHorizontal";
 import NavVertical from "./components/Nav/NavVertical";
@@ -111,6 +112,46 @@ const App = () => {
       </Grid>
       <Grid xs={0} lg={1} xl={2} />
       <Grid xs={12} sx={{ height: "3em" }} />{" "}
+      <Grid
+        xs={12}
+        sx={{
+          position: "absolute",
+          bottom: 0,
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "1em",
+          borderTop: "1px solid #D3D3D3",
+          zIndex: 1000,
+          backgroundColor: "white",
+        }}
+        component={Stack}
+        direction="column"
+      >
+        <Typography>
+          <b>Contact Us / Bug reporting:</b>
+        </Typography>
+        <Typography
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingTop: "0.25em",
+            backgroundColor: "white",
+            zIndex: 1000,
+          }}
+        >
+          <Mail />
+          &nbsp;
+          <Link
+            to="mailto:speedcubingsvk@gmail.com"
+            style={{ color: "#0B6BCB", textDecoration: "none" }}
+          >
+            Email
+          </Link>
+        </Typography>
+      </Grid>
       {/* padding at the bottom of page */}
     </Grid>
   );
