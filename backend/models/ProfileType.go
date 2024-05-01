@@ -353,7 +353,8 @@ func CreateEventHistoryForUser(db *pgxpool.Pool, user User, event CompetitionEve
 		if historyEntry.Single == "DNS" { continue }
 		historyEntry.Average, err = resultEntry.AverageFormatted()
 		if err != nil { return ProfileTypeResultHistory{}, err }
-		historyEntry.Solves = resultEntry.GetSolves()
+		historyEntry.Solves, err = resultEntry.GetFormattedTimes()
+		if err != nil { return ProfileTypeResultHistory{}, err }
 		historyEntry.Place, err = ComputePlacement(db, resultEntry.Username, resultEntry.Competitionid, resultEntry.Eventid)
 		if err != nil { return ProfileTypeResultHistory{}, err }
 		
