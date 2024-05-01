@@ -32,6 +32,7 @@ const ProfileListItem = () => {
   const goToProfile = () => {
     closeNav();
     navigate(`/profile/${authState.wcaid}`);
+    document.location.reload();
   };
 
   return (
