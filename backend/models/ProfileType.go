@@ -463,23 +463,28 @@ func CountRecordsInEventFromRows(rows pgx.Rows, uid int) (int, error) {
 		}
 
 		if singleMili < constants.VERY_SLOW {
-			if singleMili < recordersEntry.single { recordersEntry.singleRecorders = make([]int, 0)}
+			if singleMili < recordersEntry.single {
+				recordersEntry.single = singleMili
+				recordersEntry.singleRecorders = make([]int, 0)
+			}
 			if singleMili <= recordersEntry.single { recordersEntry.singleRecorders = append(recordersEntry.singleRecorders, resultEntry.Userid) }
 		}
 
 		if averageMili < constants.VERY_SLOW {
-			if averageMili < recordersEntry.average { recordersEntry.averageRecorders = make([]int, 0)}
+			if averageMili < recordersEntry.average {
+				recordersEntry.average = averageMili
+				recordersEntry.averageRecorders = make([]int, 0)
+			}
 			if averageMili <= recordersEntry.average { recordersEntry.averageRecorders = append(recordersEntry.averageRecorders, resultEntry.Userid) }
 		}
 
 		recorders[date] = recordersEntry
 	}
-
 	
 	recordersArr := make([]RecordersEntry, 0)
 	for _, v := range recorders { recordersArr = append(recordersArr, v) }
 	sort.Slice(recordersArr, func (i int, j int) bool { return recordersArr[i].time.Before(recordersArr[j].time) })
-	
+
 	if len(recorders) == 0 { return 0, nil }
 	
 	records := 0
