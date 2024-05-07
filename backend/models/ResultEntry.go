@@ -111,6 +111,8 @@ func (r *ResultEntry) Single(isfmc bool, scrambles []string) int {
 
 
 func (r *ResultEntry) IsSuspicous(isfmc bool, scrambles []string) bool {
+	return false
+
 	noOfSolves, err := utils.GetNoOfSolves(r.Format)
 	if err != nil {
 		return false
