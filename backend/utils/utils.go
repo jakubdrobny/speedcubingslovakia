@@ -27,6 +27,8 @@ func ParseSolveToMilliseconds(s string, isfmc bool, scramble string) int {
 	if s == "DNF" { return constants.DNF }
 	if s == "DNS" { return constants.DNS }
 
+	fmt.Println(s, isfmc, scramble)
+
 	if isfmc { return cube.ParseFMCSolutionToMilliseconds(s, scramble) }
 
 	if !strings.Contains(s, ".") { s += ".00" }
@@ -280,6 +282,7 @@ func GetScramblesByResultEntryId(db *pgxpool.Pool, eid int, cid string) ([]strin
 		idx++
 
 		if idx == 5 {
+			rows.Close()
 			break
 		}
 	}

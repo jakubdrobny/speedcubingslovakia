@@ -250,6 +250,8 @@ func GetNewWeeklyCompetitionInfo(db *pgxpool.Pool) (models.CompetitionData, erro
 
 		competition.Name = "Weekly Competition " + fmt.Sprint(newCompNum + 1)
 		competition.Startdate = latest.Enddate
+		
+		rows.Close()
 		break
 	}
 

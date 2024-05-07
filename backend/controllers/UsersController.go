@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -146,7 +145,6 @@ func GetSearchUsers(db *pgxpool.Pool) gin.HandlerFunc {
 		query := c.Query("query")
 
 		searchUsers := make([]models.SearchUser, 0)
-		fmt.Println("query", query)
 		if query == "_" {
 			rows, err := db.Query(context.Background(), `SELECT u.name, (CASE WHEN u.wcaid LIKE '' THEN u.name ELSE u.wcaid END) AS wcaid FROM users u ORDER BY u.name;`)
 			if err != nil {
