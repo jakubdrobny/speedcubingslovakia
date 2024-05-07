@@ -123,6 +123,7 @@ func GetKinchQueryRows(rawRows pgx.Rows, db *pgxpool.Pool) ([]KinchQueryRow, err
 		if competitionResult.WcaId == "" { competitionResult.WcaId = competitionResult.Username }
 
 		scrambles, err := utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
+		if err != nil { return []KinchQueryRow{}, err }
 		resultEntry.Scrambles = scrambles
 
 		rows = append(rows, KinchQueryRow{competitionResult, resultEntry})

@@ -29,7 +29,7 @@ type ResultEntry struct {
 	Solve5 string `json:"solve5"`
 	Comment string `json:"comment"`
 	Status ResultsStatus `json:"status"`
-	Scrambles []string `json:"scrambles"`
+	Scrambles []string `json:"-"`
 }
 
 func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
@@ -78,6 +78,7 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error 
 	if err != nil { return err }
 
 	r.Scrambles, err = utils.GetScramblesByResultEntryId(db, r.Eventid, r.Competitionid)
+	if err != nil { return err }
 
 	if len(valid) == 0 || (len(valid) > 0 && !valid[0]) {
 		err := r.Validate(db, isfmc, r.Scrambles)
