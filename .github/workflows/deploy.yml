@@ -5,6 +5,8 @@ jobs:
   Deploy:
     name: Deploy
     runs-on: ubuntu-latest
+    concurrency:
+      group: production
     steps:
       - name: Pull latest code
         uses: appleboy/ssh-action@v1.0.3
