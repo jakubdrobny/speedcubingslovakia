@@ -46,6 +46,7 @@ func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 
 type RankingsEntry struct {
 	Username string `json:"username"`
+	WcaId string `json:"wca_id"`
 	CountryISO2 string `json:"country_iso2"`
 	CountryName string `json:"country_name"`
 	Result string `json:"result"`
@@ -95,7 +96,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 		rankings := make([]RankingsEntry, 0)
 
 		if regionType == "World" {
-			rows, err := db.Query(context.Background(), `SELECT u.name, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN events e ON e.event_id = r.event_id WHERE r.event_id = $1;`, eid)
+			rows, err := db.Query(context.Background(), `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN events e ON e.event_id = r.event_id WHERE r.event_id = $1;`, eid)
 			if err != nil {
 				log.Println("ERR db.Query (World) in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rankings entries from database.")
@@ -105,12 +106,14 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 			for rows.Next() {
 				var rankingsEntry RankingsEntry
 				var resultsEntry models.ResultEntry
-				err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format)
+				err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.WcaId, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format)
 				if err != nil {
 					log.Println("ERR scanning rows in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
 					return
 				}
+
+				if rankingsEntry.WcaId == "" { rankingsEntry.WcaId = rankingsEntry.Username }
 
 				if single {
 					rankingsEntry.Result = resultsEntry.SingleFormatted()
@@ -132,7 +135,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 		} else {
 			regionTypeColumn := "cont.name"
 			if regionType == "Country" { regionTypeColumn = "c.name" }
-			rows, err := db.Query(context.Background(), `SELECT u.name, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id WHERE r.event_id = $1 AND ` + regionTypeColumn + ` = $2;`, eid, regionPrecise)
+			rows, err := db.Query(context.Background(), `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id WHERE r.event_id = $1 AND ` + regionTypeColumn + ` = $2;`, eid, regionPrecise)
 			if err != nil {
 				log.Println("ERR db.Query (" + regionType + ") in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rankings entries from database.")
@@ -142,12 +145,14 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 			for rows.Next() {
 				var rankingsEntry RankingsEntry
 				var resultsEntry models.ResultEntry
-				err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format)
+				err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.WcaId, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format)
 				if err != nil {
 					log.Println("ERR scanning rows in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
 					return
 				}
+
+				if rankingsEntry.WcaId == "" { rankingsEntry.WcaId = rankingsEntry.Username }
 
 				if single {
 					rankingsEntry.Result = resultsEntry.SingleFormatted()

@@ -30,6 +30,7 @@ const ProfileResultsHistory: React.FC<{
         >
           {resultsHistory.map((entry, idx) => (
             <span
+              key={idx}
               className={`cubing-icon event-${entry.eventIconcode} profile-cubing-icon-mock`}
               onClick={() => setCurrentHistoryIdx(idx)}
               style={{

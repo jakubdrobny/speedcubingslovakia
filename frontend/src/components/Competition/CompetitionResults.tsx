@@ -14,6 +14,7 @@ import { useContext, useEffect, useState } from "react";
 import { CompetitionContext } from "./CompetitionContext";
 import { CompetitionContextType } from "../../Types";
 import { Help } from "@mui/icons-material";
+import { Link } from "react-router-dom";
 
 const CompetitionResults = () => {
   const { competitionState, results, loadingState, fetchCompetitionResults } =
@@ -22,7 +23,7 @@ const CompetitionResults = () => {
     const format =
       competitionState?.events[competitionState?.currentEventIdx]?.format;
     if (!format || format?.length === 0) return true;
-    return format[0] != "b";
+    return format[0] !== "b";
   })();
   const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
   const isOverall =
@@ -146,7 +147,18 @@ const CompetitionResults = () => {
                 <tr key={idx}>
                   <td style={{ height: "1em", width: "1%" }}></td>
                   <td style={{ height: "1em", width: "3%" }}>{idx + 1}.</td>
-                  <td style={{ height: "1em" }}>{result.username}</td>
+                  <td style={{ height: "1em" }}>
+                    <Link
+                      to={`/profile/${result.wca_id}`}
+                      style={{
+                        color: "#0B6BCB",
+                        textDecoration: "none",
+                        fontWeight: 555,
+                      }}
+                    >
+                      {result.username}
+                    </Link>
+                  </td>
                   {(windowWidth >= WIN_SMALL ||
                     (isOverall && windowWidth >= WIN_VERYSMALL)) && (
                     <td style={{ height: "1em" }}>

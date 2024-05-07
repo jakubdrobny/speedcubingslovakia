@@ -182,6 +182,7 @@ export enum ResultsCompeteChoiceEnum {
 
 export type CompetitionResult = {
   username: string;
+  wca_id: string;
   country_name: string;
   country_iso2: string;
   single: string;
@@ -265,6 +266,7 @@ export type RegionSelectGroup = {
 
 export type RankingsEntry = {
   username: string;
+  wca_id: string;
   country_iso2: string;
   country_name: string;
   result: string;

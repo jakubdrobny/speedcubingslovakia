@@ -51,7 +51,16 @@ const RankingsTable: React.FC<{
                 <td style={{ height: "1em", width: "2%" }}></td>
                 <td style={{ height: "1em", width: "4%" }}>{idx + 1}.</td>
                 <td style={{ height: "1em", width: "10%" }}>
-                  {ranking.username}
+                  <Link
+                    to={`/profile/${ranking.wca_id}`}
+                    style={{
+                      color: "#0B6BCB",
+                      textDecoration: "none",
+                      fontWeight: 555,
+                    }}
+                  >
+                    {ranking.username}
+                  </Link>
                 </td>
                 <td style={{ height: "1em", textAlign: "right" }}>
                   <b>{ranking.result}</b>

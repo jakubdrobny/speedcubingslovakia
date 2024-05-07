@@ -15,6 +15,7 @@ import (
 
 type CompetitionResult struct {
 	Username string `json:"username"`
+	WcaId string `json:"wca_id"`
 	CountryName string `json:"country_name"`
 	CountryIso2 string `json:"country_iso2"`
 	Single string `json:"single"`
@@ -116,8 +117,10 @@ func GetKinchQueryRows(rawRows pgx.Rows) ([]KinchQueryRow, error) {
 		var competitionResult CompetitionResult
 		var resultEntry ResultEntry
 		
-		err := rawRows.Scan(&resultEntry.Userid, &competitionResult.Username, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible, &resultEntry.Eventid)
+		err := rawRows.Scan(&resultEntry.Userid, &competitionResult.WcaId, &competitionResult.Username, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible, &resultEntry.Eventid)
 		if err != nil { return []KinchQueryRow{}, err }
+
+		if competitionResult.WcaId == "" { competitionResult.WcaId = competitionResult.Username }
 
 		rows = append(rows, KinchQueryRow{competitionResult, resultEntry})
 	}
@@ -126,7 +129,7 @@ func GetKinchQueryRows(rawRows pgx.Rows) ([]KinchQueryRow, error) {
 }
 
 func GetOverallResults(db *pgxpool.Pool, cid string) ([]CompetitionResult, error) {
-	rawRows, err := db.Query(context.Background(), `SELECT u.user_id, u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.event_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1;`, cid)
+	rawRows, err := db.Query(context.Background(), `SELECT u.user_id, u.wcaid, u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.event_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1;`, cid)
 	if err != nil { return []CompetitionResult{}, err }
 	rows, err := GetKinchQueryRows(rawRows)
 	if err != nil { return []CompetitionResult{}, err }
@@ -156,7 +159,7 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 		return competitionResults, nil
 	}
 	
-	rows, err := db.Query(context.Background(), `SELECT u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1 AND r.event_id = $2;`, cid, eid)
+	rows, err := db.Query(context.Background(), `SELECT u.name, u.wcaid, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1 AND r.event_id = $2;`, cid, eid)
 	if err != nil { return []CompetitionResult{}, err }
 
 	competitionResults := make([]CompetitionResult, 0)
@@ -165,8 +168,10 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 		var competitionResult CompetitionResult
 		var resultEntry ResultEntry
 		
-		err = rows.Scan(&competitionResult.Username, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible)
+		err = rows.Scan(&competitionResult.Username, &competitionResult.WcaId, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible)
 		if err != nil { return []CompetitionResult{}, err }
+
+		if competitionResult.WcaId == "" { competitionResult.WcaId = competitionResult.Username }
 
 		if !resultEntry.Competed() || !resultEntry.Status.Visible { continue; }
 
