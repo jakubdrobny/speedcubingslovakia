@@ -29,6 +29,7 @@ type ResultEntry struct {
 	Solve5 string `json:"solve5"`
 	Comment string `json:"comment"`
 	Status ResultsStatus `json:"status"`
+	Scrambles []string `json:"scrambles"`
 }
 
 func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
@@ -40,9 +41,9 @@ func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
 	return nil;
 }
 
-func (r *ResultEntry) Validate(db *pgxpool.Pool, isfmc bool) (error) {
+func (r *ResultEntry) Validate(db *pgxpool.Pool, isfmc bool, scrambles []string) (error) {
 	var err error
-	if (r.IsSuspicous(isfmc)) {
+	if (r.IsSuspicous(isfmc, scrambles)) {
 		r.Status, err = GetResultsStatus(db, 1) // waitingForApproval
 		if err != nil { return err }
 	} else {
@@ -60,9 +61,26 @@ func IsValidTimePeriod(db *pgxpool.Pool, competitionId string) (bool, error) {
 	return competition.Startdate.Before(time.Now()) && time.Now().Before(competition.Enddate), nil
 }
 
+func (r *ResultEntry) LoadId(db *pgxpool.Pool) error {
+	rows, err := db.Query(context.Background(), `SELECT result_id FROM results WHERE user_id = $1 AND competition_id = $2 AND event_id = $3;`, r.Userid, r.Competitionid, r.Eventid)
+	if err != nil { return err }
+
+	for rows.Next() {
+		err = rows.Scan(&r.Id)
+		if err != nil { return nil }
+	}
+
+	return nil
+}
+
 func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error {
+	err := r.LoadId(db)
+	if err != nil { return err }
+
+	r.Scrambles, err = utils.GetScramblesByResultEntryId(db, r.Eventid, r.Competitionid)
+
 	if len(valid) == 0 || (len(valid) > 0 && !valid[0]) {
-		err := r.Validate(db, isfmc)
+		err := r.Validate(db, isfmc, r.Scrambles)
 		if err != nil { return err }
 	}
 
@@ -78,26 +96,26 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error 
 }
 
 
-func (r *ResultEntry) Single(isfmc bool) int {
+func (r *ResultEntry) Single(isfmc bool, scrambles []string) int {
 	res := math.MaxInt
 
-	utils.CompareSolves(&res, r.Solve1, isfmc)
-	utils.CompareSolves(&res, r.Solve2, isfmc)
-	utils.CompareSolves(&res, r.Solve3, isfmc)
-	utils.CompareSolves(&res, r.Solve4, isfmc)
-	utils.CompareSolves(&res, r.Solve5, isfmc)
+	utils.CompareSolves(&res, r.Solve1, isfmc, scrambles[0])
+	utils.CompareSolves(&res, r.Solve2, isfmc, scrambles[1])
+	utils.CompareSolves(&res, r.Solve3, isfmc, scrambles[2])
+	utils.CompareSolves(&res, r.Solve4, isfmc, scrambles[3])
+	utils.CompareSolves(&res, r.Solve5, isfmc, scrambles[4])
 
 	return res
 }
 
 
-func (r *ResultEntry) IsSuspicous(isfmc bool) bool {
+func (r *ResultEntry) IsSuspicous(isfmc bool, scrambles []string) bool {
 	noOfSolves, err := utils.GetNoOfSolves(r.Format)
 	if err != nil {
 		return false
 	}
 
-	curSingle, curAverage := r.Single(isfmc), r.Average(noOfSolves, isfmc)
+	curSingle, curAverage := r.Single(isfmc, scrambles), r.Average(noOfSolves, isfmc, scrambles)
 
 	recSingle, recAverage, err := utils.GetWorldRecords(r.Iconcode)
 	if err != nil { return false }
@@ -105,32 +123,32 @@ func (r *ResultEntry) IsSuspicous(isfmc bool) bool {
 	return float64(recSingle - curSingle) > 1e-9 || float64(recAverage - curAverage) > 1e-9;
 }
 
-func (r *ResultEntry) GetSolvesInMiliseconds(isfmc bool) []int {
+func (r *ResultEntry) GetSolvesInMiliseconds(isfmc bool, scrambles []string) []int {
 	values := make([]int, 0)
 
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve1, isfmc))
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve2, isfmc))
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve3, isfmc))
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve4, isfmc))
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve5, isfmc))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve1, isfmc, scrambles[0]))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve2, isfmc, scrambles[1]))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve3, isfmc, scrambles[2]))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve4, isfmc, scrambles[3]))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve5, isfmc, scrambles[4]))
 
 	return values;
 }
 
-func (r *ResultEntry) GetSolves() []string {
+func (r *ResultEntry) GetSolves(isfmc bool, scrambles []string) []string {
 	values := make([]string, 0)
 
-	values = append(values, r.Solve1)
-	values = append(values, r.Solve2)
-	values = append(values, r.Solve3)
-	values = append(values, r.Solve4)
-	values = append(values, r.Solve5)
+	values = append(values, utils.GetSolve(r.Solve1, isfmc, scrambles[0]))
+	values = append(values, utils.GetSolve(r.Solve2, isfmc, scrambles[1]))
+	values = append(values, utils.GetSolve(r.Solve3, isfmc, scrambles[2]))
+	values = append(values, utils.GetSolve(r.Solve4, isfmc, scrambles[3]))
+	values = append(values, utils.GetSolve(r.Solve5, isfmc, scrambles[4]))
 
 	return values;
 }
 
-func (r *ResultEntry) Average(noOfSolves int, isfmc bool) int {
-	solves := r.GetSolvesInMiliseconds(isfmc)
+func (r *ResultEntry) Average(noOfSolves int, isfmc bool, scrambles []string) int {
+	solves := r.GetSolvesInMiliseconds(isfmc, scrambles)
 	sort.Ints(solves)
 
 	sum := 0
@@ -195,22 +213,22 @@ func GetResultEntryById(db *pgxpool.Pool, resultId int) (ResultEntry, error) {
 	return resultEntry, nil
 }
 
-func (r *ResultEntry) SingleFormatted(isfmc bool) string {
-	return utils.FormatTime(r.Single(isfmc))
+func (r *ResultEntry) SingleFormatted(isfmc bool, scrambles []string) string {
+	return utils.FormatTime(r.Single(isfmc, scrambles), isfmc)
 }
 
-func (r *ResultEntry) AverageFormatted(isfmc bool) (string, error) {
+func (r *ResultEntry) AverageFormatted(isfmc bool, scrambles []string) (string, error) {
 	noOfSolves, err := utils.GetNoOfSolves(r.Format)
 	if err != nil { return "", err }
 
-	return utils.FormatTime(r.Average(noOfSolves, isfmc)), nil
+	return utils.FormatTime(r.Average(noOfSolves, isfmc, scrambles), isfmc), nil
 }
 
-func (r *ResultEntry) GetFormattedTimes(isfmc bool) ([]string, error) {
+func (r *ResultEntry) GetFormattedTimes(isfmc bool, scrambles []string) ([]string, error) {
 	noOfSolves, err := utils.GetNoOfSolves(r.Format)
 	if err != nil { return []string{}, err }
 
-	solves := r.GetSolves()
+	solves := r.GetSolves(isfmc, scrambles)
 	solves = solves[:noOfSolves]
 	if noOfSolves == 3 { return solves, nil }
 
@@ -222,7 +240,7 @@ func (r *ResultEntry) GetFormattedTimes(isfmc bool) ([]string, error) {
 	sortedSolves := make([]SolveTuple, 0)
 
 	for idx, val := range solves {
-		sortedSolves = append(sortedSolves, SolveTuple{val, utils.ParseSolveToMilliseconds(val, isfmc), idx})
+		sortedSolves = append(sortedSolves, SolveTuple{val, utils.ParseSolveToMilliseconds(val, false, ""), idx})
 	}
 
 	sort.Slice(sortedSolves, func (i int, j int) bool { return sortedSolves[i].TimeInMiliseconds < sortedSolves[j].TimeInMiliseconds })
@@ -234,4 +252,14 @@ func (r *ResultEntry) GetFormattedTimes(isfmc bool) ([]string, error) {
 
 func (r *ResultEntry) IsFMC() bool {
 	return r.Iconcode == "333fm"
+}
+
+func (r *ResultEntry) GetSolveIdx(s string) int {
+	if r.Solve1 == s { return 0 }
+	if r.Solve2 == s { return 1 }
+	if r.Solve3 == s { return 2 }
+	if r.Solve4 == s { return 3 }
+	if r.Solve5 == s { return 4 }
+
+	return -1
 }

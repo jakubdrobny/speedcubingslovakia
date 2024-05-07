@@ -29,8 +29,8 @@ type BestEntry struct {
 	Average int
 }
 
-func GetNewBest(pBest BestEntry, resultEntry ResultEntry, noOfSolves int) BestEntry {
-	single, average := resultEntry.Single(resultEntry.IsFMC()), resultEntry.Average(noOfSolves, resultEntry.IsFMC())
+func GetNewBest(pBest BestEntry, resultEntry ResultEntry, noOfSolves int, scrambles []string) BestEntry {
+	single, average := resultEntry.Single(resultEntry.IsFMC(), scrambles), resultEntry.Average(noOfSolves, resultEntry.IsFMC(), scrambles)
 	if single < pBest.Single { pBest.Single = single }
 	if average < pBest.Average { pBest.Average = average }
 
@@ -47,7 +47,7 @@ func ComputeBests(bests map[int]BestEntry, rows []KinchQueryRow) error {
 		
 		noOfSolves, err := utils.GetNoOfSolves(resultEntry.Format)
 		if err != nil { return err }
-		bests[eid] = GetNewBest(bests[eid], resultEntry, noOfSolves)
+		bests[eid] = GetNewBest(bests[eid], resultEntry, noOfSolves, resultEntry.Scrambles)
 	}
 
 	return nil
@@ -58,7 +58,7 @@ type KinchQueryRow struct {
 	ResultEntry ResultEntry
 }
 
-func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int) ([]CompetitionResult, error) {
+func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int, db *pgxpool.Pool) ([]CompetitionResult, error) {
 	cums := make(map[int]float64)
 	res := make(map[int]CompetitionResult)
 
@@ -72,18 +72,18 @@ func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int) ([
 		if err != nil { return []CompetitionResult{}, nil }
 
 		// KINCH RANKS - 4bld, 5bld, mbld sa berie single, 3bld a fmc lepsi z single,average a ostatne average
-		single := resultEntry.Single(resultEntry.IsFMC())
+		single := resultEntry.Single(resultEntry.IsFMC(), resultEntry.Scrambles)
 		singleContrib := float64(bests[resultEntry.Eventid].Single) / float64(single)
 		if single >= constants.VERY_SLOW { singleContrib = 0. }
 
-		average := resultEntry.Average(noOfSolves, resultEntry.IsFMC())
+		average := resultEntry.Average(noOfSolves, resultEntry.IsFMC(), resultEntry.Scrambles)
 		averageContrib := float64(bests[resultEntry.Eventid].Average) / float64(average)
 		if average >= constants.VERY_SLOW { averageContrib = 0. }
 
 		var finalContrib float64 = averageContrib
 		if resultEntry.Eventname == "4BLD" || resultEntry.Eventname == "5BLD" { // TODO - sem by sa malo este pridat multi ked ho somehow implementnem lol
 			finalContrib = singleContrib
-		} else if resultEntry.Eventname == "3BLD" { // TODO - sem by malo ist FMC, ked implementnem validovanie rieseni
+		} else if resultEntry.Eventname == "3BLD" || resultEntry.Eventname == "FMC" { // TODO - sem by malo ist FMC, ked implementnem validovanie rieseni
 			finalContrib = math.Max(finalContrib, singleContrib)
 		}
 
@@ -110,17 +110,20 @@ func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int) ([
 	return competitionResults, nil
 }
 
-func GetKinchQueryRows(rawRows pgx.Rows) ([]KinchQueryRow, error) {
+func GetKinchQueryRows(rawRows pgx.Rows, db *pgxpool.Pool) ([]KinchQueryRow, error) {
 	rows := make([]KinchQueryRow, 0)
 
 	for rawRows.Next() {
 		var competitionResult CompetitionResult
 		var resultEntry ResultEntry
 		
-		err := rawRows.Scan(&resultEntry.Userid, &competitionResult.WcaId, &competitionResult.Username, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible, &resultEntry.Eventid, &resultEntry.Iconcode)
+		err := rawRows.Scan(&resultEntry.Userid, &competitionResult.WcaId, &competitionResult.Username, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible, &resultEntry.Eventid, &resultEntry.Iconcode, &resultEntry.Eventid, &resultEntry.Competitionid)
 		if err != nil { return []KinchQueryRow{}, err }
 
 		if competitionResult.WcaId == "" { competitionResult.WcaId = competitionResult.Username }
+
+		scrambles, err := utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
+		resultEntry.Scrambles = scrambles
 
 		rows = append(rows, KinchQueryRow{competitionResult, resultEntry})
 	}
@@ -129,9 +132,9 @@ func GetKinchQueryRows(rawRows pgx.Rows) ([]KinchQueryRow, error) {
 }
 
 func GetOverallResults(db *pgxpool.Pool, cid string) ([]CompetitionResult, error) {
-	rawRows, err := db.Query(context.Background(), `SELECT u.user_id, u.wcaid, u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.event_id, e.iconcode FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1;`, cid)
+	rawRows, err := db.Query(context.Background(), `SELECT u.user_id, u.wcaid, u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.event_id, e.iconcode, r.event_id, r.competition_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1;`, cid)
 	if err != nil { return []CompetitionResult{}, err }
-	rows, err := GetKinchQueryRows(rawRows)
+	rows, err := GetKinchQueryRows(rawRows, db)
 	if err != nil { return []CompetitionResult{}, err }
 
 	competition, err := GetCompetitionByIdObject(db, cid)
@@ -146,7 +149,7 @@ func GetOverallResults(db *pgxpool.Pool, cid string) ([]CompetitionResult, error
 	err = ComputeBests(bests, rows)
 	if err != nil { return []CompetitionResult{}, err }
 
-	competitionResults, err := GetScores(rows, bests, noOfEvents)
+	competitionResults, err := GetScores(rows, bests, noOfEvents, db)
 	if err != nil { return []CompetitionResult{}, err }
 
 	return competitionResults, nil
@@ -159,31 +162,33 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 		return competitionResults, nil
 	}
 	
-	rows, err := db.Query(context.Background(), `SELECT u.name, u.wcaid, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.iconcode FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1 AND r.event_id = $2;`, cid, eid)
+	rows, err := db.Query(context.Background(), `SELECT u.name, u.wcaid, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.iconcode, r.event_id, r.competition_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1 AND r.event_id = $2;`, cid, eid)
 	if err != nil { return []CompetitionResult{}, err }
-
+	
 	competitionResults := make([]CompetitionResult, 0)
 	format := ""
-	isfmc := false
+	
 	for rows.Next() {
 		var competitionResult CompetitionResult
 		var resultEntry ResultEntry
 		
-		err = rows.Scan(&competitionResult.Username, &competitionResult.WcaId, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible, &resultEntry.Iconcode)
+		err = rows.Scan(&competitionResult.Username, &competitionResult.WcaId, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible, &resultEntry.Iconcode, &resultEntry.Eventid, &resultEntry.Competitionid)
 		if err != nil { return []CompetitionResult{}, err }
-
-		if competitionResult.WcaId == "" { competitionResult.WcaId = competitionResult.Username }
-		isfmc = resultEntry.Iconcode == "333fm"
-
-		if !resultEntry.Competed() || !resultEntry.Status.Visible { continue; }
-
-		competitionResult.Single = resultEntry.SingleFormatted(resultEntry.IsFMC())
 		
-		avg, err := resultEntry.AverageFormatted(resultEntry.IsFMC())
+		if competitionResult.WcaId == "" { competitionResult.WcaId = competitionResult.Username }
+		
+		if !resultEntry.Competed() || !resultEntry.Status.Visible { continue; }
+		
+		scrambles, err := utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
+		if err != nil { return []CompetitionResult{}, err }
+		
+		competitionResult.Single = resultEntry.SingleFormatted(resultEntry.IsFMC(), scrambles)
+		
+		avg, err := resultEntry.AverageFormatted(resultEntry.IsFMC(), scrambles)
 		if err != nil { return []CompetitionResult{}, err }
 		competitionResult.Average = avg
 
-		formattedTimes, err := resultEntry.GetFormattedTimes(resultEntry.IsFMC())
+		formattedTimes, err := resultEntry.GetFormattedTimes(resultEntry.IsFMC(), scrambles)
 		if err != nil { return []CompetitionResult{}, err }
 		competitionResult.Times = formattedTimes
 
@@ -193,8 +198,8 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 
 	if len(format) > 0 {
 		sort.Slice(competitionResults, func (i int, j int) bool {
-			if format[0] == 'b' { return utils.ParseSolveToMilliseconds(competitionResults[i].Single, isfmc) < utils.ParseSolveToMilliseconds(competitionResults[j].Single, isfmc)}
-			return utils.ParseSolveToMilliseconds(competitionResults[i].Average, isfmc) < utils.ParseSolveToMilliseconds(competitionResults[j].Average, isfmc)
+			if format[0] == 'b' { return utils.ParseSolveToMilliseconds(competitionResults[i].Single, false, "") < utils.ParseSolveToMilliseconds(competitionResults[j].Single, false, "")}
+			return utils.ParseSolveToMilliseconds(competitionResults[i].Average, false, "") < utils.ParseSolveToMilliseconds(competitionResults[j].Average, false, "")
 		})
 	}
 

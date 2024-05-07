@@ -23,11 +23,11 @@ func Reverse[S ~[]E, E any](s S)  {
     }
 }
 
-func ParseSolveToMilliseconds(s string, isfmc bool) int {
+func ParseSolveToMilliseconds(s string, isfmc bool, scramble string) int {
 	if s == "DNF" { return constants.DNF }
 	if s == "DNS" { return constants.DNS }
 
-	if isfmc { return cube.ParseFMCSolutionToMilliseconds(s) }
+	if isfmc { return cube.ParseFMCSolutionToMilliseconds(s, scramble) }
 
 	if !strings.Contains(s, ".") { s += ".00" }
 
@@ -68,8 +68,8 @@ func ParseSolveToMilliseconds(s string, isfmc bool) int {
 	return res
 }
 
-func CompareSolves(t1 *int, s2 string, isfmc bool) {
-	t2 := ParseSolveToMilliseconds(s2, isfmc)
+func CompareSolves(t1 *int, s2 string, isfmc bool, scramble string) {
+	t2 := ParseSolveToMilliseconds(s2, isfmc, scramble)
 	if *t1 > t2 { *t1 = t2 }
 }
 
@@ -86,12 +86,12 @@ func GetWorldRecords(eventName string) (int, int, error) {
 			nextTable := parentH2.Next()
 			singleTd := nextTable.Find("td.result").First()
 
-			single = ParseSolveToMilliseconds(strings.Trim(singleTd.Text(), " "), false)
+			single = ParseSolveToMilliseconds(strings.Trim(singleTd.Text(), " "), false, "")
 
 			// TODO: handle 333mbf parsing
 			if eventName != "333mbf" {
 				averageTd := singleTd.Parent().Next().Find("td.result").First()
-				average = ParseSolveToMilliseconds(strings.Trim(averageTd.Text(), " "), false)
+				average = ParseSolveToMilliseconds(strings.Trim(averageTd.Text(), " "), false, "")
 			}
 		}
 	})
@@ -139,9 +139,11 @@ func LeftPad(s string, cnt int, ch string) string {
 	return s
 }
 
-func FormatTime(timeInMiliseconds int) string {
+func FormatTime(timeInMiliseconds int, isfmc bool) string {
 	if timeInMiliseconds == constants.DNF { return "DNF" }
 	if timeInMiliseconds == constants.DNS { return "DNS" }
+
+	if isfmc { return fmt.Sprint(timeInMiliseconds) + ".00" }
 
 	if timeInMiliseconds % 10 >= 5 {
 		timeInMiliseconds += 10 - (timeInMiliseconds % 10)
@@ -254,16 +256,33 @@ func NextMonday() (time.Time) {
 	return res
 }
 
-func IndexFunc[T any](arr []T, test func(int) bool) int {
-	for idx := range arr {
-		if test(idx) {
-			return idx
+func IsFMC(eventiconcode string) bool {
+	return eventiconcode == "333fm"
+}
+
+func GetSolve(solve string, isfmc bool, scramble string) (string) {
+	if !isfmc { return solve }
+	return FormatTime(ParseSolveToMilliseconds(solve, isfmc, scramble), isfmc)
+}
+
+func GetScramblesByResultEntryId(db *pgxpool.Pool, eid int, cid string) ([]string, error) {
+	rows, err := db.Query(context.Background(), `SELECT scramble FROM scrambles WHERE event_id = $1 AND competition_id = $2 ORDER BY "order";`, eid, cid)
+	if err != nil { return []string{}, err }
+
+	scrambles := make([]string, 5)
+	idx := 0
+	for rows.Next() {
+		var scramble string
+		err = rows.Scan(&scramble)
+		if err != nil { return []string{}, err }
+
+		scrambles[idx] = scramble
+		idx++
+
+		if idx == 5 {
+			break
 		}
 	}
 
-	return -1
-}
-
-func IsFMC(eventiconcode string) bool {
-	return eventiconcode == "333fm"
+	return scrambles, nil
 }
