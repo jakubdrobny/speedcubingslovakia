@@ -1,9 +1,11 @@
 package cube
 
-import "github.com/jakubdrobny/speedcubingslovakia/backend/constants"
+import (
+	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
+)
 
-func parseFMCSolutionToMilliseconds(sol string) int {
+func ParseFMCSolutionToMilliseconds(sol string) int {
 	if sol == "" { return constants.DNF }
-
+	
 	return constants.DNF
 }

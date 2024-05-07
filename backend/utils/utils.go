@@ -14,6 +14,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/cube"
 )
 
 func Reverse[S ~[]E, E any](s S)  {
@@ -26,7 +27,7 @@ func ParseSolveToMilliseconds(s string, isfmc bool) int {
 	if s == "DNF" { return constants.DNF }
 	if s == "DNS" { return constants.DNS }
 
-	if isfmc { return cube.parseFMCSolutionToMilliseconds(s) }
+	if isfmc { return cube.ParseFMCSolutionToMilliseconds(s) }
 
 	if !strings.Contains(s, ".") { s += ".00" }
 
