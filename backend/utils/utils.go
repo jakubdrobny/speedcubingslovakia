@@ -26,7 +26,7 @@ func ParseSolveToMilliseconds(s string, isfmc bool) int {
 	if s == "DNF" { return constants.DNF }
 	if s == "DNS" { return constants.DNS }
 
-	// if isfmc { return cube.parseFMCSolutionToMilliseconds(s) }
+	if isfmc { return cube.parseFMCSolutionToMilliseconds(s) }
 
 	if !strings.Contains(s, ".") { s += ".00" }
 
