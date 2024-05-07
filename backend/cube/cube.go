@@ -199,12 +199,12 @@ func (c *Cube) ApplyMove(move string) {
 			c.ApplyY()
 			c.ApplyY()
 		case "z":
-			c.ApplyY()
+			c.ApplyZ()
 		case "z'":
-			c.ApplyYPrime()
+			c.ApplyZPrime()
 		case "z2":
-			c.ApplyY()
-			c.ApplyY()
+			c.ApplyZ()
+			c.ApplyZ()
 	}
 }
 
