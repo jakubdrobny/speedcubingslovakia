@@ -40,9 +40,9 @@ func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
 	return nil;
 }
 
-func (r *ResultEntry) Validate(db *pgxpool.Pool) (error) {
+func (r *ResultEntry) Validate(db *pgxpool.Pool, isfmc bool) (error) {
 	var err error
-	if (r.IsSuspicous()) {
+	if (r.IsSuspicous(isfmc)) {
 		r.Status, err = GetResultsStatus(db, 1) // waitingForApproval
 		if err != nil { return err }
 	} else {
@@ -60,9 +60,9 @@ func IsValidTimePeriod(db *pgxpool.Pool, competitionId string) (bool, error) {
 	return competition.Startdate.Before(time.Now()) && time.Now().Before(competition.Enddate), nil
 }
 
-func (r *ResultEntry) Update(db *pgxpool.Pool, valid ...bool) error {
+func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error {
 	if len(valid) == 0 || (len(valid) > 0 && !valid[0]) {
-		err := r.Validate(db)
+		err := r.Validate(db, isfmc)
 		if err != nil { return err }
 	}
 
@@ -78,26 +78,26 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, valid ...bool) error {
 }
 
 
-func (r *ResultEntry) Single() int {
+func (r *ResultEntry) Single(isfmc bool) int {
 	res := math.MaxInt
 
-	utils.CompareSolves(&res, r.Solve1)
-	utils.CompareSolves(&res, r.Solve2)
-	utils.CompareSolves(&res, r.Solve3)
-	utils.CompareSolves(&res, r.Solve4)
-	utils.CompareSolves(&res, r.Solve5)
+	utils.CompareSolves(&res, r.Solve1, isfmc)
+	utils.CompareSolves(&res, r.Solve2, isfmc)
+	utils.CompareSolves(&res, r.Solve3, isfmc)
+	utils.CompareSolves(&res, r.Solve4, isfmc)
+	utils.CompareSolves(&res, r.Solve5, isfmc)
 
 	return res
 }
 
 
-func (r *ResultEntry) IsSuspicous() bool {
+func (r *ResultEntry) IsSuspicous(isfmc bool) bool {
 	noOfSolves, err := utils.GetNoOfSolves(r.Format)
 	if err != nil {
 		return false
 	}
 
-	curSingle, curAverage := r.Single(), r.Average(noOfSolves)
+	curSingle, curAverage := r.Single(isfmc), r.Average(noOfSolves, isfmc)
 
 	recSingle, recAverage, err := utils.GetWorldRecords(r.Iconcode)
 	if err != nil { return false }
@@ -105,14 +105,14 @@ func (r *ResultEntry) IsSuspicous() bool {
 	return float64(recSingle - curSingle) > 1e-9 || float64(recAverage - curAverage) > 1e-9;
 }
 
-func (r *ResultEntry) GetSolvesInMiliseconds() []int {
+func (r *ResultEntry) GetSolvesInMiliseconds(isfmc bool) []int {
 	values := make([]int, 0)
 
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve1))
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve2))
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve3))
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve4))
-	values = append(values, utils.ParseSolveToMilliseconds(r.Solve5))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve1, isfmc))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve2, isfmc))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve3, isfmc))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve4, isfmc))
+	values = append(values, utils.ParseSolveToMilliseconds(r.Solve5, isfmc))
 
 	return values;
 }
@@ -129,8 +129,8 @@ func (r *ResultEntry) GetSolves() []string {
 	return values;
 }
 
-func (r *ResultEntry) Average(noOfSolves int) int {
-	solves := r.GetSolvesInMiliseconds()
+func (r *ResultEntry) Average(noOfSolves int, isfmc bool) int {
+	solves := r.GetSolvesInMiliseconds(isfmc)
 	sort.Ints(solves)
 
 	sum := 0
@@ -195,18 +195,18 @@ func GetResultEntryById(db *pgxpool.Pool, resultId int) (ResultEntry, error) {
 	return resultEntry, nil
 }
 
-func (r *ResultEntry) SingleFormatted() string {
-	return utils.FormatTime(r.Single())
+func (r *ResultEntry) SingleFormatted(isfmc bool) string {
+	return utils.FormatTime(r.Single(isfmc))
 }
 
-func (r *ResultEntry) AverageFormatted() (string, error) {
+func (r *ResultEntry) AverageFormatted(isfmc bool) (string, error) {
 	noOfSolves, err := utils.GetNoOfSolves(r.Format)
 	if err != nil { return "", err }
 
-	return utils.FormatTime(r.Average(noOfSolves)), nil
+	return utils.FormatTime(r.Average(noOfSolves, isfmc)), nil
 }
 
-func (r *ResultEntry) GetFormattedTimes() ([]string, error) {
+func (r *ResultEntry) GetFormattedTimes(isfmc bool) ([]string, error) {
 	noOfSolves, err := utils.GetNoOfSolves(r.Format)
 	if err != nil { return []string{}, err }
 
@@ -222,7 +222,7 @@ func (r *ResultEntry) GetFormattedTimes() ([]string, error) {
 	sortedSolves := make([]SolveTuple, 0)
 
 	for idx, val := range solves {
-		sortedSolves = append(sortedSolves, SolveTuple{val, utils.ParseSolveToMilliseconds(val), idx})
+		sortedSolves = append(sortedSolves, SolveTuple{val, utils.ParseSolveToMilliseconds(val, isfmc), idx})
 	}
 
 	sort.Slice(sortedSolves, func (i int, j int) bool { return sortedSolves[i].TimeInMiliseconds < sortedSolves[j].TimeInMiliseconds })
@@ -232,3 +232,6 @@ func (r *ResultEntry) GetFormattedTimes() ([]string, error) {
 	return solves, nil
 }
 
+func (r *ResultEntry) IsFMC() bool {
+	return r.Iconcode == "333fm"
+}

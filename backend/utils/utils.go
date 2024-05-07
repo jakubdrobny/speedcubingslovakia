@@ -22,9 +22,11 @@ func Reverse[S ~[]E, E any](s S)  {
     }
 }
 
-func ParseSolveToMilliseconds(s string) int {
+func ParseSolveToMilliseconds(s string, isfmc bool) int {
 	if s == "DNF" { return constants.DNF }
 	if s == "DNS" { return constants.DNS }
+
+	// if isfmc { return cube.parseFMCSolutionToMilliseconds(s) }
 
 	if !strings.Contains(s, ".") { s += ".00" }
 
@@ -65,8 +67,8 @@ func ParseSolveToMilliseconds(s string) int {
 	return res
 }
 
-func CompareSolves(t1 *int, s2 string) {
-	t2 := ParseSolveToMilliseconds(s2)
+func CompareSolves(t1 *int, s2 string, isfmc bool) {
+	t2 := ParseSolveToMilliseconds(s2, isfmc)
 	if *t1 > t2 { *t1 = t2 }
 }
 
@@ -83,12 +85,12 @@ func GetWorldRecords(eventName string) (int, int, error) {
 			nextTable := parentH2.Next()
 			singleTd := nextTable.Find("td.result").First()
 
-			single = ParseSolveToMilliseconds(strings.Trim(singleTd.Text(), " "))
+			single = ParseSolveToMilliseconds(strings.Trim(singleTd.Text(), " "), false)
 
 			// TODO: handle 333mbf parsing
 			if eventName != "333mbf" {
 				averageTd := singleTd.Parent().Next().Find("td.result").First()
-				average = ParseSolveToMilliseconds(strings.Trim(averageTd.Text(), " "))
+				average = ParseSolveToMilliseconds(strings.Trim(averageTd.Text(), " "), false)
 			}
 		}
 	})
@@ -249,4 +251,18 @@ func NextMonday() (time.Time) {
 	res = time.Date(res.Year(), res.Month(), res.Day(), 0, 0, 0, 0, res.Location())
 
 	return res
+}
+
+func IndexFunc[T any](arr []T, test func(int) bool) int {
+	for idx := range arr {
+		if test(idx) {
+			return idx
+		}
+	}
+
+	return -1
+}
+
+func IsFMC(eventiconcode string) bool {
+	return eventiconcode == "333fm"
 }

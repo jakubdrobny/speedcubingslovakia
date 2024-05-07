@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -46,4 +47,17 @@ func GetAvailableEvents(db *pgxpool.Pool) ([]CompetitionEvent, error) {
 	}
 
 	return events, nil
+}
+
+func (e *CompetitionEvent) HasScrambles(db *pgxpool.Pool, tx pgx.Tx, cid string) (bool, error) {
+	rows, err := tx.Query(context.Background(), `SELECT COUNT(*) FROM scrambles WHERE competition_id = $1 AND event_id = $2;`, cid, e.Id)
+	if err != nil { return true, err }
+
+	var cnt int
+	for rows.Next() {
+		err = rows.Scan(&cnt)
+		if err != nil { return true, err }
+	}
+
+	return cnt > 0, nil
 }

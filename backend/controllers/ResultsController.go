@@ -161,7 +161,7 @@ func PostResultsValidation(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		resultEntry.Status = resultStatus
-		err = resultEntry.Update(db, true)
+		err = resultEntry.Update(db, resultEntry.IsFMC(), true)
 		if err != nil {
 			log.Println("ERR resultEntry.Update in PostResultsValidation: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed updating result entry in database.")
@@ -262,7 +262,7 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 			resultEntry.Iconcode = event.Iconcode
 			resultEntry.Format = event.Format
 
-			err = resultEntry.Update(db)
+			err = resultEntry.Update(db, resultEntry.IsFMC())
 			if err != nil {
 				log.Println("ERR resultEntry.Update in GetResultsByIdAndEvent: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed updating results in database.")
@@ -285,7 +285,7 @@ func PostResults(db *pgxpool.Pool) gin.HandlerFunc {
 			return;
 		}
 
-		err = resultEntry.Update(db)
+		err = resultEntry.Update(db, resultEntry.IsFMC())
 		if err != nil {
 			log.Println("ERR resultEntry.Update in PostResults: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed updating results in database.")

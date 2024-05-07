@@ -16,9 +16,9 @@ const Guide = () => {
         How to submit results?
       </h3>
       {competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
-      "fmc" ? (
+      "333fm" ? (
         <div>
-          <Typography>
+          <Typography sx={{ paddingBottom: "1em" }}>
             For FMC enter your solutions instead of times. They will be
             evaluated automatically.
           </Typography>
@@ -27,7 +27,7 @@ const Guide = () => {
             <a href="https://www.worldcubeassociation.org/regulations/#12a">
               here
             </a>
-            . (TLDR: basically anthing except slice moves)
+            . (TLDR: basically anything except slice moves)
           </Typography>
         </div>
       ) : competitionState.inputMethod === InputMethod.Manual ? (

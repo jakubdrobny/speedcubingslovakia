@@ -25,15 +25,46 @@ type CompetitionData struct {
 	Results ResultEntry `json:"results"`
 }
 
-func (c *CompetitionData) RemoveAllEvents(db *pgxpool.Pool, tx pgx.Tx) error {
-	_, err := tx.Exec(context.Background(), `DELETE FROM competition_events WHERE competition_id = $1;`, c.Id)
-	return err
+func (c *CompetitionData) RemoveAllEvents(db *pgxpool.Pool, tx pgx.Tx) ([]int, error) {
+	rows, err := tx.Query(context.Background(), `SELECT event_id FROM competition_events WHERE competition_id = $1;`, c.Id)
+	if err != nil { return []int{}, err }
+
+	event_ids := make([]int, 0)
+	for rows.Next() {
+		var event_id int
+		err = rows.Scan(&event_id)
+		if err != nil { return []int{}, err }
+
+		event_ids = append(event_ids, event_id)
+	}
+
+	_, err = tx.Exec(context.Background(), `DELETE FROM competition_events WHERE competition_id = $1;`, c.Id)
+	return event_ids, err
 }
 
-func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx) error {
+func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx, event_ids []int) error {
 	for _, event := range c.Events {
 		_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1, $2);`, c.Id, event.Id)
 		if err != nil { return err }
+
+		has, err := event.HasScrambles(db, tx, c.Id)
+		if err != nil { return err }
+
+		if !has {
+			noOfSolves, err := utils.GetNoOfSolves(event.Format)
+			if err != nil { return err }
+
+			scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves)
+			if err != nil { return err }
+
+			images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode)
+			if err != nil { return err }
+
+			for scrambleIdx, scramble := range scrambles {
+				_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order", svgimg) VALUES ($1,$2,$3,$4,$5);`, scramble, event.Id, c.Id, scrambleIdx + 1, images[scrambleIdx])
+				if err != nil { return err }
+			}
+		}
 	}
 
 	return nil;
