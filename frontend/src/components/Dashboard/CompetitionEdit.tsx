@@ -78,10 +78,13 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   }, []);
 
   const handleSelectedEventsChange = (selectedEventsNames: string[]) => {
+    console.log(selectedEventsNames);
     const selectedEvents = selectedEventsNames.map(
       (eName) =>
         availableEvents.find((e) => e.displayname === eName) as CompetitionEvent
     );
+    console.log("after");
+    console.log(selectedEvents);
     setCompetitionState({ ...competitionState, events: selectedEvents });
   };
 
