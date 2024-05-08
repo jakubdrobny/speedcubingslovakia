@@ -77,6 +77,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
       (eName) =>
         availableEvents.find((e) => e.displayname === eName) as CompetitionEvent
     );
+    console.log(selectedEvents, selectedEventsNames);
     setCompetitionState({ ...competitionState, events: selectedEvents });
   };
 
