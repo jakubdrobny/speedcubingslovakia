@@ -87,7 +87,15 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                           : { ...goodHeight, width: "2%" }
                       }
                     >
-                      {idx == 3 || idx == 4 ? <b>{val}</b> : val}
+                      {idx == 3 || idx == 4 ? (
+                        <b>
+                          {idx == 3 && entry.eventIconcode === "333fm"
+                            ? val.split(".")[0]
+                            : val}
+                        </b>
+                      ) : (
+                        val
+                      )}
                     </td>
                   ))}
                 </tr>

@@ -28,6 +28,9 @@ const CompetitionResults = () => {
   const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
   const isOverall =
     competitionState?.events[competitionState?.currentEventIdx]?.id === -1;
+  const isfmc =
+    competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
+    "333fm";
 
   useEffect(() => {
     const handleResize = () => {
@@ -48,7 +51,7 @@ const CompetitionResults = () => {
       "Country",
       "Average",
       "Single",
-      "Times",
+      isfmc ? "Moves" : "Times",
       "",
     ];
     if (!averageFirst)
@@ -143,51 +146,61 @@ const CompetitionResults = () => {
               </tr>
             </thead>
             <tbody>
-              {results.map((result, idx) => (
-                <tr key={idx}>
-                  <td style={{ height: "1em", width: "1%" }}></td>
-                  <td style={{ height: "1em", width: "3%" }}>{idx + 1}.</td>
-                  <td style={{ height: "1em" }}>
-                    <Link
-                      to={`/profile/${result.wca_id}`}
-                      style={{
-                        color: "#0B6BCB",
-                        textDecoration: "none",
-                        fontWeight: 555,
-                      }}
-                    >
-                      {result.username}
-                    </Link>
-                  </td>
-                  {(windowWidth >= WIN_SMALL ||
-                    (isOverall && windowWidth >= WIN_VERYSMALL)) && (
+              {results.map((result, idx) => {
+                result.single = isfmc
+                  ? result.single.split(".")[0]
+                  : result.single;
+                result.times = isfmc
+                  ? result.times.map((res) => res.split(".")[0])
+                  : result.times;
+                return (
+                  <tr key={idx}>
+                    <td style={{ height: "1em", width: "1%" }}></td>
+                    <td style={{ height: "1em", width: "3%" }}>{idx + 1}.</td>
                     <td style={{ height: "1em" }}>
-                      <span
-                        className={`fi fi-${result.country_iso2.toLowerCase()}`}
-                      />
-                      &nbsp;&nbsp;{result.country_name}
+                      <Link
+                        to={`/profile/${result.wca_id}`}
+                        style={{
+                          color: "#0B6BCB",
+                          textDecoration: "none",
+                          fontWeight: 555,
+                        }}
+                      >
+                        {result.username}
+                      </Link>
                     </td>
-                  )}
-                  {isOverall ? (
-                    <td style={{ height: "1em" }}>
-                      <b>{result.score}</b>
-                    </td>
-                  ) : (
-                    <>
+                    {(windowWidth >= WIN_SMALL ||
+                      (isOverall && windowWidth >= WIN_VERYSMALL)) && (
                       <td style={{ height: "1em" }}>
-                        <b>{!averageFirst ? result.single : result.average}</b>
+                        <span
+                          className={`fi fi-${result.country_iso2.toLowerCase()}`}
+                        />
+                        &nbsp;&nbsp;{result.country_name}
                       </td>
+                    )}
+                    {isOverall ? (
                       <td style={{ height: "1em" }}>
-                        {averageFirst ? result.single : result.average}
+                        <b>{result.score}</b>
                       </td>
-                      <td style={{ height: "1em" }}>
-                        {result.times?.join(", ")}
-                      </td>
-                    </>
-                  )}
-                  <td style={{ height: "1em", width: "0%" }}></td>
-                </tr>
-              ))}
+                    ) : (
+                      <>
+                        <td style={{ height: "1em" }}>
+                          <b>
+                            {!averageFirst ? result.single : result.average}
+                          </b>
+                        </td>
+                        <td style={{ height: "1em" }}>
+                          {averageFirst ? result.single : result.average}
+                        </td>
+                        <td style={{ height: "1em" }}>
+                          {result.times?.join(", ")}
+                        </td>
+                      </>
+                    )}
+                    <td style={{ height: "1em", width: "0%" }}></td>
+                  </tr>
+                );
+              })}
             </tbody>
           </Table>
         </Card>

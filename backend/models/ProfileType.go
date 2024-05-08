@@ -182,13 +182,10 @@ func LoadBestSingle(db *pgxpool.Pool, user User, eid int) (string, error) {
 
 	single := constants.DNS
 
-	isfmc := false
 	for rows.Next() {
 		var resultEntry ResultEntry
 		err = rows.Scan(&resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Iconcode, &resultEntry.Eventid, &resultEntry.Competitionid)
 		if err != nil { return "", err }
-
-		isfmc = resultEntry.IsFMC()
 
 		scrambles, err := utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
 		if err != nil { return "", err }
@@ -196,7 +193,7 @@ func LoadBestSingle(db *pgxpool.Pool, user User, eid int) (string, error) {
 		utils.CompareSolves(&single, resultEntry.SingleFormatted(resultEntry.IsFMC(), scrambles), false, "")
 	}
 
-	return utils.FormatTime(single, isfmc), nil
+	return utils.FormatTime(single, false), nil
 }
 
 func LoadRankFromRows(rows pgx.Rows, result string, average int, db *pgxpool.Pool) (string, error) {

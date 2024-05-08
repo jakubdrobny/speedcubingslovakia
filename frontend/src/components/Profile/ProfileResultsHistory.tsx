@@ -12,6 +12,7 @@ const ProfileResultsHistory: React.FC<{
   const center: React.CSSProperties = { textAlign: "center", ...goodHeight };
   const right: React.CSSProperties = { textAlign: "right", ...goodHeight };
   const [currentHistoryIdx, setCurrentHistoryIdx] = useState(0);
+  const isfmc = resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm";
 
   return (
     <Stack spacing={2}>
@@ -45,36 +46,43 @@ const ProfileResultsHistory: React.FC<{
         <Table>
           <thead>
             <tr>
-              {["", "Competition", "Place", "Single", "Average", "Solves"].map(
-                (columnTitle, idx) => (
-                  <th
-                    key={columnTitle}
-                    style={{
-                      ...(columnTitle === ""
-                        ? goodHeight
-                        : idx < 3
-                        ? left
-                        : idx < 5
-                        ? right
-                        : center),
-                      ...(idx === 0
-                        ? { width: "1%" }
-                        : {
-                            width:
-                              idx === 1
-                                ? "30%"
-                                : idx === 2
-                                ? "4%"
-                                : idx < 5
-                                ? "10%"
-                                : "40%",
-                          }),
-                    }}
-                  >
-                    <b>{columnTitle}</b>
-                  </th>
-                )
-              )}
+              {[
+                "",
+                "Competition",
+                "Place",
+                "Single",
+                "Average",
+                resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm"
+                  ? "Moves"
+                  : "Solves",
+              ].map((columnTitle, idx) => (
+                <th
+                  key={columnTitle}
+                  style={{
+                    ...(columnTitle === ""
+                      ? goodHeight
+                      : idx < 3
+                      ? left
+                      : idx < 5
+                      ? right
+                      : center),
+                    ...(idx === 0
+                      ? { width: "1%" }
+                      : {
+                          width:
+                            idx === 1
+                              ? "30%"
+                              : idx === 2
+                              ? "4%"
+                              : idx < 5
+                              ? "10%"
+                              : "40%",
+                        }),
+                  }}
+                >
+                  <b>{columnTitle}</b>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -114,10 +122,19 @@ const ProfileResultsHistory: React.FC<{
                 </td>
                 {[entry.place, entry.single, entry.average].map((val, idx1) => (
                   <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
-                    {idx1 === 0 ? val : <b>{val}</b>}
+                    {idx1 === 0 ? (
+                      val
+                    ) : (
+                      <b>{idx1 === 1 && isfmc ? val.split(".")[0] : val}</b>
+                    )}
                   </td>
                 ))}
-                <td style={center}>{entry.solves.join(", ")}</td>
+                <td style={center}>
+                  {(isfmc
+                    ? entry.solves.map((x) => x.split(".")[0])
+                    : entry.solves
+                  ).join(", ")}
+                </td>
                 <td style={goodHeight}></td>
               </tr>
             ))}

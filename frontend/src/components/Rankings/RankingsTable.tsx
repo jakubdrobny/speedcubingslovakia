@@ -8,10 +8,11 @@ const RankingsTable: React.FC<{
   rankings: RankingsEntry[];
   single: boolean;
   loading: boolean;
-}> = ({ rankings, single, loading }) => {
+  isfmc: boolean;
+}> = ({ rankings, single, loading, isfmc }) => {
   const columnNames = (() => {
     let columnNames = ["", "#", "Name", "Result", "Represeting", "Competition"];
-    if (!single) columnNames.push("Times");
+    if (!single) columnNames.push(isfmc ? "Moves" : "Times");
     columnNames.push("");
     return columnNames;
   })();
@@ -46,42 +47,51 @@ const RankingsTable: React.FC<{
           {loading ? (
             <></>
           ) : (
-            rankings.map((ranking, idx) => (
-              <tr key={idx}>
-                <td style={{ height: "1em", width: "2%" }}></td>
-                <td style={{ height: "1em", width: "4%" }}>{idx + 1}.</td>
-                <td style={{ height: "1em", width: "10%" }}>
-                  <Link
-                    to={`/profile/${ranking.wca_id}`}
-                    style={{
-                      color: "#0B6BCB",
-                      textDecoration: "none",
-                      fontWeight: 555,
-                    }}
-                  >
-                    {ranking.username}
-                  </Link>
-                </td>
-                <td style={{ height: "1em", textAlign: "right" }}>
-                  <b>{ranking.result}</b>
-                </td>
-                <td style={{ height: "1em" }}>
-                  <span
-                    className={`fi fi-${ranking.country_iso2.toLowerCase()}`}
-                  />
-                  &nbsp;&nbsp;{ranking.country_name}
-                </td>
-                <td style={{ height: "1em" }}>
-                  <Link to={`/competition/${ranking.competitionId}`}>
-                    {ranking.competitionName}
-                  </Link>
-                </td>
-                {!single && (
-                  <td style={{ height: "1em" }}>{ranking.times.join(", ")}</td>
-                )}
-                <td style={{ height: "1em", width: "2%" }}></td>
-              </tr>
-            ))
+            rankings.map((ranking, idx) => {
+              ranking.result =
+                isfmc && single ? ranking.result.split(".")[0] : ranking.result;
+              ranking.times = isfmc
+                ? ranking.times.map((res) => res.split(".")[0])
+                : ranking.times;
+              return (
+                <tr key={idx}>
+                  <td style={{ height: "1em", width: "2%" }}></td>
+                  <td style={{ height: "1em", width: "4%" }}>{idx + 1}.</td>
+                  <td style={{ height: "1em", width: "10%" }}>
+                    <Link
+                      to={`/profile/${ranking.wca_id}`}
+                      style={{
+                        color: "#0B6BCB",
+                        textDecoration: "none",
+                        fontWeight: 555,
+                      }}
+                    >
+                      {ranking.username}
+                    </Link>
+                  </td>
+                  <td style={{ height: "1em", textAlign: "right" }}>
+                    <b>{ranking.result}</b>
+                  </td>
+                  <td style={{ height: "1em" }}>
+                    <span
+                      className={`fi fi-${ranking.country_iso2.toLowerCase()}`}
+                    />
+                    &nbsp;&nbsp;{ranking.country_name}
+                  </td>
+                  <td style={{ height: "1em" }}>
+                    <Link to={`/competition/${ranking.competitionId}`}>
+                      {ranking.competitionName}
+                    </Link>
+                  </td>
+                  {!single && (
+                    <td style={{ height: "1em" }}>
+                      {ranking.times.join(", ")}
+                    </td>
+                  )}
+                  <td style={{ height: "1em", width: "2%" }}></td>
+                </tr>
+              );
+            })
           )}
         </tbody>
       </Table>

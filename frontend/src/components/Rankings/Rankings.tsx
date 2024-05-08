@@ -30,6 +30,7 @@ const Rankings = () => {
   const [regionValue, setRegionValue, regionValueRef] =
     useState<string>(defaultRegionGroup);
   const [rankings, setRankings] = useState<RankingsEntry[]>([]);
+  const isfmc = events[currentEventIdx]?.iconcode === "333fm";
 
   useEffect(() => {
     setLoadingState({ isLoading: true, error: "" });
@@ -145,6 +146,7 @@ const Rankings = () => {
           rankings={rankings}
           single={single}
           loading={loadingState.isLoading}
+          isfmc={isfmc}
         />
       )}
     </Stack>

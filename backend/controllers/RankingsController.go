@@ -117,7 +117,12 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 
 				if rankingsEntry.WcaId == "" { rankingsEntry.WcaId = rankingsEntry.Username }
 				isfmc = utils.IsFMC(resultsEntry.Iconcode)
-				scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, resultsEntry.Competitionid)
+				scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
+				if err != nil {
+					log.Println("ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
+					return
+				}
 
 				if single {
 					rankingsEntry.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
@@ -131,7 +136,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 						return
 					}
 					rankingsEntry.Result = resultFormatted
-					if utils.ParseSolveToMilliseconds(rankingsEntry.Result, isfmc, "") >= constants.VERY_SLOW { continue; }
+					if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
 					rankingsEntry.Times, _ = resultsEntry.GetFormattedTimes(isfmc, scrambles)
 				}
 				rankings = append(rankings, rankingsEntry)
@@ -158,7 +163,12 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 
 				if rankingsEntry.WcaId == "" { rankingsEntry.WcaId = rankingsEntry.Username }
 				isfmc = utils.IsFMC(resultsEntry.Iconcode)
-				scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, resultsEntry.Competitionid)
+				scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
+				if err != nil {
+					log.Println("ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
+					return
+				}
 
 				if single {
 					rankingsEntry.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
