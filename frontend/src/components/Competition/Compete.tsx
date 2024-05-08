@@ -1,18 +1,13 @@
-import { Alert, Button, Card, CircularProgress, Grid, Stack } from "@mui/joy";
+import { Alert, Button, Card, CircularProgress, Grid } from "@mui/joy";
 import {
   CompetitionContextType,
   InputMethod,
-  ResultEntry,
   TimerInputContextType,
   TimerInputCurrentState,
 } from "../../Types";
 import { East, Keyboard, Timer, West } from "@mui/icons-material";
-import {
-  competitionOnGoing,
-  getError,
-  getResultsFromCompetitionAndEvent,
-} from "../../utils";
-import { useContext, useEffect, useState } from "react";
+import { competitionOnGoing, getError } from "../../utils";
+import { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import ManualInput from "./ManualInput";

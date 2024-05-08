@@ -88,6 +88,12 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) (error) {
 			var scrambleId int
 			err := rows.Scan(&scrambleId, &scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Svgimg)
 			if err != nil { return err }
+
+			if time.Now().Before(c.Startdate) {
+				scramble.Scramble = "Competition has not started yet ;)"
+				scramble.Svgimg = ""
+			}
+
 			scrambleSet.AddScramble(scramble)
 		}
 		
