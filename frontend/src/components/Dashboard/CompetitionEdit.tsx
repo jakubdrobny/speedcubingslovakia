@@ -4,35 +4,30 @@ import {
   Button,
   Card,
   Chip,
-  CircularProgress,
   FormControl,
   FormHelperText,
   FormLabel,
   Input,
   Option,
   Select,
-  Skeleton,
   Stack,
   Typography,
 } from "@mui/joy";
 import {
-  AuthContextType,
   CompetitionData,
   CompetitionEvent,
   CompetitionState,
 } from "../../Types";
 import {
-  authorizeAdmin,
   formatCompetitionDateForInput,
   getAvailableEvents,
   getError,
   initialCompetitionState,
   updateCompetition,
 } from "../../utils";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { AuthContext } from "../../context/AuthContext";
 import { CompetitionEditProps } from "../../Types";
 import { getCompetitionById } from "../../utils";
 
@@ -68,7 +63,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
 
     getAvailableEvents()
       .then((res: CompetitionEvent[]) => {
-        setAvailableEvents(res);
+        setAvailableEvents(res.filter((e) => e.displayname !== "Overall"));
         setIsLoading(false);
       })
       .catch((err) => {
@@ -78,13 +73,10 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   }, []);
 
   const handleSelectedEventsChange = (selectedEventsNames: string[]) => {
-    console.log(selectedEventsNames);
     const selectedEvents = selectedEventsNames.map(
       (eName) =>
         availableEvents.find((e) => e.displayname === eName) as CompetitionEvent
     );
-    console.log("after");
-    console.log(selectedEvents);
     setCompetitionState({ ...competitionState, events: selectedEvents });
   };
 
