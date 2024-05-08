@@ -63,6 +63,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
 
     getAvailableEvents()
       .then((res: CompetitionEvent[]) => {
+        console.log(res);
         setAvailableEvents(res.filter((e) => e.displayname !== "Overall"));
         setIsLoading(false);
       })
