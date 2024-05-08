@@ -14,6 +14,7 @@ type Cube struct {
 }
 
 var VALID_MOVES = []string{"U", "D", "R", "L", "F", "B", "U'", "D'", "R'", "L'", "F'", "B'", "U2", "D2", "R2", "L2", "F2", "B2", "Uw", "Dw", "Rw", "Lw", "Fw", "Bw", "Uw'", "Dw'", "Rw'", "Lw'", "Fw'", "Bw'", "Uw2", "Dw2", "Rw2", "Lw2", "Fw2", "Bw2", "x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"}
+var ROTATIONS = []string{"x", "x'", "x2", "y", "y'", "y2", "z", "z'", "z2"}
 var COLORS = []string{"W", "O", "G", "R", "B", "Y"}
 
 func InitialState() [6][3][3]int {
@@ -407,7 +408,20 @@ func (c *Cube) Solved() bool {
 	return true
 }
 
-func (c *Cube) SolutionLength() int {
+func (c *Cube) OfficialSolutionLength() int {
+	moveCount := 0
+
+	for _, move := range strings.Split(c.Solution, " ") {
+		idx := IndexFunc(ROTATIONS, func (rot string) bool { return rot == move })
+		if idx == -1 {
+			moveCount++
+		}
+	}
+
+	return moveCount
+}
+
+func (c *Cube) TotalSolutionLength() int {
 	return len(strings.Split(c.Solution, " "))
 }
 
@@ -447,7 +461,7 @@ func ParseFMCSolutionToMilliseconds(scramble string, solution string) int {
 	c.ApplyScramble()
 	c.ApplySolution()
 
-	if !c.Solved() { return constants.DNF }
+	if !c.Solved() || c.TotalSolutionLength() > 80 { return constants.DNF }
 	
-	return c.SolutionLength()
+	return c.OfficialSolutionLength()
 }
