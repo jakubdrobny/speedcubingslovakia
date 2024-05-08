@@ -1,4 +1,4 @@
-import { Button, Input } from "@mui/joy";
+import { Alert, Button, Input } from "@mui/joy";
 import { CompetitionContextType, ResultEntry } from "../../Types";
 import { competitionOnGoing, getError, reformatTime } from "../../utils";
 import { useContext, useEffect, useState } from "react";
@@ -6,7 +6,7 @@ import { useContext, useEffect, useState } from "react";
 import { CompetitionContext } from "./CompetitionContext";
 import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
 
-const TimerInput = () => {
+const ManualInput = () => {
   const [forceRerender, setForceRerender] = useState(false);
   const { competitionState, updateSolve, saveResults, currentResultsRef } =
     useContext(CompetitionContext) as CompetitionContextType;
@@ -70,6 +70,7 @@ const TimerInput = () => {
 
   return (
     <div>
+      {error && <Alert color="danger">{error}</Alert>}
       <Input
         size="lg"
         placeholder="Enter your time or solution..."
@@ -77,10 +78,10 @@ const TimerInput = () => {
         value={formattedTime}
         onChange={handleTimeInputChange}
         onKeyDown={handleKeyDown}
-        disabled={!competitionOnGoing(competitionState)}
+        disabled={!competitionOnGoing(competitionState) || isLoading}
       />
     </div>
   );
 };
 
-export default TimerInput;
+export default ManualInput;

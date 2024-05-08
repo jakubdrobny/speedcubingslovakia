@@ -15,6 +15,7 @@ import { CompetitionContext } from "./CompetitionContext";
 import { CompetitionContextType } from "../../Types";
 import { Help } from "@mui/icons-material";
 import { Link } from "react-router-dom";
+import { reformatMultiTime } from "../../utils";
 
 const CompetitionResults = () => {
   const { competitionState, results, loadingState, fetchCompetitionResults } =
@@ -31,6 +32,9 @@ const CompetitionResults = () => {
   const isfmc =
     competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
     "333fm";
+  const ismbld =
+    competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
+    "333mbf";
 
   useEffect(() => {
     const handleResize = () => {
@@ -66,6 +70,9 @@ const CompetitionResults = () => {
       if (windowWidth < WIN_SMALL)
         columnNames = [...columnNames.slice(0, 3), ...columnNames.slice(4)];
     }
+
+    if (columnNames.includes("Average") && ismbld)
+      columnNames = columnNames.filter((c) => c !== "Average");
 
     return columnNames;
   };
@@ -106,8 +113,10 @@ const CompetitionResults = () => {
                     ? { height: "1em", width: "25%" }
                     : val === "Name"
                     ? { height: "1em", width: "20%" }
-                    : val == "Average" || val == "Single"
-                    ? { height: "1em", width: "10%" }
+                    : val === "Average" || val === "Single"
+                    ? ismbld
+                      ? { height: "1em", width: "20%" }
+                      : { height: "1em", width: "10%" }
                     : { height: "1em" };
                   let thStyle = style1;
                   return (
@@ -149,9 +158,13 @@ const CompetitionResults = () => {
               {results.map((result, idx) => {
                 result.single = isfmc
                   ? result.single.split(".")[0]
+                  : ismbld
+                  ? reformatMultiTime(result.single)
                   : result.single;
                 result.times = isfmc
                   ? result.times.map((res) => res.split(".")[0])
+                  : ismbld
+                  ? result.times.map((r) => reformatMultiTime(r))
                   : result.times;
                 return (
                   <tr key={idx}>
@@ -189,9 +202,11 @@ const CompetitionResults = () => {
                             {!averageFirst ? result.single : result.average}
                           </b>
                         </td>
-                        <td style={{ height: "1em" }}>
-                          {averageFirst ? result.single : result.average}
-                        </td>
+                        {!ismbld && (
+                          <td style={{ height: "1em" }}>
+                            {averageFirst ? result.single : result.average}
+                          </td>
+                        )}
                         <td style={{ height: "1em" }}>
                           {result.times?.join(", ")}
                         </td>

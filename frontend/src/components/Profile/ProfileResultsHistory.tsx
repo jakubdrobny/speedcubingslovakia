@@ -13,6 +13,25 @@ const ProfileResultsHistory: React.FC<{
   const right: React.CSSProperties = { textAlign: "right", ...goodHeight };
   const [currentHistoryIdx, setCurrentHistoryIdx] = useState(0);
   const isfmc = resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm";
+  const ismbld = resultsHistory[currentHistoryIdx]?.eventIconcode === "333mbf";
+
+  const getColumnNames = () => {
+    let columnNames = [
+      "",
+      "Competition",
+      "Place",
+      "Single",
+      "Average",
+      resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm"
+        ? "Moves"
+        : "Solves",
+    ];
+
+    if (columnNames.includes("Average") && ismbld)
+      columnNames = columnNames.filter((c) => c !== "Average");
+
+    return columnNames;
+  };
 
   return (
     <Stack spacing={2}>
@@ -46,43 +65,59 @@ const ProfileResultsHistory: React.FC<{
         <Table>
           <thead>
             <tr>
-              {[
-                "",
-                "Competition",
-                "Place",
-                "Single",
-                "Average",
-                resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm"
-                  ? "Moves"
-                  : "Solves",
-              ].map((columnTitle, idx) => (
-                <th
-                  key={columnTitle}
-                  style={{
-                    ...(columnTitle === ""
-                      ? goodHeight
-                      : idx < 3
-                      ? left
-                      : idx < 5
-                      ? right
-                      : center),
-                    ...(idx === 0
-                      ? { width: "1%" }
-                      : {
-                          width:
-                            idx === 1
-                              ? "30%"
-                              : idx === 2
-                              ? "4%"
-                              : idx < 5
-                              ? "10%"
-                              : "40%",
-                        }),
-                  }}
-                >
-                  <b>{columnTitle}</b>
-                </th>
-              ))}
+              {getColumnNames().map((columnTitle, idx) => {
+                console.log({
+                  ...(columnTitle === ""
+                    ? goodHeight
+                    : idx < 3
+                    ? left
+                    : idx < 5 - (ismbld ? 1 : 0)
+                    ? right
+                    : center),
+                  ...(idx === 0
+                    ? { width: "1%" }
+                    : {
+                        width:
+                          idx === 1
+                            ? "30%"
+                            : idx === 2
+                            ? "4%"
+                            : idx < 5 - (ismbld ? 1 : 0)
+                            ? "10%"
+                            : "40%",
+                      }),
+                });
+                return (
+                  <th
+                    key={idx}
+                    style={{
+                      ...(columnTitle === ""
+                        ? goodHeight
+                        : idx < 3
+                        ? left
+                        : idx < 5 - (ismbld ? 1 : 0)
+                        ? right
+                        : center),
+                      ...(idx === 0
+                        ? { width: "1%" }
+                        : {
+                            width:
+                              idx === 1
+                                ? "30%"
+                                : idx === 2
+                                ? "4%"
+                                : idx < 5 - (ismbld ? 1 : 0)
+                                ? "10%"
+                                : ismbld
+                                ? "30%"
+                                : "40%",
+                          }),
+                    }}
+                  >
+                    <b>{columnTitle}</b>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -101,12 +136,12 @@ const ProfileResultsHistory: React.FC<{
                 />
                 &nbsp;{resultsHistory[currentHistoryIdx].eventName}
               </td>
-              {[0, 1, 2, 3].map((val) => (
-                <td key={val} style={goodHeight}></td>
+              {(ismbld ? [0, 1, 2] : [0, 1, 2, 3]).map((val) => (
+                <td key={val + 10} style={goodHeight}></td>
               ))}
             </tr>
             {resultsHistory[currentHistoryIdx].history.map((entry, idx) => (
-              <tr key={idx}>
+              <tr key={idx + 1000}>
                 <td style={{ ...goodHeight, width: "2%" }}></td>
                 <td
                   style={{
@@ -120,7 +155,10 @@ const ProfileResultsHistory: React.FC<{
                     <b>{entry.competitionName}</b>
                   </Link>
                 </td>
-                {[entry.place, entry.single, entry.average].map((val, idx1) => (
+                {(ismbld
+                  ? [entry.place, entry.single]
+                  : [entry.place, entry.single, entry.average]
+                ).map((val, idx1) => (
                   <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
                     {idx1 === 0 ? (
                       val
@@ -135,7 +173,7 @@ const ProfileResultsHistory: React.FC<{
                     : entry.solves
                   ).join(", ")}
                 </td>
-                <td style={goodHeight}></td>
+                {!ismbld && <td style={goodHeight}></td>}
               </tr>
             ))}
           </tbody>

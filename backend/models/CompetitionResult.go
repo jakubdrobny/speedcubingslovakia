@@ -74,6 +74,8 @@ func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int, db
 		// KINCH RANKS - 4bld, 5bld, mbld sa berie single, 3bld a fmc lepsi z single,average a ostatne average
 		single := resultEntry.Single(resultEntry.IsFMC(), resultEntry.Scrambles)
 		singleContrib := float64(bests[resultEntry.Eventid].Single) / float64(single)
+		ismbld := resultEntry.Iconcode == "333mbf"
+		if ismbld { singleContrib = float64(single) / float64(bests[resultEntry.Eventid].Single) }
 		if single >= constants.VERY_SLOW { singleContrib = 0. }
 
 		average := resultEntry.Average(noOfSolves, resultEntry.IsFMC(), resultEntry.Scrambles)
@@ -81,9 +83,9 @@ func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int, db
 		if average >= constants.VERY_SLOW { averageContrib = 0. }
 
 		var finalContrib float64 = averageContrib
-		if resultEntry.Eventname == "4BLD" || resultEntry.Eventname == "5BLD" { // TODO - sem by sa malo este pridat multi ked ho somehow implementnem lol
+		if resultEntry.Iconcode == "444bf" || resultEntry.Eventname == "555bf" || ismbld {
 			finalContrib = singleContrib
-		} else if resultEntry.Eventname == "3BLD" || resultEntry.Eventname == "FMC" { // TODO - sem by malo ist FMC, ked implementnem validovanie rieseni
+		} else if resultEntry.Eventname == "333bf" || resultEntry.Iconcode == "333fm" {
 			finalContrib = math.Max(finalContrib, singleContrib)
 		}
 

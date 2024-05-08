@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"regexp"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -73,12 +76,43 @@ func (r *ResultEntry) LoadId(db *pgxpool.Pool) error {
 	return nil
 }
 
+func ValidateMultiEntry(entry string) string {
+	if entry == "DNS" || entry == "0/0 00:00:00" { return "DNS" }
+
+	r, _ := regexp.Compile("[0-9]{1,2}[/][0-9]{1,2}[ ][0-1][0-9]:[0-5][0-9]:[0-5][0-9]")
+	if !r.MatchString(entry) {
+		return "DNS"
+	}
+
+	cubes := strings.Split(entry, " ")[0]
+	solved, _ := strconv.Atoi(strings.Split(cubes, "/")[0])
+	attempted, _ := strconv.Atoi(strings.Split(cubes, "/")[1])
+
+	if solved > attempted || attempted > constants.MBLD_MAX_CUBES_PER_ATTEMPT {
+		return "DNS"
+	}
+
+	return entry
+}
+
 func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error {
 	err := r.LoadId(db)
 	if err != nil { return err }
 
-	r.Scrambles, err = utils.GetScramblesByResultEntryId(db, r.Eventid, r.Competitionid)
-	if err != nil { return err }
+	if (isfmc) {
+		r.Scrambles, err = utils.GetScramblesByResultEntryId(db, r.Eventid, r.Competitionid)
+		if err != nil { return err }
+	} else {
+		r.Scrambles = make([]string, 5)
+	}
+
+	if r.Iconcode == "333mbf" {
+		r.Solve1 = ValidateMultiEntry(r.Solve1)
+		r.Solve2 = ValidateMultiEntry(r.Solve2)
+		r.Solve3 = ValidateMultiEntry(r.Solve3)
+		r.Solve4 = ValidateMultiEntry(r.Solve4)
+		r.Solve5 = ValidateMultiEntry(r.Solve5)
+	}
 
 	if len(valid) == 0 || (len(valid) > 0 && !valid[0]) {
 		err := r.Validate(db, isfmc, r.Scrambles)
@@ -117,11 +151,23 @@ func (r *ResultEntry) IsSuspicous(isfmc bool, scrambles []string) bool {
 	}
 
 	curSingle, curAverage := r.Single(isfmc, scrambles), r.Average(noOfSolves, isfmc, scrambles)
+	if isfmc {
+		curSingle = utils.ParseSolveToMilliseconds(utils.FormatTime(curSingle, true), false, "")
+		curAverage = utils.ParseSolveToMilliseconds(utils.FormatTime(curAverage, true), false, "")
+	}
 
 	recSingle, recAverage, err := utils.GetWorldRecords(r.Iconcode)
 	if err != nil { return false }
 
+	if r.IsMBLD() {
+		return curSingle < constants.VERY_SLOW && float64(recSingle - curSingle) > 1e-9
+	}
+
 	return float64(recSingle - curSingle) > 1e-9 || float64(recAverage - curAverage) > 1e-9;
+}
+
+func (r *ResultEntry) IsMBLD() bool {
+	return r.Iconcode == "333mbf"
 }
 
 func (r *ResultEntry) GetSolvesInMiliseconds(isfmc bool, scrambles []string) []int {
@@ -214,8 +260,24 @@ func GetResultEntryById(db *pgxpool.Pool, resultId int) (ResultEntry, error) {
 	return resultEntry, nil
 }
 
+func (r *ResultEntry) FormatMultiSingle(single int) string {
+	if utils.ParseMultiToMilliseconds(r.Solve1) == single { return r.Solve1 }
+	if utils.ParseMultiToMilliseconds(r.Solve2) == single { return r.Solve2 }
+	if utils.ParseMultiToMilliseconds(r.Solve3) == single { return r.Solve3 }
+	if utils.ParseMultiToMilliseconds(r.Solve4) == single { return r.Solve4 }
+	if utils.ParseMultiToMilliseconds(r.Solve5) == single { return r.Solve5 }
+
+	return "DNS"
+}
+
 func (r *ResultEntry) SingleFormatted(isfmc bool, scrambles []string) string {
-	return utils.FormatTime(r.Single(isfmc, scrambles), isfmc)
+	single := r.Single(isfmc, scrambles)
+
+	if r.Iconcode == "333mbf" {
+		return r.FormatMultiSingle(single)
+	}
+
+	return utils.FormatTime(single, isfmc)
 }
 
 func (r *ResultEntry) AverageFormatted(isfmc bool, scrambles []string) (string, error) {

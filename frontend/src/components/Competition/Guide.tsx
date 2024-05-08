@@ -1,4 +1,4 @@
-import { Alert, Card, Divider, Grid, Typography } from "@mui/joy";
+import { Alert, Card, Divider, Grid, Stack, Typography } from "@mui/joy";
 import { CompetitionContextType, InputMethod } from "../../Types";
 import { Keyboard, Timer } from "@mui/icons-material";
 
@@ -30,6 +30,24 @@ const Guide = () => {
             . (TLDR: basically anything except slice moves)
           </Typography>
         </div>
+      ) : competitionState?.events[competitionState?.currentEventIdx]
+          ?.iconcode === "333mbf" ? (
+        <Stack spacing={2}>
+          <Typography>
+            For Multi-Blind enter the number of solved cubes in the 1st input
+            and number of attempted cubes in the 2nd input.
+          </Typography>
+          <ul>
+            <li key={"1"}>
+              to enter you time, put hours, minutes and seconds (rounded to the
+              nearest second) in 3rd, 4th and 5th input box respectively.
+            </li>
+            <li key={"2"}>
+              DNS is equivalent to 0/0 00:00:00, so if you want to go back to
+              DNS, just enter 0 into every box.
+            </li>
+          </ul>
+        </Stack>
       ) : competitionState.inputMethod === InputMethod.Manual ? (
         <div>
           <Typography>
@@ -72,17 +90,24 @@ const Guide = () => {
       <Typography sx={{ paddingBottom: "1em" }}>
         After you are done, don't forget to save your results!
       </Typography>
-      <Divider />
-      <Alert color="warning">
-        <Grid container direction="row" alignItems="center">
-          You can switch timing methods by clicking on Manual
-          <span style={{ fontSize: "1em" }}>&nbsp;</span>
-          <Keyboard /> <span style={{ fontSize: "1em" }}>&nbsp;</span>/
-          <span style={{ fontSize: "1em" }}>&nbsp;</span> Timer{" "}
-          <span style={{ fontSize: "0.75em" }}>&nbsp;</span>
-          <Timer />.
-        </Grid>
-      </Alert>
+      {competitionState.events[competitionState.currentEventIdx].displayname !==
+        "FMC" &&
+        competitionState.events[competitionState.currentEventIdx]
+          .displayname !== "MBLD" && (
+          <>
+            <Divider />
+            <Alert color="warning">
+              <Grid container direction="row" alignItems="center">
+                You can switch timing methods by clicking on Manual
+                <span style={{ fontSize: "1em" }}>&nbsp;</span>
+                <Keyboard /> <span style={{ fontSize: "1em" }}>&nbsp;</span>/
+                <span style={{ fontSize: "1em" }}>&nbsp;</span> Timer{" "}
+                <span style={{ fontSize: "0.75em" }}>&nbsp;</span>
+                <Timer />.
+              </Grid>
+            </Alert>
+          </>
+        )}
     </Card>
   );
 };

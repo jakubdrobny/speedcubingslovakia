@@ -11,6 +11,7 @@ import { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import ManualInput from "./ManualInput";
+import ManualInputMBLD from "./ManualInputMBLD";
 import Penalties from "./Penalties";
 import Scramble from "./Scramble";
 import TimerInput from "./TimerInput";
@@ -29,6 +30,9 @@ const Compete = () => {
   const { timerInputState } = useContext(
     TimerInputContext
   ) as TimerInputContextType;
+  const ismbld =
+    competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
+    "333mbf";
 
   useEffect(() => {
     if (
@@ -95,7 +99,8 @@ const Compete = () => {
                 alignItems: "center",
               }}
             >
-              Solve {competitionState.currentSolveIdx + 1}
+              {ismbld ? "Attempt" : "Solve"}{" "}
+              {competitionState.currentSolveIdx + 1}
             </Grid>
             <Grid xs={4} sx={{ display: "flex", justifyContent: "flex-end" }}>
               <Button
@@ -116,7 +121,7 @@ const Compete = () => {
               </Button>
             </Grid>
           </Grid>
-          <Scramble />
+          <Scramble ismbld={ismbld} />
           <Grid container>
             <Grid
               xs={12}
@@ -159,7 +164,11 @@ const Compete = () => {
                 <Grid xs={12}>
                   {competitionState.inputMethod === InputMethod.Manual ||
                   !competitionOnGoing(competitionState) ? (
-                    <ManualInput />
+                    ismbld ? (
+                      <ManualInputMBLD />
+                    ) : (
+                      <ManualInput />
+                    )
                   ) : (
                     <TimerInput />
                   )}

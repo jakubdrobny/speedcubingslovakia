@@ -23,11 +23,54 @@ func Reverse[S ~[]E, E any](s S)  {
     }
 }
 
+func ParseMultiToMilliseconds(s string) int {
+	r, _ := regexp.Compile("[0-9]{1,2}[/][0-9]{1,2}[ ][0-9]{0,2}[:]{0,1}[0-5][0-9]:[0-5][0-9]")
+	if !r.MatchString(s) {
+		return constants.DNS
+	}
+
+	if s == "0/0 00:00:00" { return constants.DNS }
+
+	cubesPart := strings.Split(strings.Split(s, " ")[0], "/")
+	timePart := strings.Split(strings.Split(s, " ")[1], ":")
+
+	solved, _ := strconv.Atoi(cubesPart[0])
+	attempted, _ := strconv.Atoi(cubesPart[1])
+	points := solved - (attempted - solved)
+
+	if solved < 2 {
+		return constants.DNS
+	}
+
+	res := points * 7200 * 1000
+	
+	var hours, minutes, seconds int
+	if len(timePart) == 3 {
+		hours, _ = strconv.Atoi(timePart[0])
+		minutes, _ = strconv.Atoi(timePart[1])
+		seconds, _ = strconv.Atoi(timePart[2])
+	} else {
+		hours  = 0
+		minutes, _ = strconv.Atoi(timePart[0])
+		seconds, _ = strconv.Atoi(timePart[1])
+	}
+
+	res -= hours * 3600 * 1000
+	res -= minutes * 60 * 1000
+	res -= seconds * 1000
+
+	return -res
+}
+
 func ParseSolveToMilliseconds(s string, isfmc bool, scramble string) int {
 	if s == "DNF" { return constants.DNF }
 	if s == "DNS" { return constants.DNS }
 
 	if isfmc { return cube.ParseFMCSolutionToMilliseconds(scramble, s) }
+
+	if idx := strings.Index(s, "/"); idx != -1 {
+		return ParseMultiToMilliseconds(s)
+	}
 
 	if !strings.Contains(s, ".") { s += ".00" }
 
@@ -76,7 +119,7 @@ func CompareSolves(t1 *int, s2 string, isfmc bool, scramble string) {
 func GetWorldRecords(eventName string) (int, int, error) {
 	c := colly.NewCollector()
 
-	single, average := constants.DNS, constants.DNS
+	single, average := constants.VERY_SLOW, constants.VERY_SLOW
 	var err error
 
 	c.OnHTML("div#results-list h2 a", func(e *colly.HTMLElement) {
@@ -88,7 +131,6 @@ func GetWorldRecords(eventName string) (int, int, error) {
 
 			single = ParseSolveToMilliseconds(strings.Trim(singleTd.Text(), " "), false, "")
 
-			// TODO: handle 333mbf parsing
 			if eventName != "333mbf" {
 				averageTd := singleTd.Parent().Next().Find("td.result").First()
 				average = ParseSolveToMilliseconds(strings.Trim(averageTd.Text(), " "), false, "")
@@ -139,11 +181,23 @@ func LeftPad(s string, cnt int, ch string) string {
 	return s
 }
 
+func FormatMultiTime(timeInMiliseconds int) string {
+	timeInMiliseconds = -timeInMiliseconds
+
+	res := ""
+
+	return res
+}
+
 func FormatTime(timeInMiliseconds int, isfmc bool) string {
 	if timeInMiliseconds == constants.DNF { return "DNF" }
 	if timeInMiliseconds == constants.DNS { return "DNS" }
 
 	if isfmc { return fmt.Sprint(timeInMiliseconds) + ".00" }
+
+	if timeInMiliseconds < 0 {
+		return FormatMultiTime(timeInMiliseconds)
+	}
 
 	if timeInMiliseconds % 10 >= 5 {
 		timeInMiliseconds += 10 - (timeInMiliseconds % 10)

@@ -31,6 +31,7 @@ const Rankings = () => {
     useState<string>(defaultRegionGroup);
   const [rankings, setRankings] = useState<RankingsEntry[]>([]);
   const isfmc = events[currentEventIdx]?.iconcode === "333fm";
+  const ismbld = events[currentEventIdx]?.iconcode === "333mbf";
 
   useEffect(() => {
     setLoadingState({ isLoading: true, error: "" });
@@ -49,6 +50,8 @@ const Rankings = () => {
   }, []);
 
   const fetchRankings = () => {
+    if (!singleRef.current && ismbld) return;
+
     setLoadingState({ isLoading: true, error: "" });
     getRankings(
       eventsRef.current[currentEventIdxRef.current].id,
@@ -104,20 +107,21 @@ const Rankings = () => {
           >
             Single
           </Button>
-          <Button
-            variant={!single ? "solid" : "outlined"}
-            color="primary"
-            disabled={loadingState.isLoading}
-            onClick={() => {
-              setSingle(false);
-              fetchRankings();
-            }}
-          >
-            Average
-          </Button>
+          {!ismbld && (
+            <Button
+              variant={!single ? "solid" : "outlined"}
+              color="primary"
+              disabled={loadingState.isLoading}
+              onClick={() => {
+                setSingle(false);
+                fetchRankings();
+              }}
+            >
+              Average
+            </Button>
+          )}
         </ButtonGroup>
         <select
-          defaultValue={defaultRegionGroup}
           value={regionValue}
           onChange={(e) => {
             setRegionValue(e.target.value);
@@ -147,6 +151,7 @@ const Rankings = () => {
           single={single}
           loading={loadingState.isLoading}
           isfmc={isfmc}
+          ismbld={ismbld}
         />
       )}
     </Stack>

@@ -42,7 +42,7 @@ const App = () => {
   const [authorizationLoadingState, setAuthorizationLoadingState] = useState<{
     loading: boolean;
     error: string;
-  }>({ loading: authState.token != "", error: "" });
+  }>({ loading: authState.token !== "", error: "" });
 
   useEffect(() => {
     setBearerIfPresent(authState.token);

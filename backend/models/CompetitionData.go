@@ -12,6 +12,7 @@ import (
 	"github.com/alexsergivan/transliterator"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
@@ -54,10 +55,12 @@ func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx, event_ids []int
 			noOfSolves, err := utils.GetNoOfSolves(event.Format)
 			if err != nil { return err }
 
-			scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves)
+			ismbld := event.Iconcode == "333mbf"
+
+			scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves, ismbld)
 			if err != nil { return err }
 
-			images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode)
+			images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode, ismbld)
 			if err != nil { return err }
 
 			for scrambleIdx, scramble := range scrambles {
@@ -159,7 +162,7 @@ func GetAllCompetitions(db *pgxpool.Pool) ([]CompetitionData, error) {
 	return competitions, nil
 }
 
-func GenerateScramblesForEvent(scramblingcode string, noOfSolves int) ([]string, error) {
+func GetScrambles(scramblingcode string, noOfSolves int) ([]string, error) {
 	resp, err := http.Get(fmt.Sprintf("http://localhost:2014/api/v0/scramble/%s?numScrambles=%d", scramblingcode, noOfSolves))
 	if err != nil { return []string{}, err }
 	defer resp.Body.Close()
@@ -171,12 +174,29 @@ func GenerateScramblesForEvent(scramblingcode string, noOfSolves int) ([]string,
 	return scrambles, nil
 }
 
-func GenerateImagesForScrambles(scrambles []string, scramblingcode string) ([]string, error) {
+func GenerateScramblesForEvent(scramblingcode string, noOfSolves int, ismbld bool) ([]string, error) {
+	if !ismbld {
+		return GetScrambles(scramblingcode, noOfSolves)
+	}
+
+	scrambles := make([]string, 0)
+	for i := 0; i < noOfSolves; i++ {
+		currentScrambles, err := GetScrambles(scramblingcode, constants.MBLD_MAX_CUBES_PER_ATTEMPT)
+		if err != nil { return []string{}, err }
+
+		scrambles = append(scrambles, strings.Join(currentScrambles, "\n"))
+	}
+
+	return scrambles, nil
+}
+
+func GenerateImagesForScrambles(scrambles []string, scramblingcode string, ismbld bool) ([]string, error) {
 	images := make([]string, 0)
 
 	for _, scramble := range scrambles {
 		scramble = strings.ReplaceAll(scramble, "\n", " ")
 		if scramblingcode == "clock" { scramble = strings.ReplaceAll(scramble, "+", "%2B") }
+		if ismbld { scramble = "" }
 		url := strings.ReplaceAll(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble), " ", "%20")
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil { return []string{}, err }
@@ -199,10 +219,12 @@ func (c *CompetitionData) GenerateScrambles() (error) {
 		noOfSolves, err := utils.GetNoOfSolves(event.Format)
 		if err != nil { return err }
 
-		scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves)
+		ismbld := event.Iconcode == "333mbf"
+
+		scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves, ismbld)
 		if err != nil { return err }
 
-		images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode)
+		images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode, ismbld)
 		if err != nil { return err }
 		
 		var scrambleSet ScrambleSet

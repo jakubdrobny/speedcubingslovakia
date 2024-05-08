@@ -3,13 +3,15 @@ import { Card, Table } from "@mui/joy";
 import { Link } from "react-router-dom";
 import { RankingsEntry } from "../../Types";
 import React from "react";
+import { reformatMultiTime } from "../../utils";
 
 const RankingsTable: React.FC<{
   rankings: RankingsEntry[];
   single: boolean;
   loading: boolean;
   isfmc: boolean;
-}> = ({ rankings, single, loading, isfmc }) => {
+  ismbld: boolean;
+}> = ({ rankings, single, loading, isfmc, ismbld }) => {
   const columnNames = (() => {
     let columnNames = ["", "#", "Name", "Result", "Represeting", "Competition"];
     if (!single) columnNames.push(isfmc ? "Moves" : "Times");
@@ -32,7 +34,7 @@ const RankingsTable: React.FC<{
                       ? "0.2%"
                       : idx === 1
                       ? "1%"
-                      : idx == 2
+                      : idx === 2
                       ? "10%"
                       : "auto",
                   textAlign: idx === 3 ? "right" : "left",
@@ -49,9 +51,15 @@ const RankingsTable: React.FC<{
           ) : (
             rankings.map((ranking, idx) => {
               ranking.result =
-                isfmc && single ? ranking.result.split(".")[0] : ranking.result;
+                isfmc && single
+                  ? ranking.result.split(".")[0]
+                  : ismbld
+                  ? reformatMultiTime(ranking.result)
+                  : ranking.result;
               ranking.times = isfmc
                 ? ranking.times.map((res) => res.split(".")[0])
+                : ismbld
+                ? ranking.times.map((res) => reformatMultiTime(res))
                 : ranking.times;
               return (
                 <tr key={idx}>

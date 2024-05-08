@@ -94,7 +94,7 @@ export const milisecondsToFormattedTime = (toFormat: number): string => {
   let resIdx: number;
   for (resIdx = 0; resIdx < res.length - 1; resIdx++) {
     resString += resIdx > 0 ? res[resIdx].padStart(2, "0") : res[resIdx];
-    resString += resIdx == res.length - 2 ? "." : ":";
+    resString += resIdx === res.length - 2 ? "." : ":";
   }
   resString += res[resIdx].padStart(2, "0");
 
@@ -439,4 +439,22 @@ export const getRankings = async (
   );
   console.log(response.data);
   return response.data;
+};
+
+export const reformatMultiTime = (startingTime: string): string => {
+  if (startingTime === "DNS" || startingTime === "DNF") return startingTime;
+
+  const cubePart = startingTime.split(" ")[0];
+  let res = startingTime.split(" ")[1];
+
+  while (res[0] === "0" || res[0] === ":") res = res.slice(1);
+
+  const len = res.split(":").length;
+  if (len === 1) {
+    res = "00:" + res;
+  } else if (len === 2) {
+    res = res.padStart(5, "0");
+  }
+
+  return cubePart + " " + res;
 };

@@ -159,7 +159,9 @@ INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingco
 VALUES ('5x5x5 Blindfolded', '5BLD', 'bo3', '555bf', '555ni')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
-
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('3x3x3 Multi-Blind', 'MBLD', 'bo3', '333mbf', '333ni')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 
 /* results status */

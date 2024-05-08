@@ -178,7 +178,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     setCompetitionState((ps) => ({
       ...ps,
       penalties: ps.penalties.map((val: string, idx: number) =>
-        idx == curSolveIdx ? newPenalty : val
+        idx === curSolveIdx ? newPenalty : val
       ),
     }));
   };
@@ -199,7 +199,9 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     if (
       competitionState.currentEventIdx < competitionState.events.length &&
       competitionState.events[competitionState.currentEventIdx].displayname !==
-        "FMC"
+        "FMC" &&
+      competitionState.events[competitionState.currentEventIdx].displayname !==
+        "MBLD"
     ) {
       setCompetitionState((ps) => ({
         ...ps,
@@ -208,7 +210,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
             ? InputMethod.Timer
             : InputMethod.Manual,
         penalties: ps.penalties.map((val: string, idx: number) =>
-          idx == ps.currentSolveIdx ? "0" : val
+          idx === ps.currentSolveIdx ? "0" : val
         ),
       }));
     }

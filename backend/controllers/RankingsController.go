@@ -68,7 +68,9 @@ func MergeNonUniqueRankings(rankings []RankingsEntry, isfmc bool) ([]RankingsEnt
 
 	for _, v := range best { result = append(result, v) }
 
-	sort.Slice(result, func (i int, j int) bool { return utils.ParseSolveToMilliseconds(result[i].Result, false, "") < utils.ParseSolveToMilliseconds(result[j].Result, false, "")})
+	sort.Slice(result, func (i int, j int) bool {
+		return utils.ParseSolveToMilliseconds(result[i].Result, false, "") < utils.ParseSolveToMilliseconds(result[j].Result, false, "")
+	})
 
 	return result
 }
@@ -128,7 +130,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 					rankingsEntry.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
 					if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
 					rankingsEntry.Times = make([]string, 0)
-				} else {
+				} else if resultsEntry.Iconcode != "333mbf" {
 					resultFormatted, err := resultsEntry.AverageFormatted(isfmc, scrambles)
 					if err != nil {
 						log.Println("ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
@@ -174,7 +176,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 					rankingsEntry.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
 					if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
 					rankingsEntry.Times = make([]string, 0)
-				} else {
+				} else if resultsEntry.Iconcode != "333mbf" {
 					resultFormatted, err := resultsEntry.AverageFormatted(isfmc, scrambles)
 					if err != nil {
 						log.Println("ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())

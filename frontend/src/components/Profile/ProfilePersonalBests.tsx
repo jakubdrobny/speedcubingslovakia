@@ -33,7 +33,7 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                 <th
                   key={idx}
                   style={{
-                    ...(columnTitle != "Event" ? right : goodHeight),
+                    ...(columnTitle !== "Event" ? right : goodHeight),
                     ...(idx === 0 || idx === 10
                       ? { width: idx === 0 ? "0.5%" : "2%" }
                       : (idx >= 2 && idx < 5) || (idx > 7 && idx < 10)
@@ -87,9 +87,9 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                           : { ...goodHeight, width: "2%" }
                       }
                     >
-                      {idx == 3 || idx == 4 ? (
+                      {idx === 3 || idx === 4 ? (
                         <b>
-                          {idx == 3 && entry.eventIconcode === "333fm"
+                          {idx === 3 && entry.eventIconcode === "333fm"
                             ? val.split(".")[0]
                             : val}
                         </b>

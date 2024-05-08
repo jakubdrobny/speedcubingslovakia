@@ -181,6 +181,7 @@ func LoadBestSingle(db *pgxpool.Pool, user User, eid int) (string, error) {
 	if err != nil { return "", err }
 
 	single := constants.DNS
+	formattedSingle := "DNS"
 
 	for rows.Next() {
 		var resultEntry ResultEntry
@@ -191,9 +192,12 @@ func LoadBestSingle(db *pgxpool.Pool, user User, eid int) (string, error) {
 		if err != nil { return "", err }
 
 		utils.CompareSolves(&single, resultEntry.SingleFormatted(resultEntry.IsFMC(), scrambles), false, "")
+		if single == resultEntry.Single(resultEntry.IsFMC(), scrambles) {
+			formattedSingle = resultEntry.SingleFormatted(resultEntry.IsFMC(), scrambles)
+		}
 	}
 
-	return utils.FormatTime(single, false), nil
+	return formattedSingle, nil
 }
 
 func LoadRankFromRows(rows pgx.Rows, result string, average int, db *pgxpool.Pool) (string, error) {
@@ -315,19 +319,22 @@ func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user User) (error) {
 	
 	newPersonalBests := make([]ProfileTypePersonalBests, 0)
 	for idx := range p.PersonalBests {
-		err = p.PersonalBests[idx].LoadAverage(db, user)
-		if err != nil { return err }
+		ismbld := p.PersonalBests[idx].EventIconCode != "333mbf"
+		if ismbld {
+			err = p.PersonalBests[idx].LoadAverage(db, user)
+			if err != nil { return err }
+		}
 		
 		err = p.PersonalBests[idx].LoadSingle(db, user)
 		if err != nil { return err }
 
-		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value, false, "") >= constants.VERY_SLOW && utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
+		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value, false, "") >= constants.VERY_SLOW && (ismbld || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW) {
 			continue			
 		}
 
 		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value, false, "") >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearSingle()
-		} else if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
+		} else if ismbld || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearAverage()
 		}
 
@@ -369,19 +376,23 @@ func CreateEventHistoryForUser(db *pgxpool.Pool, user User, event CompetitionEve
 		scrambles, err := utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
 		if err != nil { return ProfileTypeResultHistory{}, err }
 
+		ismbld := resultEntry.Iconcode != "333mbf"
+
 		var historyEntry ProfileTypeResultHistoryEntry
 		historyEntry.CompetitionId = resultEntry.Competitionid
 		historyEntry.CompetitionName = resultEntry.Competitionname
 		historyEntry.Single = resultEntry.SingleFormatted(resultEntry.IsFMC(), scrambles)
 		if historyEntry.Single == "DNS" { continue }
-		historyEntry.Average, err = resultEntry.AverageFormatted(resultEntry.IsFMC(), scrambles)
-		if err != nil { return ProfileTypeResultHistory{}, err }
+		if !ismbld {
+			historyEntry.Average, err = resultEntry.AverageFormatted(resultEntry.IsFMC(), scrambles)
+			if err != nil { return ProfileTypeResultHistory{}, err }
+		}
 		historyEntry.Solves, err = resultEntry.GetFormattedTimes(resultEntry.IsFMC(), scrambles)
 		if err != nil { return ProfileTypeResultHistory{}, err }
 		historyEntry.Place, err = ComputePlacement(db, resultEntry.Username, resultEntry.Competitionid, event.Id)
 		if err != nil { return ProfileTypeResultHistory{}, err }
 		
-		canIncreaseMedalCount := (event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) || ((event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW))
+		canIncreaseMedalCount := (event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) || ((!ismbld && event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW))
 		if canIncreaseMedalCount {
 			switch historyEntry.Place {
 				case "1":
@@ -448,7 +459,7 @@ func IsRecorder2(recorders []int, uid int, records *int) {
 	}
 }
 
-func UpdateRecordersEntry(oldRecordersEntry *RecordersEntry, newRecordersEntry RecordersEntry, uid int, records *int) {
+func UpdateRecordersEntry(oldRecordersEntry *RecordersEntry, newRecordersEntry RecordersEntry, uid int, records *int, ismbld bool) {
 	if newRecordersEntry.single <= oldRecordersEntry.single { IsRecorder2(newRecordersEntry.singleRecorders, uid, records) }
 
 	if newRecordersEntry.single < oldRecordersEntry.single {
@@ -458,19 +469,22 @@ func UpdateRecordersEntry(oldRecordersEntry *RecordersEntry, newRecordersEntry R
 		oldRecordersEntry.singleRecorders = append(oldRecordersEntry.singleRecorders, newRecordersEntry.singleRecorders...)
 	}
 	
-	if newRecordersEntry.average <= oldRecordersEntry.average { IsRecorder2(newRecordersEntry.averageRecorders, uid, records) }
+	if !ismbld {
+		if newRecordersEntry.average <= oldRecordersEntry.average { IsRecorder2(newRecordersEntry.averageRecorders, uid, records) }
 
-	if newRecordersEntry.average < oldRecordersEntry.average {
-		oldRecordersEntry.average = newRecordersEntry.average
-		oldRecordersEntry.averageRecorders = newRecordersEntry.averageRecorders
-	} else if newRecordersEntry.average == oldRecordersEntry.average {
-		oldRecordersEntry.averageRecorders = append(oldRecordersEntry.averageRecorders, newRecordersEntry.averageRecorders...)
+		if newRecordersEntry.average < oldRecordersEntry.average {
+			oldRecordersEntry.average = newRecordersEntry.average
+			oldRecordersEntry.averageRecorders = newRecordersEntry.averageRecorders
+		} else if newRecordersEntry.average == oldRecordersEntry.average {
+			oldRecordersEntry.averageRecorders = append(oldRecordersEntry.averageRecorders, newRecordersEntry.averageRecorders...)
+		}
 	}
 }
 
 func CountRecordsInEventFromRows(rows pgx.Rows, uid int, db *pgxpool.Pool) (int, error) {
 	recorders := make(map[time.Time]RecordersEntry)
 
+	ismbld := false
 	for rows.Next() {
 		var resultEntry ResultEntry
 		var date time.Time
@@ -482,10 +496,16 @@ func CountRecordsInEventFromRows(rows pgx.Rows, uid int, db *pgxpool.Pool) (int,
 		resultEntry.Scrambles = scrambles
 
 		single := resultEntry.SingleFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
-		average, err := resultEntry.AverageFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
-		if err != nil { return 0, err }
 		singleMili := utils.ParseSolveToMilliseconds(single, false, "")
-		averageMili := utils.ParseSolveToMilliseconds(average, false, "")
+		
+		ismbld = resultEntry.Iconcode == "333mbf"
+
+		var averageMili int
+		if !ismbld {
+			average, err := resultEntry.AverageFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
+			if err != nil { return 0, err }
+			averageMili = utils.ParseSolveToMilliseconds(average, false, "")
+		}
 		
 		recordersEntry, ok := recorders[date]
 		if !ok {
@@ -501,12 +521,14 @@ func CountRecordsInEventFromRows(rows pgx.Rows, uid int, db *pgxpool.Pool) (int,
 			if singleMili <= recordersEntry.single { recordersEntry.singleRecorders = append(recordersEntry.singleRecorders, resultEntry.Userid) }
 		}
 
-		if averageMili < constants.VERY_SLOW {
-			if averageMili < recordersEntry.average {
-				recordersEntry.average = averageMili
-				recordersEntry.averageRecorders = make([]int, 0)
+		if !ismbld {
+			if averageMili < constants.VERY_SLOW {
+				if averageMili < recordersEntry.average {
+					recordersEntry.average = averageMili
+					recordersEntry.averageRecorders = make([]int, 0)
+				}
+				if averageMili <= recordersEntry.average { recordersEntry.averageRecorders = append(recordersEntry.averageRecorders, resultEntry.Userid) }
 			}
-			if averageMili <= recordersEntry.average { recordersEntry.averageRecorders = append(recordersEntry.averageRecorders, resultEntry.Userid) }
 		}
 
 		recorders[date] = recordersEntry
@@ -524,7 +546,7 @@ func CountRecordsInEventFromRows(rows pgx.Rows, uid int, db *pgxpool.Pool) (int,
 	IsRecorder(&recordersEntry, uid, &records)
 	
 	for idx := 1; idx < len(recordersArr); idx++ {
-		UpdateRecordersEntry(&recordersEntry, recordersArr[idx], uid, &records)
+		UpdateRecordersEntry(&recordersEntry, recordersArr[idx], uid, &records, ismbld)
 	}
 
 	return records, nil
