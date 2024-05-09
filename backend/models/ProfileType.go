@@ -320,7 +320,7 @@ func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user User) (error) {
 	newPersonalBests := make([]ProfileTypePersonalBests, 0)
 	for idx := range p.PersonalBests {
 		ismbld := p.PersonalBests[idx].EventIconCode != "333mbf"
-		if ismbld {
+		if !ismbld {
 			err = p.PersonalBests[idx].LoadAverage(db, user)
 			if err != nil { return err }
 		}
