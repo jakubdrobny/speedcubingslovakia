@@ -334,7 +334,7 @@ func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user User) (error) {
 
 		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value, false, "") >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearSingle()
-		} else if !ismbld || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
+		} else if ismbld || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearAverage()
 		}
 
