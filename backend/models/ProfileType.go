@@ -319,7 +319,7 @@ func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user User) (error) {
 	
 	newPersonalBests := make([]ProfileTypePersonalBests, 0)
 	for idx := range p.PersonalBests {
-		ismbld := p.PersonalBests[idx].EventIconCode != "333mbf"
+		ismbld := p.PersonalBests[idx].EventIconCode == "333mbf"
 		if !ismbld {
 			err = p.PersonalBests[idx].LoadAverage(db, user)
 			if err != nil { return err }
@@ -334,7 +334,7 @@ func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user User) (error) {
 
 		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value, false, "") >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearSingle()
-		} else if ismbld || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
+		} else if !ismbld || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearAverage()
 		}
 
@@ -376,7 +376,7 @@ func CreateEventHistoryForUser(db *pgxpool.Pool, user User, event CompetitionEve
 		scrambles, err := utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
 		if err != nil { return ProfileTypeResultHistory{}, err }
 
-		ismbld := resultEntry.Iconcode != "333mbf"
+		ismbld := resultEntry.Iconcode == "333mbf"
 
 		var historyEntry ProfileTypeResultHistoryEntry
 		historyEntry.CompetitionId = resultEntry.Competitionid
