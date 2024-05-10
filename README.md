@@ -27,7 +27,8 @@ Clone this repository. `https://github.com/jakubdrobny/speedcubingslovakia.git`
 3. Add `SPEEDCUBINGSLOVAKIA_BACKEND_ENV=development` to your `~/.profile` and run `source ~/.profile` to realize the changes in current terminal.
 4. Run `go run main/main.go` in the backend directory to start the server.
 
-### Scrambling program
+#### Scrambling program
+
 1. Download Java 11.
 2. Clone official scrambling program TNoodle from `https://github.com/thewca/tnoodle.git`.
 3. Inside the cloned repository run `./gradlew runBackend` to start the scrambling program.
