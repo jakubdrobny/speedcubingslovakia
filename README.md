@@ -23,9 +23,14 @@ Clone this repository. `https://github.com/jakubdrobny/speedcubingslovakia.git`
 #### Backend
 
 1. Install [Go 1.22.0](https://go.dev/doc/install).
-2. Run `go get <package_name>` for packages _models, constants, middlewares, main, controllers, utils_ to install dependencies.
+2. Run `go get <package_name>` for packages _models, constants, middlewares, main, controllers, utils, cube_ to install dependencies.
 3. Add `SPEEDCUBINGSLOVAKIA_BACKEND_ENV=development` to your `~/.profile` and run `source ~/.profile` to realize the changes in current terminal.
 4. Run `go run main/main.go` in the backend directory to start the server.
+
+### Scrambling program
+1. Download Java 11.
+2. Clone official scrambling program TNoodle from `https://github.com/thewca/tnoodle.git`.
+3. Inside the cloned repository run `./gradlew runBackend` to start the scrambling program.
 
 #### Frontend
 
