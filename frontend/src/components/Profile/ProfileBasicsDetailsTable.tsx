@@ -43,7 +43,7 @@ const ProfileBasicsDetailsTable: React.FC<{ basics: ProfileTypeBasics }> = ({
                     to={`https://worldcubeassociation.org/persons/${columnContent}`}
                     style={{ color: "#0B6BCB", textDecoration: "none" }}
                   >
-                    columnContent
+                    {columnContent}
                   </Link>
                 ) : (
                   columnContent
