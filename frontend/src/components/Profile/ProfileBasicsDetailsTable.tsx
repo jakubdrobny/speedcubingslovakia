@@ -1,5 +1,6 @@
 import { Card, Table } from "@mui/joy";
 
+import { Link } from "react-router-dom";
 import { ProfileTypeBasics } from "../../Types";
 
 const ProfileBasicsDetailsTable: React.FC<{ basics: ProfileTypeBasics }> = ({
@@ -37,7 +38,16 @@ const ProfileBasicsDetailsTable: React.FC<{ basics: ProfileTypeBasics }> = ({
               basics.completedSolves,
             ].map((columnContent, idx) => (
               <td key={idx} style={center}>
-                {columnContent}
+                {idx === 0 ? (
+                  <Link
+                    to={`https://worldcubeassociation.org/persons/${columnContent}`}
+                    style={{ color: "#0B6BCB", textDecoration: "none" }}
+                  >
+                    columnContent
+                  </Link>
+                ) : (
+                  columnContent
+                )}
               </td>
             ))}
           </tr>
