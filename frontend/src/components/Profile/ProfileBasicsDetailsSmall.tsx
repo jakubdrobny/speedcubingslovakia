@@ -1,5 +1,6 @@
 import { Card, Grid, Stack, Typography } from "@mui/joy";
 
+import { Link } from "react-router-dom";
 import { ProfileTypeBasics } from "../../Types";
 
 const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
@@ -30,7 +31,17 @@ const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
             basics.noOfCompetitions,
             basics.completedSolves,
           ].map((content, idx) => (
-            <Typography key={idx}>{content}</Typography>
+            <Typography key={idx}>
+              {idx === 0 ? (
+                <Link
+                  to={`https://worldcubeassociation.org/persons/${content}`}
+                >
+                  content
+                </Link>
+              ) : (
+                content
+              )}
+            </Typography>
           ))}
         </Stack>
       </Grid>

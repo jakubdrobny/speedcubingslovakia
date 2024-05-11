@@ -117,6 +117,7 @@ func (p *ProfileType) LoadBasics(db *pgxpool.Pool, uid int) (error) {
 		if err != nil { return err }
 		if p.Basics.Sex == "m" {p.Basics.Sex = "Male"}
 		if p.Basics.Sex == "f" {p.Basics.Sex = "Female"}
+		if p.Basics.Sex == "o" {p.Basics.Sex = "?"}
 
 		p.Basics.NoOfCompetitions, err = GetNoOfCompetitions(db, uid)
 		if err != nil { return err }
