@@ -38,8 +38,8 @@ func ParseMultiToMilliseconds(s string) int {
 	attempted, _ := strconv.Atoi(cubesPart[1])
 	points := solved - (attempted - solved)
 
-	if solved < 2 {
-		return constants.DNS
+	if solved < 2 || points < 0 {
+		return constants.DNF
 	}
 
 	res := points * 7200 * 1000
@@ -182,18 +182,26 @@ func LeftPad(s string, cnt int, ch string) string {
 }
 
 func FormatMultiTime(timeInMiliseconds int) string {
-	timeInMiliseconds = -timeInMiliseconds
-
 	res := ""
 
 	return res
+}
+
+func FormatMultiTimes(solves []string) []string {
+	for idx := 0; idx < len(solves); idx++ {
+		timeInMilliseconds := ParseSolveToMilliseconds(solves[idx], false, "")
+		if timeInMilliseconds == constants.DNS { solves[idx] = "DNS" }
+		if timeInMilliseconds == constants.DNF { solves[idx] = "DNF" }
+	}
+
+	return solves
 }
 
 func FormatTime(timeInMiliseconds int, isfmc bool) string {
 	if timeInMiliseconds == constants.DNF { return "DNF" }
 	if timeInMiliseconds == constants.DNS { return "DNS" }
 
-	if isfmc { return fmt.Sprint(timeInMiliseconds) + ".00" }
+	if isfmc { return fmt.Sprint(int(timeInMiliseconds / 1000)) + ".00" }
 
 	if timeInMiliseconds < 0 {
 		return FormatMultiTime(timeInMiliseconds)

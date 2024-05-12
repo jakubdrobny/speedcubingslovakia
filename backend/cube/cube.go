@@ -418,7 +418,7 @@ func (c *Cube) OfficialSolutionLength() int {
 		}
 	}
 
-	return moveCount
+	return moveCount * 1000
 }
 
 func (c *Cube) TotalSolutionLength() int {

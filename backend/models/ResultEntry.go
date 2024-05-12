@@ -274,6 +274,8 @@ func (r *ResultEntry) SingleFormatted(isfmc bool, scrambles []string) string {
 	single := r.Single(isfmc, scrambles)
 
 	if r.Iconcode == "333mbf" {
+		if single == constants.DNF { return "DNF" }
+		
 		return r.FormatMultiSingle(single)
 	}
 
@@ -293,7 +295,12 @@ func (r *ResultEntry) GetFormattedTimes(isfmc bool, scrambles []string) ([]strin
 
 	solves := r.GetSolves(isfmc, scrambles)
 	solves = solves[:noOfSolves]
-	if noOfSolves == 3 { return solves, nil }
+	if noOfSolves == 3 {
+		if r.Iconcode == "333mbf" {
+			return utils.FormatMultiTimes(solves), nil
+		}
+		return solves, nil
+	}
 
 	type SolveTuple struct {
 		FormattedTime string
