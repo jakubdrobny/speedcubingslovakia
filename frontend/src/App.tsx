@@ -9,6 +9,7 @@ import Competition from "./components/Competition/Competition";
 import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
 import Competitions from "./components/Competitions/Competitions";
 import Dashboard from "./components/Dashboard/Dashboard";
+import Footer from "./components/Footer/Footer";
 import Home from "./components/Home/Home";
 import LogIn from "./components/Login/LogIn";
 import { Mail } from "@mui/icons-material";
@@ -111,48 +112,7 @@ const App = () => {
         </Routes>
       </Grid>
       <Grid xs={0} lg={1} xl={2} />
-      <Grid xs={12} sx={{ height: "8em" }} />{" "}
-      <Grid
-        xs={12}
-        sx={{
-          position: "fixed",
-          bottom: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: "1em",
-          borderTop: "1px solid #D3D3D3",
-          zIndex: 1000,
-          backgroundColor: "white",
-        }}
-        component={Stack}
-        direction="column"
-      >
-        <Typography>
-          <b>Contact Us / Bug reporting:</b>
-        </Typography>
-        <Typography
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            paddingTop: "0.25em",
-            backgroundColor: "white",
-            zIndex: 1000,
-          }}
-        >
-          <Mail />
-          &nbsp;
-          <Link
-            to="mailto:speedcubingsvk@gmail.com"
-            style={{ color: "#0B6BCB", textDecoration: "none" }}
-          >
-            Email
-          </Link>
-        </Typography>
-      </Grid>
-      {/* padding at the bottom of page */}
+      <Grid xs={12} sx={{ height: "8em" }} /> <Footer />
     </Grid>
   );
 };
