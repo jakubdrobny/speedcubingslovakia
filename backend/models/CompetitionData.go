@@ -45,6 +45,7 @@ func (c *CompetitionData) RemoveAllEvents(db *pgxpool.Pool, tx pgx.Tx) ([]int, e
 
 func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx, event_ids []int) error {
 	for _, event := range c.Events {
+		if event.Id < 0 { continue }
 		_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1, $2);`, c.Id, event.Id)
 		if err != nil { return err }
 
