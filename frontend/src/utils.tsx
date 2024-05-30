@@ -437,12 +437,12 @@ export const getRankings = async (
       single ? "single" : "average"
     }&regionGroup=${regionGroup}&region=${region}`
   );
-  console.log(response.data);
   return response.data;
 };
 
 export const reformatMultiTime = (startingTime: string): string => {
   if (startingTime === "DNS" || startingTime === "DNF") return startingTime;
+  if (startingTime.indexOf(":") == -1) return startingTime;
 
   const cubePart = startingTime.split(" ")[0];
   let res = startingTime.split(" ")[1];
