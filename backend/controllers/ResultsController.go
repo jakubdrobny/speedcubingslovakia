@@ -14,7 +14,7 @@ import (
 func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 	return func (c *gin.Context) {
 		userName := c.Param("uname")
-		competitionId := c.Param("cid")
+		competitionName := c.Param("cname")
 		eventId, err := strconv.Atoi(c.Param("eid"))
 		if err != nil {
 			log.Println("ERR in strconv(eventId) in GetResultsQuery: " + err.Error())
@@ -24,10 +24,12 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 		
 		resultEntries := make([]models.ResultEntry, 0)
 
-		if competitionId == "_" && userName == "_" {
+		log.Println(competitionName, userName, "hahahahahahaha")
+
+		if competitionName == "_" && userName == "_" {
 			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re WHERE re.event_id = $1;`, eventId)
 			if err != nil {
-				log.Println("ERR db.Query in GetResultsQuery (competitionId not set and userId not set): " + err.Error())
+				log.Println("ERR db.Query in GetResultsQuery (competitionName not set and userName not set): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 				return
 			}
@@ -36,23 +38,23 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
 				if err != nil { 
-					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionId not set and userId not set): " + err.Error())
+					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionId not set and userName not set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 					return
 				}
 
 				resultEntry, err := models.GetResultEntryById(db, resultEntryId)
 				if err != nil {
-					log.Println("ERR GetResultEntryById in GetResultsQuery (competitionId not set and userId not set): " + err.Error())
+					log.Println("ERR GetResultEntryById in GetResultsQuery (competitionId not set and userName not set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed getting result entry from database.")
 					return
 				}
 				resultEntries = append(resultEntries, resultEntry)
 			}
-		} else if competitionId == "_" && userName != "_" {
+		} else if competitionName == "_" && userName != "_" {
 			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re JOIN users u ON u.user_id = re.user_id WHERE re.event_id = $1 AND UPPER(u.name) LIKE UPPER('%' || $2 || '%');`, eventId, userName)
 			if err != nil {
-				log.Println("ERR db.Query in GetResultsQuery (competitionId not set and userId set): " + err.Error())
+				log.Println("ERR db.Query in GetResultsQuery (competitionName not set and userName set): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 				return
 			}
@@ -61,23 +63,23 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
 				if err != nil { 
-					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionId not set and userId set): " + err.Error())
+					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionName not set and userName set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 					return
 				}
 
 				resultEntry, err := models.GetResultEntryById(db, resultEntryId)
 				if err != nil {
-					log.Println("ERR GetResultEntryById in GetResultsQuery (competitionId not set and userId set): " + err.Error())
+					log.Println("ERR GetResultEntryById in GetResultsQuery (competitionName not set and userName set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed getting result entry from database.")
 					return
 				}
 				resultEntries = append(resultEntries, resultEntry)
 			}
-		} else if competitionId != "_" && userName == "_" {
-			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re WHERE re.event_id = $1 AND UPPER(re.competition_id) LIKE UPPER('%' || $2 || '%');`, eventId, competitionId)
+		} else if competitionName != "_" && userName == "_" {
+			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re JOIN competitions c ON c.competition_id = re.competition_id WHERE re.event_id = $1 AND UPPER(c.name) LIKE UPPER('%' || $2 || '%');`, eventId, competitionName)
 			if err != nil {
-				log.Println("ERR db.Query in GetResultsQuery (competitionId set and userId not set): " + err.Error())
+				log.Println("ERR db.Query in GetResultsQuery (competitionName set and userName not set): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 				return
 			}
@@ -86,23 +88,23 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
 				if err != nil { 
-					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionId set and userId not set): " + err.Error())
+					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionName set and userName not set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 					return
 				}
 
 				resultEntry, err := models.GetResultEntryById(db, resultEntryId)
 				if err != nil {
-					log.Println("ERR GetResultEntryById in GetResultsQuery (competitionId set and userId not set): " + err.Error())
+					log.Println("ERR GetResultEntryById in GetResultsQuery (competitionName set and userName not set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed getting result entry from database.")
 					return
 				}
 				resultEntries = append(resultEntries, resultEntry)
 			}
 		} else {
-			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re JOIN users u ON u.user_id = re.user_id WHERE re.event_id = $1 AND UPPER(re.competition_id) LIKE UPPER('%' || $2 || '%') AND UPPER(u.name) LIKE UPPER('%' || $3 || '%');`, eventId, competitionId, userName)
+			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re JOIN users u ON u.user_id = re.user_id JOIN competitions c ON c.competition_id = re.competition_id WHERE re.event_id = $1 AND UPPER(c.name) LIKE UPPER('%' || $2 || '%') AND UPPER(u.name) LIKE UPPER('%' || $3 || '%');`, eventId, competitionName, userName)
 			if err != nil {
-				log.Println("ERR db.Query in GetResultsQuery (competitionId set and userId set): " + err.Error())
+				log.Println("ERR db.Query in GetResultsQuery (competitionName set and userName set): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 				return
 			}
@@ -111,14 +113,14 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
 				if err != nil { 
-					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionId set and userId set): " + err.Error())
+					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionName set and userName set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 					return
 				}
 
 				resultEntry, err := models.GetResultEntryById(db, resultEntryId)
 				if err != nil {
-					log.Println("ERR GetResultEntryById in GetResultsQuery (competitionId set and userId set): " + err.Error())
+					log.Println("ERR GetResultEntryById in GetResultsQuery (competitionName set and userName set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed getting result entry from database.")
 					return
 				}
