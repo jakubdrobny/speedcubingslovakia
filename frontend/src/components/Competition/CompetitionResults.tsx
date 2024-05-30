@@ -49,26 +49,24 @@ const CompetitionResults = () => {
 
   const columnNames = () => {
     let columnNames: string[] = [
-      "",
       "#",
       "Name",
       "Country",
       "Average",
       "Single",
       isfmc ? "Moves" : "Times",
-      "",
     ];
     if (!averageFirst)
-      [columnNames[4], columnNames[5]] = [columnNames[5], columnNames[4]];
+      [columnNames[3], columnNames[4]] = [columnNames[4], columnNames[3]];
     if (isOverall) {
       columnNames.splice(
-        4 - Number(windowWidth < WIN_VERYSMALL),
+        3 - Number(windowWidth < WIN_VERYSMALL),
         3 + Number(windowWidth < WIN_VERYSMALL),
         "Score"
       );
     } else {
       if (windowWidth < WIN_SMALL)
-        columnNames = [...columnNames.slice(0, 3), ...columnNames.slice(4)];
+        columnNames = [...columnNames.slice(0, 3), ...columnNames.slice(3)];
     }
 
     if (columnNames.includes("Average") && ismbld)
@@ -83,7 +81,7 @@ const CompetitionResults = () => {
   }, []);
 
   return (
-    <div style={{ margin: "1.5em 0.5em" }}>
+    <div style={{ margin: "1.5em 0.5em", width: "100%" }}>
       {loadingState.results ? (
         <>
           <Typography level="h3" sx={{ display: "flex", alignItems: "center" }}>
@@ -94,34 +92,33 @@ const CompetitionResults = () => {
       ) : loadingState.error ? (
         <Alert color="danger">{loadingState.error}</Alert>
       ) : (
-        <Card sx={{ margin: 0, padding: 0 }}>
-          <Table size="md">
+        <Card
+          sx={{
+            margin: 0,
+            padding: 0,
+            width: "100%",
+          }}
+        >
+          <Table
+            size="md"
+            sx={{
+              tableLayout: "auto",
+              width: "100%",
+            }}
+          >
             <thead>
               <tr>
                 {columnNames().map((val, idx) => {
-                  let style1: Object = isOverall
-                    ? val === ""
-                      ? { height: "1em", width: "0%" }
-                      : val === "#"
-                      ? { height: "1em", width: "3%" }
-                      : { height: "1em" }
-                    : val === ""
-                    ? { height: "1em", width: "0%" }
-                    : val === "#"
-                    ? { height: "1em", width: "3%" }
-                    : val === "Times"
-                    ? { height: "1em", width: "25%" }
-                    : val === "Name"
-                    ? { height: "1em", width: "20%" }
-                    : val === "Average" || val === "Single"
-                    ? ismbld
-                      ? { height: "1em", width: "20%" }
-                      : { height: "1em", width: "10%" }
-                    : { height: "1em" };
-                  let thStyle = style1;
                   return (
-                    <th style={thStyle} key={idx}>
-                      <Stack direction="row" alignItems="flex-end">
+                    <th
+                      style={{
+                        height: "1em",
+                        maxWidth:
+                          idx === columnNames().length - 1 ? "400px" : "auto",
+                      }}
+                      key={idx}
+                    >
+                      <Stack direction="row" justifyContent="center">
                         <b>{val}</b>
                         {val === "Score" && (
                           <Tooltip
@@ -168,9 +165,10 @@ const CompetitionResults = () => {
                   : result.times;
                 return (
                   <tr key={idx}>
-                    <td style={{ height: "1em", width: "1%" }}></td>
-                    <td style={{ height: "1em", width: "3%" }}>{idx + 1}.</td>
-                    <td style={{ height: "1em" }}>
+                    <td style={{ height: "1em", textAlign: "center" }}>
+                      {idx + 1}.
+                    </td>
+                    <td style={{ height: "1em", textAlign: "center" }}>
                       <Link
                         to={`/profile/${result.wca_id}`}
                         style={{
@@ -184,7 +182,7 @@ const CompetitionResults = () => {
                     </td>
                     {(windowWidth >= WIN_SMALL ||
                       (isOverall && windowWidth >= WIN_VERYSMALL)) && (
-                      <td style={{ height: "1em" }}>
+                      <td style={{ height: "1em", textAlign: "center" }}>
                         <span
                           className={`fi fi-${result.country_iso2.toLowerCase()}`}
                         />
@@ -192,27 +190,26 @@ const CompetitionResults = () => {
                       </td>
                     )}
                     {isOverall ? (
-                      <td style={{ height: "1em" }}>
+                      <td style={{ height: "1em", textAlign: "center" }}>
                         <b>{result.score}</b>
                       </td>
                     ) : (
                       <>
-                        <td style={{ height: "1em" }}>
+                        <td style={{ height: "1em", textAlign: "center" }}>
                           <b>
                             {!averageFirst ? result.single : result.average}
                           </b>
                         </td>
                         {!ismbld && (
-                          <td style={{ height: "1em" }}>
+                          <td style={{ height: "1em", textAlign: "center" }}>
                             {averageFirst ? result.single : result.average}
                           </td>
                         )}
-                        <td style={{ height: "1em" }}>
+                        <td style={{ height: "1em", textAlign: "center" }}>
                           {result.times?.join(", ")}
                         </td>
                       </>
                     )}
-                    <td style={{ height: "1em", width: "0%" }}></td>
                   </tr>
                 );
               })}
