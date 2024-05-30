@@ -3,6 +3,7 @@ module github.com/jakubdrobny/speedcubingslovakia/backend
 go 1.22
 
 require (
+	github.com/JGLTechnologies/gin-rate-limit v1.5.4
 	github.com/alexsergivan/transliterator v1.0.0
 	github.com/fogleman/gg v1.3.0
 	github.com/gin-contrib/cors v1.7.1
@@ -29,8 +30,10 @@ require (
 	github.com/benoitkugler/textlayout v0.3.0 // indirect
 	github.com/benoitkugler/textprocessing v0.0.3 // indirect
 	github.com/bytedance/sonic v1.11.3 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-fonts/latin-modern v0.3.1 // indirect
@@ -58,6 +61,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/redis/go-redis/v9 v9.0.2 // indirect
 	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d // indirect
 	github.com/tdewolff/font v0.0.0-20240417221047-e5855237f87b // indirect
 	github.com/tdewolff/parse/v2 v2.7.13 // indirect
