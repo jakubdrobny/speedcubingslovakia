@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"time"
@@ -10,12 +11,21 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/controllers"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/middlewares"
 
+	ratelimit "github.com/JGLTechnologies/gin-rate-limit"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/robfig/cron"
 )
+
+func keyFunc(c *gin.Context) string {
+	return c.ClientIP()
+}
+
+func errorHandler(c *gin.Context, info ratelimit.Info) {
+	c.String(429, fmt.Sprintf("Too many requests. Try again in %ds.", int(math.Round(time.Until(info.ResetTime).Seconds()))))
+}
 
 func main() {
 	envMap, err := godotenv.Read(fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")))
@@ -45,6 +55,18 @@ func main() {
         AllowCredentials: true,
         MaxAge: 12 * time.Hour,
     }))
+	
+	store := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
+		Rate:  time.Minute,
+		Limit: 100,
+	})
+
+	rateLimitMiddleWare := ratelimit.RateLimiter(store, &ratelimit.Options{
+		ErrorHandler: errorHandler,
+		KeyFunc: keyFunc,
+	})
+
+	router.Use(rateLimitMiddleWare)
 
 	api_v1 := router.Group("/api")
 	
