@@ -28,17 +28,32 @@ const Timer = () => {
   const { handleTimerInputKeyDown, handleTimerInputKeyUp } = useContext(
     TimerInputContext
   ) as TimerInputContextType;
+  const timerRef = useRef<any>(null);
 
   useEffect(() => {
     const routePattern = /^\/competition(?:\/.*)?$/;
     if (routePattern.test(location.pathname)) {
       window.addEventListener("keydown", handleTimerInputKeyDown);
       window.addEventListener("keyup", handleTimerInputKeyUp);
+      if (timerRef && timerRef.current) {
+        timerRef.current.addEventListener(
+          "touchstart",
+          handleTimerInputKeyDown
+        );
+        timerRef.current.addEventListener("touchend", handleTimerInputKeyUp);
+      }
     }
 
     return () => {
-      window.removeEventListener("keydwn", handleTimerInputKeyDown);
+      window.removeEventListener("keydown", handleTimerInputKeyDown);
       window.removeEventListener("keyup", handleTimerInputKeyUp);
+      if (timerRef && timerRef.current) {
+        timerRef.current.removeEventListener(
+          "touchstart",
+          handleTimerInputKeyDown
+        );
+        timerRef.current.removeEventListener("touchend", handleTimerInputKeyUp);
+      }
     };
   }, [location.pathname, handleTimerInputKeyDown, handleTimerInputKeyUp]);
 
@@ -49,7 +64,12 @@ const Timer = () => {
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
+        userSelect: "none",
+        MozUserSelect: "none",
+        msUserSelect: "none",
+        WebkitUserSelect: "none",
       }}
+      ref={timerRef}
     >
       <Typography
         level="h1"

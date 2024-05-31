@@ -77,7 +77,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
     (e: Event) => {
       const ev = e as KeyboardEvent;
 
-      if (ev.key === " ") {
+      if (ev.key === " " || ev.type === "touchstart") {
         if (
           !holdingTimeout.current &&
           !timingInterval.current &&
@@ -121,7 +121,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
     (e: Event) => {
       const ev = e as KeyboardEvent;
 
-      if (ev.key === " ") {
+      if (ev.key === " " || ev.type === "touchend") {
         if (holdingTimeout.current) {
           clearTimeout(holdingTimeout.current);
           holdingTimeout.current = undefined;
