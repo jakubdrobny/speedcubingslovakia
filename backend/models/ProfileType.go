@@ -109,7 +109,7 @@ func GetCompletedSolves(db *pgxpool.Pool, uid int) (int, error) {
 }
 
 func (p *ProfileType) LoadBasics(db *pgxpool.Pool, uid int) (error) {
-	rows, err := db.Query(context.Background(), `SELECT u.name, u.avatarurl, c.country_id, c.iso2, (CASE WHEN u.wcaid LIKE '' THEN u.name ELSE u.wcaid END) AS wcaid, u.sex FROM users u JOIN countries c ON c.country_id = u.country_id WHERE u.user_id = $1;`, uid);
+	rows, err := db.Query(context.Background(), `SELECT u.name, u.avatarurl, c.country_name, c.iso2, (CASE WHEN u.wcaid LIKE '' THEN u.name ELSE u.wcaid END) AS wcaid, u.sex FROM users u JOIN countries c ON c.country_id = u.country_id WHERE u.user_id = $1;`, uid);
 	if err != nil { return err }
 
 	for rows.Next() {
