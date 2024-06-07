@@ -1,11 +1,10 @@
 import {
-  Box,
+  Alert,
   Button,
   Card,
   FormControl,
   FormHelperText,
   FormLabel,
-  IconButton,
   Input,
   Stack,
   Typography,
@@ -63,14 +62,18 @@ const Users = () => {
           case insensitive.
         </FormHelperText>
       </FormControl>
-      {users.map((u: SearchUser) => (
-        <Card sx={{ display: "flex", flexDirection: "row" }}>
-          <span style={{ fontWeight: "bold" }}>{u.username}: </span>
-          <Link to={`/profile/${u.wcaid}`} style={{ textDecoration: "none" }}>
-            {u.wcaid}
-          </Link>
-        </Card>
-      ))}
+      {loadingState.error ? (
+        <Alert color="danger">{loadingState.error}</Alert>
+      ) : (
+        users.map((u: SearchUser) => (
+          <Card sx={{ display: "flex", flexDirection: "row" }}>
+            <span style={{ fontWeight: "bold" }}>{u.username}: </span>
+            <Link to={`/profile/${u.wcaid}`} style={{ textDecoration: "none" }}>
+              {u.wcaid}
+            </Link>
+          </Card>
+        ))
+      )}
     </Stack>
   );
 };
