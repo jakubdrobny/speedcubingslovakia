@@ -53,6 +53,7 @@ const Rankings = () => {
     if (!singleRef.current && ismbld) return;
 
     setLoadingState({ isLoading: true, error: "" });
+    console.log(singleRef.current);
     getRankings(
       eventsRef.current[currentEventIdxRef.current].id,
       singleRef.current,
@@ -80,6 +81,13 @@ const Rankings = () => {
               className={`cubing-icon event-${event.iconcode} profile-cubing-icon-mock`}
               onClick={() => {
                 if (!loadingState.isLoading) {
+                  if (
+                    eventsRef &&
+                    eventsRef.current &&
+                    idx < eventsRef.current.length &&
+                    eventsRef.current[idx].displayname === "MBLD"
+                  )
+                    setSingle(true);
                   setCurrentEventIdx(idx);
                   fetchRankings();
                 }
