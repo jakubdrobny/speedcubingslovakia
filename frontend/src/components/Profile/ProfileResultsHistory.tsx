@@ -2,6 +2,7 @@ import { Card, IconButton, Stack, Table, Typography } from "@mui/joy";
 import { Link, Navigate } from "react-router-dom";
 
 import { ProfileTypeResultHistory } from "../../Types";
+import { reformatMultiTime } from "../../utils";
 import { useState } from "react";
 
 const ProfileResultsHistory: React.FC<{
@@ -163,13 +164,21 @@ const ProfileResultsHistory: React.FC<{
                     {idx1 === 0 ? (
                       val
                     ) : (
-                      <b>{idx1 === 1 && isfmc ? val.split(".")[0] : val}</b>
+                      <b>
+                        {idx1 === 1 && isfmc
+                          ? val.split(".")[0]
+                          : ismbld
+                          ? reformatMultiTime(val)
+                          : val}
+                      </b>
                     )}
                   </td>
                 ))}
                 <td style={center}>
                   {(isfmc
                     ? entry.solves.map((x) => x.split(".")[0])
+                    : ismbld
+                    ? entry.solves.map((x) => reformatMultiTime(x))
                     : entry.solves
                   ).join(", ")}
                 </td>
