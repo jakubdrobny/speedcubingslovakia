@@ -196,7 +196,7 @@ func GenerateImagesForScrambles(scrambles []string, scramblingcode string, ismbl
 
 	for _, scramble := range scrambles {
 		scramble = strings.ReplaceAll(scramble, "\n", " ")
-		if scramblingcode == "clock" { scramble = strings.ReplaceAll(scramble, "+", "%2B") }
+		if scramblingcode == "clock" || scramblingcode == "minx" { scramble = strings.ReplaceAll(scramble, "+", "%2B") }
 		if ismbld { scramble = "" }
 		url := strings.ReplaceAll(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble), " ", "%20")
 		req, err := http.NewRequest("GET", url, nil)
