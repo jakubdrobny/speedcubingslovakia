@@ -37,7 +37,7 @@ const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
                   to={`https://worldcubeassociation.org/persons/${content}`}
                   style={{ color: "#0B6BCB", textDecoration: "none" }}
                 >
-                  content
+                  {content}
                 </Link>
               ) : (
                 content
