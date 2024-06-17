@@ -1,4 +1,4 @@
-import { Facebook, Mail } from "@mui/icons-material";
+import { Facebook, GitHub, Mail } from "@mui/icons-material";
 import { Grid, Link, Stack, Typography } from "@mui/joy";
 
 import DiscordIcon from "./DiscordIcon";
@@ -61,6 +61,15 @@ const Footer = () => {
               style={{ color: "#0B6BCB", textDecoration: "none" }}
             >
               Join us!
+            </Link>
+          </Stack>
+          <Stack spacing={1} direction="row">
+            <GitHub />
+            <Link
+              href="https://github.com/jakubdrobny/speedcubingslovakia"
+              style={{ color: "#0B6BCB", textDecoration: "none" }}
+            >
+              Github
             </Link>
           </Stack>
         </Stack>
