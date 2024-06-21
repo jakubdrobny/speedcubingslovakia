@@ -130,7 +130,7 @@ func (p *ProfileType) LoadBasics(db *pgxpool.Pool, uid int) (error) {
 }
 
 func LoadBestAverage(db *pgxpool.Pool, user User, eid int) (string, error) {
-	rows, err := db.Query(context.Background(), `SELECT r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 AND r.event_id = $2;`, user.Id, eid);
+	rows, err := db.Query(context.Background(), `SELECT r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.user_id = $1 AND r.event_id = $2 AND rs.visible IS TRUE;`, user.Id, eid);
 	if err != nil { return "", err }
 
 	average := constants.DNS
@@ -178,7 +178,7 @@ func (p *ProfileTypePersonalBests) LoadAverage(db *pgxpool.Pool, user User) (err
 }
 
 func LoadBestSingle(db *pgxpool.Pool, user User, eid int) (string, error) {
-	rows, err := db.Query(context.Background(), `SELECT r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 AND r.event_id = $2;`, user.Id, eid);
+	rows, err := db.Query(context.Background(), `SELECT r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.user_id = $1 AND r.event_id = $2 AND rs.visible IS TRUE;`, user.Id, eid);
 	if err != nil { return "", err }
 
 	single := constants.DNS
@@ -245,7 +245,7 @@ func LoadRankFromRows(rows pgx.Rows, result string, average int, db *pgxpool.Poo
 }
 
 func LoadNRRank(db *pgxpool.Pool, user User, result string, average int, eid int) (string, error) {
-	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN users u ON r.user_id = u.user_id JOIN countries c ON c.country_id = u.country_id WHERE u.country_id = $1 AND r.event_id = $2;`, user.CountryId, eid);
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN users u ON r.user_id = u.user_id JOIN countries c ON c.country_id = u.country_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE rs.visible IS TRUE AND u.country_id = $1 AND r.event_id = $2;`, user.CountryId, eid);
 	if err != nil { return "", err }
 	
 	return LoadRankFromRows(rows, result, average, db)
@@ -255,14 +255,14 @@ func LoadCRRank(db *pgxpool.Pool, user User, result string, average int, eid int
 	err := user.LoadContinent(db)
 	if err != nil { return "", err }
 
-	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN users u ON r.user_id = u.user_id JOIN countries c ON c.country_id = u.country_id JOIN continents con ON con.continent_id = c.continent_id WHERE c.continent_id = $1 AND r.event_id = $2;`, user.ContinentId, eid);
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN users u ON r.user_id = u.user_id JOIN countries c ON c.country_id = u.country_id JOIN results_status rs ON rs.results_status_id = r.status_id JOIN continents con ON con.continent_id = c.continent_id WHERE rs.visible IS TRUE AND c.continent_id = $1 AND r.event_id = $2;`, user.ContinentId, eid);
 	if err != nil { return "", err }
 
 	return LoadRankFromRows(rows, result, average, db)
 }
 
 func LoadWRRank(db *pgxpool.Pool, result string, average int, eid int) (string, error) {
-	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN users u ON r.user_id = u.user_id WHERE r.event_id = $1;`, eid);
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN users u ON r.user_id = u.user_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.event_id = $1 AND rs.visible IS TRUE;`, eid);
 	if err != nil { return "", err }
 
 	return LoadRankFromRows(rows, result, average, db)
@@ -365,7 +365,7 @@ func CreateEventHistoryForUser(db *pgxpool.Pool, user User, event CompetitionEve
 	history.EventIconCode = event.Iconcode
 	history.EventFormat = event.Format
 
-	rows, err := db.Query(context.Background(), `SELECT r.competition_id, c.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, u.name, e.format, e.iconcode, r.event_id FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 AND r.event_id = $2 ORDER BY c.enddate DESC;`, user.Id, event.Id)
+	rows, err := db.Query(context.Background(), `SELECT r.competition_id, c.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, u.name, e.format, e.iconcode, r.event_id FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE rs.visible IS TRUE AND r.user_id = $1 AND r.event_id = $2 ORDER BY c.enddate DESC;`, user.Id, event.Id)
 	if err != nil { return ProfileTypeResultHistory{}, err }
 
 	history.History = make([]ProfileTypeResultHistoryEntry, 0)
@@ -554,21 +554,21 @@ func CountRecordsInEventFromRows(rows pgx.Rows, uid int, db *pgxpool.Pool) (int,
 }
 
 func CountWRs(db *pgxpool.Pool, user User, eid int) (int, error) {
-	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id WHERE r.event_id = $1;`, eid);
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE rs.visible IS TRUE AND r.event_id = $1;`, eid);
 	if err != nil { return 0, err }
 
 	return CountRecordsInEventFromRows(rows, user.Id, db)
 }
 
 func CountCRs(db *pgxpool.Pool, user User, eid int) (int, error) {
-	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN countries ON countries.country_id = u.country_id WHERE r.event_id = $1 AND countries.continent_id = $2;`, eid, user.ContinentId);
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN countries ON countries.country_id = u.country_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE rs.visible IS TRUE AND r.event_id = $1 AND countries.continent_id = $2;`, eid, user.ContinentId);
 	if err != nil { return 0, err }
 
 	return CountRecordsInEventFromRows(rows, user.Id, db)
 }
 
 func CountNRsInEvent(db *pgxpool.Pool, user User, eid int) (int, error) {
-	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id WHERE r.event_id = $1 AND u.country_id = $2;`, eid, user.CountryId);
+	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE rs.visible IS TRUE AND r.event_id = $1 AND u.country_id = $2;`, eid, user.CountryId);
 	if err != nil { return 0, err }
 
 	return CountRecordsInEventFromRows(rows, user.Id, db)
