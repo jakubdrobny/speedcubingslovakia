@@ -59,6 +59,23 @@ type KinchQueryRow struct {
 	ResultEntry ResultEntry
 }
 
+func AddOverallPlacement(results []CompetitionResult) {
+	place := 1
+	if len(results) > 0 { results[0].Place = fmt.Sprintf("%d.", place) }
+
+	for idx := 0; idx < len(results); idx++ {
+		if idx + 1 < len(results) {
+			a, _ := strconv.ParseFloat(results[idx].Score, 64)
+			b, _ := strconv.ParseFloat(results[idx + 1].Score, 64)
+
+			if a - b > 1e-9 {
+				place++
+				results[idx + 1].Place = fmt.Sprintf("%d.", place)
+			}
+		}
+	}
+}
+
 func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int, db *pgxpool.Pool) ([]CompetitionResult, error) {
 	cums := make(map[int]float64)
 	res := make(map[int]CompetitionResult)
@@ -107,8 +124,13 @@ func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int, db
 		b, err := strconv.ParseFloat(competitionResults[j].Score, 64)
 		if err != nil { return true }
 
+		if a == b { return competitionResults[i].Username < competitionResults[j].Username }
+
 		return a - b > 1e-9;
 	})
+
+	AddOverallPlacement(competitionResults)
+	fmt.Println(competitionResults)
 
 	return competitionResults, nil
 }
