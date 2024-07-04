@@ -53,7 +53,6 @@ const Rankings = () => {
     if (!singleRef.current && ismbld) return;
 
     setLoadingState({ isLoading: true, error: "" });
-    console.log(singleRef.current);
     getRankings(
       eventsRef.current[currentEventIdxRef.current].id,
       singleRef.current,

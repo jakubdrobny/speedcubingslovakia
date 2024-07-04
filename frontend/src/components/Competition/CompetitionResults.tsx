@@ -174,7 +174,9 @@ const CompetitionResults = () => {
                 return (
                   <tr key={idx}>
                     <td style={{ height: "1em", width: "1%" }}></td>
-                    <td style={{ height: "1em", width: "3%" }}>{idx + 1}.</td>
+                    <td style={{ height: "1em", width: "3%" }}>
+                      {result.place}
+                    </td>
                     <td style={{ height: "1em" }}>
                       <Link
                         to={`/profile/${result.wca_id}`}

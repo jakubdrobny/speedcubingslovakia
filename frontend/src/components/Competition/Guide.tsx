@@ -90,10 +90,10 @@ const Guide = () => {
       <Typography sx={{ paddingBottom: "1em" }}>
         After you are done, don't forget to save your results!
       </Typography>
-      {competitionState.events[competitionState.currentEventIdx].displayname !==
-        "FMC" &&
+      {competitionState.events[competitionState.currentEventIdx]
+        ?.displayname !== "FMC" &&
         competitionState.events[competitionState.currentEventIdx]
-          .displayname !== "MBLD" && (
+          ?.displayname !== "MBLD" && (
           <>
             <Divider />
             <Alert color="warning">
