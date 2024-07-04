@@ -14,6 +14,7 @@ import (
 )
 
 type CompetitionResult struct {
+	Place string `json:"place"`
 	Username string `json:"username"`
 	WcaId string `json:"wca_id"`
 	CountryName string `json:"country_name"`
@@ -158,6 +159,46 @@ func GetOverallResults(db *pgxpool.Pool, cid string) ([]CompetitionResult, error
 	return competitionResults, nil
 }
 
+
+// compares competition results by format
+// returns:   0 - tie
+//          < 0 - first is smaller
+//          > 0 - second is smaller
+func CompareCompetitionResults(res1 CompetitionResult, res2 CompetitionResult, format string) int {
+	val1, val2 := utils.ParseSolveToMilliseconds(res1.Average, false, ""), utils.ParseSolveToMilliseconds(res2.Average, false, "")
+	tmp1, tmp2 := utils.ParseSolveToMilliseconds(res1.Single, false, ""), utils.ParseSolveToMilliseconds(res2.Single, false, "")
+
+	if format[0] == 'b' {
+		val1, val2 = utils.ParseSolveToMilliseconds(res1.Single, false, ""), utils.ParseSolveToMilliseconds(res2.Single, false, "")
+		tmp1, tmp2 = utils.ParseSolveToMilliseconds(res1.Average, false, ""), utils.ParseSolveToMilliseconds(res2.Average, false, "")
+	}
+
+	if val1 == val2 {
+		val1, val2, tmp1, tmp2 = tmp1, tmp2, val1, val2
+	}
+
+	return val2 - val1
+}
+
+func AddPlacementToCompetitionResults(results []CompetitionResult, format string) {
+	if len(results) == 0 || len(format) == 0 { return }
+	
+	place := 1
+	oldIdx := 0
+
+	for idx := range results {
+		if idx == 0 {
+			results[0].Place = "1."
+		} else {
+			if CompareCompetitionResults(results[oldIdx], results[idx], format) > 0 {
+				place++
+				results[idx].Place = fmt.Sprintf("%d.", place)
+				oldIdx = idx
+			}
+		}
+	}
+}
+
 func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int) ([]CompetitionResult, error) {
 	if (eid == -1) {
 		competitionResults, err := GetOverallResults(db, cid)
@@ -201,9 +242,13 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 
 	if len(format) > 0 {
 		sort.Slice(competitionResults, func (i int, j int) bool {
-			if format[0] == 'b' { return utils.ParseSolveToMilliseconds(competitionResults[i].Single, false, "") < utils.ParseSolveToMilliseconds(competitionResults[j].Single, false, "")}
-			return utils.ParseSolveToMilliseconds(competitionResults[i].Average, false, "") < utils.ParseSolveToMilliseconds(competitionResults[j].Average, false, "")
+			name1, name2 := competitionResults[i].Username, competitionResults[j].Username
+			d := CompareCompetitionResults(competitionResults[i], competitionResults[j], format)
+			if d == 0 { return name1 < name2 }
+			return d > 0
 		})
+
+		AddPlacementToCompetitionResults(competitionResults, format)
 	}
 
 	return competitionResults, nil

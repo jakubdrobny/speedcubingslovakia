@@ -239,7 +239,9 @@ func LoadRankFromRows(rows pgx.Rows, result string, average int, db *pgxpool.Poo
 	
 	resultInMili := utils.ParseSolveToMilliseconds(result, false, "")
 	rank := 1
-	for ; rank <= len(resultsArr) && resultsArr[rank - 1] < resultInMili; rank++ {}
+	for idx := 0; idx < len(resultsArr) && resultsArr[idx] < resultInMili; idx++ {
+		if idx == 0 || resultsArr[idx - 1] < resultsArr[idx] { rank++ }
+	}
 
 	return fmt.Sprint(rank), nil
 }
@@ -347,12 +349,16 @@ func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user User) (error) {
 	return nil
 }
 
-func ComputePlacement(db *pgxpool.Pool, uname string, cid string, eid int) (string, error) {
+func ComputePlacement(db *pgxpool.Pool, uname string, cid string, eid int, format string) (string, error) {
 	competitionResults, err := GetResultsFromCompetitionByEventName(db, cid, eid)
 	if err != nil { return "", err }
 
 	placement := 1
-	for ; placement <= len(competitionResults) && competitionResults[placement - 1].Username != uname; placement++ {}
+	for idx := 0; idx < len(competitionResults) && competitionResults[idx].Username != uname; idx++ {
+		if idx + 1 < len(competitionResults) && CompareCompetitionResults(competitionResults[idx], competitionResults[idx + 1], format) > 0 {
+			placement++
+		}
+	}
 
 	return fmt.Sprint(placement), nil
 }
@@ -390,7 +396,7 @@ func CreateEventHistoryForUser(db *pgxpool.Pool, user User, event CompetitionEve
 		}
 		historyEntry.Solves, err = resultEntry.GetFormattedTimes(resultEntry.IsFMC(), scrambles)
 		if err != nil { return ProfileTypeResultHistory{}, err }
-		historyEntry.Place, err = ComputePlacement(db, resultEntry.Username, resultEntry.Competitionid, event.Id)
+		historyEntry.Place, err = ComputePlacement(db, resultEntry.Username, resultEntry.Competitionid, event.Id, event.Format)
 		if err != nil { return ProfileTypeResultHistory{}, err }
 		
 		canIncreaseMedalCount := (event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) || ((!ismbld && event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW))
@@ -567,7 +573,7 @@ func CountCRs(db *pgxpool.Pool, user User, eid int) (int, error) {
 	return CountRecordsInEventFromRows(rows, user.Id, db)
 }
 
-func CountNRsInEvent(db *pgxpool.Pool, user User, eid int) (int, error) {
+func CountNRs(db *pgxpool.Pool, user User, eid int) (int, error) {
 	rows, err := db.Query(context.Background(), `SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id WHERE r.event_id = $1 AND u.country_id = $2;`, eid, user.CountryId);
 	if err != nil { return 0, err }
 
@@ -584,7 +590,7 @@ func (p *ProfileType) LoadRecordCollection(db *pgxpool.Pool, user User) (error) 
 		if err != nil { return err }
 		p.RecordCollection.CR += cr
 
-		nr, err := CountNRsInEvent(db, user, history.EventId)
+		nr, err := CountNRs(db, user, history.EventId)
 		if err != nil { return err }
 		p.RecordCollection.NR += nr
 	}

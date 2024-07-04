@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -45,6 +46,7 @@ func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 }
 
 type RankingsEntry struct {
+	Place string `json:"place"`
 	Username string `json:"username"`
 	WcaId string `json:"wca_id"`
 	CountryISO2 string `json:"country_iso2"`
@@ -53,6 +55,25 @@ type RankingsEntry struct {
 	CompetitionId string `json:"competitionId"`
 	CompetitionName string `json:"competitionName"`
 	Times []string `json:"times"`
+}
+
+func AddPlacementToRankings(rankings []RankingsEntry) {
+	if len(rankings) == 0 { return }
+	
+	place := 1
+	oldIdx := 0
+
+	for idx := range rankings {
+		if idx == 0 {
+			rankings[0].Place = "1."
+		} else {
+			if utils.ParseSolveToMilliseconds(rankings[oldIdx].Result, false, "") != utils.ParseSolveToMilliseconds(rankings[idx].Result, false, "") {
+				place++
+				rankings[idx].Place = fmt.Sprintf("%d.", place)
+				oldIdx = idx
+			}
+		}
+	}
 }
 
 func MergeNonUniqueRankings(rankings []RankingsEntry, isfmc bool) ([]RankingsEntry) {
@@ -69,7 +90,9 @@ func MergeNonUniqueRankings(rankings []RankingsEntry, isfmc bool) ([]RankingsEnt
 	for _, v := range best { result = append(result, v) }
 
 	sort.Slice(result, func (i int, j int) bool {
-		return utils.ParseSolveToMilliseconds(result[i].Result, false, "") < utils.ParseSolveToMilliseconds(result[j].Result, false, "")
+		val1, val2 := utils.ParseSolveToMilliseconds(result[i].Result, false, ""), utils.ParseSolveToMilliseconds(result[j].Result, false, "")
+		if val1 == val2 { return result[i].Username < result[j].Username }
+		return val1 < val2
 	})
 
 	return result
@@ -192,6 +215,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		rankings = MergeNonUniqueRankings(rankings, isfmc)
+		AddPlacementToRankings(rankings)
 
 		c.IndentedJSON(http.StatusOK, rankings)
 	}
