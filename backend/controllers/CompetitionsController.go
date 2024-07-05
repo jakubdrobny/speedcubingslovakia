@@ -128,7 +128,7 @@ func CreateCompetition(db *pgxpool.Pool, competition models.CompetitionData) (st
 
 	for _, scrambleSet := range competition.Scrambles {
 		for scrambleIdx, scramble := range scrambleSet.Scrambles {
-			_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order", svgimg) VALUES ($1,$2,$3,$4,$5);`, scramble.Scramble, scrambleSet.Event.Id, competition.Id, scrambleIdx + 1, scramble.Svgimg)
+			_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order", img) VALUES ($1,$2,$3,$4,$5);`, scramble.Scramble, scrambleSet.Event.Id, competition.Id, scrambleIdx + 1, scramble.Img)
 			if err != nil {
 				tx.Rollback(context.Background())
 				return "ERR tx.Exec INSERT INTO scrambles in PostCompetition: " + err.Error(), "Failed to insert scrambles into database."

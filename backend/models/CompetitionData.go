@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -65,7 +66,7 @@ func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx, event_ids []int
 			if err != nil { return err }
 
 			for scrambleIdx, scramble := range scrambles {
-				_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order", svgimg) VALUES ($1,$2,$3,$4,$5);`, scramble, event.Id, c.Id, scrambleIdx + 1, images[scrambleIdx])
+				_, err := tx.Exec(context.Background(), `INSERT INTO scrambles (scramble, event_id, competition_id, "order", img) VALUES ($1,$2,$3,$4,$5);`, scramble, event.Id, c.Id, scrambleIdx + 1, images[scrambleIdx])
 				if err != nil { return err }
 			}
 		}
@@ -83,19 +84,23 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) (error) {
 	scrambleSets := make([]ScrambleSet, 0)
 
 	for _, event := range c.Events {
-		rows, err := db.Query(context.Background(), `SELECT s.scramble_id, s.scramble, e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode, s.svgimg FROM scrambles s LEFT JOIN events e ON s.event_id = e.event_id WHERE s.competition_id = $1 AND s.event_id = $2 ORDER BY e.event_id, s."order";`, c.Id, event.Id)
+		rows, err := db.Query(context.Background(), `SELECT s.scramble_id, s.scramble, e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode, s.img FROM scrambles s LEFT JOIN events e ON s.event_id = e.event_id WHERE s.competition_id = $1 AND s.event_id = $2 ORDER BY e.event_id, s."order";`, c.Id, event.Id)
 		if err != nil { return err }
 
 		var scrambleSet ScrambleSet
 		for rows.Next() {
 			var scramble Scramble
 			var scrambleId int
-			err := rows.Scan(&scrambleId, &scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Svgimg)
+			err := rows.Scan(&scrambleId, &scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Img)
 			if err != nil { return err }
+
+			if !strings.HasSuffix(scramble.Img, ".svg") {
+				log.Println(utils.RegenerateImageForScramble(db, scrambleId, scramble.Scramble, scrambleSet.Event.Scramblingcode))
+			}
 
 			if time.Now().Before(c.Startdate) {
 				scramble.Scramble = "Competition has not started yet ;)"
-				scramble.Svgimg = ""
+				scramble.Img = ""
 			}
 
 			scrambleSet.AddScramble(scramble)
@@ -209,7 +214,11 @@ func GenerateImagesForScrambles(scrambles []string, scramblingcode string, ismbl
 		respBody, err := io.ReadAll(resp.Body)
 		if err != nil { return []string{}, err }
 
-		images = append(images, string(respBody))
+		img_id := utils.RandSeq(64) + ".svg"  // with extension
+		err = utils.SaveScrambleImg(img_id, string(respBody))
+		if err != nil { return []string{}, err }
+
+		images = append(images, img_id)
 	}
 
 	return images, nil
@@ -233,7 +242,7 @@ func (c *CompetitionData) GenerateScrambles() (error) {
 		for idx, scrambleText := range scrambles { 
 			var scramble Scramble
 			scramble.Scramble = scrambleText
-			scramble.Svgimg = images[idx]
+			scramble.Img = images[idx]
 			scrambleSet.Scrambles = append(scrambleSet.Scrambles, scramble)
 		}
 		c.Scrambles = append(c.Scrambles, scrambleSet)
