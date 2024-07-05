@@ -14,7 +14,7 @@ export enum Permission {
 
 export type Scramble = {
   scramble: string;
-  svgimg: string;
+  img: string;
 };
 
 export type ScrambleSet = {

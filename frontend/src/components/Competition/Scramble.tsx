@@ -6,15 +6,15 @@ import {
   TimerInputCurrentState,
 } from "../../Types";
 import { East, West } from "@mui/icons-material";
-import React, { useContext, useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
+import DefaultScramble from "../../images/DefaultScramble";
 import { Stack } from "@mui/system";
 import { TimerInputContext } from "../../context/TimerInputContext";
-import { useRef } from "react";
 
 const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
-  const scrambleImgRef = useRef<HTMLDivElement>(null);
+  const [scrambleImg, setScrambleImg] = useState<string>();
   const { competitionState } = useContext(
     CompetitionContext
   ) as CompetitionContextType;
@@ -51,19 +51,18 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
         (s: ScrambleSet) =>
           s.event.displayname ===
           competitionState.events[competitionState.currentEventIdx].displayname
-      ) !== undefined &&
-      scrambleImgRef !== null &&
-      scrambleImgRef.current !== null
+      ) !== undefined
     ) {
       const scrambleSet = competitionState.scrambles.find(
         (s: ScrambleSet) =>
           s.event.displayname ===
           competitionState.events[competitionState.currentEventIdx].displayname
       ) as ScrambleSet;
-      scrambleImgRef.current.innerHTML =
-        scrambleSet.scrambles[competitionState.currentSolveIdx].svgimg;
+      setScrambleImg(
+        scrambleSet.scrambles[competitionState.currentSolveIdx].img
+      );
     }
-  }, [competitionState.currentSolveIdx]);
+  }, [competitionState.currentSolveIdx, competitionState.scrambles]);
 
   const [scramblePage, setScramblePage] = useState(0);
   const scrambles = scramble.split("\n").length;
@@ -132,7 +131,17 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
       <h3>Scramble{ismbld ? "s" : ""}:</h3>
       {formatScramble()}
       <h3>Preview:</h3>
-      <div ref={scrambleImgRef}></div>
+      {scrambleImg === undefined ? (
+        <DefaultScramble />
+      ) : (
+        <img
+          src={`${process.env.REACT_APP_SCRAMBLE_IMAGES_PATH}/${scrambleImg}`}
+          alt={`${competitionState?.id}/${
+            competitionState?.events[competitionState?.currentEventIdx]
+              ?.displayname
+          }/scramble${competitionState?.currentSolveIdx + 1}`}
+        />
+      )}
     </div>
   );
 };
