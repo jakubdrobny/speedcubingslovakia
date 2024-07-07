@@ -64,7 +64,9 @@ const RankingsTable: React.FC<{
               return (
                 <tr key={idx}>
                   <td style={{ height: "1em", width: "2%" }}></td>
-                  <td style={{ height: "1em", width: "4%" }}>{idx + 1}.</td>
+                  <td style={{ height: "1em", width: "4%" }}>
+                    {ranking.place}
+                  </td>
                   <td style={{ height: "1em", width: "10%" }}>
                     <Link
                       to={`/profile/${ranking.wca_id}`}

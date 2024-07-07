@@ -18,8 +18,13 @@ import { Link } from "react-router-dom";
 import { reformatMultiTime } from "../../utils";
 
 const CompetitionResults = () => {
-  const { competitionState, results, loadingState, fetchCompetitionResults } =
-    useContext(CompetitionContext) as CompetitionContextType;
+  const {
+    competitionState,
+    competitionStateRef,
+    results,
+    loadingState,
+    fetchCompetitionResults,
+  } = useContext(CompetitionContext) as CompetitionContextType;
   const averageFirst = (() => {
     const format =
       competitionState?.events[competitionState?.currentEventIdx]?.format;
@@ -159,16 +164,16 @@ const CompetitionResults = () => {
                   ? reformatMultiTime(result.single)
                   : result.single;
                 result.times = isfmc
-                  ? result.times.map((res) => res.split(".")[0])
+                  ? result.times?.map((res) => res.split(".")[0])
                   : ismbld
-                  ? result.times.map((r) => reformatMultiTime(r))
+                  ? result.times?.map((r) => reformatMultiTime(r))
                   : result.times;
                 return (
                   <tr key={idx}>
-                    <td style={{ height: "1em", textAlign: "center" }}>
-                      {idx + 1}.
+                    <td style={{ height: "1em", width: "center" }}>
+                      {result.place}
                     </td>
-                    <td style={{ height: "1em", textAlign: "center" }}>
+                    <td style={{ height: "1em, center" }}>
                       <Link
                         to={`/profile/${result.wca_id}`}
                         style={{

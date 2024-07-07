@@ -7,7 +7,7 @@ type ScrambleSet struct {
 
 type Scramble struct {
 	Scramble string `json:"scramble"`
-	Svgimg string `json:"svgimg"`
+	Img string `json:"img"`
 }
 
 func (s *ScrambleSet) AddScramble(scramble Scramble) {

@@ -2,9 +2,12 @@ package utils
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/cube"
+	"github.com/joho/godotenv"
 )
 
 func Reverse[S ~[]E, E any](s S)  {
@@ -247,6 +251,27 @@ func FormatTime(timeInMiliseconds int, isfmc bool) string {
 	return resString
 }
 
+func RandSeq(n int) string {
+    b := make([]byte, n + 2)
+    rand.Read(b)
+	return fmt.Sprintf("%x", b)[2 : n + 2]
+}
+
+func SaveScrambleImg(img_id string, svg_content string) error {
+	envMap, err := godotenv.Read(fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")))
+	if err != nil { return err }
+
+	folder_path := envMap["SCRAMBLE_IMAGES_PATH"]
+	f, err := os.Create(fmt.Sprintf("%s/%s", folder_path, img_id))
+	if err != nil { return err }
+
+	n, err := f.WriteString(svg_content)
+	if err != nil { return err }
+
+	log.Printf("Wrote %d bytes.", n)
+	return nil
+}
+
 func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble string, scramblingcode string) (string, error) {
 	scramble = strings.ReplaceAll(scramble, "\n", " ")
 	if scramblingcode == "clock" { scramble = strings.ReplaceAll(scramble, "+", "%2B") }
@@ -262,17 +287,20 @@ func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble strin
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil { return "", err }
-	respBodyStr := string(respBody)
 
-	_, err = db.Exec(context.Background(), `UPDATE scrambles SET svgimg = $1 WHERE scramble_id = $2;`, respBodyStr, scrambleId)
+	imgId := RandSeq(64) + ".svg"  // with extension
+	err = SaveScrambleImg(imgId, string(respBody))
+	if err != nil { return "", err }
+
+	_, err = db.Exec(context.Background(), `UPDATE scrambles SET img = $1 WHERE scramble_id = $2;`, imgId, scrambleId)
 	if err != nil { return "", err }
 
 	if scramblingcode == "sq1" {
-		_, err = db.Exec(context.Background(), `UPDATE scrambles SET scramble = $1 WHERE scramble_id = $2;`, scramble, scrambleId)
+		_, err = db.Exec(context.Background(), `UPDATE scrambles SET scramble = $1 WHERE scramble_id = $2;`, imgId, scrambleId)
 		if err != nil { return "", err }
 	}
 
-	return respBodyStr, nil
+	return imgId, nil
 }
 
 func GetContinents(db *pgxpool.Pool) ([]string, error) {

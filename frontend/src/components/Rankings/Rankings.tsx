@@ -80,6 +80,13 @@ const Rankings = () => {
               className={`cubing-icon event-${event.iconcode} profile-cubing-icon-mock`}
               onClick={() => {
                 if (!loadingState.isLoading) {
+                  if (
+                    eventsRef &&
+                    eventsRef.current &&
+                    idx < eventsRef.current.length &&
+                    eventsRef.current[idx].displayname === "MBLD"
+                  )
+                    setSingle(true);
                   setCurrentEventIdx(idx);
                   fetchRankings();
                 }

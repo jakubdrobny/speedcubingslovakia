@@ -1,6 +1,7 @@
 import { Card, Grid, Stack, Table, Typography } from "@mui/joy";
 
 import { ProfileTypePersonalBests } from "../../Types";
+import { reformatMultiTime } from "../../utils";
 
 const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
   pbs,
@@ -91,6 +92,8 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                         <b>
                           {idx === 3 && entry.eventIconcode === "333fm"
                             ? val.split(".")[0]
+                            : entry.eventIconcode === "333mbf"
+                            ? reformatMultiTime(val)
                             : val}
                         </b>
                       ) : (

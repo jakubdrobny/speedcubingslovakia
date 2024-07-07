@@ -69,11 +69,10 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     compId: string = competitionState.id
   ) => {
     if (event.displayname === "Overall") {
-      console.log(
-        event,
-        competitionState.events[competitionState.currentEventIdx - 1]
-      );
-      event = competitionState.events[competitionState.currentEventIdx - 1];
+      event =
+        competitionStateRef.current.events[
+          competitionStateRef.current.currentEventIdx - 1
+        ];
       setCompetitionState((ps) => ({
         ...ps,
         currentEventIdx: ps.currentEventIdx - 1,
@@ -106,7 +105,6 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     compId: string = competitionState.id
   ) => {
     setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
-
     getCompetitionResults(compId, event)
       .then((res) => {
         setResults(res);
@@ -142,7 +140,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
 
     if (resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete)
       fetchCompeteResultEntry();
-    else fetchCompetitionResults(competitionState.events[idx]);
+    else fetchCompetitionResults(competitionStateRef.current.events[idx]);
   };
 
   const updateCurrentSolve = (idx: number) =>
