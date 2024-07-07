@@ -1,10 +1,10 @@
+import { AuthContextType, WindowSizeContextType } from "./Types";
 import { Grid, Stack, Typography } from "@mui/joy";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { authorizeAdmin, setBearerIfPresent } from "./utils";
 import { useContext, useEffect } from "react";
 
 import { AuthContext } from "./context/AuthContext";
-import { AuthContextType } from "./Types";
 import Competition from "./components/Competition/Competition";
 import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
 import Competitions from "./components/Competitions/Competitions";
@@ -23,16 +23,19 @@ import Rankings from "./components/Rankings/Rankings";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
 import Users from "./components/Users/Users";
 import { WIN_LG } from "./constants";
+import { WindowSizeContext } from "./context/WindowSizeContext";
 import useState from "react-usestateref";
 
 const App = () => {
   const { authState, setAuthState } = useContext(
     AuthContext
   ) as AuthContextType;
-  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
+  const { windowSize, setWindowSize } = useContext(
+    WindowSizeContext
+  ) as WindowSizeContextType;
   useEffect(() => {
     const handleResize = () => {
-      setWindowWidth(window.innerWidth);
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     };
 
     window.addEventListener("resize", handleResize);
@@ -68,18 +71,18 @@ const App = () => {
         xs={0}
         lg={1}
         xl={2}
-        borderBottom={windowWidth < WIN_LG ? "" : "2px solid lightgrey"}
+        borderBottom={windowSize.width < WIN_LG ? "" : "2px solid lightgrey"}
         width={"100%"}
       />
-      <NavHorizontal windowWidth={windowWidth} />
+      <NavHorizontal windowWidth={windowSize.width} />
       <Grid
         xs={0}
         lg={1}
         xl={2}
-        borderBottom={windowWidth < WIN_LG ? "" : "2px solid lightgrey"}
+        borderBottom={windowSize.width < WIN_LG ? "" : "2px solid lightgrey"}
         width={"100%"}
       />
-      <NavVertical windowWidth={windowWidth} />
+      <NavVertical windowWidth={windowSize.width} />
       <Grid xs={0} lg={1} xl={2} />
       <Grid xs={12} lg={10} xl={8}>
         <Routes>

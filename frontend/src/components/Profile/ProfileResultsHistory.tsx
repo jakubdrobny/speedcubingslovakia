@@ -35,18 +35,18 @@ const ProfileResultsHistory: React.FC<{
   };
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} sx={{ whiteSpace: "nowrap" }}>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <Typography level="h3">Results</Typography>
       </div>
       <Card sx={{ padding: "0.4em 0.5em", gap: 0 }}>
         <div
           style={{
-            display: "flex",
-            justifyContent: "center",
+            textAlign: "center",
             padding: 0,
             margin: 0,
             marginTop: "5px",
+            overflowX: "auto",
           }}
         >
           {resultsHistory.map((entry, idx) => (
@@ -63,130 +63,105 @@ const ProfileResultsHistory: React.FC<{
             />
           ))}
         </div>
-        <Table>
-          <thead>
-            <tr>
-              {getColumnNames().map((columnTitle, idx) => {
-                console.log({
-                  ...(columnTitle === ""
-                    ? goodHeight
-                    : idx < 3
-                    ? left
-                    : idx < 5 - (ismbld ? 1 : 0)
-                    ? right
-                    : center),
-                  ...(idx === 0
-                    ? { width: "1%" }
-                    : {
-                        width:
-                          idx === 1
-                            ? "30%"
-                            : idx === 2
-                            ? "4%"
-                            : idx < 5 - (ismbld ? 1 : 0)
-                            ? "10%"
-                            : "40%",
-                      }),
-                });
-                return (
-                  <th
-                    key={idx}
-                    style={{
-                      ...(columnTitle === ""
-                        ? goodHeight
-                        : idx < 3
-                        ? left
-                        : idx < 5 - (ismbld ? 1 : 0)
-                        ? right
-                        : center),
-                      ...(idx === 0
-                        ? { width: "1%" }
-                        : {
-                            width:
-                              idx === 1
-                                ? "30%"
-                                : idx === 2
-                                ? "4%"
-                                : idx < 5 - (ismbld ? 1 : 0)
-                                ? "10%"
-                                : ismbld
-                                ? "30%"
-                                : "40%",
-                          }),
-                    }}
-                  >
-                    <b>{columnTitle}</b>
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={{ ...goodHeight, width: "2%" }}></td>
-              <td
-                style={{
-                  ...left,
-                  display: "flex",
-                  alignItems: "center",
-                  height: "1.5em",
-                }}
-              >
-                <span
-                  className={`cubing-icon event-${resultsHistory[currentHistoryIdx].eventIconcode}`}
-                />
-                &nbsp;{resultsHistory[currentHistoryIdx].eventName}
-              </td>
-              {(ismbld ? [0, 1, 2] : [0, 1, 2, 3]).map((val) => (
-                <td key={val + 10} style={goodHeight}></td>
-              ))}
-            </tr>
-            {resultsHistory[currentHistoryIdx].history.map((entry, idx) => (
-              <tr key={idx + 1000}>
-                <td style={{ ...goodHeight, width: "2%" }}></td>
+        <div style={{ overflowX: "auto" }}>
+          <Table sx={{ tableLayout: "auto" }}>
+            <thead>
+              <tr>
+                {getColumnNames().map((columnTitle, idx) => {
+                  console.log({
+                    ...(columnTitle === ""
+                      ? goodHeight
+                      : idx < 3
+                      ? left
+                      : idx < 5 - (ismbld ? 1 : 0)
+                      ? right
+                      : center),
+                  });
+                  return (
+                    <th
+                      key={idx}
+                      style={{
+                        ...(columnTitle === ""
+                          ? goodHeight
+                          : idx < 3
+                          ? left
+                          : idx < 5 - (ismbld ? 1 : 0)
+                          ? right
+                          : center),
+                      }}
+                    >
+                      <b>{columnTitle}</b>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style={{ ...goodHeight }}></td>
                 <td
                   style={{
-                    ...goodHeight,
+                    ...left,
+                    display: "flex",
+                    alignItems: "center",
+                    height: "1.5em",
                   }}
                 >
-                  <Link
-                    to={`/competition/${entry.competitionId}`}
-                    style={{ textDecoration: "none", color: "#0B6BCB" }}
-                  >
-                    <b>{entry.competitionName}</b>
-                  </Link>
+                  <span
+                    className={`cubing-icon event-${resultsHistory[currentHistoryIdx].eventIconcode}`}
+                  />
+                  &nbsp;{resultsHistory[currentHistoryIdx].eventName}
                 </td>
-                {(ismbld
-                  ? [entry.place, entry.single]
-                  : [entry.place, entry.single, entry.average]
-                ).map((val, idx1) => (
-                  <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
-                    {idx1 === 0 ? (
-                      val
-                    ) : (
-                      <b>
-                        {idx1 === 1 && isfmc
-                          ? val.split(".")[0]
-                          : ismbld
-                          ? reformatMultiTime(val)
-                          : val}
-                      </b>
-                    )}
-                  </td>
+                {(ismbld ? [0, 1, 2] : [0, 1, 2, 3]).map((val) => (
+                  <td key={val + 10} style={goodHeight}></td>
                 ))}
-                <td style={center}>
-                  {(isfmc
-                    ? entry.solves.map((x) => x.split(".")[0])
-                    : ismbld
-                    ? entry.solves.map((x) => reformatMultiTime(x))
-                    : entry.solves
-                  ).join(", ")}
-                </td>
-                {!ismbld && <td style={goodHeight}></td>}
               </tr>
-            ))}
-          </tbody>
-        </Table>
+              {resultsHistory[currentHistoryIdx].history.map((entry, idx) => (
+                <tr key={idx + 1000}>
+                  <td style={{ ...goodHeight }}></td>
+                  <td
+                    style={{
+                      ...goodHeight,
+                    }}
+                  >
+                    <Link
+                      to={`/competition/${entry.competitionId}`}
+                      style={{ textDecoration: "none", color: "#0B6BCB" }}
+                    >
+                      <b>{entry.competitionName}</b>
+                    </Link>
+                  </td>
+                  {(ismbld
+                    ? [entry.place, entry.single]
+                    : [entry.place, entry.single, entry.average]
+                  ).map((val, idx1) => (
+                    <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
+                      {idx1 === 0 ? (
+                        val
+                      ) : (
+                        <b>
+                          {idx1 === 1 && isfmc
+                            ? val.split(".")[0]
+                            : ismbld
+                            ? reformatMultiTime(val)
+                            : val}
+                        </b>
+                      )}
+                    </td>
+                  ))}
+                  <td style={center}>
+                    {(isfmc
+                      ? entry.solves.map((x) => x.split(".")[0])
+                      : ismbld
+                      ? entry.solves.map((x) => reformatMultiTime(x))
+                      : entry.solves
+                    ).join(", ")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
       </Card>
     </Stack>
   );

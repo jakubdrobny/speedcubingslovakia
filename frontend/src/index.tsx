@@ -7,6 +7,7 @@ import { CompetitionProvider } from "./components/Competition/CompetitionContext
 import { NavProvider } from "./context/NavContext";
 import ReactDOM from "react-dom/client";
 import { TimerInputProvider } from "./context/TimerInputContext";
+import { WindowSizeProvider } from "./context/WindowSizeContext";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -14,13 +15,15 @@ const root = ReactDOM.createRoot(
 root.render(
   <BrowserRouter>
     <AuthProvider>
-      <CompetitionProvider>
-        <TimerInputProvider>
-          <NavProvider>
-            <App />
-          </NavProvider>
-        </TimerInputProvider>
-      </CompetitionProvider>
+      <WindowSizeProvider>
+        <CompetitionProvider>
+          <TimerInputProvider>
+            <NavProvider>
+              <App />
+            </NavProvider>
+          </TimerInputProvider>
+        </CompetitionProvider>
+      </WindowSizeProvider>
     </AuthProvider>
   </BrowserRouter>
 );

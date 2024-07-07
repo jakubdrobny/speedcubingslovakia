@@ -14,8 +14,8 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
       <div style={{ display: "flex", justifyContent: "center" }}>
         <Typography level="h3">Personal Best Records</Typography>
       </div>
-      <Card sx={{ padding: "0.4em 0.5em" }}>
-        <Table>
+      <Card sx={{ padding: "0.4em 0.5em", overflowX: "auto" }}>
+        <Table sx={{ tableLayout: "auto" }}>
           <thead>
             <tr>
               {[
@@ -35,15 +35,6 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                   key={idx}
                   style={{
                     ...(columnTitle !== "Event" ? right : goodHeight),
-                    ...(idx === 0 || idx === 10
-                      ? { width: idx === 0 ? "0.5%" : "2%" }
-                      : (idx >= 2 && idx < 5) || (idx > 7 && idx < 10)
-                      ? { width: "4%" }
-                      : idx === 1
-                      ? { width: "28%" }
-                      : idx === 7
-                      ? { width: "7%" }
-                      : {}),
                   }}
                 >
                   <b>{columnTitle}</b>
@@ -55,13 +46,14 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
             {pbs &&
               pbs.map((entry) => (
                 <tr key={entry.eventIconcode}>
-                  <td style={{ ...goodHeight, width: "2%" }}></td>
+                  <td style={{ ...goodHeight }}></td>
                   <td
                     style={{
                       ...goodHeight,
                       display: "flex",
                       alignItems: "center",
                       height: "1.5em",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     <span
@@ -78,14 +70,16 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                     entry.average.wr,
                     entry.average.cr,
                     entry.average.nr,
-                    "",
                   ].map((val, idx) => (
                     <td
                       key={idx}
                       style={
                         val !== ""
-                          ? { ...right, width: idx === 0 ? "3%" : "auto" }
-                          : { ...goodHeight, width: "2%" }
+                          ? {
+                              ...right,
+                              whiteSpace: "nowrap",
+                            }
+                          : { ...goodHeight, whiteSpace: "nowrap" }
                       }
                     >
                       {idx === 3 || idx === 4 ? (
@@ -101,6 +95,7 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                       )}
                     </td>
                   ))}
+                  <td style={{ ...goodHeight }}></td>
                 </tr>
               ))}
           </tbody>

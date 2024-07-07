@@ -101,7 +101,7 @@ const Rankings = () => {
           ))}
         </div>
       </Stack>
-      <Stack direction="row" spacing={2}>
+      <Stack direction="row" spacing={2} flexWrap="nowrap">
         <ButtonGroup>
           <Button
             variant={single ? "solid" : "outlined"}

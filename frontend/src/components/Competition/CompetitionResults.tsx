@@ -18,13 +18,8 @@ import { Link } from "react-router-dom";
 import { reformatMultiTime } from "../../utils";
 
 const CompetitionResults = () => {
-  const {
-    competitionState,
-    competitionStateRef,
-    results,
-    loadingState,
-    fetchCompetitionResults,
-  } = useContext(CompetitionContext) as CompetitionContextType;
+  const { competitionState, results, loadingState, fetchCompetitionResults } =
+    useContext(CompetitionContext) as CompetitionContextType;
   const averageFirst = (() => {
     const format =
       competitionState?.events[competitionState?.currentEventIdx]?.format;
@@ -85,8 +80,22 @@ const CompetitionResults = () => {
       fetchCompetitionResults();
   }, []);
 
+  const getColumnAlignment = (idx: Number) => {
+    switch (idx) {
+      case 0:
+        return "right";
+      default:
+        return "left";
+    }
+  };
+
   return (
-    <div style={{ margin: "1.5em 0.5em", width: "100%" }}>
+    <div
+      style={{
+        margin: "1.5em 1em",
+        width: "100%",
+      }}
+    >
       {loadingState.results ? (
         <>
           <Typography level="h3" sx={{ display: "flex", alignItems: "center" }}>
@@ -102,6 +111,10 @@ const CompetitionResults = () => {
             margin: 0,
             padding: 0,
             width: "100%",
+            overflow: "auto",
+            boxSizing: "border-box",
+            MozBoxSizing: "border-box",
+            WebkitBoxSizing: "border-box",
           }}
         >
           <Table
@@ -109,6 +122,7 @@ const CompetitionResults = () => {
             sx={{
               tableLayout: "auto",
               width: "100%",
+              whiteSpace: "nowrap",
             }}
           >
             <thead>
@@ -123,7 +137,10 @@ const CompetitionResults = () => {
                       }}
                       key={idx}
                     >
-                      <Stack direction="row" justifyContent="center">
+                      <Stack
+                        direction="row"
+                        justifyContent={getColumnAlignment(idx)}
+                      >
                         <b>{val}</b>
                         {val === "Score" && (
                           <Tooltip
@@ -170,10 +187,10 @@ const CompetitionResults = () => {
                   : result.times;
                 return (
                   <tr key={idx}>
-                    <td style={{ height: "1em", width: "center" }}>
+                    <td style={{ height: "1em", textAlign: "right" }}>
                       {result.place}
                     </td>
-                    <td style={{ height: "1em, center" }}>
+                    <td style={{ height: "1em", textAlign: "left" }}>
                       <Link
                         to={`/profile/${result.wca_id}`}
                         style={{
@@ -185,32 +202,31 @@ const CompetitionResults = () => {
                         {result.username}
                       </Link>
                     </td>
-                    {(windowWidth >= WIN_SMALL ||
-                      (isOverall && windowWidth >= WIN_VERYSMALL)) && (
-                      <td style={{ height: "1em", textAlign: "center" }}>
-                        <span
-                          className={`fi fi-${result.country_iso2.toLowerCase()}`}
-                        />
-                        &nbsp;&nbsp;{result.country_name}
-                      </td>
-                    )}
+                    <td style={{ height: "1em", textAlign: "left" }}>
+                      <span
+                        className={`fi fi-${result.country_iso2.toLowerCase()}`}
+                      />
+                      &nbsp;&nbsp;{result.country_name}
+                    </td>
                     {isOverall ? (
-                      <td style={{ height: "1em", textAlign: "center" }}>
-                        <b>{result.score}</b>
-                      </td>
+                      <>
+                        <td style={{ height: "1em", textAlign: "left" }}>
+                          <b>{result.score}</b>
+                        </td>
+                      </>
                     ) : (
                       <>
-                        <td style={{ height: "1em", textAlign: "center" }}>
+                        <td style={{ height: "1em", textAlign: "left" }}>
                           <b>
                             {!averageFirst ? result.single : result.average}
                           </b>
                         </td>
                         {!ismbld && (
-                          <td style={{ height: "1em", textAlign: "center" }}>
+                          <td style={{ height: "1em", textAlign: "left" }}>
                             {averageFirst ? result.single : result.average}
                           </td>
                         )}
-                        <td style={{ height: "1em", textAlign: "center" }}>
+                        <td style={{ height: "1em", textAlign: "left" }}>
                           {result.times?.join(", ")}
                         </td>
                       </>

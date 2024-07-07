@@ -13,15 +13,31 @@ const RankingsTable: React.FC<{
   ismbld: boolean;
 }> = ({ rankings, single, loading, isfmc, ismbld }) => {
   const columnNames = (() => {
-    let columnNames = ["", "#", "Name", "Result", "Represeting", "Competition"];
+    let columnNames = ["#", "Name", "Result", "Represeting", "Competition"];
     if (!single) columnNames.push(isfmc ? "Moves" : "Times");
-    columnNames.push("");
     return columnNames;
   })();
 
   return (
-    <Card sx={{ margin: 0, padding: 0 }}>
-      <Table>
+    <Card
+      sx={{
+        margin: 0,
+        padding: 0,
+        overflow: "auto",
+        boxSizing: "border-box",
+        MozBoxSizing: "border-box",
+        WebkitBoxSizing: "border-box",
+        width: `calc(100%-1em)`,
+      }}
+    >
+      <Table
+        sx={{
+          //   width: "100%",
+          tableLayout: "auto",
+          whiteSpace: "nowrap",
+          width: `calc(100%-1em)`,
+        }}
+      >
         <thead>
           <tr>
             {columnNames.map((val, idx) => (
@@ -29,15 +45,7 @@ const RankingsTable: React.FC<{
                 key={idx}
                 style={{
                   height: "1em",
-                  width:
-                    idx === 0 || idx === columnNames.length - 1
-                      ? "0.2%"
-                      : idx === 1
-                      ? "1%"
-                      : idx === 2
-                      ? "10%"
-                      : "auto",
-                  textAlign: idx === 3 ? "right" : "left",
+                  textAlign: idx === 0 || idx === 2 ? "right" : "left",
                 }}
               >
                 <b>{val}</b>
@@ -63,11 +71,10 @@ const RankingsTable: React.FC<{
                 : ranking.times;
               return (
                 <tr key={idx}>
-                  <td style={{ height: "1em", width: "2%" }}></td>
-                  <td style={{ height: "1em", width: "4%" }}>
+                  <td style={{ height: "1em", textAlign: "right" }}>
                     {ranking.place}
                   </td>
-                  <td style={{ height: "1em", width: "10%" }}>
+                  <td style={{ height: "1em" }}>
                     <Link
                       to={`/profile/${ranking.wca_id}`}
                       style={{
@@ -98,7 +105,6 @@ const RankingsTable: React.FC<{
                       {ranking.times.join(", ")}
                     </td>
                   )}
-                  <td style={{ height: "1em", width: "2%" }}></td>
                 </tr>
               );
             })
