@@ -7,12 +7,19 @@ const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
   basics,
 }) => {
   return (
-    <Card sx={{ width: "100%", display: "flex", flexDirection: "row" }}>
+    <Card
+      sx={{
+        width: "100%",
+        display: "flex",
+        flexDirection: "row",
+        overflowX: "auto",
+      }}
+    >
       <Grid xs={6}>
         <Stack spacing={1}>
           {["Region", "WCA ID", "Sex", "Competitions", "Completed solves"].map(
             (title, idx) => (
-              <Typography key={idx}>
+              <Typography key={idx} style={{ whiteSpace: "nowrap" }}>
                 <b>{title}</b>
               </Typography>
             )
@@ -21,7 +28,7 @@ const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
       </Grid>
       <Grid xs={6}>
         <Stack spacing={1}>
-          <div>
+          <div style={{ whiteSpace: "nowrap" }}>
             <span className={`fi fi-${basics.region.iso2.toLowerCase()}`} />
             &nbsp;&nbsp;{basics.region.name}
           </div>
@@ -31,7 +38,7 @@ const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
             basics.noOfCompetitions,
             basics.completedSolves,
           ].map((content, idx) => (
-            <Typography key={idx}>
+            <Typography key={idx} sx={{ whiteSpace: "nowrap" }}>
               {idx === 0 ? (
                 <Link
                   to={`https://worldcubeassociation.org/persons/${content}`}

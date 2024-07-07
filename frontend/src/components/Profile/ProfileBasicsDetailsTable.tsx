@@ -8,7 +8,7 @@ const ProfileBasicsDetailsTable: React.FC<{ basics: ProfileTypeBasics }> = ({
 }) => {
   const center: React.CSSProperties = { textAlign: "center", height: "1em" };
   return (
-    <Card sx={{ padding: "0.25em 0.5em" }}>
+    <Card sx={{ padding: "0.25em 0.5em", whiteSpace: "nowrap" }}>
       <Table>
         <thead>
           <tr>

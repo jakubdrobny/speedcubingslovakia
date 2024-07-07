@@ -15,6 +15,7 @@ import {
   ResultEntry,
   SearchUser,
 } from "./Types";
+import React, { useLayoutEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 
 import Cookies from "universal-cookie";
@@ -458,3 +459,16 @@ export const reformatMultiTime = (startingTime: string): string => {
 
   return cubePart + " " + res;
 };
+
+function useWindowSize() {
+  const [size, setSize] = useState([0, 0]);
+  useLayoutEffect(() => {
+    function updateSize() {
+      setSize([window.innerWidth, window.innerHeight]);
+    }
+    window.addEventListener("resize", updateSize);
+    updateSize();
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+  return size;
+}

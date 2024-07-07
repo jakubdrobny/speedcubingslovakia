@@ -1,3 +1,5 @@
+import { ExecOptionsWithStringEncoding } from "child_process";
+
 export type CompetitionData = {
   id: string;
   name: string;
@@ -119,6 +121,16 @@ export type AuthContextType = {
   authState: AuthState;
   updateAuthToken: (newToken: string) => void;
   setAuthState: (newAuthState: AuthState) => void;
+};
+
+export type WindowSize = {
+  width: number;
+  height: number;
+};
+
+export type WindowSizeContextType = {
+  windowSize: WindowSize;
+  setWindowSize: (newWindowSize: WindowSize) => void;
 };
 
 export type TimerInputContextType = {

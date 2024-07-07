@@ -1,5 +1,6 @@
 import { Alert, CircularProgress, Grid, Stack, Typography } from "@mui/joy";
 import { LoadingState, ProfileType } from "../../Types";
+import { WIN_LG, WIN_SMALL } from "../../constants";
 import {
   defaultProfile,
   getError,
@@ -12,6 +13,9 @@ import MedalRecordColletion from "./MedalRecordColletion";
 import ProfileBasics from "./ProfileBasics";
 import ProfilePersonalBests from "./ProfilePersonalBests";
 import ProfileResultsHistory from "./ProfileResultsHistory";
+import { WindowSizeContext } from "../../context/WindowSizeContext";
+import { WindowSizeContextType } from "../../Types";
+import { useContext } from "react";
 import { useParams } from "react-router-dom";
 
 const Profile = () => {
@@ -21,6 +25,9 @@ const Profile = () => {
     error: "",
   });
   const [profile, setProfile] = useState<ProfileType>(defaultProfile);
+  const { windowSize, setWindowSize } = useContext(
+    WindowSizeContext
+  ) as WindowSizeContextType;
 
   useEffect(() => {
     getProfile(id)
@@ -52,8 +59,14 @@ const Profile = () => {
         <Stack spacing={3}>
           <ProfileBasics basics={profile.basics} />
           <ProfilePersonalBests pbs={profile.personalBests} />
-          <Stack spacing={2} direction="row">
-            <Grid xs={12} md={6}>
+          <Grid container>
+            <Grid
+              xs={12}
+              md={6}
+              style={
+                windowSize.width >= WIN_SMALL ? { paddingRight: "0.5em" } : {}
+              }
+            >
               <MedalRecordColletion
                 title="Medal Collection"
                 headers={["Gold", "Silver", "Bronze"]}
@@ -64,7 +77,15 @@ const Profile = () => {
                 ]}
               />
             </Grid>
-            <Grid xs={12} md={6}>
+            <Grid
+              xs={12}
+              md={6}
+              style={
+                windowSize.width >= WIN_SMALL
+                  ? { paddingLeft: "0.5em" }
+                  : { paddingTop: "1em" }
+              }
+            >
               <MedalRecordColletion
                 title="Record Collection"
                 headers={["WR", "CR", "NR"]}
@@ -75,7 +96,7 @@ const Profile = () => {
                 ]}
               />
             </Grid>
-          </Stack>
+          </Grid>
           {profile.resultsHistory && profile.resultsHistory.length > 0 && (
             <ProfileResultsHistory resultsHistory={profile.resultsHistory} />
           )}
