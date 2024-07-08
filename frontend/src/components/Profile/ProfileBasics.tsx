@@ -1,19 +1,17 @@
-import { Grid, Stack, Typography } from "@mui/joy";
-import { WIN_LG, WIN_SMALL, WIN_VERYSMALL } from "../../constants";
-import { useEffect, useState } from "react";
+import { Grid, Typography } from "@mui/joy";
 
 import ProfileBasicsDetailsSmall from "./ProfileBasicsDetailsSmall";
 import ProfileBasicsDetailsTable from "./ProfileBasicsDetailsTable";
 import { ProfileTypeBasics } from "../../Types";
+import { WIN_SMALL } from "../../constants";
+import { WindowSizeContext } from "../../context/WindowSizeContext";
+import { WindowSizeContextType } from "../../Types";
+import { useContext } from "react";
 
 const ProfileBasics: React.FC<{ basics: ProfileTypeBasics }> = ({ basics }) => {
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-
-  useEffect(() => {
-    const resizeListener = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", resizeListener);
-    return () => window.removeEventListener("resize", resizeListener);
-  }, []);
+  const { windowSize, setWindowSize } = useContext(
+    WindowSizeContext
+  ) as WindowSizeContextType;
 
   return (
     <div
@@ -48,7 +46,7 @@ const ProfileBasics: React.FC<{ basics: ProfileTypeBasics }> = ({ basics }) => {
           marginTop: "2em",
         }}
       >
-        {windowWidth < WIN_SMALL ? (
+        {windowSize.width < WIN_SMALL ? (
           <ProfileBasicsDetailsSmall
             basics={basics}
           ></ProfileBasicsDetailsSmall>

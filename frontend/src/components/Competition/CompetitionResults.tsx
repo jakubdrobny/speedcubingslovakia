@@ -26,7 +26,6 @@ const CompetitionResults = () => {
     if (!format || format?.length === 0) return true;
     return format[0] !== "b";
   })();
-  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
   const isOverall =
     competitionState?.events[competitionState?.currentEventIdx]?.id === -1;
   const isfmc =
@@ -35,17 +34,6 @@ const CompetitionResults = () => {
   const ismbld =
     competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
     "333mbf";
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
 
   const columnNames = () => {
     let columnNames: string[] = [

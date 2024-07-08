@@ -9,8 +9,8 @@ export const WindowSizeProvider: React.FC<{ children?: ReactNode }> = ({
   children,
 }) => {
   const [windowSize, setWindowSize] = useState<WindowSize>({
-    width: 0,
-    height: 0,
+    width: window.innerWidth,
+    height: window.innerHeight,
   });
 
   return (
