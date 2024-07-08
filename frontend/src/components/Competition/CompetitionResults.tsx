@@ -59,14 +59,7 @@ const CompetitionResults = () => {
     if (!averageFirst)
       [columnNames[3], columnNames[4]] = [columnNames[4], columnNames[3]];
     if (isOverall) {
-      columnNames.splice(
-        3 - Number(windowWidth < WIN_VERYSMALL),
-        3 + Number(windowWidth < WIN_VERYSMALL),
-        "Score"
-      );
-    } else {
-      if (windowWidth < WIN_SMALL)
-        columnNames = [...columnNames.slice(0, 3), ...columnNames.slice(3)];
+      columnNames.splice(3, 3, "Score");
     }
 
     if (columnNames.includes("Average") && ismbld)
