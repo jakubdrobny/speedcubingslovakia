@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -48,6 +49,11 @@ func GetFilteredCompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 				}
 			}
 		}
+
+		sort.Slice(result, func (i int, j int) bool {
+			if filter == "Past" { return result[i].Enddate.After(result[j].Enddate) }
+			return result[i].Enddate.Before(result[j].Enddate)
+		})
 
 		c.IndentedJSON(http.StatusOK, result);
 	}
