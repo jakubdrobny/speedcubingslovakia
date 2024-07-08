@@ -68,15 +68,6 @@ const ProfileResultsHistory: React.FC<{
             <thead>
               <tr>
                 {getColumnNames().map((columnTitle, idx) => {
-                  console.log({
-                    ...(columnTitle === ""
-                      ? goodHeight
-                      : idx < 3
-                      ? left
-                      : idx < 5 - (ismbld ? 1 : 0)
-                      ? right
-                      : center),
-                  });
                   return (
                     <th
                       key={idx}

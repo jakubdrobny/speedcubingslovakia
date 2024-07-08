@@ -1,13 +1,6 @@
 import { AuthContextType, NavContextType } from "../../Types";
-import {
-  Grid,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemDecorator,
-  Stack,
-} from "@mui/joy";
-import { Language, Leaderboard, ListAlt, Search } from "@mui/icons-material";
+import { Leaderboard, ListAlt, Search } from "@mui/icons-material";
+import { List, ListItemButton, ListItemDecorator } from "@mui/joy";
 
 import { AuthContext } from "../../context/AuthContext";
 import LanguageIcon from "@mui/icons-material/Language";
@@ -19,8 +12,7 @@ import { useContext } from "react";
 
 const NavItems: React.FC<{
   direction: "row" | "row-reverse" | "column" | "column-reverse";
-  windowWidth: number;
-}> = ({ direction, windowWidth }) => {
+}> = ({ direction }) => {
   const { authState } = useContext(AuthContext) as AuthContextType;
   const { closeNav } = useContext(NavContext) as NavContextType;
 

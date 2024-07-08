@@ -1,13 +1,16 @@
+import { NavContextType, WindowSizeContextType } from "../../Types";
+
 import { Grid } from "@mui/joy";
 import { NavContext } from "../../context/NavContext";
-import { NavContextType } from "../../Types";
 import NavItems from "./NavItems";
 import { WIN_SMALL } from "../../constants";
+import { WindowSizeContext } from "../../context/WindowSizeContext";
 import { useContext } from "react";
 
-const NavVertical: React.FC<{ windowWidth: number }> = ({ windowWidth }) => {
+const NavVertical = () => {
   const { navOpen } = useContext(NavContext) as NavContextType;
-  const navReallyOpen = windowWidth < WIN_SMALL && navOpen;
+  const { windowSize } = useContext(WindowSizeContext) as WindowSizeContextType;
+  const navReallyOpen = windowSize.width < WIN_SMALL && navOpen;
 
   return (
     <Grid
@@ -20,7 +23,7 @@ const NavVertical: React.FC<{ windowWidth: number }> = ({ windowWidth }) => {
         background: "white",
       }}
     >
-      <NavItems direction="column" windowWidth={windowWidth} />
+      <NavItems direction="column" />
     </Grid>
   );
 };

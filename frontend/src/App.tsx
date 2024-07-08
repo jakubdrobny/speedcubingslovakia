@@ -74,7 +74,7 @@ const App = () => {
         borderBottom={windowSize.width < WIN_LG ? "" : "2px solid lightgrey"}
         width={"100%"}
       />
-      <NavHorizontal windowWidth={windowSize.width} />
+      <NavHorizontal />
       <Grid
         xs={0}
         lg={1}
@@ -82,7 +82,7 @@ const App = () => {
         borderBottom={windowSize.width < WIN_LG ? "" : "2px solid lightgrey"}
         width={"100%"}
       />
-      <NavVertical windowWidth={windowSize.width} />
+      <NavVertical />
       <Grid xs={0} lg={1} xl={2} />
       <Grid xs={12} lg={10} xl={8}>
         <Routes>

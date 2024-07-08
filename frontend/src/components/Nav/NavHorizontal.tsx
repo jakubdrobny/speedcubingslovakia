@@ -1,19 +1,21 @@
 import { Button, Grid, List, ListItemButton, Typography } from "@mui/joy";
-import { useContext, useEffect, useState } from "react";
+import { NavContextType, WindowSizeContextType } from "../../Types";
+import { WIN_LG, WIN_SMALL } from "../../constants";
 
 import { DensityMedium } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { NavContext } from "../../context/NavContext";
-import { NavContextType } from "../../Types";
 import NavItems from "./NavItems";
-import { WIN_SMALL } from "../../constants";
+import { WindowSizeContext } from "../../context/WindowSizeContext";
+import { useContext } from "react";
 
 const mainLogo = require("../../images/speedcubingslovakialogo256.png");
 
-const NavHorizontal: React.FC<{ windowWidth: number }> = ({ windowWidth }) => {
+const NavHorizontal = () => {
   const { navOpen, closeNav, toggleNavOpen } = useContext(
     NavContext
   ) as NavContextType;
+  const { windowSize } = useContext(WindowSizeContext) as WindowSizeContextType;
 
   return (
     <Grid
@@ -56,7 +58,7 @@ const NavHorizontal: React.FC<{ windowWidth: number }> = ({ windowWidth }) => {
             width: "100%",
           }}
         >
-          {windowWidth < WIN_SMALL ? (
+          {windowSize.width < WIN_LG ? (
             <Button
               onClick={toggleNavOpen}
               variant={navOpen ? "solid" : "outlined"}
@@ -66,7 +68,7 @@ const NavHorizontal: React.FC<{ windowWidth: number }> = ({ windowWidth }) => {
               <DensityMedium />
             </Button>
           ) : (
-            <NavItems direction="row" windowWidth={windowWidth} />
+            <NavItems direction="row" />
           )}
         </Grid>
       </List>
