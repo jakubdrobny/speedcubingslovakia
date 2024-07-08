@@ -72,7 +72,10 @@ const Competition = () => {
   }, []);
 
   return (
-    <Stack spacing={3} sx={{ display: "flex", alignItems: "center", mt: 4 }}>
+    <Stack
+      spacing={3}
+      sx={{ display: "flex", alignItems: "center", mt: 4, mx: 2 }}
+    >
       <Modal
         open={suspicousModalOpen}
         onClose={() => setSuspicousModalOpen(false)}
@@ -107,7 +110,9 @@ const Competition = () => {
         <CircularProgress />
       ) : (
         <>
-          <Typography level="h1">{competitionState.name}</Typography>
+          <Typography level="h1" sx={{ textAlign: "center" }}>
+            {competitionState.name}
+          </Typography>
           <Typography>
             {formatDate(competitionState.startdate)} -{" "}
             {formatDate(competitionState.enddate)}

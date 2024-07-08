@@ -27,7 +27,7 @@ export const EventSelector = () => {
 
   return (
     <Grid container>
-      <ButtonGroup style={{ padding: "1em", flexWrap: "wrap" }}>
+      <ButtonGroup sx={{ py: 1, flexWrap: "wrap" }}>
         {events.map((e: CompetitionEvent, idx: number) => {
           return (
             <Button
