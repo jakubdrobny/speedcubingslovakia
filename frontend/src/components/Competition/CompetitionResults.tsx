@@ -73,7 +73,6 @@ const CompetitionResults = () => {
   return (
     <div
       style={{
-        margin: "1.5em 1em",
         width: "100%",
       }}
     >

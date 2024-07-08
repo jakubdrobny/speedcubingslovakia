@@ -11,7 +11,7 @@ const ResultsCompeteChoice: React.FC<{
   loading: boolean;
 }> = ({ resultsCompeteChoice, setResultsCompeteChoice, loading }) => {
   return (
-    <ButtonGroup style={{ padding: "1em", flexWrap: "wrap", margin: 0 }}>
+    <ButtonGroup sx={{ pb: 1, flexWrap: "wrap", margin: 0 }}>
       <Button
         onClick={() =>
           setResultsCompeteChoice(ResultsCompeteChoiceEnum.Results)
