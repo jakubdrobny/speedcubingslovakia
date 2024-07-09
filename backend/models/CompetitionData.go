@@ -202,7 +202,7 @@ func GenerateImagesForScrambles(scrambles []string, scramblingcode string, ismbl
 
 	for _, scramble := range scrambles {
 		if ismbld { scramble = "" }
-		url := url.QueryEscape(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble))
+		url := fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, url.QueryEscape(scramble))
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil { return []string{}, err }
 

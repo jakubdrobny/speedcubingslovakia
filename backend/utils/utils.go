@@ -274,7 +274,7 @@ func SaveScrambleImg(img_id string, svg_content string) error {
 }
 
 func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble string, scramblingcode string) (string, error) {
-	url := url.QueryEscape(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble))
+	url := fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, url.QueryEscape(scramble))
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil { return "", err }
 
