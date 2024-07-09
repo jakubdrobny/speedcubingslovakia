@@ -205,7 +205,6 @@ func CompareCompetitionResults(res1 CompetitionResult, res2 CompetitionResult, f
 func AddPlacementToCompetitionResults(results []CompetitionResult, format string) {
 	if len(results) == 0 || len(format) == 0 { return }
 	
-	place := 1
 	oldIdx := 0
 
 	for idx := range results {
@@ -213,8 +212,7 @@ func AddPlacementToCompetitionResults(results []CompetitionResult, format string
 			results[0].Place = "1."
 		} else {
 			if CompareCompetitionResults(results[oldIdx], results[idx], format) > 0 {
-				place++
-				results[idx].Place = fmt.Sprintf("%d.", place)
+				results[idx].Place = fmt.Sprintf("%d.", idx + 1)
 				oldIdx = idx
 			}
 		}
