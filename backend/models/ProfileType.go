@@ -239,8 +239,8 @@ func LoadRankFromRows(rows pgx.Rows, result string, average int, db *pgxpool.Poo
 	
 	resultInMili := utils.ParseSolveToMilliseconds(result, false, "")
 	rank := 1
-	for idx := 0; idx < len(resultsArr) && resultsArr[idx] < resultInMili; idx++ {
-		if idx == 0 || resultsArr[idx - 1] < resultsArr[idx] { rank++ }
+	for idx := 0; idx + 1 < len(resultsArr) && resultsArr[idx] < resultInMili; idx++ {
+		if resultsArr[idx] < resultsArr[idx + 1] { rank = idx + 2 }
 	}
 
 	return fmt.Sprint(rank), nil
@@ -354,9 +354,9 @@ func ComputePlacement(db *pgxpool.Pool, uname string, cid string, eid int, forma
 	if err != nil { return "", err }
 
 	placement := 1
-	for idx := 0; idx < len(competitionResults) && competitionResults[idx].Username != uname; idx++ {
-		if idx + 1 < len(competitionResults) && CompareCompetitionResults(competitionResults[idx], competitionResults[idx + 1], format) > 0 {
-			placement++
+	for idx := 0; idx + 1 < len(competitionResults) && competitionResults[idx].Username != uname; idx++ {
+		if CompareCompetitionResults(competitionResults[idx], competitionResults[idx + 1], format) > 0 {
+			placement = idx + 2
 		}
 	}
 

@@ -60,7 +60,6 @@ type RankingsEntry struct {
 func AddPlacementToRankings(rankings []RankingsEntry) {
 	if len(rankings) == 0 { return }
 	
-	place := 1
 	oldIdx := 0
 
 	for idx := range rankings {
@@ -68,8 +67,7 @@ func AddPlacementToRankings(rankings []RankingsEntry) {
 			rankings[0].Place = "1."
 		} else {
 			if utils.ParseSolveToMilliseconds(rankings[oldIdx].Result, false, "") != utils.ParseSolveToMilliseconds(rankings[idx].Result, false, "") {
-				place++
-				rankings[idx].Place = fmt.Sprintf("%d.", place)
+				rankings[idx].Place = fmt.Sprintf("%d.", idx + 1)
 				oldIdx = idx
 			}
 		}
