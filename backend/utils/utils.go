@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -273,11 +274,7 @@ func SaveScrambleImg(img_id string, svg_content string) error {
 }
 
 func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble string, scramblingcode string) (string, error) {
-	scramble = strings.ReplaceAll(scramble, "\n", " ")
-	if scramblingcode == "clock" { scramble = strings.ReplaceAll(scramble, "+", "%2B") }
-	if scramblingcode == "222" { scramble = strings.ReplaceAll(scramble, "2'", "2") }
-	if scramblingcode == "sq1" { scramble = strings.ReplaceAll(scramble, ", ", ",") }
-	url := strings.ReplaceAll(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble), " ", "%20")
+	url := url.QueryEscape(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble))
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil { return "", err }
 

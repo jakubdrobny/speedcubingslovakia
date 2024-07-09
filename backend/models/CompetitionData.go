@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -94,7 +95,7 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) (error) {
 			err := rows.Scan(&scrambleId, &scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Img)
 			if err != nil { return err }
 
-			if !strings.HasSuffix(scramble.Img, ".svg") {
+			if scrambleSet.Event.Scramblingcode == "minx" {
 				log.Println(utils.RegenerateImageForScramble(db, scrambleId, scramble.Scramble, scrambleSet.Event.Scramblingcode))
 			}
 
@@ -200,10 +201,8 @@ func GenerateImagesForScrambles(scrambles []string, scramblingcode string, ismbl
 	images := make([]string, 0)
 
 	for _, scramble := range scrambles {
-		scramble = strings.ReplaceAll(scramble, "\n", " ")
-		if scramblingcode == "clock" || scramblingcode == "minx" { scramble = strings.ReplaceAll(scramble, "+", "%2B") }
 		if ismbld { scramble = "" }
-		url := strings.ReplaceAll(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble), " ", "%20")
+		url := url.QueryEscape(fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, scramble))
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil { return []string{}, err }
 
