@@ -51,7 +51,7 @@ const Profile = () => {
           }}
         >
           <CircularProgress />
-          &nbsp; <Typography level="h3">Loading profile...</Typography>
+          &nbsp; &nbsp; <Typography level="h3">Loading profile...</Typography>
         </div>
       ) : loadingState.error ? (
         <Alert color="danger">{loadingState.error}</Alert>

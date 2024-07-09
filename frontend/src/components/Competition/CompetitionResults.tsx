@@ -77,12 +77,14 @@ const CompetitionResults = () => {
       }}
     >
       {loadingState.results ? (
-        <>
+        <div
+          style={{ width: "100%", display: "flex", justifyContent: "center" }}
+        >
           <Typography level="h3" sx={{ display: "flex", alignItems: "center" }}>
             <CircularProgress />
-            &nbsp; Loading results ...
+            &nbsp; &nbsp; Loading results ...
           </Typography>
-        </>
+        </div>
       ) : loadingState.error ? (
         <Alert color="danger">{loadingState.error}</Alert>
       ) : (
