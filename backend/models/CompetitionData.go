@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -94,10 +93,6 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) (error) {
 			var scrambleId int
 			err := rows.Scan(&scrambleId, &scramble.Scramble, &scrambleSet.Event.Id, &scrambleSet.Event.Displayname, &scrambleSet.Event.Format, &scrambleSet.Event.Iconcode, &scrambleSet.Event.Scramblingcode, &scramble.Img)
 			if err != nil { return err }
-
-			if scrambleSet.Event.Scramblingcode == "minx" {
-				log.Println(utils.RegenerateImageForScramble(db, scrambleId, scramble.Scramble, scrambleSet.Event.Scramblingcode))
-			}
 
 			if time.Now().Before(c.Startdate) {
 				scramble.Scramble = "Competition has not started yet ;)"
