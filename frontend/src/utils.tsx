@@ -19,6 +19,7 @@ import React, { useLayoutEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 
 import Cookies from "universal-cookie";
+import { Link } from "react-router-dom";
 
 export const loadFilteredCompetitions = async (
   filterValue: FilterValue
@@ -410,10 +411,15 @@ export const defaultProfile: ProfileType = {
   resultsHistory: [],
 };
 
-export const getError = (err: AxiosError): string => {
+export const getError = (err: AxiosError) => {
   if (err.response?.status === 401)
-    return "Unauthorized/token expired. Try to re-login.";
-  return err.response?.data as string;
+    return (
+      <div style={{ gap: 0 }}>
+        Unauthorized/token expired. Try to{" "}
+        <Link to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}>re-login</Link>.
+      </div>
+    );
+  return err.response?.data;
 };
 
 export const getUsers = async (searchQuery: string): Promise<SearchUser[]> => {
