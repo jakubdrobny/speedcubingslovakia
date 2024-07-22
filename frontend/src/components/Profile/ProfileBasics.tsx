@@ -9,9 +9,7 @@ import { WindowSizeContextType } from "../../Types";
 import { useContext } from "react";
 
 const ProfileBasics: React.FC<{ basics: ProfileTypeBasics }> = ({ basics }) => {
-  const { windowSize, setWindowSize } = useContext(
-    WindowSizeContext
-  ) as WindowSizeContextType;
+  const { windowSize } = useContext(WindowSizeContext) as WindowSizeContextType;
 
   return (
     <div
@@ -36,7 +34,11 @@ const ProfileBasics: React.FC<{ basics: ProfileTypeBasics }> = ({ basics }) => {
           marginTop: "2em",
         }}
       >
-        <img src={basics.imageurl} alt="profile_image" />
+        <img
+          src={basics.imageurl}
+          alt="profile_image"
+          style={{ maxWidth: "80%", height: "auto" }}
+        />
       </Grid>
       <Grid
         xs={12}
