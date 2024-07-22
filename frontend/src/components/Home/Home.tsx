@@ -17,6 +17,7 @@ const Home = () => {
         className="welcome-title"
         sx={{
           width: "100%",
+          zIndex: -1,
         }}
       >
         Welcome to Speedcubing Slovakia!
@@ -28,7 +29,7 @@ const Home = () => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          zIndex: -1,
+          zIndex: -2,
           opacity: 0.5,
         }}
       />
