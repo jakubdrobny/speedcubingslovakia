@@ -10,7 +10,7 @@ const LogIn = () => {
   const { setAuthState } = useContext(AuthContext) as AuthContextType;
   const [loadingState, setLoadingState] = useState<{
     loading: boolean;
-    error: string;
+    error: any;
   }>({ loading: false, error: "" });
   const [searchParams, _] = useSearchParams();
   const navigate = useNavigate();
