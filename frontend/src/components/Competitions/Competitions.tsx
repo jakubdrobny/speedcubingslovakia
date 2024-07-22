@@ -21,7 +21,7 @@ const Competitions = () => {
     FilterValue.Current
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<any>("");
 
   useEffect(() => {
     setIsLoading(true);
@@ -76,30 +76,39 @@ const Competitions = () => {
       ) : isLoading ? (
         <CircularProgress />
       ) : (
-        <Table aria-label="basic table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Start date</th>
-              <th>End date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {competitionData.map((competition: CompetitionData, index) => {
-              return (
-                <tr key={index}>
-                  <td>
-                    <Link to={`/competition/${competition.id}`}>
-                      {competition.name}
-                    </Link>
-                  </td>
-                  <td>{formatDate(competition.startdate)}</td>
-                  <td>{formatDate(competition.enddate)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
+        <div style={{ overflowX: "auto" }}>
+          <Table
+            aria-label="basic table"
+            sx={{
+              tableLayout: "auto",
+              width: "100%",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Start date</th>
+                <th>End date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {competitionData.map((competition: CompetitionData, index) => {
+                return (
+                  <tr key={index}>
+                    <td>
+                      <Link to={`/competition/${competition.id}`}>
+                        {competition.name}
+                      </Link>
+                    </td>
+                    <td>{formatDate(competition.startdate)}</td>
+                    <td>{formatDate(competition.enddate)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </div>
       )}
     </Card>
   );
