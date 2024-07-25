@@ -22,6 +22,8 @@ import {
   getCompetitionById,
   getError,
   initialCompetitionState,
+  isObjectEmpty,
+  renderResponseError,
 } from "../../utils";
 import { useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -39,6 +41,8 @@ const Competition = () => {
   const {
     suspicousModalOpen,
     setSuspicousModalOpen,
+    warningModalOpen,
+    setWarningModalOpen,
     competitionState,
     setCompetitionState,
     updateBasicInfo,
@@ -49,7 +53,7 @@ const Competition = () => {
   } = useContext(CompetitionContext) as CompetitionContextType;
 
   useEffect(() => {
-    setLoadingState({ results: false, compinfo: true, error: "" });
+    setLoadingState({ results: false, compinfo: true, error: {} });
 
     getCompetitionById(id)
       .then((info: CompetitionData | undefined) => {
@@ -77,11 +81,20 @@ const Competition = () => {
       sx={{ display: "flex", alignItems: "center", mt: 4, mx: 2 }}
     >
       <Modal
-        open={suspicousModalOpen}
-        onClose={() => setSuspicousModalOpen(false)}
+        open={suspicousModalOpen || warningModalOpen}
+        onClose={() => {
+          if (suspicousModalOpen) setSuspicousModalOpen(false);
+          else setWarningModalOpen(false);
+        }}
       >
         <ModalDialog
-          color="danger"
+          color={
+            suspicousModalOpen
+              ? "danger"
+              : warningModalOpen
+              ? "warning"
+              : "neutral"
+          }
           layout="center"
           size="lg"
           variant="soft"
@@ -89,23 +102,39 @@ const Competition = () => {
         >
           <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
             <Warning />
-            Suspicous result detected
+            {suspicousModalOpen
+              ? "Suspicous result detected"
+              : "Incorrect results entered."}
           </DialogTitle>
           <ModalClose />
           <Divider />
           <DialogContent>
-            Your results were identified as suspicous, which means you likely
-            made a data entry error. If that's the case, please fix it, until
-            then, these results won't show up on the leaderboard.
-            <br />
-            <br />
-            If you achieved these results legitimately, please let us know in
-            the comment box and your results will be approved.
+            {suspicousModalOpen ? (
+              <>
+                Your results were identified as suspicous, which means you
+                likely made a data entry error. If that's the case, please fix
+                it, until then, these results won't show up on the leaderboard.
+                <br />
+                <br />
+                If you achieved these results legitimately, please let us know
+                in the comment box and your results will be approved.
+              </>
+            ) : (
+              <>
+                The results you entered had invalid format, eg. over 60 seconds
+                or over 60 minutes, etc., which means you likely made a data
+                entry error.
+                <br />
+                <br />
+                The incorrect solves were saved as DNF, so please re-enter the
+                result in the correct format.
+              </>
+            )}
           </DialogContent>
         </ModalDialog>
       </Modal>
-      {loadingState.error ? (
-        <Alert color="danger">{loadingState.error}</Alert>
+      {!isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
       ) : loadingState.compinfo ? (
         <CircularProgress />
       ) : (

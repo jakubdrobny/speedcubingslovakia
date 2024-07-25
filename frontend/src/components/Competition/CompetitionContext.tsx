@@ -35,6 +35,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   const [currentResults, setCurrentResults, currentResultsRef] =
     useState<ResultEntry>(initialCurrentResults);
   const [suspicousModalOpen, setSuspicousModalOpen] = useState<boolean>(false);
+  const [warningModalOpen, setWarningModalOpen] = useState<boolean>(false);
   const [resultsCompeteChoice, setResultsCompeteChoice] =
     useState<ResultsCompeteChoiceEnum>(ResultsCompeteChoiceEnum.Results);
   const [results, setResults] = useState<CompetitionResult[]>([]);
@@ -59,7 +60,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
       };
     });
 
-    setLoadingState({ ...loadingState, compinfo: false, error: "" });
+    setLoadingState({ ...loadingState, compinfo: false, error: {} });
   };
 
   const fetchCompeteResultEntry = (
@@ -79,11 +80,15 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
       }));
     }
 
-    setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
+    setLoadingState((ps) => ({ ...ps, results: true, error: {} }));
     getResultsFromCompetitionAndEvent(compId, event)
       .then((resultEntry) => {
         setCurrentResults(resultEntry);
-        if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
+        if (!resultEntry.status.approvalFinished) {
+          setSuspicousModalOpen(true);
+        } else if (resultEntry.badFormat) {
+          setWarningModalOpen(true);
+        }
         setLoadingState((ps) => ({
           ...ps,
           results: false,
@@ -104,7 +109,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     ],
     compId: string = competitionState.id
   ) => {
-    setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
+    setLoadingState((ps) => ({ ...ps, results: true, error: {} }));
     getCompetitionResults(compId, event)
       .then((res) => {
         setResults(res);
@@ -136,7 +141,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
           ? InputMethod.Manual
           : ps.inputMethod,
     }));
-    setLoadingState((ps) => ({ ...ps, results: true, error: "" }));
+    setLoadingState((ps) => ({ ...ps, results: true, error: {} }));
 
     if (resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete)
       fetchCompeteResultEntry();
@@ -152,7 +157,11 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         ...currentResultsRef.current,
         competitionid: competitionState.id,
       });
-      if (!resultEntry.status.approvalFinished) setSuspicousModalOpen(true);
+      if (!resultEntry.status.approvalFinished) {
+        setSuspicousModalOpen(true);
+      } else if (resultEntry.badFormat) {
+        setWarningModalOpen(true);
+      }
       setCurrentResults(resultEntry);
       return Promise.resolve();
     } catch (e) {
@@ -230,6 +239,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         setCurrentResults,
         suspicousModalOpen,
         setSuspicousModalOpen,
+        warningModalOpen,
+        setWarningModalOpen,
         results,
         setResults,
         resultsCompeteChoice,

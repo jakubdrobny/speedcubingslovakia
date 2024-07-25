@@ -32,6 +32,7 @@ type ResultEntry struct {
 	Solve5 string `json:"solve5"`
 	Comment string `json:"comment"`
 	Status ResultsStatus `json:"status"`
+	BadFormat bool `json:"badFormat"`
 	Scrambles []string `json:"-"`
 }
 
@@ -44,12 +45,41 @@ func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
 	return nil;
 }
 
+func (r *ResultEntry) CheckFormats(isfmc bool) {
+	r.BadFormat = false
+
+	
+	if isfmc { return }
+	
+	if !utils.CheckFormat(r.Solve1) {
+		r.Solve1 = "DNF"
+		r.BadFormat = true
+	}
+	if !utils.CheckFormat(r.Solve2) {
+		r.Solve2 = "DNF"
+		r.BadFormat = true
+	}
+	if !utils.CheckFormat(r.Solve3) {
+		r.Solve3 = "DNF"
+		r.BadFormat = true
+	}
+	if !utils.CheckFormat(r.Solve4) {
+		r.Solve4 = "DNF"
+		r.BadFormat = true
+	}
+	if !utils.CheckFormat(r.Solve5) {
+		r.Solve5 = "DNF"
+		r.BadFormat = true
+	}
+}
+
 func (r *ResultEntry) Validate(db *pgxpool.Pool, isfmc bool, scrambles []string) (error) {
 	var err error
 	if (r.IsSuspicous(isfmc, scrambles)) {
 		r.Status, err = GetResultsStatus(db, 1) // waitingForApproval
 		if err != nil { return err }
 	} else {
+		r.CheckFormats(isfmc)
 		r.Status, err = GetResultsStatus(db, 3) // approved
 		if err != nil { return err }
 	}
@@ -76,12 +106,13 @@ func (r *ResultEntry) LoadId(db *pgxpool.Pool) error {
 	return nil
 }
 
-func ValidateMultiEntry(entry string) string {
+func (r *ResultEntry) ValidateMultiEntry(entry string) string {
 	if entry == "DNS" || entry == "0/0 00:00:00" { return "DNS" }
 
-	r, _ := regexp.Compile("[0-9]{1,2}[/][0-9]{1,2}[ ][0-1][0-9]:[0-5][0-9]:[0-5][0-9]")
-	if !r.MatchString(entry) {
-		return "DNS"
+	re, _ := regexp.Compile("[0-9]{1,2}[/][0-9]{1,2}[ ][0-1][0-9]:[0-5][0-9]:[0-5][0-9]")
+	if !re.MatchString(entry) {
+		r.BadFormat = true
+		return "DNF"
 	}
 
 	cubes := strings.Split(entry, " ")[0]
@@ -107,11 +138,11 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error 
 	}
 
 	if r.Iconcode == "333mbf" {
-		r.Solve1 = ValidateMultiEntry(r.Solve1)
-		r.Solve2 = ValidateMultiEntry(r.Solve2)
-		r.Solve3 = ValidateMultiEntry(r.Solve3)
-		r.Solve4 = ValidateMultiEntry(r.Solve4)
-		r.Solve5 = ValidateMultiEntry(r.Solve5)
+		r.Solve1 = r.ValidateMultiEntry(r.Solve1)
+		r.Solve2 = r.ValidateMultiEntry(r.Solve2)
+		r.Solve3 = r.ValidateMultiEntry(r.Solve3)
+		r.Solve4 = r.ValidateMultiEntry(r.Solve4)
+		r.Solve5 = r.ValidateMultiEntry(r.Solve5)
 	}
 
 	if len(valid) == 0 || (len(valid) > 0 && !valid[0]) {
@@ -126,6 +157,8 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error 
 		_, err := db.Exec(context.Background(), `UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP WHERE user_id = $8 AND competition_id = $9 AND event_id = $10;`, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id, r.Userid, r.Competitionid, r.Eventid)
 		if err != nil { return err }
 	}
+
+	fmt.Println("ResultEntry BadFormat: ", r.BadFormat)
 
 	return nil;
 }

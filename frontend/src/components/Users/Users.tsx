@@ -10,7 +10,13 @@ import {
   Typography,
 } from "@mui/joy";
 import { LoadingState, SearchUser } from "../../Types";
-import { getError, getUsers, initialLoadingState } from "../../utils";
+import {
+  getError,
+  getUsers,
+  initialLoadingState,
+  isObjectEmpty,
+  renderResponseError,
+} from "../../utils";
 
 import { Link } from "react-router-dom";
 import { Search } from "@mui/icons-material";
@@ -23,12 +29,12 @@ const Users = () => {
   const [users, setUsers] = useState<SearchUser[]>([]);
 
   const searchForUsers = () => {
-    setLoadingState({ isLoading: true, error: "" });
+    setLoadingState({ isLoading: true, error: {} });
 
     getUsers(searchQuery)
       .then((res: SearchUser[]) => {
         setUsers(res);
-        setLoadingState({ isLoading: false, error: "" });
+        setLoadingState({ isLoading: false, error: {} });
       })
       .catch((err) => {
         setLoadingState({ isLoading: false, error: getError(err) });
@@ -62,18 +68,19 @@ const Users = () => {
           case insensitive.
         </FormHelperText>
       </FormControl>
-      {loadingState.error ? (
-        <Alert color="danger">{loadingState.error}</Alert>
-      ) : (
-        users.map((u: SearchUser) => (
-          <Card sx={{ display: "flex", flexDirection: "row" }}>
-            <span style={{ fontWeight: "bold" }}>{u.username}: </span>
-            <Link to={`/profile/${u.wcaid}`} style={{ textDecoration: "none" }}>
-              {u.wcaid}
-            </Link>
-          </Card>
-        ))
-      )}
+      {!isObjectEmpty(loadingState.error)
+        ? renderResponseError(loadingState.error)
+        : users.map((u: SearchUser) => (
+            <Card sx={{ display: "flex", flexDirection: "row" }}>
+              <span style={{ fontWeight: "bold" }}>{u.username}: </span>
+              <Link
+                to={`/profile/${u.wcaid}`}
+                style={{ textDecoration: "none" }}
+              >
+                {u.wcaid}
+              </Link>
+            </Card>
+          ))}
     </Stack>
   );
 };

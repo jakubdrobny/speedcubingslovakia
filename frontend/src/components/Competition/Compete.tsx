@@ -6,7 +6,12 @@ import {
   TimerInputCurrentState,
 } from "../../Types";
 import { East, Keyboard, Timer, West } from "@mui/icons-material";
-import { competitionOnGoing, getError } from "../../utils";
+import {
+  competitionOnGoing,
+  getError,
+  isObjectEmpty,
+  renderResponseError,
+} from "../../utils";
 import { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
@@ -48,7 +53,7 @@ const Compete = () => {
     setLoadingState({ ...loadingState, results: true, compinfo: false });
     saveResults()
       .then(() =>
-        setLoadingState({ ...loadingState, results: false, error: "" })
+        setLoadingState({ ...loadingState, results: false, error: {} })
       )
       .catch((err) =>
         setLoadingState({
@@ -61,8 +66,8 @@ const Compete = () => {
 
   return (
     <>
-      {loadingState.error ? (
-        <Alert color="danger">{loadingState.error}</Alert>
+      {!isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
       ) : loadingState.results ? (
         <div style={{ display: "flex", justifyContent: "center" }}>
           <CircularProgress />

@@ -6,6 +6,8 @@ import {
   getError,
   getProfile,
   initialLoadingState,
+  isObjectEmpty,
+  renderResponseError,
 } from "../../utils";
 import { useEffect, useState } from "react";
 
@@ -22,7 +24,7 @@ const Profile = () => {
   const { id = "trolko" } = useParams<{ id: string }>();
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: true,
-    error: "",
+    error: {},
   });
   const [profile, setProfile] = useState<ProfileType>(defaultProfile);
   const { windowSize, setWindowSize } = useContext(
@@ -33,7 +35,7 @@ const Profile = () => {
     getProfile(id)
       .then((p: ProfileType) => {
         setProfile(p);
-        setLoadingState({ isLoading: false, error: "" });
+        setLoadingState({ isLoading: false, error: {} });
       })
       .catch((err) => {
         setLoadingState({ isLoading: false, error: getError(err) });
@@ -53,8 +55,8 @@ const Profile = () => {
           <CircularProgress />
           &nbsp; &nbsp; <Typography level="h3">Loading profile...</Typography>
         </div>
-      ) : loadingState.error ? (
-        <Alert color="danger">{loadingState.error}</Alert>
+      ) : !isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
       ) : (
         <Stack spacing={3}>
           <ProfileBasics basics={profile.basics} />

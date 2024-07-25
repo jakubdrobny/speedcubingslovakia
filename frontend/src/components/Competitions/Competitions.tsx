@@ -7,8 +7,12 @@ import {
   Stack,
   Typography,
 } from "@mui/joy";
-import { CompetitionData, FilterValue } from "../../Types";
-import { formatDate, loadFilteredCompetitions } from "../../utils";
+import { CompetitionData, FilterValue, ResponseError } from "../../Types";
+import {
+  formatDate,
+  loadFilteredCompetitions,
+  renderResponseError,
+} from "../../utils";
 import { useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
@@ -21,7 +25,7 @@ const Competitions = () => {
     FilterValue.Current
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<any>("");
+  const [error, setError] = useState<ResponseError>();
 
   useEffect(() => {
     setIsLoading(true);
@@ -72,7 +76,7 @@ const Competitions = () => {
         </ButtonGroup>
       </Stack>
       {error ? (
-        <Alert color="danger">{error}</Alert>
+        renderResponseError(error)
       ) : isLoading ? (
         <CircularProgress />
       ) : (

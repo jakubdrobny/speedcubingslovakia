@@ -8,14 +8,17 @@ import {
   Tooltip,
   Typography,
 } from "@mui/joy";
-import { WIN_SMALL, WIN_VERYSMALL } from "../../constants";
-import { useContext, useEffect, useState } from "react";
+import {
+  isObjectEmpty,
+  reformatMultiTime,
+  renderResponseError,
+} from "../../utils";
+import { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { CompetitionContextType } from "../../Types";
 import { Help } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { reformatMultiTime } from "../../utils";
 
 const CompetitionResults = () => {
   const { competitionState, results, loadingState, fetchCompetitionResults } =
@@ -85,8 +88,8 @@ const CompetitionResults = () => {
             &nbsp; &nbsp; Loading results ...
           </Typography>
         </div>
-      ) : loadingState.error ? (
-        <Alert color="danger">{loadingState.error}</Alert>
+      ) : !isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
       ) : (
         <Card
           sx={{

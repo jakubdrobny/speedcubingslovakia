@@ -7,15 +7,19 @@ import {
   Table,
   Typography,
 } from "@mui/joy";
-import { getError, getManageUsers, updateUserRoles } from "../../utils";
+import { ManageRolesUser, ResponseError } from "../../Types";
+import {
+  getError,
+  getManageUsers,
+  renderResponseError,
+  updateUserRoles,
+} from "../../utils";
 import { useEffect, useState } from "react";
-
-import { ManageRolesUser } from "../../Types";
 
 const ManageRoles = () => {
   const [users, setUsers] = useState<ManageRolesUser[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>();
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<ResponseError>();
 
   useEffect(() => {
     setIsLoading(true);
@@ -63,7 +67,7 @@ const ManageRoles = () => {
         </div>
         <div>
           {error ? (
-            <Alert color="danger">{error}</Alert>
+            renderResponseError(error)
           ) : (
             <>
               <Table borderAxis="both" size="md">
