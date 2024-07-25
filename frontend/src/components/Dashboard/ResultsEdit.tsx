@@ -17,7 +17,12 @@ import {
   Textarea,
   Typography,
 } from "@mui/joy";
-import { AuthContextType, CompetitionEvent, ResultEntry } from "../../Types";
+import {
+  AuthContextType,
+  CompetitionEvent,
+  ResponseError,
+  ResultEntry,
+} from "../../Types";
 import { Check, Close } from "@mui/icons-material";
 import {
   authorizeAdmin,
@@ -26,6 +31,7 @@ import {
   getResults,
   logOut,
   reformatTime,
+  renderResponseError,
   saveValidation,
   sendResults,
 } from "../../utils";
@@ -46,7 +52,7 @@ const ResultsEdit = () => {
     results: boolean;
     events: boolean;
   }>({ results: false, events: false });
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<ResponseError>();
 
   useEffect(() => {
     setIsLoading((ps) => ({ ...ps, events: true }));
@@ -74,7 +80,7 @@ const ResultsEdit = () => {
       .then((res) => {
         setResults(res);
         setIsLoading((ps) => ({ ...ps, results: false }));
-        setError("");
+        setError({});
       })
       .catch((err) => {
         setIsLoading((ps) => ({ ...ps, results: false }));
@@ -249,7 +255,7 @@ const ResultsEdit = () => {
         </Stack>
       </Card>
       <Card>
-        {error && <Alert color="danger">{error}</Alert>}
+        {error && renderResponseError(error)}
         <Stack spacing={2}>
           <Typography level="h3" className="bottom-divider">
             Results

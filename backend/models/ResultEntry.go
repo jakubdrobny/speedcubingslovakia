@@ -32,6 +32,7 @@ type ResultEntry struct {
 	Solve5 string `json:"solve5"`
 	Comment string `json:"comment"`
 	Status ResultsStatus `json:"status"`
+	BadFormat bool `json:"badFormat"`
 	Scrambles []string `json:"-"`
 }
 

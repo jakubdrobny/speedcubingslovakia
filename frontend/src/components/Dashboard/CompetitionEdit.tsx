@@ -17,12 +17,14 @@ import {
   CompetitionData,
   CompetitionEvent,
   CompetitionState,
+  ResponseError,
 } from "../../Types";
 import {
   formatCompetitionDateForInput,
   getAvailableEvents,
   getError,
   initialCompetitionState,
+  renderResponseError,
   updateCompetition,
 } from "../../utils";
 import { useEffect, useState } from "react";
@@ -41,11 +43,11 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
     initialCompetitionState
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<ResponseError>();
 
   useEffect(() => {
     setIsLoading(true);
-    setError("");
+    setError({});
 
     if (edit) {
       getCompetitionById(id)
@@ -94,7 +96,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
       .then((res: CompetitionState) => {
         setCompetitionState(res);
         setIsLoading(false);
-        setError("");
+        setError({});
       })
       .catch((err) => {
         setIsLoading(false);
@@ -104,7 +106,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
 
   return (
     <Stack style={{ marginTop: "2em" }} spacing={2}>
-      {error && <Alert color="danger">{error}</Alert>}
+      {error && renderResponseError(error)}
       <Card>
         <Typography level="h3" sx={{ borderBottom: "1px solid #CDD7E1" }}>
           {edit ? `Edit ${competitionState.name}` : "Create"} competition

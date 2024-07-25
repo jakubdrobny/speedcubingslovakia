@@ -12,12 +12,14 @@ import {
   ProfileType,
   RankingsEntry,
   RegionSelectGroup,
+  ResponseError,
   ResultEntry,
   SearchUser,
 } from "./Types";
 import React, { useLayoutEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 
+import { Alert } from "@mui/joy";
 import Cookies from "universal-cookie";
 import { Link } from "react-router-dom";
 
@@ -208,6 +210,16 @@ export const initialCompetitionState: CompetitionState = {
   penalties: Array(5).fill("0"),
 };
 
+export const isObjectEmpty = (obj: Object) => {
+  return Object.keys(obj).length === 0;
+};
+
+export const renderResponseError = (error: ResponseError) => {
+  console.log(error);
+  if (error.message) return <Alert color="danger">{error.message}</Alert>;
+  return error.element;
+};
+
 export const initialCurrentResults: ResultEntry = {
   id: 0,
   userid: 0,
@@ -230,6 +242,7 @@ export const initialCurrentResults: ResultEntry = {
     visible: true,
     displayname: "",
   },
+  badFormat: false,
 };
 
 export const reformatTime = (
@@ -371,7 +384,7 @@ export const getCompetitionResults = async (
 export const initialCompetitionLoadingState: CompetitionLoadingState = {
   results: false,
   compinfo: false,
-  error: "",
+  error: {},
 };
 
 export const emptyEvent: CompetitionEvent = {
@@ -384,7 +397,7 @@ export const emptyEvent: CompetitionEvent = {
 
 export const initialLoadingState: LoadingState = {
   isLoading: false,
-  error: "",
+  error: {},
 };
 
 export const getProfile = async (id: string): Promise<ProfileType> => {
@@ -411,15 +424,21 @@ export const defaultProfile: ProfileType = {
   resultsHistory: [],
 };
 
-export const getError = (err: AxiosError) => {
+export const getError = (err: AxiosError): ResponseError => {
   if (err.response?.status === 401)
-    return (
-      <div style={{ gap: 0 }}>
-        Unauthorized/token expired. Try to{" "}
-        <Link to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}>re-login</Link>.
-      </div>
-    );
-  return err.response?.data;
+    return {
+      element: (
+        <Alert color="danger" sx={{ gap: 0 }}>
+          Unauthorized/token expired. Try to{" "}
+          <span style={{ padding: "0 2px" }}></span>
+          <Link to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}>
+            re-login
+          </Link>
+          .
+        </Alert>
+      ),
+    };
+  return { message: err.response?.data as string };
 };
 
 export const getUsers = async (searchQuery: string): Promise<SearchUser[]> => {

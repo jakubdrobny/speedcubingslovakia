@@ -1,6 +1,15 @@
 import { Alert, Button, Input } from "@mui/joy";
-import { CompetitionContextType, ResultEntry } from "../../Types";
-import { competitionOnGoing, getError, reformatTime } from "../../utils";
+import {
+  CompetitionContextType,
+  ResponseError,
+  ResultEntry,
+} from "../../Types";
+import {
+  competitionOnGoing,
+  getError,
+  reformatTime,
+  renderResponseError,
+} from "../../utils";
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
@@ -15,7 +24,7 @@ const ManualInput = () => {
   }` as keyof ResultEntry;
   const formattedTime = currentResultsRef.current[solveProp].toString();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<ResponseError>();
 
   useEffect(
     () => setForceRerender(!forceRerender),
@@ -70,7 +79,7 @@ const ManualInput = () => {
 
   return (
     <div>
-      {error && <Alert color="danger">{error}</Alert>}
+      {error && renderResponseError(error)}
       <Input
         size="lg"
         placeholder="Enter your time or solution..."

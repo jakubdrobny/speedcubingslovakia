@@ -1,4 +1,5 @@
 import { ExecOptionsWithStringEncoding } from "child_process";
+import { ReactElement } from "react";
 
 export type CompetitionData = {
   id: string;
@@ -46,7 +47,7 @@ export enum InputMethod {
 export type CompetitionLoadingState = {
   compinfo: boolean;
   results: boolean;
-  error: string;
+  error: ResponseError;
 };
 
 export type CompetitionState = CompetitionData & {
@@ -55,6 +56,11 @@ export type CompetitionState = CompetitionData & {
   noOfSolves: number;
   inputMethod: InputMethod;
   penalties: string[];
+};
+
+export type ResponseError = {
+  message?: string;
+  element?: ReactElement;
 };
 
 export type CompetitionContextType = {
@@ -70,7 +76,9 @@ export type CompetitionContextType = {
   setCompetitionState: (newState: CompetitionState) => void;
   setCurrentResults: (newResults: ResultEntry) => void;
   suspicousModalOpen: boolean;
+  warningModalOpen: boolean;
   setSuspicousModalOpen: (newOpen: boolean) => void;
+  setWarningModalOpen: (newModal: boolean) => void;
   results: CompetitionResult[];
   setResults: (newResults: CompetitionResult[]) => void;
   resultsCompeteChoice: ResultsCompeteChoiceEnum;
@@ -100,6 +108,7 @@ export type ResultEntry = {
   solve5: string;
   comment: string;
   status: ResultsStatus;
+  badFormat: boolean;
 };
 
 export enum ResultEntrySolves {
@@ -213,7 +222,7 @@ export type NavContextType = {
 
 export type LoadingState = {
   isLoading: boolean;
-  error: string;
+  error: ResponseError;
 };
 
 export type ProfileTypeBasics = {

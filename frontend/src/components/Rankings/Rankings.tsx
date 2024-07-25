@@ -11,6 +11,8 @@ import {
   getRankings,
   getRegionGroups,
   initialLoadingState,
+  isObjectEmpty,
+  renderResponseError,
 } from "../../utils";
 
 import RankingsTable from "./RankingsTable";
@@ -34,7 +36,7 @@ const Rankings = () => {
   const ismbld = events[currentEventIdx]?.iconcode === "333mbf";
 
   useEffect(() => {
-    setLoadingState({ isLoading: true, error: "" });
+    setLoadingState({ isLoading: true, error: {} });
     getAvailableEvents()
       .then((res: CompetitionEvent[]) => {
         setEvents(res);
@@ -52,7 +54,7 @@ const Rankings = () => {
   const fetchRankings = () => {
     if (!singleRef.current && ismbld) return;
 
-    setLoadingState({ isLoading: true, error: "" });
+    setLoadingState({ isLoading: true, error: {} });
     getRankings(
       eventsRef.current[currentEventIdxRef.current].id,
       singleRef.current,
@@ -61,7 +63,7 @@ const Rankings = () => {
     )
       .then((res: RankingsEntry[]) => {
         setRankings(res);
-        setLoadingState({ isLoading: false, error: "" });
+        setLoadingState({ isLoading: false, error: {} });
       })
       .catch((err) => {
         setLoadingState({ isLoading: false, error: getError(err) });
@@ -150,8 +152,8 @@ const Rankings = () => {
           ))}
         </select>
       </Stack>
-      {loadingState.error ? (
-        <Alert color="danger">{loadingState.error}</Alert>
+      {!isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
       ) : (
         <RankingsTable
           rankings={rankings}
