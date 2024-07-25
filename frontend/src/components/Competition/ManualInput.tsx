@@ -75,10 +75,7 @@ const ManualInput = () => {
           setError(getError(err));
         });
     } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-      e.currentTarget.setSelectionRange(
-        e.currentTarget.value.length,
-        e.currentTarget.value.length
-      );
+      e.preventDefault();
     }
   };
 
@@ -87,13 +84,6 @@ const ManualInput = () => {
       {error && renderResponseError(error)}
       <Input
         size="lg"
-        ref={(ref) => ref && ref.focus()}
-        onFocus={(e) =>
-          e.currentTarget.setSelectionRange(
-            e.currentTarget.value.length,
-            e.currentTarget.value.length
-          )
-        }
         placeholder="Enter your time or solution..."
         sx={{
           marginBottom: 2,
