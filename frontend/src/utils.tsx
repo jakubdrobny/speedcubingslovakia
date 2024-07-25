@@ -275,7 +275,7 @@ export const reformatTime = (
 
   newFormattedTime = newFormattedTime.split("").reverse().join("");
 
-  return milisecondsToFormattedTime(formattedToMiliseconds(newFormattedTime));
+  return newFormattedTime;
 };
 
 export const sendResults = async (

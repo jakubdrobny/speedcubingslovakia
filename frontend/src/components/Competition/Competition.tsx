@@ -122,13 +122,12 @@ const Competition = () => {
             ) : (
               <>
                 The results you entered had invalid format, eg. over 60 seconds
-                or over 60 minutes, ... Which means you likely made a data entry
-                error.
+                or over 60 minutes, etc., which means you likely made a data
+                entry error.
                 <br />
                 <br />
-                The results were reformatted and saved, eg. 71 seconds into 1
-                minute and 11 seconds, but please CHECK whether the time is
-                correct.
+                The incorrect solves were saved as DNF, so please re-enter the
+                result in the correct format.
               </>
             )}
           </DialogContent>

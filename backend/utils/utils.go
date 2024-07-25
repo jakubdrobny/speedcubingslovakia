@@ -181,6 +181,14 @@ func CreateToken(userid int, secretKey string) (string, error) {
  	return tokenString, nil
 }
 
+// returns true if the format is ok, eg. not >= 60 seconds, not >= 60 minutes, ...
+// otherwise returns false
+func CheckFormat(solve string) bool {
+	timeInMiliseconds := ParseSolveToMilliseconds(solve, false, "")
+	formattedTime := FormatTime(timeInMiliseconds, false)
+	return solve == formattedTime
+}
+
 func LeftPad(s string, cnt int, ch string) string {
 	for ; len(s) < cnt; { s = ch + s }
 	return s

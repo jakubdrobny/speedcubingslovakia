@@ -10,7 +10,7 @@ import {
   reformatTime,
   renderResponseError,
 } from "../../utils";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
@@ -74,6 +74,11 @@ const ManualInput = () => {
           setIsLoading(false);
           setError(getError(err));
         });
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.currentTarget.setSelectionRange(
+        e.currentTarget.value.length,
+        e.currentTarget.value.length
+      );
     }
   };
 
@@ -82,11 +87,30 @@ const ManualInput = () => {
       {error && renderResponseError(error)}
       <Input
         size="lg"
+        ref={(ref) => ref && ref.focus()}
+        onFocus={(e) =>
+          e.currentTarget.setSelectionRange(
+            e.currentTarget.value.length,
+            e.currentTarget.value.length
+          )
+        }
         placeholder="Enter your time or solution..."
-        sx={{ marginBottom: 2, marginTop: 2 }}
+        sx={{
+          marginBottom: 2,
+          marginTop: 2,
+          input: { caretColor: "transparent" },
+        }}
         value={formattedTime}
         onChange={handleTimeInputChange}
         onKeyDown={handleKeyDown}
+        onClick={(e) => {
+          const target = e.target as HTMLInputElement;
+          if (target.tagName === "INPUT")
+            target.setSelectionRange(
+              target?.value?.length,
+              target?.value?.length
+            );
+        }}
         disabled={!competitionOnGoing(competitionState) || isLoading}
       />
     </div>
