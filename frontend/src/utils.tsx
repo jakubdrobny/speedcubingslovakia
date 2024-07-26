@@ -11,6 +11,7 @@ import {
   ManageRolesUser,
   ProfileType,
   RankingsEntry,
+  RecordsItem,
   RegionSelectGroup,
   ResponseError,
   ResultEntry,
@@ -459,9 +460,20 @@ export const getRankings = async (
   region: string
 ): Promise<RankingsEntry[]> => {
   const response = await axios.get(
-    `/api/rankings/results?eid=${eid}&type=${
+    `/api/results/rankings?eid=${eid}&type=${
       single ? "single" : "average"
     }&regionGroup=${regionGroup}&region=${region}`
+  );
+  return response.data;
+};
+
+export const getRecords = async (
+  eid: number,
+  regionGroup: string,
+  region: string
+): Promise<RecordsItem[]> => {
+  const response = await axios.get(
+    `/api/results/records?eid=${eid}&regionGroup=${regionGroup}&region=${region}`
   );
   return response.data;
 };

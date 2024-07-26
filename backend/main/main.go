@@ -101,11 +101,12 @@ func main() {
 		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized")});
 	}
 
-	rankings := api_v1.Group("/rankings")
+	overall_results := api_v1.Group("/results")
 	{
-		rankings.GET("/results", controllers.GetRankings(db))
-		rankings.GET("/regions/grouped", controllers.GetRegionsGrouped(db))
-		rankings.GET("/profile/:id", controllers.GetProfileResults(db))
+		overall_results.GET("/rankings", controllers.GetRankings(db))
+		overall_results.GET("/records", controllers.GetRecords(db))
+		overall_results.GET("/regions/grouped", controllers.GetRegionsGrouped(db))
+		overall_results.GET("/profile/:id", controllers.GetProfileResults(db))
 	}
 
 	router.Run("localhost:8000")
