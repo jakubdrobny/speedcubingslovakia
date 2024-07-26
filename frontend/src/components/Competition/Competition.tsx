@@ -142,7 +142,7 @@ const Competition = () => {
           <Typography level="h1" sx={{ textAlign: "center" }}>
             {competitionState.name}
           </Typography>
-          <Typography>
+          <Typography sx={{ textAlign: "center" }}>
             {formatDate(competitionState.startdate)} -{" "}
             {formatDate(competitionState.enddate)}
           </Typography>

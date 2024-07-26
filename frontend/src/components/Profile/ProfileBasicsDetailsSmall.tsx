@@ -1,11 +1,16 @@
 import { Card, Grid, Stack, Typography } from "@mui/joy";
+import { ProfileTypeBasics, WindowSizeContextType } from "../../Types";
 
 import { Link } from "react-router-dom";
-import { ProfileTypeBasics } from "../../Types";
+import { WindowSizeContext } from "../../context/WindowSizeContext";
+import { useContext } from "react";
 
 const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
   basics,
 }) => {
+  const { windowSize } = useContext(WindowSizeContext) as WindowSizeContextType;
+  const tooSmall = windowSize.width < 397;
+
   return (
     <Card
       sx={{
@@ -15,7 +20,7 @@ const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
         overflowX: "auto",
       }}
     >
-      <Grid xs={6}>
+      <Grid xs={tooSmall ? 7 : 6}>
         <Stack spacing={1}>
           {["Region", "WCA ID", "Sex", "Competitions", "Completed solves"].map(
             (title, idx) => (
@@ -26,7 +31,7 @@ const ProfileBasicsDetailsSmall: React.FC<{ basics: ProfileTypeBasics }> = ({
           )}
         </Stack>
       </Grid>
-      <Grid xs={6}>
+      <Grid xs={tooSmall ? 5 : 6}>
         <Stack spacing={1}>
           <div style={{ whiteSpace: "nowrap" }}>
             <span className={`fi fi-${basics.region.iso2.toLowerCase()}`} />

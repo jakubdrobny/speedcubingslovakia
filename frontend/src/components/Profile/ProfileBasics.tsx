@@ -22,6 +22,7 @@ const ProfileBasics: React.FC<{ basics: ProfileTypeBasics }> = ({ basics }) => {
         sx={{
           display: "flex",
           justifyContent: "center",
+          textAlign: "center",
         }}
       >
         <Typography level="h2">{basics.name}</Typography>

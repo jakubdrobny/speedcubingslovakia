@@ -36,7 +36,7 @@ const Footer = () => {
         }}
       >
         <Stack direction="row" spacing={2}>
-          <Stack spacing={1} direction="row">
+          <Stack spacing={1} direction="row" alignItems="center">
             <Mail />
             <Link
               href="mailto:speedcubingsvk@gmail.com"
@@ -45,7 +45,7 @@ const Footer = () => {
               Email
             </Link>
           </Stack>
-          <Stack spacing={1} direction="row">
+          <Stack spacing={1} direction="row" alignItems="center">
             <Facebook />
             <Link
               href="https://www.facebook.com/speedcubingslovakia"
@@ -54,7 +54,7 @@ const Footer = () => {
               Our page!
             </Link>
           </Stack>
-          <Stack spacing={1} direction="row">
+          <Stack spacing={1} direction="row" alignItems="center">
             <DiscordIcon />
             <Link
               href="https://discord.com/invite/vKQs7htk"
@@ -63,7 +63,7 @@ const Footer = () => {
               Join us!
             </Link>
           </Stack>
-          <Stack spacing={1} direction="row">
+          <Stack spacing={1} direction="row" alignItems="center">
             <GitHub />
             <Link
               href="https://github.com/jakubdrobny/speedcubingslovakia"
