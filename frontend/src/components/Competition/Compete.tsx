@@ -75,7 +75,7 @@ const Compete = () => {
       ) : (
         <Card>
           <Grid container>
-            <Grid xs={4}>
+            <Grid xs={4} sx={{ zIndex: 10, backgroundColor: "#FBFCFE" }}>
               <Button
                 variant="outlined"
                 onClick={() =>
@@ -90,6 +90,7 @@ const Compete = () => {
                   timerInputState.currentState !==
                   TimerInputCurrentState.NotSolving
                 }
+                sx={{ backgroundColor: "#FBFCFE" }}
               >
                 <West />
                 &nbsp;
@@ -102,6 +103,7 @@ const Compete = () => {
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
+                zIndex: 0,
               }}
             >
               {ismbld ? "Attempt" : "Solve"}{" "}
