@@ -7,6 +7,7 @@ import LanguageIcon from "@mui/icons-material/Language";
 import { Link } from "react-router-dom";
 import { NavContext } from "../../context/NavContext";
 import ProfileListItem from "../Profile/ProfileListItem";
+import ResultsListItem from "./ResultsListItem";
 import WCALogoNoText from "../../images/WCALogoNoText";
 import { useContext } from "react";
 
@@ -34,28 +35,7 @@ const NavItems: React.FC<{
         </ListItemDecorator>
         Online Competitions
       </ListItemButton>
-      <ListItemButton
-        component={Link}
-        to="/users"
-        onClick={closeNav}
-        sx={{ justifyContent: "flex-end" }}
-      >
-        <ListItemDecorator>
-          <Search />
-        </ListItemDecorator>
-        Users
-      </ListItemButton>
-      <ListItemButton
-        component={Link}
-        to="/rankings"
-        onClick={closeNav}
-        sx={{ justifyContent: "flex-end" }}
-      >
-        <ListItemDecorator>
-          <Leaderboard />
-        </ListItemDecorator>
-        Rankings
-      </ListItemButton>
+      <ResultsListItem />
       {authState.isadmin && (
         <ListItemButton
           component={Link}
