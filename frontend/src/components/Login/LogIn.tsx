@@ -38,11 +38,16 @@ const LogIn = () => {
       }}
     >
       {loadingState.loading ? (
-        <>
-          <Typography level="h3" sx={{ display: "flex", alignItems: "center" }}>
-            <CircularProgress /> &nbsp; Logging in...
-          </Typography>
-        </>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CircularProgress />
+          &nbsp; &nbsp; <Typography level="h3">Logging in...</Typography>
+        </div>
       ) : (
         <>
           <Alert color="danger" sx={{ gap: 0 }}>
