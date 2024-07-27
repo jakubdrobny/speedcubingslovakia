@@ -1,10 +1,17 @@
 import {
+  Button,
+  Card,
+  CircularProgress,
+  Divider,
+  Stack,
+  Typography,
+} from "@mui/joy";
+import {
   CompetitionEvent,
   LoadingState,
   RecordsItem,
   RegionSelectGroup,
 } from "../../Types";
-import { Stack, Typography } from "@mui/joy";
 import {
   getAvailableEvents,
   getError,
@@ -15,6 +22,7 @@ import {
   renderResponseError,
 } from "../../utils";
 
+import LanguageIcon from "@mui/icons-material/Language";
 import RecordsTable from "./RecordsTable";
 import { useEffect } from "react";
 import useState from "react-usestateref";
@@ -27,7 +35,7 @@ const Records = () => {
   const [loadingState, setLoadingState] =
     useState<LoadingState>(initialLoadingState);
   const [currentEventIdx, setCurrentEventIdx, currentEventIdxRef] =
-    useState<number>(0);
+    useState<number>(-1);
   const [regionGroups, setRegionGroups] = useState<RegionSelectGroup[]>([]);
   const [regionValue, setRegionValue, regionValueRef] =
     useState<string>(defaultRegionGroup);
@@ -54,7 +62,9 @@ const Records = () => {
   const fetchRecords = () => {
     setLoadingState({ isLoading: true, error: {} });
     getRecords(
-      eventsRef.current[currentEventIdxRef.current].id,
+      currentEventIdxRef.current === -1
+        ? -1
+        : eventsRef.current[currentEventIdxRef.current].id,
       regionValueRef.current.split("+")[0],
       regionValueRef.current.split("+")[1]
     )
@@ -69,11 +79,13 @@ const Records = () => {
 
   return (
     <Stack sx={{ margin: "1em" }} spacing={2}>
-      <Typography level="h2">Records</Typography>
-      <Stack direction="row" spacing={1}>
+      <Typography level="h2" className="bottom-divider">
+        Records
+      </Typography>
+      <Stack direction="row" spacing={1} alignItems="center">
         <Typography level="h3">Event:</Typography>
         <div>
-          <span
+          <LanguageIcon
             className={`cubing-icon profile-cubing-icon-mock`}
             onClick={() => {
               if (!loadingState.isLoading) {
@@ -82,12 +94,12 @@ const Records = () => {
               }
             }}
             style={{
-              padding: "0 0.25em",
-              fontSize: "1.75em",
-              color: currentEventIdx === ALL_EVENT ? "#0B6BCB" : "",
+              color: currentEventIdx === ALL_EVENT ? "#0B6BCB" : "black",
               cursor: "pointer",
+              transform: "scale(1.25)",
+              padding: "0 9px 0 10px",
             }}
-          ></span>
+          />
           {events.map((event: CompetitionEvent, idx: number) => (
             <span
               key={idx}
@@ -108,7 +120,8 @@ const Records = () => {
           ))}
         </div>
       </Stack>
-      <Stack direction="row" spacing={2} flexWrap="nowrap">
+      <Stack direction="row" spacing={2}>
+        <Typography level="h3">Region:</Typography>
         <select
           value={regionValue}
           onChange={(e) => {
@@ -131,15 +144,22 @@ const Records = () => {
           ))}
         </select>
       </Stack>
+      <Divider />
       {!isObjectEmpty(loadingState.error) ? (
         renderResponseError(loadingState.error)
+      ) : loadingState.isLoading ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CircularProgress />
+          &nbsp; &nbsp; <Typography level="h3">Fetching results...</Typography>
+        </div>
       ) : (
-        <RecordsTable
-          recordItems={records}
-          loading={loadingState.isLoading}
-          isfmc={isfmc}
-          ismbld={ismbld}
-        />
+        <RecordsTable recordItems={records} isfmc={isfmc} ismbld={ismbld} />
       )}
     </Stack>
   );

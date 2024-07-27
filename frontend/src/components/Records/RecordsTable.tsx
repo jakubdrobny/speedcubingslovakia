@@ -1,5 +1,5 @@
 import { Card, Stack, Table, Typography } from "@mui/joy";
-import { RankingsEntry, RecordsItem } from "../../Types";
+import { RankingsEntry, RecordsItem, RecordsItemEntry } from "../../Types";
 
 import { Link } from "react-router-dom";
 import React from "react";
@@ -7,10 +7,9 @@ import { reformatMultiTime } from "../../utils";
 
 const RecordsTable: React.FC<{
   recordItems: RecordsItem[];
-  loading: boolean;
   isfmc: boolean;
   ismbld: boolean;
-}> = ({ recordItems, loading, isfmc, ismbld }) => {
+}> = ({ recordItems, isfmc, ismbld }) => {
   const columnNames = (() => {
     let columnNames = [
       "Type",
@@ -27,7 +26,16 @@ const RecordsTable: React.FC<{
     <Stack spacing={3} direction="column">
       {recordItems.map((item: RecordsItem) => (
         <Stack direction="column" spacing={2}>
-        <Typography level="h3"><span className={`cubing-icon event-${item.iconcode} profile-cubing-icon-mock`} />&nbsp;{item.eventname}</Typography>
+          <Typography
+            level="h3"
+            alignItems="center"
+            sx={{ display: "flex", alignItems: "center", height: "1.5em" }}
+          >
+            <span
+              className={`cubing-icon event-${item.iconcode} profile-cubing-icon-mock`}
+            />
+            &nbsp;{item.eventname}
+          </Typography>
           <Card
             sx={{
               margin: 0,
@@ -54,7 +62,12 @@ const RecordsTable: React.FC<{
                       key={idx}
                       style={{
                         height: "1em",
-                        textAlign: idx === 0 || idx === 2 ? "right" : "left",
+                        textAlign:
+                          idx === 2
+                            ? "right"
+                            : idx == columnNames.length - 1
+                            ? "center"
+                            : "left",
                       }}
                     >
                       <b>{val}</b>
@@ -63,65 +76,68 @@ const RecordsTable: React.FC<{
                 </tr>
               </thead>
               <tbody>
-                {loading ? (
-                  <></>
-                ) : (
-                  rankings.map((ranking, idx) => {
-                    ranking.result =
-                      isfmc && single
-                        ? ranking.result.split(".")[0]
-                        : ismbld
-                        ? reformatMultiTime(ranking.result)
-                        : ranking.result;
-                    ranking.times = isfmc
-                      ? ranking.times.map((res) => res.split(".")[0])
+                {item.entries.map((itemEntry: RecordsItemEntry, idx) => {
+                  itemEntry.result =
+                    isfmc && itemEntry.type === "Single"
+                      ? itemEntry.result.split(".")[0]
                       : ismbld
-                      ? ranking.times.map((res) => reformatMultiTime(res))
-                      : ranking.times;
-                    return (
-                      <tr key={idx}>
-                        <td style={{ height: "1em", textAlign: "right" }}>
-                          {ranking.place}
-                        </td>
-                        <td style={{ height: "1em" }}>
-                          <Link
-                            to={`/profile/${ranking.wca_id}`}
-                            style={{
-                              color: "#0B6BCB",
-                              textDecoration: "none",
-                              fontWeight: 555,
-                            }}
-                          >
-                            {ranking.username}
-                          </Link>
-                        </td>
-                        <td style={{ height: "1em", textAlign: "right" }}>
-                          <b>{ranking.result}</b>
-                        </td>
-                        <td style={{ height: "1em" }}>
-                          <span
-                            className={`fi fi-${ranking.country_iso2.toLowerCase()}`}
-                          />
-                          &nbsp;&nbsp;{ranking.country_name}
-                        </td>
-                        <td style={{ height: "1em" }}>
-                          <Link to={`/competition/${ranking.competitionId}`}>
-                            {ranking.competitionName}
-                          </Link>
-                        </td>
-                        {!single && (
-                          <td style={{ height: "1em" }}>
-                            {ranking.times.join(", ")}
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })
-                )}
+                      ? reformatMultiTime(itemEntry.result)
+                      : itemEntry.result;
+                  itemEntry.solves = isfmc
+                    ? itemEntry.solves.map((res) => res.split(".")[0])
+                    : ismbld
+                    ? itemEntry.solves.map((res) => reformatMultiTime(res))
+                    : itemEntry.solves;
+                  return (
+                    <tr key={idx}>
+                      <td
+                        style={{
+                          height: "1em",
+                          opacity:
+                            idx > 0 &&
+                            item.entries[idx - 1].type === itemEntry.type
+                              ? 0.5
+                              : 1,
+                        }}
+                      >
+                        {itemEntry.type}
+                      </td>
+                      <td style={{ height: "1em" }}>
+                        <Link
+                          to={`/profile/${itemEntry.wcaId}`}
+                          style={{
+                            color: "#0B6BCB",
+                            textDecoration: "none",
+                            fontWeight: 555,
+                          }}
+                        >
+                          {itemEntry.username}
+                        </Link>
+                      </td>
+                      <td style={{ height: "1em", textAlign: "right" }}>
+                        <b>{itemEntry.result}</b>
+                      </td>
+                      <td style={{ height: "1em" }}>
+                        <span
+                          className={`fi fi-${itemEntry.countryIso2.toLowerCase()}`}
+                        />
+                        &nbsp;&nbsp;{itemEntry.countryName}
+                      </td>
+                      <td style={{ height: "1em" }}>
+                        <Link to={`/competition/${itemEntry.competitionId}`}>
+                          {itemEntry.competitionName}
+                        </Link>
+                      </td>
+                      <td style={{ height: "1em", textAlign: "center" }}>
+                        {itemEntry.solves.join(", ")}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </Table>
           </Card>
-        </>
+        </Stack>
       ))}
     </Stack>
   );
