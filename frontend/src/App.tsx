@@ -20,6 +20,7 @@ import NotFound from "./components/NotFound/NotFound";
 import Profile from "./components/Profile/Profile";
 import ProtectedRoute from "./components/Login/ProtectedRoute";
 import Rankings from "./components/Rankings/Rankings";
+import Records from "./components/Records/Records";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
 import Users from "./components/Users/Users";
 import { WIN_LG } from "./constants";
@@ -109,8 +110,9 @@ const App = () => {
             <Route path="/results/edit" Component={ResultsEdit} />
           </Route>
           <Route path="/profile/:id" Component={Profile} />
-          <Route path="/users" Component={Users} />
-          <Route path="/rankings" Component={Rankings} />
+          <Route path="/results/users" Component={Users} />
+          <Route path="/results/records" Component={Records} />
+          <Route path="/results/rankings" Component={Rankings} />
           <Route path="*" element={<Navigate to="/not-found" replace />} />
         </Routes>
       </Grid>

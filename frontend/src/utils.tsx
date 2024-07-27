@@ -11,6 +11,7 @@ import {
   ManageRolesUser,
   ProfileType,
   RankingsEntry,
+  RecordsItem,
   RegionSelectGroup,
   ResponseError,
   ResultEntry,
@@ -215,7 +216,6 @@ export const isObjectEmpty = (obj: Object) => {
 };
 
 export const renderResponseError = (error: ResponseError) => {
-  console.log(error);
   if (error.message) return <Alert color="danger">{error.message}</Alert>;
   return error.element;
 };
@@ -401,7 +401,7 @@ export const initialLoadingState: LoadingState = {
 };
 
 export const getProfile = async (id: string): Promise<ProfileType> => {
-  const response = await axios.get(`/api/rankings/profile/${id}`);
+  const response = await axios.get(`/api/results/profile/${id}`);
   return response.data;
 };
 
@@ -448,7 +448,7 @@ export const getUsers = async (searchQuery: string): Promise<SearchUser[]> => {
 };
 
 export const getRegionGroups = async (): Promise<RegionSelectGroup[]> => {
-  const response = await axios.get("/api/rankings/regions/grouped");
+  const response = await axios.get("/api/results/regions/grouped");
   return response.data;
 };
 
@@ -459,9 +459,20 @@ export const getRankings = async (
   region: string
 ): Promise<RankingsEntry[]> => {
   const response = await axios.get(
-    `/api/rankings/results?eid=${eid}&type=${
+    `/api/results/rankings?eid=${eid}&type=${
       single ? "single" : "average"
     }&regionGroup=${regionGroup}&region=${region}`
+  );
+  return response.data;
+};
+
+export const getRecords = async (
+  eid: number,
+  regionGroup: string,
+  region: string
+): Promise<RecordsItem[]> => {
+  const response = await axios.get(
+    `/api/results/records?eid=${eid}&regionGroup=${regionGroup}&region=${region}`
   );
   return response.data;
 };

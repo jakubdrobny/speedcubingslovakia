@@ -297,3 +297,21 @@ export type RankingsEntry = {
   competitionId: string;
   times: string[];
 };
+
+export type RecordsItem = {
+  eventname: string;
+  iconcode: string;
+  entries: RecordsItemEntry[];
+};
+
+export type RecordsItemEntry = {
+  type: string;
+  username: string;
+  wcaId: string;
+  result: string;
+  countryIso2: string;
+  countryName: string;
+  competitionName: string;
+  competitionId: string;
+  solves: string[];
+};
