@@ -74,8 +74,10 @@ type RecordsItemEntry struct {
 	CountryName string `json:"countryName"`
 	CompetitionName string `json:"competitionName"`
 	CompetitionId string `json:"competitionId"`
-	CompetitionEndDate time.Time `json:"-"`
 	Solves []string `json:"solves"`
+	CompetitionEndDate time.Time `json:"-"`
+	EventName string `json:"-"`
+	IconCode string `json:"-"`
 }
 
 func AddPlacementToRankings(rankings []RankingsEntry) {
@@ -226,12 +228,13 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 		var rows pgx.Rows
 		
 		if regionType == "World" {
-			queryString := `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible, comp.enddate FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE rs.visible IS TRUE`;
+			queryString := `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible, comp.enddate, e.fulldisplayname FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE rs.visible IS TRUE`;
 			eidQueryPart := ` AND r.event_id = $1;`
-			if eid != ALL_EVENT { queryString += eidQueryPart
-			} else { queryString += `;`; }
-
-			rows, err = db.Query(context.Background(), queryString, eid)
+			if eid != ALL_EVENT {
+				rows, err = db.Query(context.Background(), queryString + eidQueryPart, eid)
+			} else {
+				rows, err = db.Query(context.Background(), queryString + `;`)	
+			}
 			if err != nil {
 				log.Println("ERR db.Query (World) in GetRecords (" + regionType + "+" + regionPrecise + "): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to query records entries from database.")
@@ -241,12 +244,13 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			regionTypeColumn := "cont.name"
 			if regionType == "Country" { regionTypeColumn = "c.name" }
 
-			queryString := `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible, comp.enddate FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE ` + regionTypeColumn + ` = $1 AND rs.visible IS TRUE `
+			queryString := `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible, comp.enddate, e.fulldisplayname FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE ` + regionTypeColumn + ` = $1 AND rs.visible IS TRUE `
 			eidQueryPart := ` AND r.event_id = $2;`
-			if eid != ALL_EVENT { queryString += eidQueryPart
-			} else { queryString += `;`; }
-
-			rows, err = db.Query(context.Background(), queryString, regionPrecise, eid)
+			if eid != ALL_EVENT {
+				rows, err = db.Query(context.Background(), queryString + eidQueryPart, regionPrecise, eid)
+			} else {
+				rows, err = db.Query(context.Background(), queryString + `;`, regionPrecise)	
+			}
 			if err != nil {
 				log.Println("ERR db.Query (" + regionType + ") in GetRecords (" + regionType + "+" + regionPrecise + "): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to query records entries from database.")
@@ -261,13 +265,13 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			var rankingsEntry RankingsEntry
 			var resultsEntry models.ResultEntry
 			var competitionEndDate time.Time
-			err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.WcaId, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format, &resultsEntry.Iconcode, &resultsEntry.Eventid, &resultsEntry.Status.Visible, &competitionEndDate)
+			err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.WcaId, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format, &resultsEntry.Iconcode, &resultsEntry.Eventid, &resultsEntry.Status.Visible, &competitionEndDate, &resultsEntry.Eventname)
 			if err != nil {
 				log.Println("ERR scanning rows in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
 				return
 			}
-
+			
 			if rankingsEntry.WcaId == "" { rankingsEntry.WcaId = rankingsEntry.Username }
 			isfmc = utils.IsFMC(resultsEntry.Iconcode)
 			scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
@@ -276,7 +280,7 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
 				return
 			}
-
+			
 			recordsItemEntrySingle := RecordsItemEntry{
 				Type: "Single",
 				Username: rankingsEntry.Username,
@@ -285,14 +289,30 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 				CountryName: rankingsEntry.CountryName,
 				CompetitionName: rankingsEntry.CompetitionName,
 				CompetitionId: rankingsEntry.CompetitionId,
-				CompetitionEndDate: competitionEndDate,
 				Solves: []string{},
+				CompetitionEndDate: competitionEndDate,
+				EventName: resultsEntry.Eventname,
+				IconCode: resultsEntry.Iconcode,
 			}
+
 			recordsItemEntryAverage := recordsItemEntrySingle
 			recordsItemEntryAverage.Type = "Average"
+			if val, err := utils.GetNoOfSolves(resultsEntry.Format); err == nil && val < 5 {
+				recordsItemEntryAverage.Type = "Mean"
+			}
 
 			recordsItemEntrySingle.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
+			if utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") >= constants.VERY_SLOW { continue; }
+			singleEntry, ok := singleEntries[resultsEntry.Eventid]
+			if !ok || utils.ParseSolveToMilliseconds(singleEntry[0].Result, false, "") >= utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") {
+				if !ok || utils.ParseSolveToMilliseconds(singleEntry[0].Result, false, "") > utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") {
+					singleEntries[resultsEntry.Eventid] = []RecordsItemEntry{}
+				}
+				singleEntries[resultsEntry.Eventid] = append(singleEntries[resultsEntry.Eventid], recordsItemEntrySingle)
+			}
+			
 			recordsItemEntryAverage.Result = "DNS"
+			
 			if resultsEntry.Iconcode != "333mbf" {
 				resultFormatted, err := resultsEntry.AverageFormatted(isfmc, scrambles)
 				if err != nil {
@@ -300,13 +320,55 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 					c.IndentedJSON(http.StatusInternalServerError, "Failed to calculate average in rankings entry.")
 					return
 				}
-				recordsItemEntryAverage.Result  = resultFormatted
-				if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
+				recordsItemEntryAverage.Result = resultFormatted
+				if utils.ParseSolveToMilliseconds(recordsItemEntryAverage.Result, false, "") >= constants.VERY_SLOW { continue; }
 				recordsItemEntryAverage.Solves, _ = resultsEntry.GetFormattedTimes(isfmc, scrambles)
+
+				averageEntry, ok := averageEntries[resultsEntry.Eventid]
+				if !ok || utils.ParseSolveToMilliseconds(averageEntry[0].Result, false, "") >= utils.ParseSolveToMilliseconds(recordsItemEntryAverage.Result, false, "") {
+					if !ok || utils.ParseSolveToMilliseconds(averageEntry[0].Result, false, "") > utils.ParseSolveToMilliseconds(recordsItemEntryAverage.Result, false, "") {
+						averageEntries[resultsEntry.Eventid] = []RecordsItemEntry{}
+					}
+					averageEntries[resultsEntry.Eventid] = append(averageEntries[resultsEntry.Eventid], recordsItemEntryAverage)
+				}
 			}
-			
-			
 		}
+
+		eventIDs := make([]int, len(singleEntries))
+		idx := 0
+		for key := range singleEntries {
+			eventIDs[idx] = key
+			idx++
+		}
+		sort.Slice(eventIDs, func (i int, j int) bool { return eventIDs[i] < eventIDs[j] })
+
+		for _, eventID := range eventIDs {
+			if len(singleEntries[eventID]) == 0 { continue }
+
+			recordItem := RecordsItem{
+				EventName: singleEntries[eventID][0].EventName,
+				Iconcode: singleEntries[eventID][0].IconCode,
+				Entries: []RecordsItemEntry{},
+			}
+
+			sort.Slice(singleEntries[eventID], func (i int, j int) bool {
+				item1 := singleEntries[eventID][i]
+				item2 := singleEntries[eventID][j]
+				if item1.CompetitionEndDate.Equal(item1.CompetitionEndDate) { return item1.Username < item2.Username }
+				return item1.CompetitionEndDate.Before(item2.CompetitionEndDate)
+			})
+			recordItem.Entries = append(recordItem.Entries, singleEntries[eventID]...)
+			sort.Slice(averageEntries[eventID], func (i int, j int) bool {
+				item1 := averageEntries[eventID][i]
+				item2 := averageEntries[eventID][j]
+				if item1.CompetitionEndDate.Equal(item1.CompetitionEndDate) { return item1.Username < item2.Username }
+				return item1.CompetitionEndDate.Before(item2.CompetitionEndDate)
+			})
+			recordItem.Entries = append(recordItem.Entries, averageEntries[eventID]...)
+
+			recordItems = append(recordItems, recordItem)
+		}
+
 
 		c.IndentedJSON(http.StatusOK, recordItems)
 	}

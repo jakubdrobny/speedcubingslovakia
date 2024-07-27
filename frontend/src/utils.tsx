@@ -471,41 +471,10 @@ export const getRecords = async (
   regionGroup: string,
   region: string
 ): Promise<RecordsItem[]> => {
-  //   const response = await axios.get(
-  //     `/api/results/records?eid=${eid}&regionGroup=${regionGroup}&region=${region}`
-  //   );
-  //   return response.data;
-  const recordsItems: RecordsItem[] = [
-    {
-      eventname: "3x3x3 Cube",
-      iconcode: "333",
-      entries: [
-        {
-          type: "Single",
-          username: "Jakub Drobný",
-          wcaId: "2016DROB01",
-          result: "3.86",
-          countryIso2: "SK",
-          countryName: "Slovakia",
-          competitionName: "losos testos",
-          competitionId: "losostestos",
-          solves: [],
-        },
-        {
-          type: "Average",
-          username: "Jakub Drobný",
-          wcaId: "2016DROB01",
-          result: "8.49",
-          countryIso2: "SK",
-          countryName: "Slovakia",
-          competitionName: "Weekly Competition 4",
-          competitionId: "WeeklyCompetition4",
-          solves: ["8.87", "(6.50)", "7.41", "9.20", "(DNF)"],
-        },
-      ],
-    },
-  ];
-  return Promise.resolve(recordsItems);
+  const response = await axios.get(
+    `/api/results/records?eid=${eid}&regionGroup=${regionGroup}&region=${region}`
+  );
+  return response.data;
 };
 
 export const reformatMultiTime = (startingTime: string): string => {

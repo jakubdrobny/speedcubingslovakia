@@ -40,8 +40,6 @@ const Records = () => {
   const [regionValue, setRegionValue, regionValueRef] =
     useState<string>(defaultRegionGroup);
   const [records, setRecords] = useState<RecordsItem[]>([]);
-  const isfmc = events[currentEventIdx]?.iconcode === "333fm";
-  const ismbld = events[currentEventIdx]?.iconcode === "333mbf";
 
   useEffect(() => {
     setLoadingState({ isLoading: true, error: {} });
@@ -159,7 +157,7 @@ const Records = () => {
           &nbsp; &nbsp; <Typography level="h3">Fetching results...</Typography>
         </div>
       ) : (
-        <RecordsTable recordItems={records} isfmc={isfmc} ismbld={ismbld} />
+        <RecordsTable recordItems={records} />
       )}
     </Stack>
   );
