@@ -76,6 +76,10 @@ func main() {
 		results.GET("/compete/:cid/:eid", controllers.GetResultsByIdAndEvent(db))
 		results.POST("/save", controllers.PostResults(db))
 		results.POST("/save-validation", middlewares.AdminMiddleWare(), controllers.PostResultsValidation(db))
+		results.GET("/rankings", controllers.GetRankings(db))
+		results.GET("/records", controllers.GetRecords(db))
+		results.GET("/regions/grouped", controllers.GetRegionsGrouped(db))
+		results.GET("/profile/:id", controllers.GetProfileResults(db))
 	}
 
 	events := api_v1.Group("/events")
@@ -99,14 +103,6 @@ func main() {
 		users.POST("/login", controllers.PostLogIn(db, envMap))
 		users.GET("/search", controllers.GetSearchUsers(db))
 		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized")});
-	}
-
-	overall_results := api_v1.Group("/results")
-	{
-		overall_results.GET("/rankings", controllers.GetRankings(db))
-		overall_results.GET("/records", controllers.GetRecords(db))
-		overall_results.GET("/regions/grouped", controllers.GetRegionsGrouped(db))
-		overall_results.GET("/profile/:id", controllers.GetProfileResults(db))
 	}
 
 	router.Run("localhost:8000")

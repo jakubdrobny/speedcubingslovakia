@@ -1,4 +1,13 @@
-import { Alert, Button, ButtonGroup, Stack, Typography } from "@mui/joy";
+import {
+  Alert,
+  Button,
+  ButtonGroup,
+  Divider,
+  Option,
+  Select,
+  Stack,
+  Typography,
+} from "@mui/joy";
 import {
   CompetitionEvent,
   LoadingState,
@@ -20,6 +29,7 @@ import { useEffect } from "react";
 import useState from "react-usestateref";
 
 const defaultRegionGroup = "World+World";
+const defaultQueryTypeValue = "100+Persons";
 
 const Rankings = () => {
   const [events, setEvents, eventsRef] = useState<CompetitionEvent[]>([]);
@@ -34,6 +44,8 @@ const Rankings = () => {
   const [rankings, setRankings] = useState<RankingsEntry[]>([]);
   const isfmc = events[currentEventIdx]?.iconcode === "333fm";
   const ismbld = events[currentEventIdx]?.iconcode === "333mbf";
+  const [queryTypeValue, setQueryTypeValue, queryTypeValueRef] =
+    useState<string>(defaultQueryTypeValue);
 
   useEffect(() => {
     setLoadingState({ isLoading: true, error: {} });
@@ -59,7 +71,8 @@ const Rankings = () => {
       eventsRef.current[currentEventIdxRef.current].id,
       singleRef.current,
       regionValueRef.current.split("+")[0],
-      regionValueRef.current.split("+")[1]
+      regionValueRef.current.split("+")[1],
+      queryTypeValueRef.current
     )
       .then((res: RankingsEntry[]) => {
         setRankings(res);
@@ -72,7 +85,9 @@ const Rankings = () => {
 
   return (
     <Stack sx={{ margin: "1em" }} spacing={2}>
-      <Typography level="h2">Rankings</Typography>
+      <Typography level="h2" className="bottom-divider">
+        Rankings
+      </Typography>
       <Stack direction="row" spacing={1}>
         <Typography level="h3">Event:</Typography>
         <div>
@@ -104,6 +119,7 @@ const Rankings = () => {
         </div>
       </Stack>
       <Stack direction="row" spacing={2} flexWrap="nowrap">
+        <Typography level="h3">Type:</Typography>
         <ButtonGroup>
           <Button
             variant={single ? "solid" : "outlined"}
@@ -131,6 +147,23 @@ const Rankings = () => {
           )}
         </ButtonGroup>
         <select
+          value={queryTypeValue}
+          defaultValue={defaultQueryTypeValue}
+          onChange={(e) => {
+            setQueryTypeValue(e.target.value);
+            fetchRankings();
+          }}
+          color="primary"
+        >
+          <option value="100+Persons">100 Persons</option>
+          <option value="1000+Persons">1000 Persons</option>
+          <option value="100+Results">100 Results</option>
+          <option value="1000+Results">1000 Results</option>
+        </select>
+      </Stack>
+      <Stack direction="row" spacing={2}>
+        <Typography level="h3">Region:</Typography>
+        <select
           value={regionValue}
           onChange={(e) => {
             setRegionValue(e.target.value);
@@ -152,6 +185,7 @@ const Rankings = () => {
           ))}
         </select>
       </Stack>
+      <Divider />
       {!isObjectEmpty(loadingState.error) ? (
         renderResponseError(loadingState.error)
       ) : (
