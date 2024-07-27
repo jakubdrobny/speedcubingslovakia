@@ -456,12 +456,15 @@ export const getRankings = async (
   eid: number,
   single: boolean,
   regionGroup: string,
-  region: string
+  region: string,
+  queryType: string
 ): Promise<RankingsEntry[]> => {
   const response = await axios.get(
     `/api/results/rankings?eid=${eid}&type=${
       single ? "single" : "average"
-    }&regionGroup=${regionGroup}&region=${region}`
+    }&regionGroup=${regionGroup}&region=${region}&queryType=${
+      queryType.split("+")[1]
+    }&numOfEntries=${queryType.split("+")[0]}`
   );
   return response.data;
 };
@@ -495,16 +498,3 @@ export const reformatMultiTime = (startingTime: string): string => {
 
   return cubePart + " " + res;
 };
-
-function useWindowSize() {
-  const [size, setSize] = useState([0, 0]);
-  useLayoutEffect(() => {
-    function updateSize() {
-      setSize([window.innerWidth, window.innerHeight]);
-    }
-    window.addEventListener("resize", updateSize);
-    updateSize();
-    return () => window.removeEventListener("resize", updateSize);
-  }, []);
-  return size;
-}
