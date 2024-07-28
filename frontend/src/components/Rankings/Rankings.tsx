@@ -1,13 +1,4 @@
-import {
-  Alert,
-  Button,
-  ButtonGroup,
-  Divider,
-  Option,
-  Select,
-  Stack,
-  Typography,
-} from "@mui/joy";
+import { Button, ButtonGroup, Divider, Stack, Typography } from "@mui/joy";
 import {
   CompetitionEvent,
   LoadingState,
@@ -23,9 +14,9 @@ import {
   isObjectEmpty,
   renderResponseError,
 } from "../../utils";
+import { useCallback, useEffect } from "react";
 
 import RankingsTable from "./RankingsTable";
-import { useEffect } from "react";
 import useState from "react-usestateref";
 
 const defaultRegionGroup = "World+World";
@@ -47,23 +38,7 @@ const Rankings = () => {
   const [queryTypeValue, setQueryTypeValue, queryTypeValueRef] =
     useState<string>(defaultQueryTypeValue);
 
-  useEffect(() => {
-    setLoadingState({ isLoading: true, error: {} });
-    getAvailableEvents()
-      .then((res: CompetitionEvent[]) => {
-        setEvents(res);
-        return getRegionGroups();
-      })
-      .then((res: RegionSelectGroup[]) => {
-        setRegionGroups(res);
-        fetchRankings();
-      })
-      .catch((err) => {
-        setLoadingState({ isLoading: false, error: getError(err) });
-      });
-  }, []);
-
-  const fetchRankings = () => {
+  const fetchRankings = useCallback(() => {
     if (!singleRef.current && ismbld) return;
 
     setLoadingState({ isLoading: true, error: {} });
@@ -81,7 +56,30 @@ const Rankings = () => {
       .catch((err) => {
         setLoadingState({ isLoading: false, error: getError(err) });
       });
-  };
+  }, [
+    currentEventIdxRef,
+    eventsRef,
+    ismbld,
+    queryTypeValueRef,
+    regionValueRef,
+    singleRef,
+  ]);
+
+  useEffect(() => {
+    setLoadingState({ isLoading: true, error: {} });
+    getAvailableEvents()
+      .then((res: CompetitionEvent[]) => {
+        setEvents(res);
+        return getRegionGroups();
+      })
+      .then((res: RegionSelectGroup[]) => {
+        setRegionGroups(res);
+        fetchRankings();
+      })
+      .catch((err) => {
+        setLoadingState({ isLoading: false, error: getError(err) });
+      });
+  }, [fetchRankings, setEvents]);
 
   return (
     <Stack sx={{ margin: "1em" }} spacing={2}>

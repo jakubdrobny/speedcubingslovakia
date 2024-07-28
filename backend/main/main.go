@@ -70,12 +70,12 @@ func main() {
 
 	api_v1 := router.Group("/api")
 	
-	results := api_v1.Group("/results", middlewares.AuthMiddleWare(db, envMap))
+	results := api_v1.Group("/results")
 	{
-		results.GET("/edit/:uname/:cname/:eid", middlewares.AdminMiddleWare(), controllers.GetResultsQuery(db))
-		results.GET("/compete/:cid/:eid", controllers.GetResultsByIdAndEvent(db))
-		results.POST("/save", controllers.PostResults(db))
-		results.POST("/save-validation", middlewares.AdminMiddleWare(), controllers.PostResultsValidation(db))
+		results.GET("/edit/:uname/:cname/:eid", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.GetResultsQuery(db))
+		results.GET("/compete/:cid/:eid", middlewares.AuthMiddleWare(db, envMap), controllers.GetResultsByIdAndEvent(db))
+		results.POST("/save", middlewares.AuthMiddleWare(db, envMap), controllers.PostResults(db))
+		results.POST("/save-validation", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostResultsValidation(db))
 		results.GET("/rankings", controllers.GetRankings(db))
 		results.GET("/records", controllers.GetRecords(db))
 		results.GET("/regions/grouped", controllers.GetRegionsGrouped(db))

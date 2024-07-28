@@ -528,12 +528,12 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 					rankingsEntry.Times = make([]string, 0)
 
 					noOfSolves, _ := utils.GetNoOfSolves(resultsEntry.Format)
-					
+
 					for idx, solve := range []string{resultsEntry.Solve1, resultsEntry.Solve2, resultsEntry.Solve3, resultsEntry.Solve4, resultsEntry.Solve5} {
 						if idx >= noOfSolves { break }
 						
 						result := utils.ParseSolveToMilliseconds(solve, isfmc, scrambles[idx])
-						if ismbld { rankingsEntry.Result = utils.FormatMultiTime(result)
+						if ismbld { rankingsEntry.Result = solve
 						} else { rankingsEntry.Result = utils.FormatTime(result, isfmc) }
 						if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") < constants.VERY_SLOW { rankings = append(rankings, rankingsEntry) }
 					}
