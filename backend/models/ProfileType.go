@@ -57,10 +57,15 @@ type RecordCollection struct {
 type ProfileTypeResultHistoryEntry struct {
 	CompetitionId string `json:"competitionId"`
 	CompetitionName string `json:"competitionName"`
+	CompetitionEnddate time.Time `json:"-"`
 	Place string `json:"place"`
 	Single string `json:"single"`
 	Average string `json:"average"`
 	Solves []string `json:"solves"`
+	SingleRecord string `json:"singleRecord"`
+	AverageRecord string `json:"averageRecord"`
+	SingleRecordColor string `json:"singleRecordColor"`
+	AverageRecordColor string `json:"averageRecordColor"`
 }
 
 type ProfileTypeResultHistory struct {
@@ -500,7 +505,83 @@ func ComputePlacementForCompetition(rows *[]EventResultsRow, firstRowIdx int, la
 	return fmt.Sprint(placement), nil
 }
 
-func (p *ProfileType) CreateEventHistoryForUser(db *pgxpool.Pool, user *User, event CompetitionEvent, rows []EventResultsRow) (error) {
+func AddRecordsToHistory(history *ProfileTypeResultHistory, recorders Recorders, uid int, p *ProfileType) {
+	singleSoFar := "DNS"
+	averageSoFar := "DNS"
+	ismbld := history.EventIconCode == "333mbf"
+
+	for historyIdx := len(history.History) - 1; historyIdx >= 0; historyIdx-- {
+		historyEntry := history.History[historyIdx]
+		competitionEndDate := historyEntry.CompetitionEnddate
+
+		currentSingle := utils.ParseSolveToMilliseconds(historyEntry.Single, false, "")
+		if currentSingle <= utils.ParseSolveToMilliseconds(singleSoFar, false, "") && currentSingle < constants.VERY_SLOW {
+			history.History[historyIdx].SingleRecord = "PR"
+			singleSoFar = historyEntry.Single
+		}
+
+		currentAverage := utils.ParseSolveToMilliseconds(historyEntry.Average, false, "")
+		if !ismbld && currentAverage <= utils.ParseSolveToMilliseconds(averageSoFar, false, "") && currentAverage < constants.VERY_SLOW {
+			history.History[historyIdx].AverageRecord = "PR"
+			averageSoFar = historyEntry.Average
+		}
+
+		recordersForComp, ok := recorders.NR[competitionEndDate]
+		if ok {
+			if recordersForComp.single == currentSingle { history.History[historyIdx].SingleRecord = "NR" }
+			if !ismbld && recordersForComp.average == currentAverage { history.History[historyIdx].AverageRecord = "NR" }
+		}
+
+		recordersForComp, ok = recorders.CR[competitionEndDate]
+		if ok {
+			if recordersForComp.single == currentSingle { history.History[historyIdx].SingleRecord = "CR" }
+			if !ismbld && recordersForComp.average == currentAverage { history.History[historyIdx].AverageRecord = "CR" }
+		}
+
+		recordersForComp, ok = recorders.WR[competitionEndDate]
+		if ok {
+			if recordersForComp.single == currentSingle { history.History[historyIdx].SingleRecord = "WR" }
+			if !ismbld && recordersForComp.average == currentAverage { history.History[historyIdx].AverageRecord = "WR" }
+		}
+
+		switch (history.History[historyIdx].SingleRecord) {
+			case "WR":
+				history.History[historyIdx].SingleRecordColor = constants.WR_COLOR
+				p.RecordCollection.WR++
+			case "CR":
+				history.History[historyIdx].SingleRecordColor = constants.CR_COLOR
+				p.RecordCollection.CR++
+			case "NR":
+				history.History[historyIdx].SingleRecordColor = constants.NR_COLOR
+				p.RecordCollection.NR++
+			case "PR":
+				history.History[historyIdx].SingleRecord = ""
+				history.History[historyIdx].SingleRecordColor = constants.PR_COLOR
+		}
+
+		if !ismbld {
+			switch (history.History[historyIdx].AverageRecord) {
+				case "WR":
+					history.History[historyIdx].AverageRecordColor = constants.WR_COLOR
+					p.RecordCollection.WR++
+				case "CR":
+					history.History[historyIdx].AverageRecordColor = constants.CR_COLOR
+					p.RecordCollection.CR++
+				case "NR":
+					history.History[historyIdx].AverageRecordColor = constants.NR_COLOR
+					p.RecordCollection.NR++
+				case "PR":
+					history.History[historyIdx].AverageRecord = ""
+					history.History[historyIdx].AverageRecordColor = constants.PR_COLOR
+			}
+		}
+
+		fmt.Println(historyEntry)
+		fmt.Println(p.RecordCollection)
+	}
+}
+
+func (p *ProfileType) CreateEventHistoryForUser(db *pgxpool.Pool, user *User, event CompetitionEvent, rows []EventResultsRow, recorders Recorders) (error) {
 	var history ProfileTypeResultHistory
 
 	history.EventId = event.Id
@@ -547,14 +628,15 @@ func (p *ProfileType) CreateEventHistoryForUser(db *pgxpool.Pool, user *User, ev
 				canIncreaseMedalCount := (event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) || ((!ismbld && event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW))
 				if canIncreaseMedalCount {
 					switch historyEntry.Place {
-					case "1":
-						p.MedalCollection.Gold++
-					case "2":
+						case "1":
+							p.MedalCollection.Gold++
+						case "2":
 							p.MedalCollection.Silver++
 						case "3":
 							p.MedalCollection.Bronze++
 					}
 				}
+				historyEntry.CompetitionEnddate = row.Date
 
 				history.History = append(history.History, historyEntry)
 			}
@@ -566,16 +648,17 @@ func (p *ProfileType) CreateEventHistoryForUser(db *pgxpool.Pool, user *User, ev
 	}
 
 	if len(history.History) > 0 {
+		AddRecordsToHistory(&history, recorders, user.Id, p)
 		p.ResultsHistory = append(p.ResultsHistory, history)
 	}
 
 	return nil
 }
 
-func (p *ProfileType) LoadHistory(db *pgxpool.Pool, user *User, recorders *[]Recorders, rows map[int][]EventResultsRow) (error) {
+func (p *ProfileType) LoadHistory(db *pgxpool.Pool, user *User, recorders map[int]Recorders, rows map[int][]EventResultsRow) (error) {
 	p.ResultsHistory = make([]ProfileTypeResultHistory, 0)
 	for _, personalBestEntry := range p.PersonalBests {
-		err := p.CreateEventHistoryForUser(db, user, personalBestEntry.Event, rows[personalBestEntry.EventId])
+		err := p.CreateEventHistoryForUser(db, user, personalBestEntry.Event, rows[personalBestEntry.EventId], recorders[personalBestEntry.EventId])
 		if err != nil { return err }
 	}
 
@@ -615,6 +698,16 @@ func IsRecorder2(recorders []int, uid int, records *int) {
 	}
 }
 
+func IsRecorder3(recorders []int, uid int) bool {
+	for _, id := range recorders {
+		if id == uid {
+			return true
+		}
+	}
+
+	return false
+}
+
 func UpdateRecordersEntry(oldRecordersEntry *RecordersEntry, newRecordersEntry RecordersEntry, uid int, records *int, ismbld bool) {
 	if newRecordersEntry.single <= oldRecordersEntry.single { IsRecorder2(newRecordersEntry.singleRecorders, uid, records) }
 
@@ -639,30 +732,30 @@ func UpdateRecordersEntry(oldRecordersEntry *RecordersEntry, newRecordersEntry R
 
 func UpdateRecordersByDate(recorders map[time.Time]RecordersEntry, date time.Time, singleMili int, averageMili int, ismbld bool, uid int) {
 	recordersEntry, ok := recorders[date]
-		if !ok {
-			recorders[date] = RecordersEntry{date, constants.DNS, make([]int, 0), constants.DNS, make([]int ,0)}
-			recordersEntry = recorders[date]
-		}
+	if !ok {
+		recorders[date] = RecordersEntry{date, constants.DNS, make([]int, 0), constants.DNS, make([]int ,0)}
+		recordersEntry = recorders[date]
+	}
 
-		if singleMili < constants.VERY_SLOW {
-			if singleMili < recordersEntry.single {
-				recordersEntry.single = singleMili
-				recordersEntry.singleRecorders = make([]int, 0)
+	if singleMili < constants.VERY_SLOW {
+		if singleMili < recordersEntry.single {
+			recordersEntry.single = singleMili
+			recordersEntry.singleRecorders = make([]int, 0)
+		}
+		if singleMili <= recordersEntry.single { recordersEntry.singleRecorders = append(recordersEntry.singleRecorders, uid) }
+	}
+
+	if !ismbld {
+		if averageMili < constants.VERY_SLOW {
+			if averageMili < recordersEntry.average {
+				recordersEntry.average = averageMili
+				recordersEntry.averageRecorders = make([]int, 0)
 			}
-			if singleMili <= recordersEntry.single { recordersEntry.singleRecorders = append(recordersEntry.singleRecorders, uid) }
+			if averageMili <= recordersEntry.average { recordersEntry.averageRecorders = append(recordersEntry.averageRecorders, uid) }
 		}
+	}
 
-		if !ismbld {
-			if averageMili < constants.VERY_SLOW {
-				if averageMili < recordersEntry.average {
-					recordersEntry.average = averageMili
-					recordersEntry.averageRecorders = make([]int, 0)
-				}
-				if averageMili <= recordersEntry.average { recordersEntry.averageRecorders = append(recordersEntry.averageRecorders, uid) }
-			}
-		}
-
-		recorders[date] = recordersEntry
+	recorders[date] = recordersEntry
 }
 
 func ProcessRecorders(recorders map[time.Time]RecordersEntry, uid int, ismbld bool) (int) {
@@ -694,12 +787,15 @@ func (p *ProfileType) CountRecordsInEventFromRows(eventResultsRows *[]EventResul
 	recordersWR := make(map[time.Time]RecordersEntry)
 	recordersCR := make(map[time.Time]RecordersEntry)
 	recordersNR := make(map[time.Time]RecordersEntry)
-	uid := user.Id
+	// uid := user.Id
 	contId := user.ContinentId
 	countryId := user.CountryId
+	var lastDateWR, lastDateCR, lastDateNR time.Time
 
 	ismbld := false
-	for _, eventResultRow := range *eventResultsRows {
+	for eventResultRowIdx := len(*eventResultsRows) - 1; eventResultRowIdx >= 0; eventResultRowIdx-- {
+		eventResultRow := (*eventResultsRows)[eventResultRowIdx]
+
 		resultEntry := eventResultRow.ResultEntry
 		date := eventResultRow.Date
 		currentContId := eventResultRow.ContinentId
@@ -721,32 +817,42 @@ func (p *ProfileType) CountRecordsInEventFromRows(eventResultsRows *[]EventResul
 			averageMili = utils.ParseSolveToMilliseconds(average, false, "")
 		}
 		
+		if !lastDateWR.IsZero() { recordersWR[date] = recordersWR[lastDateWR] }
 		UpdateRecordersByDate(recordersWR, date, singleMili, averageMili, ismbld, resultEntry.Userid)
-		if currentContId == contId { UpdateRecordersByDate(recordersCR, date, singleMili, averageMili, ismbld, resultEntry.Userid) }
-		if currentCountryId == countryId { UpdateRecordersByDate(recordersNR, date, singleMili, averageMili, ismbld, resultEntry.Userid) }
+		lastDateWR = date
+		
+		if currentContId == contId {
+			if !lastDateCR.IsZero() { recordersCR[date] = recordersCR[lastDateCR] }
+			UpdateRecordersByDate(recordersCR, date, singleMili, averageMili, ismbld, resultEntry.Userid)
+			lastDateCR = date
+		}
+
+		if currentCountryId == countryId {
+			if !lastDateNR.IsZero() { recordersNR[date] = recordersNR[lastDateNR] }
+			UpdateRecordersByDate(recordersNR, date, singleMili, averageMili, ismbld, resultEntry.Userid)
+			lastDateNR = date
+		}
 	}
 
-	p.RecordCollection.WR += ProcessRecorders(recordersWR, uid, ismbld)
-	p.RecordCollection.CR += ProcessRecorders(recordersCR, uid, ismbld)
-	p.RecordCollection.NR += ProcessRecorders(recordersNR, uid, ismbld)
+	// p.RecordCollection.WR += ProcessRecorders(recordersWR, uid, ismbld)
+	// p.RecordCollection.CR += ProcessRecorders(recordersCR, uid, ismbld)
+	// p.RecordCollection.NR += ProcessRecorders(recordersNR, uid, ismbld)
 
 	return Recorders{WR: recordersWR, CR: recordersCR, NR: recordersNR}, nil
 }
 
-func (p *ProfileType) LoadRecordCollection(db *pgxpool.Pool, user *User, rows map[int][]EventResultsRow) ([]Recorders, error) {
-	recorders := make([]Recorders, len(p.PersonalBests))
+func (p *ProfileType) LoadRecordCollection(db *pgxpool.Pool, user *User, rows map[int][]EventResultsRow) (map[int]Recorders, error) {
+	recorders := make(map[int]Recorders, len(p.PersonalBests))
 
-	for idx, personalBestEntry := range p.PersonalBests {
+	for _, personalBestEntry := range p.PersonalBests {
 		eid := personalBestEntry.EventId
 		currentRows, ok := rows[eid]
-		if !ok { return []Recorders{}, nil }
+		if !ok { return map[int]Recorders{}, nil }
 
 		currentRecorders, err := p.CountRecordsInEventFromRows(&currentRows, user, db)
-		if err != nil { return []Recorders{}, err }
-		recorders[idx] = currentRecorders
+		if err != nil { return map[int]Recorders{}, err }
+		recorders[eid] = currentRecorders
 	}
-
-	fmt.Println(p.RecordCollection)
 
 	p.RecordCollection.NR -= p.RecordCollection.CR
 	p.RecordCollection.CR -= p.RecordCollection.WR
@@ -766,11 +872,10 @@ func (p *ProfileType) Load(db *pgxpool.Pool, uid int) (error) {
 	rows, err := p.LoadPersonalBests(db, &user)
 	if err != nil { return err }
 
-	var recorders []Recorders
-	recorders, err = p.LoadRecordCollection(db, &user, rows)
+	recorders, err := p.LoadRecordCollection(db, &user, rows)
 	if err != nil { return err }
 
-	err = p.LoadHistory(db, &user, &recorders, rows)
+	err = p.LoadHistory(db, &user, recorders, rows)
 	if err != nil { return err }
 
 

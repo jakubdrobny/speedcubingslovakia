@@ -257,7 +257,11 @@ export type ProfileTypeResultHistoryEntry = {
   competitionName: string;
   place: string;
   single: string;
+  singleRecord: string;
+  singleRecordColor: string;
   average: string;
+  averageRecord: string;
+  averageRecordColor: string;
   solves: string[];
 };
 

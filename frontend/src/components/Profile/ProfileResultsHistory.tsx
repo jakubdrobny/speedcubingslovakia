@@ -22,14 +22,19 @@ const ProfileResultsHistory: React.FC<{
       "Competition",
       "Place",
       "Single",
+      "",
       "Average",
+      "",
       resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm"
         ? "Moves"
         : "Solves",
     ];
 
     if (columnNames.includes("Average") && ismbld)
-      columnNames = columnNames.filter((c) => c !== "Average");
+      columnNames.splice(
+        columnNames.findIndex((x) => x == "Average"),
+        2
+      );
 
     return columnNames;
   };
@@ -103,7 +108,7 @@ const ProfileResultsHistory: React.FC<{
                   />
                   &nbsp;{resultsHistory[currentHistoryIdx].eventName}
                 </td>
-                {(ismbld ? [0, 1, 2] : [0, 1, 2, 3]).map((val) => (
+                {(ismbld ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5]).map((val) => (
                   <td key={val + 10} style={goodHeight}></td>
                 ))}
               </tr>
@@ -123,23 +128,47 @@ const ProfileResultsHistory: React.FC<{
                     </Link>
                   </td>
                   {(ismbld
-                    ? [entry.place, entry.single]
-                    : [entry.place, entry.single, entry.average]
-                  ).map((val, idx1) => (
-                    <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
-                      {idx1 === 0 ? (
-                        val
-                      ) : (
-                        <b>
-                          {idx1 === 1 && isfmc
-                            ? val.split(".")[0]
-                            : ismbld
-                            ? reformatMultiTime(val)
-                            : val}
-                        </b>
-                      )}
-                    </td>
-                  ))}
+                    ? [entry.place, entry.single, entry.singleRecord]
+                    : [
+                        entry.place,
+                        entry.single,
+                        entry.singleRecord,
+                        entry.average,
+                        entry.averageRecord,
+                      ]
+                  ).map((val, idx1) => {
+                    console.log(
+                      idx === 2
+                        ? entry.singleRecordColor
+                        : idx === 4
+                        ? entry.averageRecordColor
+                        : "black"
+                    );
+                    return (
+                      <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
+                        {idx1 === 0 ? (
+                          val
+                        ) : (
+                          <b
+                            style={{
+                              color:
+                                idx1 === 1
+                                  ? entry.singleRecordColor
+                                  : idx1 === 3
+                                  ? entry.averageRecordColor
+                                  : "black",
+                            }}
+                          >
+                            {idx1 === 1 && isfmc
+                              ? val.split(".")[0]
+                              : ismbld
+                              ? reformatMultiTime(val)
+                              : val}
+                          </b>
+                        )}
+                      </td>
+                    );
+                  })}
                   <td style={center}>
                     {entry.solves
                       ? (isfmc
