@@ -23,6 +23,7 @@ type CompetitionResult struct {
 	Average string `json:"average"`
 	Times []string `json:"times"`
 	Score string `json:"score"`
+	UserId int `json:"-"`
 }
 
 type BestEntry struct {
