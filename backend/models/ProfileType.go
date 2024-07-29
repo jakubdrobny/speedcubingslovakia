@@ -243,8 +243,6 @@ func GetRankFromResults(results map[int]ResultsSingleAverageEntry, single string
 		},
 	}
 
-	fmt.Println(resultsArrSingle)
-
 	for nrIdx, crIdx, wrIdx, curIdx, nrPos, crPos, wrPos := -1, -1, 0, 1, 1, 1, 1; curIdx < len(resultsArrSingle) && resultsArrSingle[curIdx].Value <= singleResultInMili; curIdx++ {
 		if nrIdx == -1 && resultsArrSingle[curIdx - 1].CountryId == user.CountryId { nrIdx = curIdx - 1 }
 		if crIdx == -1 && resultsArrSingle[curIdx - 1].ContinentId == user.ContinentId { crIdx = curIdx - 1 }
