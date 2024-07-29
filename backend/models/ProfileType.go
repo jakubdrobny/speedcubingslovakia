@@ -243,21 +243,26 @@ func GetRankFromResults(results map[int]ResultsSingleAverageEntry, single string
 		},
 	}
 
-	for nrIdx, crIdx, wrIdx, curIdx := -1, -1, 0, 1; curIdx < len(resultsArrSingle) && resultsArrSingle[curIdx].Value <= singleResultInMili; curIdx++ {
+	fmt.Println(resultsArrSingle)
+
+	for nrIdx, crIdx, wrIdx, curIdx, nrPos, crPos, wrPos := -1, -1, 0, 1, 1, 1, 1; curIdx < len(resultsArrSingle) && resultsArrSingle[curIdx].Value <= singleResultInMili; curIdx++ {
 		if nrIdx == -1 && resultsArrSingle[curIdx - 1].CountryId == user.CountryId { nrIdx = curIdx - 1 }
 		if crIdx == -1 && resultsArrSingle[curIdx - 1].ContinentId == user.ContinentId { crIdx = curIdx - 1 }
 
 		if nrIdx != -1 && resultsArrSingle[nrIdx].Value < resultsArrSingle[curIdx].Value && resultsArrSingle[curIdx].CountryId == user.CountryId {
-			personalBestRanks.Single.NR = fmt.Sprint(curIdx + 1)
+			personalBestRanks.Single.NR = fmt.Sprint(nrPos + 1)
 			nrIdx = curIdx
+			nrPos++
 		}
 		if crIdx != -1 && resultsArrSingle[crIdx].Value < resultsArrSingle[curIdx].Value && resultsArrSingle[curIdx].ContinentId == user.ContinentId {
-			personalBestRanks.Single.CR = fmt.Sprint(curIdx + 1)
+			personalBestRanks.Single.CR = fmt.Sprint(crPos + 1)
 			crIdx = curIdx
+			crPos++
 		}
 		if resultsArrSingle[wrIdx].Value < resultsArrSingle[curIdx].Value {
-			personalBestRanks.Single.WR = fmt.Sprint(curIdx + 1)
+			personalBestRanks.Single.WR = fmt.Sprint(wrPos + 1)
 			wrIdx = curIdx
+			wrPos++
 		}
 	}
 
@@ -575,9 +580,6 @@ func AddRecordsToHistory(history *ProfileTypeResultHistory, recorders Recorders,
 					history.History[historyIdx].AverageRecordColor = constants.PR_COLOR
 			}
 		}
-
-		fmt.Println(historyEntry)
-		fmt.Println(p.RecordCollection)
 	}
 }
 
