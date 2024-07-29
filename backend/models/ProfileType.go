@@ -264,21 +264,24 @@ func GetRankFromResults(results map[int]ResultsSingleAverageEntry, single string
 		}
 	}
 
-	for nrIdx, crIdx, wrIdx, curIdx := -1, -1, 0, 1; curIdx < len(resultsArrAverage) && resultsArrAverage[curIdx].Value <= averageResultInMili; curIdx++ {
+	for nrIdx, crIdx, wrIdx, curIdx, nrPos, crPos, wrPos := -1, -1, 0, 1, 1, 1, 1; curIdx < len(resultsArrAverage) && resultsArrAverage[curIdx].Value <= averageResultInMili; curIdx++ {
 		if nrIdx == -1 && resultsArrAverage[curIdx - 1].CountryId == user.CountryId { nrIdx = curIdx - 1 }
 		if crIdx == -1 && resultsArrAverage[curIdx - 1].ContinentId == user.ContinentId { crIdx = curIdx - 1 }
 
 		if nrIdx != -1 && resultsArrAverage[nrIdx].Value < resultsArrAverage[curIdx].Value && resultsArrAverage[curIdx].CountryId == user.CountryId {
-			personalBestRanks.Average.NR = fmt.Sprint(curIdx + 1)
+			personalBestRanks.Average.NR = fmt.Sprint(nrPos + 1)
 			nrIdx = curIdx
+			nrPos++
 		}
 		if crIdx != -1 && resultsArrAverage[crIdx].Value < resultsArrAverage[curIdx].Value && resultsArrAverage[curIdx].ContinentId == user.ContinentId {
-			personalBestRanks.Average.CR = fmt.Sprint(curIdx + 1)
+			personalBestRanks.Average.CR = fmt.Sprint(crPos + 1)
 			crIdx = curIdx
+			crPos++
 		}
 		if resultsArrAverage[wrIdx].Value < resultsArrAverage[curIdx].Value {
-			personalBestRanks.Average.WR = fmt.Sprint(curIdx + 1)
+			personalBestRanks.Average.WR = fmt.Sprint(wrPos + 1)
 			wrIdx = curIdx
+			wrPos++
 		}
 	}
 
