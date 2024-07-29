@@ -141,12 +141,14 @@ const ProfileResultsHistory: React.FC<{
                     </td>
                   ))}
                   <td style={center}>
-                    {(isfmc
-                      ? entry.solves.map((x) => x.split(".")[0])
-                      : ismbld
-                      ? entry.solves.map((x) => reformatMultiTime(x))
-                      : entry.solves
-                    ).join(", ")}
+                    {entry.solves
+                      ? (isfmc
+                          ? entry.solves.map((x) => x.split(".")[0])
+                          : ismbld
+                          ? entry.solves.map((x) => reformatMultiTime(x))
+                          : entry.solves
+                        ).join(", ")
+                      : entry.solves}
                   </td>
                 </tr>
               ))}

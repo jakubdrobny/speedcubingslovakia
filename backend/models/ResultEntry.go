@@ -34,6 +34,7 @@ type ResultEntry struct {
 	Status ResultsStatus `json:"status"`
 	BadFormat bool `json:"badFormat"`
 	Scrambles []string `json:"-"`
+	WcaId string `json:"-"`
 }
 
 func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
