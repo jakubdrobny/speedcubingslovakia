@@ -80,7 +80,7 @@ func (r *ResultEntry) Validate(db *pgxpool.Pool, isfmc bool, scrambles []string)
 		r.Status, err = GetResultsStatus(db, 1) // waitingForApproval
 		if err != nil { return err }
 	} else {
-		r.CheckFormats(isfmc)
+		if !r.IsMBLD() { r.CheckFormats(isfmc) }
 		r.Status, err = GetResultsStatus(db, 3) // approved
 		if err != nil { return err }
 	}
@@ -158,8 +158,6 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error 
 		_, err := db.Exec(context.Background(), `UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP WHERE user_id = $8 AND competition_id = $9 AND event_id = $10;`, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id, r.Userid, r.Competitionid, r.Eventid)
 		if err != nil { return err }
 	}
-
-	fmt.Println("ResultEntry BadFormat: ", r.BadFormat)
 
 	return nil;
 }
