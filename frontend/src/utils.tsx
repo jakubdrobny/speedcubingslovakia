@@ -18,7 +18,6 @@ import {
   ResultsStatus,
   SearchUser,
 } from "./Types";
-import React, { useLayoutEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 
 import { Alert } from "@mui/joy";
@@ -492,7 +491,7 @@ export const getRecords = async (
 
 export const reformatMultiTime = (startingTime: string): string => {
   if (startingTime === "DNS" || startingTime === "DNF") return startingTime;
-  if (startingTime.indexOf(":") == -1) return startingTime;
+  if (startingTime.indexOf(":") === -1) return startingTime;
 
   const cubePart = startingTime.split(" ")[0];
   let res = startingTime.split(" ")[1];
