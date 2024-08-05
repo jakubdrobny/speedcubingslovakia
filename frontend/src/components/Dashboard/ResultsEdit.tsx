@@ -1,11 +1,9 @@
 import {
-  Alert,
   Box,
   Button,
   Card,
   Chip,
   CircularProgress,
-  Divider,
   FormControl,
   FormHelperText,
   FormLabel,
@@ -17,19 +15,18 @@ import {
   Textarea,
   Typography,
 } from "@mui/joy";
+import { Check, Close } from "@mui/icons-material";
 import {
-  AuthContextType,
   CompetitionEvent,
   ResponseError,
   ResultEntry,
+  ResultsStatus,
 } from "../../Types";
-import { Check, Close } from "@mui/icons-material";
 import {
-  authorizeAdmin,
   getAvailableEvents,
+  getAvailableResultsStatuses,
   getError,
   getResults,
-  logOut,
   reformatTime,
   renderResponseError,
   saveValidation,
@@ -46,12 +43,19 @@ const ResultsEdit = () => {
   const [competitorName, setCompetitorName] = useState<string>("");
   const [competitionName, setCompetitionName] = useState<string>("");
   const [competitionEvent, setCompetitionEvent] = useState<string>();
+  const [availableResultsStatuses, setAvailableResultsStatues] = useState<
+    ResultsStatus[]
+  >([]);
+  const [resultsStatus, setResultsStatus] = useState<string>("");
   const [results, setResults] = useState<ResultEntry[]>([]);
-  const [selectError, setSelectError] = useState<boolean>(false);
+  const [selectEventError, setEventSelectError] = useState<boolean>(false);
+  const [selectResultsStatusError, setResultsStatusSelectError] =
+    useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<{
     results: boolean;
     events: boolean;
-  }>({ results: false, events: false });
+    statuses: boolean;
+  }>({ results: false, events: false, statuses: false });
   const [error, setError] = useState<ResponseError>();
 
   useEffect(() => {
@@ -61,11 +65,17 @@ const ResultsEdit = () => {
       .then((res) => {
         setAvailableEvents(res);
         if (res.length > 0) setCompetitionEvent(res[0].displayname);
-        setIsLoading((ps) => ({ ...ps, events: false }));
+        setIsLoading((ps) => ({ ...ps, events: false, statuses: true }));
+        return getAvailableResultsStatuses();
+      })
+      .then((res) => {
+        setAvailableResultsStatues(res);
+        if (res.length > 0) setResultsStatus(res[0].displayname);
+        setIsLoading((ps) => ({ ...ps, events: false, statuses: false }));
       })
       .catch((err) => {
         setError(getError(err));
-        setIsLoading((ps) => ({ ...ps, events: false }));
+        setIsLoading((ps) => ({ ...ps, events: false, statuses: false }));
       });
   }, []);
 
@@ -75,7 +85,8 @@ const ResultsEdit = () => {
     getResults(
       competitorName,
       competitionName,
-      availableEvents.find((e) => e.displayname === competitionEvent)
+      availableEvents.find((e) => e.displayname === competitionEvent),
+      resultsStatus
     )
       .then((res) => {
         setResults(res);
@@ -90,7 +101,7 @@ const ResultsEdit = () => {
 
   const handleQuery = () => {
     if (competitionEvent === undefined) {
-      setSelectError(true);
+      setEventSelectError(true);
       return;
     }
 
@@ -169,7 +180,7 @@ const ResultsEdit = () => {
 
   const handleCommentChange = (newComment: string, resultsIdx: number) => {
     const newResults = results.map((val, idx) =>
-      idx === resultsIdx ? { ...val, comment: newComment } : { ...val }
+      idx === resultsIdx ? { ...val, comment: newComment } : val
     );
     setResults(newResults);
   };
@@ -212,7 +223,7 @@ const ResultsEdit = () => {
                 value={competitionEvent}
                 onChange={(e, val) => {
                   setCompetitionEvent(val || "");
-                  setSelectError(false);
+                  setEventSelectError(false);
                 }}
                 required
                 renderValue={(event) => (
@@ -224,7 +235,7 @@ const ResultsEdit = () => {
                     </Chip>
                   </Box>
                 )}
-                color={selectError ? "danger" : "neutral"}
+                color={selectEventError ? "danger" : "neutral"}
                 disabled={isLoading.events}
               >
                 {availableEvents.map((event: CompetitionEvent) => (
@@ -238,7 +249,64 @@ const ResultsEdit = () => {
                   </Option>
                 ))}
               </Select>
-              {selectError && (
+              {selectEventError && (
+                <FormHelperText sx={{ color: "red" }}>
+                  This field is required. Please choose an event.
+                </FormHelperText>
+              )}
+            </FormControl>
+          )}
+          {resultsStatus && (
+            <FormControl>
+              <FormLabel>Result status</FormLabel>
+              <Select
+                value={resultsStatus}
+                onChange={(e, val) => {
+                  setResultsStatus(val || "");
+                  setResultsStatusSelectError(false);
+                }}
+                required
+                renderValue={(status) => (
+                  <Box sx={{ display: "flex", gap: "0.25rem" }}>
+                    <Chip
+                      variant="soft"
+                      color={
+                        status?.value === "Approved"
+                          ? "success"
+                          : status?.value === "Denied"
+                          ? "danger"
+                          : "warning"
+                      }
+                    >
+                      {status?.value}
+                    </Chip>
+                  </Box>
+                )}
+                color={selectResultsStatusError ? "danger" : "neutral"}
+                disabled={isLoading.statuses}
+              >
+                {availableResultsStatuses.map((status: ResultsStatus) => (
+                  <Option
+                    key={status.id}
+                    value={status.displayname}
+                    label={status.displayname}
+                  >
+                    <Chip
+                      variant="soft"
+                      color={
+                        status.displayname === "Approved"
+                          ? "success"
+                          : status.displayname === "Denied"
+                          ? "danger"
+                          : "warning"
+                      }
+                    >
+                      {status.displayname}
+                    </Chip>
+                  </Option>
+                ))}
+              </Select>
+              {selectResultsStatusError && (
                 <FormHelperText sx={{ color: "red" }}>
                   This field is required. Please choose an event.
                 </FormHelperText>
@@ -265,7 +333,7 @@ const ResultsEdit = () => {
           ) : (
             <>
               {results.map((result: ResultEntry, resultIdx: number) => (
-                <Card key={result.id}>
+                <Card key={result.username + result.competitionid}>
                   <Stack spacing={3} sx={{ marginBottom: "0.25em" }}>
                     <Grid container>
                       <Grid
@@ -297,14 +365,13 @@ const ResultsEdit = () => {
                               </Chip>
                             </Typography>
                           </div>
-                          <div
-                            style={
-                              result.status.approvalFinished
-                                ? { display: "none" }
-                                : {}
-                            }
-                          >
-                            <Typography level="h4">Resolve status:</Typography>
+                          <div>
+                            <Typography level="h4">
+                              {result.status.approvalFinished
+                                ? "Change"
+                                : "Resolve"}{" "}
+                              status
+                            </Typography>
                             <Stack spacing={2} direction="row">
                               <Button
                                 color="danger"
@@ -324,13 +391,7 @@ const ResultsEdit = () => {
                               </Button>
                             </Stack>
                           </div>
-                          <div
-                            style={
-                              !result.status.approvalFinished
-                                ? { display: "none" }
-                                : {}
-                            }
-                          >
+                          <div>
                             <Typography level="h4">Status:</Typography>
                             {result.status.approvalFinished &&
                             result.status.approved === true ? (
@@ -343,7 +404,9 @@ const ResultsEdit = () => {
                                 {result.status.displayname}
                               </div>
                             ) : (
-                              <></>
+                              <div className="mui-joy-btn mui-joy-btn-soft-warning">
+                                {result.status.displayname}
+                              </div>
                             )}
                           </div>
                         </Stack>
@@ -380,6 +443,11 @@ const ResultsEdit = () => {
                           <FormControl>
                             <FormLabel>Comment:</FormLabel>
                             <Textarea
+                              key={
+                                result.username +
+                                result.competitionid +
+                                "comment"
+                              }
                               value={results[resultIdx].comment}
                               onChange={(e) =>
                                 handleCommentChange(e.target.value, resultIdx)

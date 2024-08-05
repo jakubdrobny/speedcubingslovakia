@@ -72,7 +72,7 @@ func main() {
 	
 	results := api_v1.Group("/results")
 	{
-		results.GET("/edit/:uname/:cname/:eid", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.GetResultsQuery(db))
+		results.GET("/edit/:uname/:cname/:eid/:rsname", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.GetResultsQuery(db))
 		results.GET("/compete/:cid/:eid", middlewares.AuthMiddleWare(db, envMap), controllers.GetResultsByIdAndEvent(db))
 		results.POST("/save", middlewares.AuthMiddleWare(db, envMap), controllers.PostResults(db))
 		results.POST("/save-validation", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostResultsValidation(db))
@@ -85,6 +85,11 @@ func main() {
 	events := api_v1.Group("/events")
 	{
 		events.GET("/", controllers.GetEvents(db))
+	}
+
+	resultsStatuses := api_v1.Group("/resultsStatuses")
+	{
+		resultsStatuses.GET("/", controllers.GetResultsStatuses(db))
 	}
 
 	competitions := api_v1.Group("/competitions")
