@@ -71,7 +71,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
         setIsLoading(false);
         setError(getError(err));
       });
-  }, [competitionState, edit, id, navigate]);
+  }, []);
 
   const handleSelectedEventsChange = (selectedEventsNames: string[]) => {
     const selectedEvents = selectedEventsNames.map(
@@ -111,7 +111,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
           {edit ? `Edit ${competitionState.name}` : "Create"} competition
         </Typography>
         <Stack spacing={2}>
-          <FormControl>
+          <Stack spacing={0.75}>
             <FormLabel>
               <Typography level="h4">Name:</Typography>
             </FormLabel>
@@ -126,8 +126,8 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
                 })
               }
             />
-          </FormControl>
-          <FormControl>
+          </Stack>
+          <Stack spacing={0.75}>
             <FormLabel>
               <Typography level="h4">Starting date:</Typography>
             </FormLabel>
@@ -145,8 +145,8 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
               }
             />
             <FormHelperText>(format is mm/dd/yyyy, hh/mm)</FormHelperText>
-          </FormControl>
-          <FormControl>
+          </Stack>
+          <Stack spacing={0.75}>
             <FormLabel>
               <Typography level="h4">Ending date:</Typography>
             </FormLabel>
@@ -164,8 +164,8 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
               }
             />
             <FormHelperText>(format is mm/dd/yyyy, hh/mm)</FormHelperText>
-          </FormControl>
-          <FormControl>
+          </Stack>
+          <Stack spacing={0.75}>
             <FormLabel>
               <Typography level="h4">Events:</Typography>
             </FormLabel>
@@ -194,12 +194,10 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
                 </Option>
               ))}
             </Select>
-          </FormControl>
-          <FormControl>
-            <Button onClick={handleSubmit} loading={isLoading}>
-              {edit ? "Edit" : "Create"} competition
-            </Button>
-          </FormControl>
+          </Stack>
+          <Button onClick={handleSubmit} loading={isLoading}>
+            {edit ? "Edit" : "Create"} competition
+          </Button>
         </Stack>
       </Card>
     </Stack>
