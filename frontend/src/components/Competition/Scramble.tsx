@@ -40,6 +40,15 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
           ) as ScrambleSet
         ).scrambles[competitionState.currentSolveIdx].scramble
       : "";
+  const [showScrambleImage, setShowScrambleImage] = useState<boolean>(
+    competitionState &&
+      competitionState.events &&
+      competitionState.currentEventIdx < competitionState.events.length
+      ? !competitionState.events[
+          competitionState.currentEventIdx
+        ].iconcode.endsWith("bf")
+      : true
+  );
 
   useEffect(() => {
     if (
@@ -131,17 +140,25 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
       <h3>Scramble{ismbld ? "s" : ""}:</h3>
       {formatScramble()}
       <h3>Preview:</h3>
-      {scrambleImg === undefined ? (
-        <DefaultScramble />
-      ) : (
-        <img
-          src={`${process.env.REACT_APP_SCRAMBLE_IMAGES_PATH}/${scrambleImg}`}
-          alt={`${competitionState?.id}/${
-            competitionState?.events[competitionState?.currentEventIdx]
-              ?.displayname
-          }/scramble${competitionState?.currentSolveIdx + 1}`}
-        />
-      )}
+      <div style={{ display: showScrambleImage ? "block" : "none" }}>
+        {scrambleImg === undefined ? (
+          <DefaultScramble />
+        ) : (
+          <img
+            src={`${process.env.REACT_APP_SCRAMBLE_IMAGES_PATH}/${scrambleImg}`}
+            alt={`${competitionState?.id}/${
+              competitionState?.events[competitionState?.currentEventIdx]
+                ?.displayname
+            }/scramble${competitionState?.currentSolveIdx + 1}`}
+          />
+        )}
+      </div>
+      <Button
+        variant="outlined"
+        onClick={() => setShowScrambleImage((ps) => !ps)}
+      >
+        {showScrambleImage ? "Hide scramble image" : "Show scramble image"}
+      </Button>
     </div>
   );
 };
