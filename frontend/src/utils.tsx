@@ -340,7 +340,7 @@ export const logIn = async (
   for (key in result) {
     if (key === "isadmin") continue;
     cookies.set(key, result[key], {
-      expires: new Date(new Date().getTime() + data.expires_in * 60 * 1000),
+      expires: new Date(new Date().getTime() + data.expires_in * 1000),
     });
   }
 

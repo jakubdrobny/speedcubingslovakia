@@ -166,11 +166,11 @@ func GetNoOfSolves(format string) (int, error) {
 	return res, nil
 }
 
-func CreateToken(userid int, secretKey string) (string, error) {
+func CreateToken(userid int, secretKey string, expiresInSeconds int) (string, error) {
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, 
         jwt.MapClaims{ 
 			"userid": userid, 
-			"exp": time.Now().Add(time.Hour * 12).Unix(),
+			"exp": time.Now().Add(time.Hour * time.Duration(expiresInSeconds)).Unix(),
         })
 
     tokenString, err := token.SignedString([]byte(secretKey))

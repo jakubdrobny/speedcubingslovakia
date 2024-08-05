@@ -37,7 +37,7 @@ const LogIn = () => {
         transform: "translate(-50%, -50%)",
       }}
     >
-      {loadingState.loading ? (
+      {loadingState.loading || !loadingState.error ? (
         <div
           style={{
             display: "flex",
