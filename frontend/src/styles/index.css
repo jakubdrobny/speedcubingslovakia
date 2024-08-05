@@ -82,6 +82,20 @@ body {
   );
 }
 
+.mui-joy-btn-soft-warning {
+  color: var(
+    --variant-softColor,
+    var(
+      --joy-palette-warning-softColor,
+      var(--joy-palette-warning-700, #492b08)
+    )
+  );
+  background-color: var(
+    --variant-softBg,
+    var(--joy-palette-warning-softBg, var(--joy-palette-warning-100, #fdf0e1))
+  );
+}
+
 .bottom-divider {
   border-bottom: 1px solid #636d7433;
 }

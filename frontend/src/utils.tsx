@@ -15,6 +15,7 @@ import {
   RegionSelectGroup,
   ResponseError,
   ResultEntry,
+  ResultsStatus,
   SearchUser,
 } from "./Types";
 import React, { useLayoutEffect, useState } from "react";
@@ -148,6 +149,13 @@ export const getAvailableEvents = async (): Promise<CompetitionEvent[]> => {
   return response.data;
 };
 
+export const getAvailableResultsStatuses = async (): Promise<
+  ResultsStatus[]
+> => {
+  const response = await axios.get("/api/resultsStatuses");
+  return response.data;
+};
+
 export const updateCompetition = async (
   state: CompetitionState,
   edit: boolean
@@ -179,15 +187,17 @@ export const updateCompetition = async (
 export const getResults = async (
   username: string,
   cid: string,
-  competeEvent: CompetitionEvent | undefined
+  competeEvent: CompetitionEvent | undefined,
+  resultsStatus: string
 ) => {
-  if (competeEvent === undefined) return Promise.reject("proste nie");
+  if (competeEvent === undefined || !resultsStatus)
+    return Promise.reject("proste nie");
 
   username = username === "" ? "_" : username;
   cid = cid === "" ? "_" : cid;
 
   const response = await axios.get(
-    `/api/results/edit/${username}/${cid}/${competeEvent.id}`
+    `/api/results/edit/${username}/${cid}/${competeEvent.id}/${resultsStatus}`
   );
   return response.data;
 };

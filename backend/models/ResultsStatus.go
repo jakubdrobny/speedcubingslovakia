@@ -36,3 +36,18 @@ func GetResultsStatus(db *pgxpool.Pool, statusId int) (ResultsStatus, error) {
 
 	return resultsStatus, nil
 }
+
+func GetAvailableResultsStatuses(db *pgxpool.Pool) ([]ResultsStatus, error) {
+	rows, err := db.Query(context.Background(), "SELECT rs.results_status_id, rs.displayname FROM results_status rs ORDER BY rs.displayname;");
+	if err != nil { return []ResultsStatus{}, err }
+
+	var statuses []ResultsStatus
+	for rows.Next() {
+		var status ResultsStatus
+		err = rows.Scan(&status.Id, &status.Displayname)
+		if err != nil { return []ResultsStatus{}, err }
+		statuses = append(statuses, status)
+	}
+
+	return statuses, nil
+}
