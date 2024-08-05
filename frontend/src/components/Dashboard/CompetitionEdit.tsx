@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -72,7 +71,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
         setIsLoading(false);
         setError(getError(err));
       });
-  }, []);
+  }, [competitionState, edit, id, navigate]);
 
   const handleSelectedEventsChange = (selectedEventsNames: string[]) => {
     const selectedEvents = selectedEventsNames.map(
