@@ -1,4 +1,4 @@
-import { Facebook, GitHub, Mail } from "@mui/icons-material";
+import { Facebook, GitHub, Instagram, Mail } from "@mui/icons-material";
 import { Grid, Link, Stack, Typography } from "@mui/joy";
 
 import DiscordIcon from "./DiscordIcon";
@@ -35,7 +35,12 @@ const Footer = () => {
           zIndex: 1000,
         }}
       >
-        <Stack direction="row" spacing={2}>
+        <Stack
+          direction="row"
+          spacing={2}
+          flexWrap="wrap"
+          justifyContent="center"
+        >
           <Stack spacing={1} direction="row" alignItems="center">
             <Mail />
             <Link
@@ -51,7 +56,16 @@ const Footer = () => {
               href="https://www.facebook.com/speedcubingslovakia"
               style={{ color: "#0B6BCB", textDecoration: "none" }}
             >
-              Our page!
+              Facebook
+            </Link>
+          </Stack>
+          <Stack spacing={1} direction="row" alignItems="center">
+            <Instagram />
+            <Link
+              href="https://www.instagram.com/speedcubing_slovakia"
+              style={{ color: "#0B6BCB", textDecoration: "none" }}
+            >
+              Instagram
             </Link>
           </Stack>
           <Stack spacing={1} direction="row" alignItems="center">
@@ -60,7 +74,7 @@ const Footer = () => {
               href="https://discord.com/invite/vKQs7htk"
               style={{ color: "#0B6BCB", textDecoration: "none" }}
             >
-              Join us!
+              Discord
             </Link>
           </Stack>
           <Stack spacing={1} direction="row" alignItems="center">
