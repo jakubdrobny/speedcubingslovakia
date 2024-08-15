@@ -87,7 +87,7 @@ const ManualInput: React.FC<{
         sx={{
           marginBottom: 2,
           marginTop: 2,
-          input: { caretColor: "transparent" },
+          //input: { caretColor: "transparent" },
         }}
         value={formattedTime}
         onChange={handleTimeInputChange}
