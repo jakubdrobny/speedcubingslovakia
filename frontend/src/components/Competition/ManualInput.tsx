@@ -24,7 +24,7 @@ const ManualInput: React.FC<{
   );
 
   const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const newValue = e.currentTarget.value;
+    let newValue = e.currentTarget.value;
     const target = e.currentTarget;
 
     if (
@@ -35,7 +35,7 @@ const ManualInput: React.FC<{
       console.log(newValue.length, formattedTime.length);
       console.log(newValue, formattedTime);
       console.log("one-------");
-      target.setSelectionRange(formattedTime.length, formattedTime.length);
+      target.setSelectionRange(newValue.length, newValue.length);
       return;
     }
 
@@ -44,27 +44,28 @@ const ManualInput: React.FC<{
     // character deleted
     if (newValue.length + 1 === formattedTime.length) {
       if (newValue.endsWith("N")) {
-        updateSolve("0.00");
-        target.setSelectionRange(formattedTime.length, formattedTime.length);
+        newValue = "0.00";
+        target.setSelectionRange(newValue.length, newValue.length);
         console.log(newValue.length, formattedTime.length);
         console.log(newValue, formattedTime);
         console.log("two-------");
         return;
       } else {
-        updateSolve(reformatTime(newValue));
+        newValue = reformatTime(newValue);
       }
     } else {
       if (newValue.endsWith("d")) {
-        updateSolve("DNF");
+        newValue = "DNF";
       } else if (newValue.endsWith("s")) {
-        updateSolve("DNS");
+        newValue = "DNS";
       } else if (/\d$/.test(newValue.slice(-1))) {
-        updateSolve(reformatTime(newValue, true));
+        newValue = reformatTime(newValue, true);
       } else {
-        updateSolve("DNF");
+        newValue = "DNF";
       }
 
-      target.setSelectionRange(formattedTime.length, formattedTime.length);
+      updateSolve(newValue);
+      target.setSelectionRange(newValue.length, newValue.length);
       console.log(newValue.length, formattedTime.length);
       console.log(newValue, formattedTime);
       console.log("three-------");
