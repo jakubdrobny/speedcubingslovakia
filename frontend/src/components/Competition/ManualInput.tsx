@@ -1,30 +1,22 @@
-import { Alert, Button, Input } from "@mui/joy";
-import {
-  CompetitionContextType,
-  ResponseError,
-  ResultEntry,
-} from "../../Types";
-import {
-  competitionOnGoing,
-  getError,
-  reformatTime,
-  renderResponseError,
-} from "../../utils";
-import { useContext, useEffect, useRef, useState } from "react";
+import { CompetitionContextType, ResultEntry } from "../../Types";
+import React, { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
+import { Input } from "@mui/joy";
 import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
+import { reformatTime } from "../../utils";
 
-const ManualInput = () => {
+const ManualInput: React.FC<{
+  handleSaveResults: () => void;
+}> = ({ handleSaveResults }) => {
   const [forceRerender, setForceRerender] = useState(false);
-  const { competitionState, updateSolve, saveResults, currentResultsRef } =
-    useContext(CompetitionContext) as CompetitionContextType;
+  const { competitionState, updateSolve, currentResultsRef } = useContext(
+    CompetitionContext
+  ) as CompetitionContextType;
   const solveProp: keyof ResultEntry = `solve${
     competitionState.currentSolveIdx + 1
   }` as keyof ResultEntry;
   const formattedTime = currentResultsRef.current[solveProp].toString();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<ResponseError>();
 
   useEffect(
     () => setForceRerender(!forceRerender),
@@ -67,13 +59,7 @@ const ManualInput = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      setIsLoading(true);
-      saveResults()
-        .then(() => setIsLoading(false))
-        .catch((err) => {
-          setIsLoading(false);
-          setError(getError(err));
-        });
+      handleSaveResults();
     } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
     }
@@ -81,7 +67,6 @@ const ManualInput = () => {
 
   return (
     <div>
-      {error && renderResponseError(error)}
       <Input
         size="lg"
         placeholder="Enter your time or solution..."
@@ -101,7 +86,7 @@ const ManualInput = () => {
               target?.value?.length
             );
         }}
-        disabled={!competitionOnGoing(competitionState) || isLoading}
+        autoFocus
       />
     </div>
   );
