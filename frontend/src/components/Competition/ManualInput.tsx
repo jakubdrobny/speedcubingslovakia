@@ -25,12 +25,14 @@ const ManualInput: React.FC<{
 
   const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
     const newValue = e.currentTarget.value;
+    const target = e.currentTarget;
 
     if (
       competitionState.events[competitionState.currentEventIdx].displayname ===
       "FMC"
     ) {
       updateSolve(newValue);
+      target.setSelectionRange(newValue.length, newValue.length);
       return;
     }
 
@@ -40,6 +42,7 @@ const ManualInput: React.FC<{
     if (newValue.length + 1 === formattedTime.length) {
       if (newValue.endsWith("N")) {
         updateSolve("0.00");
+        target.setSelectionRange(newValue.length, newValue.length);
         return;
       } else {
         updateSolve(reformatTime(newValue));
@@ -54,6 +57,8 @@ const ManualInput: React.FC<{
       } else {
         updateSolve("DNF");
       }
+
+      target.setSelectionRange(newValue.length, newValue.length);
     }
   };
 
