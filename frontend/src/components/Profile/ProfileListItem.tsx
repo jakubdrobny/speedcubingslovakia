@@ -25,14 +25,11 @@ const ProfileListItem = () => {
     setAuthState(initialAuthState);
     closeNav();
     logOut();
-    document.location.reload();
-    document.location.href = "/";
   };
 
   const goToProfile = () => {
     closeNav();
     navigate(`/profile/${authState.wcaid}`);
-    document.location.reload();
   };
 
   return (

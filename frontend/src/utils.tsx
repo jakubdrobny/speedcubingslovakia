@@ -507,3 +507,10 @@ export const reformatMultiTime = (startingTime: string): string => {
 
   return cubePart + " " + res;
 };
+
+export const saveCurrentLocation = (locationPathname: string) => {
+  const cookies = new Cookies(null, { path: "/" });
+  cookies.set("backlink", locationPathname, {
+    expires: new Date(new Date().getTime() + 60 * 1000), // expires in 1 minute
+  });
+};
