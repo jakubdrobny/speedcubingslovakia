@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { AuthContext } from "../../context/AuthContext";
+import Cookies from "universal-cookie";
 
 const LogIn = () => {
   const { setAuthState } = useContext(AuthContext) as AuthContextType;
@@ -20,7 +21,11 @@ const LogIn = () => {
     logIn(searchParams)
       .then((res: AuthState) => {
         setAuthState(res);
-        navigate("/", { replace: true });
+
+        const cookies = new Cookies(null, { path: "/" });
+        const locationPathname = cookies.get("backlink");
+        cookies.remove("backlink");
+        navigate(locationPathname || "/", { replace: true });
       })
       .catch((err) => {
         setLoadingState({ loading: false, error: getError(err) });

@@ -10,14 +10,10 @@ import {
   EmojiEvents,
   FormatListNumbered,
   Leaderboard,
-  Logout,
-  Person,
   Search,
 } from "@mui/icons-material";
-import { Link, useNavigate } from "react-router-dom";
-import { initialAuthState, logOut } from "../../utils";
 
-import { AuthContext } from "../../context/AuthContext";
+import { Link } from "react-router-dom";
 import { NavContext } from "../../context/NavContext";
 import { useContext } from "react";
 
