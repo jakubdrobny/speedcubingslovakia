@@ -32,9 +32,6 @@ const ManualInput: React.FC<{
       "FMC"
     ) {
       updateSolve(newValue);
-      console.log(newValue.length, formattedTime.length);
-      console.log(newValue, formattedTime);
-      console.log("one-------");
       target.setSelectionRange(newValue.length, newValue.length);
       return;
     }
@@ -45,11 +42,6 @@ const ManualInput: React.FC<{
     if (newValue.length + 1 === formattedTime.length) {
       if (newValue.endsWith("N")) {
         newValue = "0.00";
-        target.setSelectionRange(newValue.length, newValue.length);
-        console.log(newValue.length, formattedTime.length);
-        console.log(newValue, formattedTime);
-        console.log("two-------");
-        return;
       } else {
         newValue = reformatTime(newValue);
       }
@@ -63,13 +55,10 @@ const ManualInput: React.FC<{
       } else {
         newValue = "DNF";
       }
-
-      updateSolve(newValue);
-      target.setSelectionRange(newValue.length, newValue.length);
-      console.log(newValue.length, formattedTime.length);
-      console.log(newValue, formattedTime);
-      console.log("three-------");
     }
+
+    updateSolve(newValue);
+    target.setSelectionRange(newValue.length, newValue.length);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
