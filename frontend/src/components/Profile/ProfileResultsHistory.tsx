@@ -137,13 +137,6 @@ const ProfileResultsHistory: React.FC<{
                         entry.averageRecord,
                       ]
                   ).map((val, idx1) => {
-                    console.log(
-                      idx === 2
-                        ? entry.singleRecordColor
-                        : idx === 4
-                        ? entry.averageRecordColor
-                        : "black"
-                    );
                     return (
                       <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
                         {idx1 === 0 ? (

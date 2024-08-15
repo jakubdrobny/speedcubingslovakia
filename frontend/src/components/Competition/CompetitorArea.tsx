@@ -5,6 +5,7 @@ import { AuthContextType } from "../../Types";
 import CommentBox from "./CommentBox";
 import Compete from "./Compete";
 import Guide from "./Guide";
+import { saveCurrentLocation } from "../../utils";
 import { useContext } from "react";
 
 const CompetitorArea: React.FC<{ loading: boolean }> = ({ loading }) => {
@@ -17,7 +18,12 @@ const CompetitorArea: React.FC<{ loading: boolean }> = ({ loading }) => {
           <Grid container direction="row" alignItems="center">
             You are not authenticated! Please{" "}
             <span style={{ fontSize: "1em" }}>&nbsp;</span>
-            <a href={process.env.REACT_APP_WCA_GET_CODE_URL || ""}>log in</a>
+            <a
+              href={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+              onClick={() => saveCurrentLocation(window.location.pathname)}
+            >
+              log in
+            </a>
             <span style={{ fontSize: "1em" }}>&nbsp;</span> to compete.
           </Grid>
         </Alert>
