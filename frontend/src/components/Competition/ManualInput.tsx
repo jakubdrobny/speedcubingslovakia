@@ -1,5 +1,5 @@
 import { CompetitionContextType, ResultEntry } from "../../Types";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { Input } from "@mui/joy";
@@ -22,6 +22,8 @@ const ManualInput: React.FC<{
     () => setForceRerender(!forceRerender),
     [competitionState.currentEventIdx]
   );
+
+  const ref = useRef<HTMLInputElement>(null);
 
   const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
     let newValue = e.currentTarget.value;
@@ -61,7 +63,7 @@ const ManualInput: React.FC<{
     console.log("new newValue: ", newValue);
     updateSolve(newValue);
     console.log(newValue.length, target.selectionStart, target.selectionEnd);
-    target.setSelectionRange(newValue.length, newValue.length);
+    ref.current?.setSelectionRange(newValue.length, newValue.length);
     console.log(newValue.length, target.selectionStart, target.selectionEnd);
   };
 
@@ -83,6 +85,7 @@ const ManualInput: React.FC<{
           marginTop: 2,
           //input: { caretColor: "transparent" },
         }}
+        ref={ref}
         value={formattedTime}
         onChange={handleTimeInputChange}
         onKeyDown={handleKeyDown}
