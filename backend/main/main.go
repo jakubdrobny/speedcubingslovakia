@@ -67,6 +67,12 @@ func main() {
 	})
 
 	router.Use(rateLimitMiddleWare)
+	showIpAddressMiddleware := func () gin.HandlerFunc {
+		return func(c *gin.Context) {
+			fmt.Println("The URL: ", c.ClientIP())
+		}
+	}
+	router.Use(showIpAddressMiddleware())
 
 	api_v1 := router.Group("/api")
 	
