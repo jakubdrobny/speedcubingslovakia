@@ -32,7 +32,10 @@ const ManualInput: React.FC<{
       "FMC"
     ) {
       updateSolve(newValue);
-      target.setSelectionRange(newValue.length, newValue.length);
+      console.log(newValue.length, formattedTime.length);
+      console.log(newValue, formattedTime);
+      console.log("one-------");
+      target.setSelectionRange(formattedTime.length, formattedTime.length);
       return;
     }
 
@@ -42,7 +45,10 @@ const ManualInput: React.FC<{
     if (newValue.length + 1 === formattedTime.length) {
       if (newValue.endsWith("N")) {
         updateSolve("0.00");
-        target.setSelectionRange(newValue.length, newValue.length);
+        target.setSelectionRange(formattedTime.length, formattedTime.length);
+        console.log(newValue.length, formattedTime.length);
+        console.log(newValue, formattedTime);
+        console.log("two-------");
         return;
       } else {
         updateSolve(reformatTime(newValue));
@@ -58,7 +64,10 @@ const ManualInput: React.FC<{
         updateSolve("DNF");
       }
 
-      target.setSelectionRange(newValue.length, newValue.length);
+      target.setSelectionRange(formattedTime.length, formattedTime.length);
+      console.log(newValue.length, formattedTime.length);
+      console.log(newValue, formattedTime);
+      console.log("three-------");
     }
   };
 
