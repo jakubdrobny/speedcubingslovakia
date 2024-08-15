@@ -1,6 +1,5 @@
 import { AuthContextType, WindowSizeContextType } from "./Types";
-import { Grid, Stack, Typography } from "@mui/joy";
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { authorizeAdmin, setBearerIfPresent } from "./utils";
 import { useContext, useEffect } from "react";
 
@@ -10,9 +9,9 @@ import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
 import Competitions from "./components/Competitions/Competitions";
 import Dashboard from "./components/Dashboard/Dashboard";
 import Footer from "./components/Footer/Footer";
+import { Grid } from "@mui/joy";
 import Home from "./components/Home/Home";
 import LogIn from "./components/Login/LogIn";
-import { Mail } from "@mui/icons-material";
 import ManageRoles from "./components/Dashboard/ManageRoles";
 import NavHorizontal from "./components/Nav/NavHorizontal";
 import NavVertical from "./components/Nav/NavVertical";

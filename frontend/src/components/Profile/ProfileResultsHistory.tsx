@@ -1,6 +1,6 @@
-import { Card, IconButton, Stack, Table, Typography } from "@mui/joy";
-import { Link, Navigate } from "react-router-dom";
+import { Card, Stack, Table, Typography } from "@mui/joy";
 
+import { Link } from "react-router-dom";
 import { ProfileTypeResultHistory } from "../../Types";
 import { reformatMultiTime } from "../../utils";
 import { useState } from "react";
@@ -32,7 +32,7 @@ const ProfileResultsHistory: React.FC<{
 
     if (columnNames.includes("Average") && ismbld)
       columnNames.splice(
-        columnNames.findIndex((x) => x == "Average"),
+        columnNames.findIndex((x) => x === "Average"),
         2
       );
 

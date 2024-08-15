@@ -1,20 +1,14 @@
-import { AuthContextType, NavContextType } from "../../Types";
-import {
-  Avatar,
-  List,
-  ListItemButton,
-  ListItemDecorator,
-  Tooltip,
-} from "@mui/joy";
 import {
   EmojiEvents,
   FormatListNumbered,
   Leaderboard,
   Search,
 } from "@mui/icons-material";
+import { List, ListItemButton, ListItemDecorator, Tooltip } from "@mui/joy";
 
 import { Link } from "react-router-dom";
 import { NavContext } from "../../context/NavContext";
+import { NavContextType } from "../../Types";
 import { useContext } from "react";
 
 const ResultsListItem = () => {

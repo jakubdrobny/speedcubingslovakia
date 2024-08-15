@@ -131,7 +131,6 @@ func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int, db
 	})
 
 	AddOverallPlacement(competitionResults)
-	fmt.Println(competitionResults)
 
 	return competitionResults, nil
 }
