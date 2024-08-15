@@ -23,19 +23,15 @@ const ManualInput: React.FC<{
     [competitionState.currentEventIdx]
   );
 
-  const ref = useRef<HTMLInputElement>(null);
-
   const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
     let newValue = e.currentTarget.value;
-    console.log("original newValue: ", newValue);
-    const target = e.currentTarget;
 
     if (
       competitionState.events[competitionState.currentEventIdx].displayname ===
       "FMC"
     ) {
       updateSolve(newValue);
-      target.setSelectionRange(newValue.length, newValue.length);
+      e.currentTarget.setSelectionRange(newValue.length, newValue.length);
       return;
     }
 
@@ -62,9 +58,21 @@ const ManualInput: React.FC<{
 
     console.log("new newValue: ", newValue);
     updateSolve(newValue);
-    console.log(newValue.length, target.selectionStart, target.selectionEnd);
-    ref.current?.setSelectionRange(newValue.length, newValue.length);
-    console.log(newValue.length, target.selectionStart, target.selectionEnd);
+    console.log(
+      newValue.length,
+      e.currentTarget.selectionStart,
+      e.currentTarget.selectionEnd
+    );
+    e.currentTarget.setSelectionRange(
+      newValue.length,
+      newValue.length,
+      "forward"
+    );
+    console.log(
+      newValue.length,
+      e.currentTarget.selectionStart,
+      e.currentTarget.selectionEnd
+    );
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -85,7 +93,6 @@ const ManualInput: React.FC<{
           marginTop: 2,
           //input: { caretColor: "transparent" },
         }}
-        ref={ref}
         value={formattedTime}
         onChange={handleTimeInputChange}
         onKeyDown={handleKeyDown}
