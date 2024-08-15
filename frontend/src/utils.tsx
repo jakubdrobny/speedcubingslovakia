@@ -434,19 +434,23 @@ export const defaultProfile: ProfileType = {
 };
 
 export const getError = (err: AxiosError): ResponseError => {
-  if (err.response?.status === 401)
+  if (err.response?.status === 401) {
     return {
       element: (
         <Alert color="danger" sx={{ gap: 0 }}>
           Unauthorized/token expired. Try to{" "}
           <span style={{ padding: "0 2px" }}></span>
-          <Link to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}>
+          <Link
+            to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+            onClick={() => saveCurrentLocation(window.location.pathname)}
+          >
             re-login
           </Link>
           .
         </Alert>
       ),
     };
+  }
   return { message: err.response?.data as string };
 };
 

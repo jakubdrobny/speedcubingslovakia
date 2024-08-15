@@ -1,24 +1,22 @@
 import { AuthContextType, NavContextType } from "../../Types";
-import { Leaderboard, ListAlt, Search } from "@mui/icons-material";
-import { Link, useLocation } from "react-router-dom";
 import { List, ListItemButton, ListItemDecorator } from "@mui/joy";
-import { useContext, useEffect } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 import LanguageIcon from "@mui/icons-material/Language";
+import { Link } from "react-router-dom";
+import { ListAlt } from "@mui/icons-material";
 import { NavContext } from "../../context/NavContext";
 import ProfileListItem from "../Profile/ProfileListItem";
 import ResultsListItem from "./ResultsListItem";
 import WCALogoNoText from "../../images/WCALogoNoText";
 import { saveCurrentLocation } from "../../utils";
+import { useContext } from "react";
 
 const NavItems: React.FC<{
   direction: "row" | "row-reverse" | "column" | "column-reverse";
 }> = ({ direction }) => {
   const { authState } = useContext(AuthContext) as AuthContextType;
   const { closeNav } = useContext(NavContext) as NavContextType;
-
-  let location = useLocation();
 
   return (
     <List
@@ -59,7 +57,7 @@ const NavItems: React.FC<{
           component={Link}
           to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
           onClick={() => {
-            saveCurrentLocation(location.pathname);
+            saveCurrentLocation(window.location.pathname);
             closeNav();
           }}
           sx={{ justifyContent: "flex-end" }}
