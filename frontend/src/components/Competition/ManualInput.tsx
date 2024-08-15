@@ -25,6 +25,7 @@ const ManualInput: React.FC<{
 
   const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
     let newValue = e.currentTarget.value;
+    console.log("original newValue: ", newValue);
     const target = e.currentTarget;
 
     if (
@@ -57,8 +58,9 @@ const ManualInput: React.FC<{
       }
     }
 
+    console.log("new newValue: ", newValue);
     updateSolve(newValue);
-    target.setSelectionRange(newValue.length, newValue.length);
+    target.setSelectionRange(target.value.length, target.value.length);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
