@@ -60,7 +60,7 @@ const ManualInput: React.FC<{
 
     console.log("new newValue: ", newValue);
     updateSolve(newValue);
-    target.setSelectionRange(target.value.length, target.value.length);
+    target.setSelectionRange(newValue.value.length, newValue.value.length);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
