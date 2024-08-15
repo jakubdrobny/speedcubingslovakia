@@ -1,4 +1,4 @@
-import { Alert, Button, Card, CircularProgress, Grid } from "@mui/joy";
+import { Button, Card, CircularProgress, Grid } from "@mui/joy";
 import {
   CompetitionContextType,
   InputMethod,
@@ -52,9 +52,12 @@ const Compete = () => {
   const handleSaveResults = () => {
     setLoadingState({ ...loadingState, results: true, compinfo: false });
     saveResults()
-      .then(() =>
-        setLoadingState({ ...loadingState, results: false, error: {} })
-      )
+      .then(() => {
+        setLoadingState({ ...loadingState, results: false, error: {} });
+        updateCurrentSolve(
+          (competitionState.currentSolveIdx + 1) % competitionState.noOfSolves
+        );
+      })
       .catch((err) =>
         setLoadingState({
           ...loadingState,
@@ -174,7 +177,7 @@ const Compete = () => {
                     ismbld ? (
                       <ManualInputMBLD />
                     ) : (
-                      <ManualInput />
+                      <ManualInput handleSaveResults={handleSaveResults} />
                     )
                   ) : (
                     <TimerInput />

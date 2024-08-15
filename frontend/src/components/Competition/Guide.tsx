@@ -24,7 +24,10 @@ const Guide = () => {
           </Typography>
           <Typography>
             You can find the list of allowed moves{" "}
-            <a href="https://www.worldcubeassociation.org/regulations/#12a">
+            <a
+              href="https://www.worldcubeassociation.org/regulations/#12a"
+              style={{ color: "#0B6BCB", textDecoration: "none" }}
+            >
               here
             </a>
             . (TLDR: basically anything except slice moves)

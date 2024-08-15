@@ -28,9 +28,8 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
 }) => {
   const [timerInputState, setTimerInputState] =
     useState<TimerInputState>(initialState);
-  const { saveResults, updateSolve } = useContext(
-    CompetitionContext
-  ) as CompetitionContextType;
+  const { saveResults, updateSolve, updateCurrentSolve, competitionState } =
+    useContext(CompetitionContext) as CompetitionContextType;
   let holdingTimeout: {
     current: ReturnType<typeof setTimeout> | undefined | 1;
   } = useRef(undefined);
@@ -143,6 +142,10 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
               currentState: TimerInputCurrentState.NotSolving,
               color: TimerColors.Default,
             }));
+            updateCurrentSolve(
+              (competitionState.currentSolveIdx + 1) %
+                competitionState.noOfSolves
+            );
             // revertHidingAllElementsExceptTimer();
           }
         } else {
@@ -155,6 +158,10 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
               color: TimerColors.Default,
             }));
             saveResults();
+            updateCurrentSolve(
+              (competitionState.currentSolveIdx + 1) %
+                competitionState.noOfSolves
+            );
             holdingTimeout.current = undefined;
             // revertHidingAllElementsExceptTimer();
           }
