@@ -130,9 +130,16 @@ const Rankings = () => {
           ))}
         </div>
       </Stack>
-      <Stack direction="row" spacing={1} flexWrap="wrap" gap="10px">
-        <Typography level="h3">Type:</Typography>
-        <Stack direction="row" spacing={2}>
+      <Stack
+        direction="row"
+        spacing={windowSize.width < 450 ? 0 : 2}
+        flexWrap="wrap"
+        rowGap="10px"
+      >
+        <Typography level="h3" sx={{ mr: windowSize.width < 450 ? 2 : 0 }}>
+          Type:
+        </Typography>
+        <Stack direction="row" spacing={windowSize.width < 450 ? 1 : 2}>
           <ButtonGroup>
             <Button
               variant={single ? "solid" : "outlined"}
@@ -161,7 +168,6 @@ const Rankings = () => {
           </ButtonGroup>
           <Select
             value={queryTypeValue}
-            defaultValue={defaultQueryTypeValue}
             onChange={(e, val) => {
               setQueryTypeValue(val || "");
               fetchRankings();
@@ -179,7 +185,6 @@ const Rankings = () => {
         <Typography level="h3">Region:</Typography>
         <Select
           value={regionValue}
-          defaultValue={defaultRegionGroup}
           onChange={(e, val) => {
             setRegionValue(val || "");
             fetchRankings();
