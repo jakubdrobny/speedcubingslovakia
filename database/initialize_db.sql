@@ -184,19 +184,19 @@ VALUES ('3x3x3 Match The Scramble', 'Match', 'ao5', 'unofficial-333mts', '333')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2 - 4x4 Relay', '2-4 Relay', 'bo1', 'unofficial-234relay', '234rel')
+VALUES ('2x2 - 4x4 Relay', '2-4 Relay', 'bo1', 'unofficial-234relay', 'w234r')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2 - 5x5 Relay', '2-5 Relay', 'bo1', 'unofficial-2345relay', '2345rel')
+VALUES ('2x2 - 5x5 Relay', '2-5 Relay', 'bo1', 'unofficial-2345relay', 'w2345r')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2 - 6x6 Relay', '2-6 Relay', 'bo1', 'unofficial-23456relay', '23456rel')
+VALUES ('2x2 - 6x6 Relay', '2-6 Relay', 'bo1', 'unofficial-23456relay', 'w23456r')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2 - 7x7 Relay', '2-7 Relay', 'bo1', 'unofficial-234567relay', '234567rel')
+VALUES ('2x2 - 7x7 Relay', '2-7 Relay', 'bo1', 'unofficial-234567relay', 'w234567r')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
@@ -216,7 +216,7 @@ VALUES ('Master Pyraminx', 'Master Pyra', 'ao5', 'unofficial-mpyram', 'mpyrso')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('15 Puzzle', '15 Puzzle', 'ao5', 'unofficial-15puzzle', '15puzzle')
+VALUES ('15 Puzzle', '15 Puzzle', 'ao5', 'unofficial-15puzzle', '15prp')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
@@ -224,7 +224,7 @@ VALUES ('Mirror Blocks', 'Mirror', 'ao5', 'unofficial-mirror', '333')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('Face Turning Octahedron', 'FTO', 'ao5', 'unofficial-fto', 'fto')
+VALUES ('Face Turning Octahedron', 'FTO', 'ao5', 'unofficial-fto', 'ftoso')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 /* results status */
