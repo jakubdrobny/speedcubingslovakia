@@ -92,17 +92,17 @@ const App = () => {
           <Route path="/not-found" Component={NotFound} />
           <Route path="/login" Component={LogIn} />
           <Route
-            Component={() => (
+            element={
               <ProtectedRoute loadingState={authorizationLoadingState} />
-            )}
+            }
           >
             <Route
               path="/competition/:id/edit"
-              Component={() => <CompetitionEdit edit={true} />}
+              element={<CompetitionEdit edit={true} />}
             />
             <Route
               path="/competition/create"
-              Component={() => <CompetitionEdit edit={false} />}
+              element={<CompetitionEdit edit={false} />}
             />
             <Route path="/admin/dashboard" Component={Dashboard} />
             <Route path="/admin/manage-roles" Component={ManageRoles} />
