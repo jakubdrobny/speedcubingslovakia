@@ -81,6 +81,8 @@ export type CompetitionContextType = {
   setWarningModalOpen: (newModal: boolean) => void;
   results: CompetitionResult[];
   setResults: (newResults: CompetitionResult[]) => void;
+  anyComment: boolean;
+  setAnyComment: (newAnyComment: boolean) => void;
   resultsCompeteChoice: ResultsCompeteChoiceEnum;
   setResultsCompeteChoice: (newChoice: ResultsCompeteChoiceEnum) => void;
   loadingState: CompetitionLoadingState;
@@ -211,6 +213,12 @@ export type CompetitionResult = {
   average: string;
   times: string[];
   score: string;
+  comment: string;
+};
+
+export type CompetitionResultStruct = {
+  results: CompetitionResult[];
+  anyComment: boolean;
 };
 
 export type NavContextType = {
