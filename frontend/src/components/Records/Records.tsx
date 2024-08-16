@@ -1,8 +1,12 @@
 import {
+  Box,
   Button,
   Card,
+  Chip,
   CircularProgress,
   Divider,
+  Option,
+  Select,
   Stack,
   Typography,
 } from "@mui/joy";
@@ -120,27 +124,36 @@ const Records = () => {
       </Stack>
       <Stack direction="row" spacing={2}>
         <Typography level="h3">Region:</Typography>
-        <select
+        <Select
           value={regionValue}
-          onChange={(e) => {
-            setRegionValue(e.target.value);
+          color="neutral"
+          variant="outlined"
+          onChange={(e, val) => {
+            setRegionValue(val || "");
             fetchRecords();
           }}
+          renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
+          sx={{ minWidth: "200px" }}
         >
           {regionGroups.map((regionGroup: RegionSelectGroup, idx: number) => (
-            <optgroup key={idx} label={regionGroup.groupName}>
+            <div key={idx}>
+              <Option value={regionGroup.groupName} disabled sx={{ pl: 2 }}>
+                <b style={{ color: "black" }}>{regionGroup.groupName}</b>
+              </Option>
               {regionGroup.groupMembers.map((groupMember: string, idx2) => (
-                <option
+                <Option
                   key={idx2}
                   value={regionGroup.groupName + "+" + groupMember}
                   label={groupMember}
+                  sx={{ pl: 4 }}
+                  color="neutral"
                 >
                   {groupMember}
-                </option>
+                </Option>
               ))}
-            </optgroup>
+            </div>
           ))}
-        </select>
+        </Select>
       </Stack>
       <Divider />
       {!isObjectEmpty(loadingState.error) ? (
