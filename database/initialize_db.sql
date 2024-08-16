@@ -164,7 +164,7 @@ VALUES ('3x3x3 Multi-Blind', 'MBLD', 'bo3', '333mbf', '333ni')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2x2 Blindfolded', '2BLD', 'bo1', 'unofficial-222bf', '222')
+VALUES ('2x2x2 Blindfolded', '2BLD', 'bo3', 'unofficial-222bf', '222')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
