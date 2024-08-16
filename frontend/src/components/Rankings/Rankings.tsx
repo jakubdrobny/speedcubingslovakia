@@ -1,9 +1,19 @@
-import { Button, ButtonGroup, Divider, Stack, Typography } from "@mui/joy";
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Divider,
+  Option,
+  Select,
+  Stack,
+  Typography,
+} from "@mui/joy";
 import {
   CompetitionEvent,
   LoadingState,
   RankingsEntry,
   RegionSelectGroup,
+  WindowSizeContextType,
 } from "../../Types";
 import {
   getAvailableEvents,
@@ -14,9 +24,10 @@ import {
   isObjectEmpty,
   renderResponseError,
 } from "../../utils";
-import { useCallback, useEffect } from "react";
+import { useCallback, useContext, useEffect } from "react";
 
 import RankingsTable from "./RankingsTable";
+import { WindowSizeContext } from "../../context/WindowSizeContext";
 import useState from "react-usestateref";
 
 const defaultRegionGroup = "World+World";
@@ -37,6 +48,9 @@ const Rankings = () => {
   const ismbld = events[currentEventIdx]?.iconcode === "333mbf";
   const [queryTypeValue, setQueryTypeValue, queryTypeValueRef] =
     useState<string>(defaultQueryTypeValue);
+  const { windowSize, setWindowSize } = useContext(
+    WindowSizeContext
+  ) as WindowSizeContextType;
 
   const fetchRankings = useCallback(() => {
     if (!singleRef.current && ismbld) return;
@@ -116,72 +130,82 @@ const Rankings = () => {
           ))}
         </div>
       </Stack>
-      <Stack direction="row" spacing={2} flexWrap="nowrap">
+      <Stack direction="row" spacing={1} flexWrap="wrap" gap="10px">
         <Typography level="h3">Type:</Typography>
-        <ButtonGroup>
-          <Button
-            variant={single ? "solid" : "outlined"}
-            color="primary"
-            disabled={loadingState.isLoading}
-            onClick={() => {
-              setSingle(true);
-              fetchRankings();
-            }}
-          >
-            Single
-          </Button>
-          {!ismbld && (
+        <Stack direction="row" spacing={2}>
+          <ButtonGroup>
             <Button
-              variant={!single ? "solid" : "outlined"}
+              variant={single ? "solid" : "outlined"}
               color="primary"
               disabled={loadingState.isLoading}
               onClick={() => {
-                setSingle(false);
+                setSingle(true);
                 fetchRankings();
               }}
             >
-              Average
+              Single
             </Button>
-          )}
-        </ButtonGroup>
-        <select
-          value={queryTypeValue}
-          defaultValue={defaultQueryTypeValue}
-          onChange={(e) => {
-            setQueryTypeValue(e.target.value);
-            fetchRankings();
-          }}
-          color="primary"
-        >
-          <option value="100+Persons">100 Persons</option>
-          <option value="1000+Persons">1000 Persons</option>
-          <option value="100+Results">100 Results</option>
-          <option value="1000+Results">1000 Results</option>
-        </select>
+            {!ismbld && (
+              <Button
+                variant={!single ? "solid" : "outlined"}
+                color="primary"
+                disabled={loadingState.isLoading}
+                onClick={() => {
+                  setSingle(false);
+                  fetchRankings();
+                }}
+              >
+                Average
+              </Button>
+            )}
+          </ButtonGroup>
+          <Select
+            value={queryTypeValue}
+            defaultValue={defaultQueryTypeValue}
+            onChange={(e, val) => {
+              setQueryTypeValue(val || "");
+              fetchRankings();
+            }}
+            renderValue={(sel) => <Box sx={{ pl: 0.5 }}>{sel?.label}</Box>}
+          >
+            <Option value="100+Persons">100 Persons</Option>
+            <Option value="1000+Persons">1000 Persons</Option>
+            <Option value="100+Results">100 Results</Option>
+            <Option value="1000+Results">1000 Results</Option>
+          </Select>
+        </Stack>
       </Stack>
-      <Stack direction="row" spacing={2}>
+      <Stack direction="row" spacing={1} flexWrap="wrap" gap="10px">
         <Typography level="h3">Region:</Typography>
-        <select
+        <Select
           value={regionValue}
-          onChange={(e) => {
-            setRegionValue(e.target.value);
+          defaultValue={defaultRegionGroup}
+          onChange={(e, val) => {
+            setRegionValue(val || "");
             fetchRankings();
           }}
+          renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
+          sx={{ minWidth: "200px" }}
         >
           {regionGroups.map((regionGroup: RegionSelectGroup, idx: number) => (
-            <optgroup key={idx} label={regionGroup.groupName}>
+            <div key={idx}>
+              <Option value={regionGroup.groupName} disabled sx={{ pl: 2 }}>
+                <b style={{ color: "black" }}>{regionGroup.groupName}</b>
+              </Option>
               {regionGroup.groupMembers.map((groupMember: string, idx2) => (
-                <option
+                <Option
                   key={idx2}
                   value={regionGroup.groupName + "+" + groupMember}
                   label={groupMember}
+                  sx={{ pl: 4 }}
+                  color="neutral"
                 >
                   {groupMember}
-                </option>
+                </Option>
               ))}
-            </optgroup>
+            </div>
           ))}
-        </select>
+        </Select>
       </Stack>
       <Divider />
       {!isObjectEmpty(loadingState.error) ? (
