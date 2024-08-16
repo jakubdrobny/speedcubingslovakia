@@ -32,6 +32,7 @@ import useState from "react-usestateref";
 
 const defaultRegionGroup = "World+World";
 const defaultQueryTypeValue = "100+Persons";
+const smallSelectSize = 450;
 
 const Rankings = () => {
   const [events, setEvents, eventsRef] = useState<CompetitionEvent[]>([]);
@@ -132,14 +133,20 @@ const Rankings = () => {
       </Stack>
       <Stack
         direction="row"
-        spacing={windowSize.width < 450 ? 0 : 2}
+        spacing={windowSize.width < smallSelectSize ? 0 : 2}
         flexWrap="wrap"
         rowGap="10px"
       >
-        <Typography level="h3" sx={{ mr: windowSize.width < 450 ? 2 : 0 }}>
+        <Typography
+          level="h3"
+          sx={{ mr: windowSize.width < smallSelectSize ? 2 : 0 }}
+        >
           Type:
         </Typography>
-        <Stack direction="row" spacing={windowSize.width < 450 ? 1 : 2}>
+        <Stack
+          direction="row"
+          spacing={windowSize.width < smallSelectSize ? 1 : 2}
+        >
           <ButtonGroup>
             <Button
               variant={single ? "solid" : "outlined"}
