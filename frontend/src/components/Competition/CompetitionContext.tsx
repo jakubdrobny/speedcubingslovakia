@@ -39,6 +39,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   const [resultsCompeteChoice, setResultsCompeteChoice] =
     useState<ResultsCompeteChoiceEnum>(ResultsCompeteChoiceEnum.Results);
   const [results, setResults] = useState<CompetitionResult[]>([]);
+  const [anyComment, setAnyComment] = useState<boolean>(false);
   const [loadingState, setLoadingState] = useState<CompetitionLoadingState>(
     initialCompetitionLoadingState
   );
@@ -112,7 +113,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     setLoadingState((ps) => ({ ...ps, results: true, error: {} }));
     getCompetitionResults(compId, event)
       .then((res) => {
-        setResults(res);
+        setResults(res.results);
+        setAnyComment(res.anyComment);
         setLoadingState((ps) => ({
           ...ps,
           results: false,
@@ -243,6 +245,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         setWarningModalOpen,
         results,
         setResults,
+        anyComment,
+        setAnyComment,
         resultsCompeteChoice,
         setResultsCompeteChoice,
         loadingState,

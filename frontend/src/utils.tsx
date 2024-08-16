@@ -4,6 +4,7 @@ import {
   CompetitionEvent,
   CompetitionLoadingState,
   CompetitionResult,
+  CompetitionResultStruct,
   CompetitionState,
   FilterValue,
   InputMethod,
@@ -383,7 +384,7 @@ export const setBearerIfPresent = (token: string) => {
 export const getCompetitionResults = async (
   competitionId: string,
   event: CompetitionEvent
-): Promise<CompetitionResult[]> => {
+): Promise<CompetitionResultStruct> => {
   const response = await axios.get(
     `/api/competitions/results/${competitionId}/${event.id}`
   );
@@ -517,4 +518,9 @@ export const saveCurrentLocation = (locationPathname: string) => {
   cookies.set("backlink", locationPathname, {
     expires: new Date(new Date().getTime() + 60 * 1000), // expires in 1 minute
   });
+};
+
+export const initialResultsStruct: CompetitionResultStruct = {
+  results: [],
+  anyComment: false,
 };

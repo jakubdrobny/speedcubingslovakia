@@ -8,6 +8,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/joy";
+import { Comment, Help } from "@mui/icons-material";
 import {
   isObjectEmpty,
   reformatMultiTime,
@@ -17,12 +18,16 @@ import { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { CompetitionContextType } from "../../Types";
-import { Help } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 
 const CompetitionResults = () => {
-  const { competitionState, results, loadingState, fetchCompetitionResults } =
-    useContext(CompetitionContext) as CompetitionContextType;
+  const {
+    competitionState,
+    results,
+    loadingState,
+    fetchCompetitionResults,
+    anyComment,
+  } = useContext(CompetitionContext) as CompetitionContextType;
   const averageFirst = (() => {
     const format =
       competitionState?.events[competitionState?.currentEventIdx]?.format;
@@ -55,6 +60,13 @@ const CompetitionResults = () => {
 
     if (columnNames.includes("Average") && ismbld)
       columnNames = columnNames.filter((c) => c !== "Average");
+
+    if (
+      !isOverall &&
+      (!isfmc || new Date() >= new Date(competitionState.enddate)) &&
+      anyComment
+    )
+      columnNames.push("Comment");
 
     return columnNames;
   };
@@ -117,8 +129,7 @@ const CompetitionResults = () => {
                     <th
                       style={{
                         height: "1em",
-                        maxWidth:
-                          idx === columnNames().length - 1 ? "400px" : "auto",
+                        maxWidth: "auto",
                       }}
                       key={idx}
                     >
@@ -215,6 +226,35 @@ const CompetitionResults = () => {
                           {result.times?.join(", ")}
                         </td>
                       </>
+                    )}
+                    {!isOverall && anyComment && (
+                      <td
+                        style={{
+                          height: "1em",
+                          textAlign: "left",
+                        }}
+                      >
+                        <Stack>
+                          {result.comment && (
+                            <Tooltip
+                              placement="left"
+                              title={
+                                <Box style={{ textAlign: "center" }}>
+                                  {result.comment}
+                                </Box>
+                              }
+                              variant="outlined"
+                              color="primary"
+                              enterTouchDelay={0}
+                            >
+                              <span style={{ height: "21px" }}>
+                                &nbsp;
+                                <Comment fontSize="small" />
+                              </span>
+                            </Tooltip>
+                          )}
+                        </Stack>
+                      </td>
                     )}
                   </tr>
                 );

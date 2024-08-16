@@ -6,6 +6,7 @@ import (
 	"math"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,11 +25,17 @@ type CompetitionResult struct {
 	Times []string `json:"times"`
 	Score string `json:"score"`
 	UserId int `json:"-"`
+	Comment string `json:"comment"`
 }
 
 type BestEntry struct {
 	Single int
 	Average int
+}
+
+type CompetitionResultStruct struct {
+	Results []CompetitionResult `json:"results"`
+	AnyComment bool `json:"anyComment"`
 }
 
 func GetNewBest(pBest BestEntry, resultEntry ResultEntry, noOfSolves int, scrambles []string) BestEntry {
@@ -219,42 +226,47 @@ func AddPlacementToCompetitionResults(results []CompetitionResult, format string
 	}
 }
 
-func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int) ([]CompetitionResult, error) {
+func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int) (CompetitionResultStruct, error) {
 	if (eid == -1) {
 		competitionResults, err := GetOverallResults(db, cid)
-		if err != nil { return []CompetitionResult{}, err}
-		return competitionResults, nil
+		if err != nil { return CompetitionResultStruct{}, err}
+		return CompetitionResultStruct{Results: competitionResults}, nil
 	}
 	
-	rows, err := db.Query(context.Background(), `SELECT u.name, u.wcaid, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.iconcode, r.event_id, r.competition_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1 AND r.event_id = $2;`, cid, eid)
-	if err != nil { return []CompetitionResult{}, err }
+	rows, err := db.Query(context.Background(), `SELECT u.name, u.wcaid, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.iconcode, r.event_id, r.competition_id, r.comment, comp.enddate FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id JOIN competitions comp ON r.competition_id = comp.competition_id WHERE r.competition_id = $1 AND r.event_id = $2;`, cid, eid)
+	if err != nil { return CompetitionResultStruct{}, nil}
 	
 	competitionResults := make([]CompetitionResult, 0)
 	format := ""
+	anyComment := false
 	
 	for rows.Next() {
 		var competitionResult CompetitionResult
 		var resultEntry ResultEntry
+		var competitionEnddate time.Time
 		
-		err = rows.Scan(&competitionResult.Username, &competitionResult.WcaId, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible, &resultEntry.Iconcode, &resultEntry.Eventid, &resultEntry.Competitionid)
-		if err != nil { return []CompetitionResult{}, err }
+		err = rows.Scan(&competitionResult.Username, &competitionResult.WcaId, &competitionResult.CountryName, &competitionResult.CountryIso2, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Format, &resultEntry.Status.Visible, &resultEntry.Iconcode, &resultEntry.Eventid, &resultEntry.Competitionid, &competitionResult.Comment, &competitionEnddate)
+		if err != nil { return CompetitionResultStruct{}, nil}
 		
 		if competitionResult.WcaId == "" { competitionResult.WcaId = competitionResult.Username }
 		
 		if !resultEntry.Competed() || !resultEntry.Status.Visible { continue; }
 		
 		scrambles, err := utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
-		if err != nil { return []CompetitionResult{}, err }
+		if err != nil { return CompetitionResultStruct{}, nil}
 		
 		competitionResult.Single = resultEntry.SingleFormatted(resultEntry.IsFMC(), scrambles)
 		
 		avg, err := resultEntry.AverageFormatted(resultEntry.IsFMC(), scrambles)
-		if err != nil { return []CompetitionResult{}, err }
+		if err != nil { return CompetitionResultStruct{}, nil}
 		competitionResult.Average = avg
 
 		formattedTimes, err := resultEntry.GetFormattedTimes(resultEntry.IsFMC(), scrambles)
-		if err != nil { return []CompetitionResult{}, err }
+		if err != nil { return CompetitionResultStruct{}, nil}
 		competitionResult.Times = formattedTimes
+
+		if resultEntry.IsFMC() && time.Now().Before(competitionEnddate) { competitionResult.Comment = "" }
+		if competitionResult.Comment != "" { anyComment = anyComment || true }
 
 		competitionResults = append(competitionResults, competitionResult)
 		format = resultEntry.Format
@@ -271,5 +283,5 @@ func GetResultsFromCompetitionByEventName(db *pgxpool.Pool, cid string, eid int)
 		AddPlacementToCompetitionResults(competitionResults, format)
 	}
 
-	return competitionResults, nil
+	return CompetitionResultStruct{Results: competitionResults, AnyComment: anyComment}, nil
 }
