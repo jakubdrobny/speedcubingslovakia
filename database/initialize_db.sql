@@ -163,6 +163,69 @@ INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingco
 VALUES ('3x3x3 Multi-Blind', 'MBLD', 'bo3', '333mbf', '333ni')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('2x2x2 Blindfolded', '2BLD', 'bo1', 'unofficial-222bf', '222')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('6x6x6 Blindfolded', '6BLD', 'bo1', 'unofficial-666bf', '666')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('7x7x7 Blindfolded', '7BLD', 'bo1', 'unofficial-777bf', '777')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('3x3x3 With Feet', 'Feet', 'ao5', '333ft', '333')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('3x3x3 Match The Scramble', 'Match', 'ao5', 'unofficial-333mts', '333')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('2x2 - 4x4 Relay', '2-4 Relay', 'bo1', 'unofficial-234relay', '234rel')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('2x2 - 5x5 Relay', '2-5 Relay', 'bo1', 'unofficial-2345relay', '2345rel')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('2x2 - 6x6 Relay', '2-6 Relay', 'bo1', 'unofficial-23456relay', '23456rel')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('2x2 - 7x7 Relay', '2-7 Relay', 'bo1', 'unofficial-234567relay', '234567rel')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('Kilominx', 'Kilo', 'ao5', 'unofficial-kilominx', 'kilo')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('Mini Guildford', 'Mini Guild', 'bo1', 'unofficial-miniguild', 'miniguild')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('Redi Cube', 'Redi', 'ao5', 'unofficial-redi', 'redi')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('Master Pyraminx', 'Master Pyra', 'ao5', 'unofficial-mpyram', 'redi')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('15 Puzzle', '15 Puzzle', 'ao5', 'unofficial-15puzzle', '15puzzle')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('Mirror Blocks', 'Mirror', 'ao5', 'unofficial-mirror', '333')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
+
+INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
+VALUES ('Face Turning Octahedron', 'FTO', 'ao5', 'unofficial-fto', 'fto')
+ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 /* results status */
 INSERT INTO results_status (approvalfinished, approved, visible, displayname)
