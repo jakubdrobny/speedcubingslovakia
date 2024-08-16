@@ -239,7 +239,12 @@ const CompetitionResults = () => {
                             <Tooltip
                               placement="left"
                               title={
-                                <Box style={{ textAlign: "center" }}>
+                                <Box
+                                  sx={{
+                                    textAlign: "center",
+                                    whiteSpace: "pre-line",
+                                  }}
+                                >
                                   {result.comment}
                                 </Box>
                               }
