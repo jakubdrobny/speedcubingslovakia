@@ -18,6 +18,7 @@ import {
 } from "../../Types";
 import {
   getAvailableEvents,
+  getCubingIconClassName,
   getError,
   getRecords,
   getRegionGroups,
@@ -105,7 +106,9 @@ const Records = () => {
           {events.map((event: CompetitionEvent, idx: number) => (
             <span
               key={idx}
-              className={`cubing-icon event-${event.iconcode} profile-cubing-icon-mock`}
+              className={`${getCubingIconClassName(
+                event.iconcode
+              )} profile-cubing-icon-mock`}
               onClick={() => {
                 if (!loadingState.isLoading) {
                   setCurrentEventIdx(idx);

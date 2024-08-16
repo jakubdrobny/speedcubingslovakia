@@ -17,6 +17,7 @@ import {
 } from "../../Types";
 import {
   getAvailableEvents,
+  getCubingIconClassName,
   getError,
   getRankings,
   getRegionGroups,
@@ -107,7 +108,9 @@ const Rankings = () => {
           {events.map((event: CompetitionEvent, idx: number) => (
             <span
               key={idx}
-              className={`cubing-icon event-${event.iconcode} profile-cubing-icon-mock`}
+              className={`${getCubingIconClassName(
+                event.iconcode
+              )} profile-cubing-icon-mock`}
               onClick={() => {
                 if (!loadingState.isLoading) {
                   if (

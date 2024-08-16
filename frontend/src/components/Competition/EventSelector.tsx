@@ -7,6 +7,7 @@ import {
 
 import { CompetitionContext } from "./CompetitionContext";
 import { EmojiEvents } from "@mui/icons-material";
+import { getCubingIconClassName } from "../../utils";
 import { useContext } from "react";
 
 export const EventSelector = () => {
@@ -41,7 +42,7 @@ export const EventSelector = () => {
             >
               {resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete ||
               idx < events.length - 1 ? (
-                <span className={`cubing-icon event-${e.iconcode}`}>
+                <span className={getCubingIconClassName(e.iconcode)}>
                   &nbsp;
                 </span>
               ) : (

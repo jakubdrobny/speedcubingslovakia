@@ -1,9 +1,9 @@
 import { Card, Stack, Table, Typography } from "@mui/joy";
 import { RankingsEntry, RecordsItem, RecordsItemEntry } from "../../Types";
+import { getCubingIconClassName, reformatMultiTime } from "../../utils";
 
 import { Link } from "react-router-dom";
 import React from "react";
-import { reformatMultiTime } from "../../utils";
 
 const RecordsTable: React.FC<{
   recordItems: RecordsItem[];
@@ -26,7 +26,9 @@ const RecordsTable: React.FC<{
               sx={{ display: "flex", alignItems: "center", height: "1.5em" }}
             >
               <span
-                className={`cubing-icon event-${item.iconcode} profile-cubing-icon-mock`}
+                className={`${getCubingIconClassName(
+                  item.iconcode
+                )} profile-cubing-icon-mock`}
               />
               &nbsp;{item.eventname}
             </Typography>
