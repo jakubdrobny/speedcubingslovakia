@@ -109,9 +109,10 @@ func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int, db
 		if average >= constants.VERY_SLOW { averageContrib = 0. }
 
 		var finalContrib float64 = averageContrib
-		if resultEntry.Iconcode == "444bf" || resultEntry.Eventname == "555bf" || ismbld {
+		fmt.Println(resultEntry.Iconcode, resultEntry.Format)
+		if resultEntry.Iconcode == "444bf" || resultEntry.Iconcode == "555bf" || ismbld || resultEntry.Format == "bo1" {
 			finalContrib = singleContrib
-		} else if resultEntry.Eventname == "333bf" || resultEntry.Iconcode == "333fm" {
+		} else if resultEntry.Iconcode == "333bf" || resultEntry.Iconcode == "333fm" || resultEntry.Iconcode == "unofficial-222bf" {
 			finalContrib = math.Max(finalContrib, singleContrib)
 		}
 

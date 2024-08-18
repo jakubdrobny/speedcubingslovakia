@@ -55,11 +55,16 @@ const Rankings = () => {
   ) as WindowSizeContextType;
 
   const fetchRankings = useCallback(() => {
-    if (!singleRef.current && ismbld) return;
+    if (
+      !singleRef.current &&
+      (ismbld ||
+        eventsRef.current[currentEventIdxRef.current]?.format === "bo1")
+    )
+      return;
 
     setLoadingState({ isLoading: true, error: {} });
     getRankings(
-      eventsRef.current[currentEventIdxRef.current].id,
+      eventsRef.current[currentEventIdxRef.current]?.id,
       singleRef.current,
       regionValueRef.current.split("+")[0],
       regionValueRef.current.split("+")[1],
@@ -113,11 +118,19 @@ const Rankings = () => {
               )} profile-cubing-icon-mock`}
               onClick={() => {
                 if (!loadingState.isLoading) {
+                  console.log(
+                    eventsRef &&
+                      eventsRef.current &&
+                      idx < eventsRef.current.length,
+                    eventsRef.current[idx].displayname === "MBLD" ||
+                      eventsRef.current[idx].format === "bo1"
+                  );
                   if (
                     eventsRef &&
                     eventsRef.current &&
                     idx < eventsRef.current.length &&
-                    eventsRef.current[idx].displayname === "MBLD"
+                    (eventsRef.current[idx].displayname === "MBLD" ||
+                      eventsRef.current[idx].format === "bo1")
                   )
                     setSingle(true);
                   setCurrentEventIdx(idx);
@@ -162,19 +175,21 @@ const Rankings = () => {
             >
               Single
             </Button>
-            {!ismbld && (
-              <Button
-                variant={!single ? "solid" : "outlined"}
-                color="primary"
-                disabled={loadingState.isLoading}
-                onClick={() => {
-                  setSingle(false);
-                  fetchRankings();
-                }}
-              >
-                Average
-              </Button>
-            )}
+            {!ismbld &&
+              eventsRef.current[currentEventIdxRef.current]?.format !==
+                "bo1" && (
+                <Button
+                  variant={!single ? "solid" : "outlined"}
+                  color="primary"
+                  disabled={loadingState.isLoading}
+                  onClick={() => {
+                    setSingle(false);
+                    fetchRankings();
+                  }}
+                >
+                  Average
+                </Button>
+              )}
           </ButtonGroup>
           <Select
             value={queryTypeValue}

@@ -44,7 +44,7 @@ func (c *CompetitionData) RemoveAllEvents(db *pgxpool.Pool, tx pgx.Tx) ([]int, e
 	return event_ids, err
 }
 
-func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx, event_ids []int) error {
+func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx, event_ids []int, envMap map[string]string) error {
 	for _, event := range c.Events {
 		if event.Id < 0 { continue }
 		_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1, $2);`, c.Id, event.Id)
@@ -59,10 +59,10 @@ func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx, event_ids []int
 
 			ismbld := event.Iconcode == "333mbf"
 
-			scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves, ismbld)
+			scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves, ismbld, envMap)
 			if err != nil { return err }
 
-			images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode, ismbld)
+			images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode, ismbld, envMap)
 			if err != nil { return err }
 
 			for scrambleIdx, scramble := range scrambles {
@@ -164,8 +164,9 @@ func GetAllCompetitions(db *pgxpool.Pool) ([]CompetitionData, error) {
 	return competitions, nil
 }
 
-func GetScrambles(scramblingcode string, noOfSolves int) ([]string, error) {
-	resp, err := http.Get(fmt.Sprintf("http://localhost:2014/api/v0/scramble/%s?numScrambles=%d", scramblingcode, noOfSolves))
+func GetScrambles(scramblingcode string, noOfSolves int, envMap map[string]string) ([]string, error) {
+	url := fmt.Sprintf("%s/api/v0/scramble/%s?numScrambles=%d", envMap["SCRAMBLING_SERVICE_URL"], scramblingcode, noOfSolves)
+	resp, err := http.Get(url)
 	if err != nil { return []string{}, err }
 	defer resp.Body.Close()
 
@@ -176,14 +177,14 @@ func GetScrambles(scramblingcode string, noOfSolves int) ([]string, error) {
 	return scrambles, nil
 }
 
-func GenerateScramblesForEvent(scramblingcode string, noOfSolves int, ismbld bool) ([]string, error) {
+func GenerateScramblesForEvent(scramblingcode string, noOfSolves int, ismbld bool, envMap map[string]string) ([]string, error) {
 	if !ismbld {
-		return GetScrambles(scramblingcode, noOfSolves)
+		return GetScrambles(scramblingcode, noOfSolves, envMap)
 	}
 
 	scrambles := make([]string, 0)
 	for i := 0; i < noOfSolves; i++ {
-		currentScrambles, err := GetScrambles(scramblingcode, constants.MBLD_MAX_CUBES_PER_ATTEMPT)
+		currentScrambles, err := GetScrambles(scramblingcode, constants.MBLD_MAX_CUBES_PER_ATTEMPT, envMap)
 		if err != nil { return []string{}, err }
 
 		scrambles = append(scrambles, strings.Join(currentScrambles, "\n"))
@@ -192,12 +193,12 @@ func GenerateScramblesForEvent(scramblingcode string, noOfSolves int, ismbld boo
 	return scrambles, nil
 }
 
-func GenerateImagesForScrambles(scrambles []string, scramblingcode string, ismbld bool) ([]string, error) {
+func GenerateImagesForScrambles(scrambles []string, scramblingcode string, ismbld bool, envMap map[string]string) ([]string, error) {
 	images := make([]string, 0)
 
 	for _, scramble := range scrambles {
 		if ismbld { scramble = "" }
-		url := fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, url.QueryEscape(scramble))
+		url := fmt.Sprintf("%s/api/v0/view/%s/svg?scramble=%s", envMap["SCRAMBLING_SERVICE_URL"], scramblingcode, url.QueryEscape(scramble))
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil { return []string{}, err }
 
@@ -218,17 +219,17 @@ func GenerateImagesForScrambles(scrambles []string, scramblingcode string, ismbl
 	return images, nil
 }
 
-func (c *CompetitionData) GenerateScrambles() (error) {
+func (c *CompetitionData) GenerateScrambles(envMap map[string]string) (error) {
 	for _, event := range c.Events {
 		noOfSolves, err := utils.GetNoOfSolves(event.Format)
 		if err != nil { return err }
 
 		ismbld := event.Iconcode == "333mbf"
 
-		scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves, ismbld)
+		scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves, ismbld, envMap)
 		if err != nil { return err }
 
-		images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode, ismbld)
+		images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode, ismbld, envMap)
 		if err != nil { return err }
 		
 		var scrambleSet ScrambleSet

@@ -42,7 +42,7 @@ func main() {
 	defer db.Close()
 
 	cronScheduler := cron.New()
-	cronScheduler.AddFunc("@every 7d", func () { controllers.AddNewWeeklyCompetition(db) })
+	cronScheduler.AddFunc("@every 7d", func () { controllers.AddNewWeeklyCompetition(db, envMap) })
 	cronScheduler.Start()
 
 	router := gin.Default()
@@ -96,8 +96,8 @@ func main() {
 	{
 		competitions.GET("/filter/:filter", controllers.GetFilteredCompetitions(db))
 		competitions.GET("/id/:id", controllers.GetCompetitionById(db))
-		competitions.POST("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostCompetition(db))
-		competitions.PUT("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutCompetition(db))
+		competitions.POST("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostCompetition(db, envMap))
+		competitions.PUT("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutCompetition(db, envMap))
 		competitions.GET("/results/:cid/:eid", controllers.GetResultsFromCompetition(db))
 	}
 

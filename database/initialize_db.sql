@@ -100,23 +100,23 @@ VALUES ('3x3x3 Cube', '3x3x3', 'ao5', '333', '333')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2x2 Cube', '2x2x2', 'ao5', '222', '222')
+VALUES ('2x2x2 Cube', '2x2x2', 'ao5', '222', '222so')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('4x4x4 Cube', '4x4x4', 'ao5', '444', '444')
+VALUES ('4x4x4 Cube', '4x4x4', 'ao5', '444', '444wca')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('5x5x5 Cube', '5x5x5', 'ao5', '555', '555')
+VALUES ('5x5x5 Cube', '5x5x5', 'ao5', '555', '555wca')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('6x6x6 Cube', '6x6x6', 'mo3', '666', '666')
+VALUES ('6x6x6 Cube', '6x6x6', 'mo3', '666', '666wca')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('7x7x7 Cube', '7x7x7', 'mo3', '777', '777')
+VALUES ('7x7x7 Cube', '7x7x7', 'mo3', '777', '777wca')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
@@ -128,35 +128,35 @@ VALUES ('3x3x3 Fewest Moves', 'FMC', 'mo3', '333fm', '333fm')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('3x3x3 One-Handed', 'OH', 'ao5', '333oh', '333')
+VALUES ('3x3x3 One-Handed', 'OH', 'ao5', '333oh', '333oh')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('Clock', 'Clock', 'ao5', 'clock', 'clock')
+VALUES ('Clock', 'Clock', 'ao5', 'clock', 'clkwca')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('Megaminx', 'Mega', 'ao5', 'minx', 'minx')
+VALUES ('Megaminx', 'Mega', 'ao5', 'minx', 'mgmp')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('Pyraminx', 'Pyra', 'ao5', 'pyram', 'pyram')
+VALUES ('Pyraminx', 'Pyra', 'ao5', 'pyram', 'pyrso')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('Skewb', 'Skewb', 'ao5', 'skewb', 'skewb')
+VALUES ('Skewb', 'Skewb', 'ao5', 'skewb', 'skbso')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('Square-1', 'Sq-1', 'ao5', 'sq1', 'sq1')
+VALUES ('Square-1', 'Sq-1', 'ao5', 'sq1', 'sqrs')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('4x4x4 Blindfolded', '4BLD', 'bo3', '444bf', '444ni')
+VALUES ('4x4x4 Blindfolded', '4BLD', 'bo3', '444bf', '444bld')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('5x5x5 Blindfolded', '5BLD', 'bo3', '555bf', '555ni')
+VALUES ('5x5x5 Blindfolded', '5BLD', 'bo3', '555bf', '555bld')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
@@ -164,15 +164,15 @@ VALUES ('3x3x3 Multi-Blind', 'MBLD', 'bo3', '333mbf', '333ni')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2x2 Blindfolded', '2BLD', 'bo3', 'unofficial-222bf', '222')
+VALUES ('2x2x2 Blindfolded', '2BLD', 'bo3', 'unofficial-222bf', '222so')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('6x6x6 Blindfolded', '6BLD', 'bo1', 'unofficial-666bf', '666')
+VALUES ('6x6x6 Blindfolded', '6BLD', 'bo1', 'unofficial-666bf', '666wca')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('7x7x7 Blindfolded', '7BLD', 'bo1', 'unofficial-777bf', '777')
+VALUES ('7x7x7 Blindfolded', '7BLD', 'bo1', 'unofficial-777bf', '777wca')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
@@ -184,19 +184,19 @@ VALUES ('3x3x3 Match The Scramble', 'Match', 'ao5', 'unofficial-333mts', '333')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2 - 4x4 Relay', '2-4 Relay', 'bo1', 'unofficial-234relay', 'w234r')
+VALUES ('2x2 - 4x4 Relay', '2-4 Relay', 'bo1', 'unofficial-234relay', 'r234w')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2 - 5x5 Relay', '2-5 Relay', 'bo1', 'unofficial-2345relay', 'w2345r')
+VALUES ('2x2 - 5x5 Relay', '2-5 Relay', 'bo1', 'unofficial-2345relay', 'r2345w')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2 - 6x6 Relay', '2-6 Relay', 'bo1', 'unofficial-23456relay', 'w23456r')
+VALUES ('2x2 - 6x6 Relay', '2-6 Relay', 'bo1', 'unofficial-23456relay', 'r23456w')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('2x2 - 7x7 Relay', '2-7 Relay', 'bo1', 'unofficial-234567relay', 'w234567r')
+VALUES ('2x2 - 7x7 Relay', '2-7 Relay', 'bo1', 'unofficial-234567relay', 'r234567w')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)

@@ -419,22 +419,22 @@ func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user *User) (map[int][
 	eventsResultRows := make(map[int][]EventResultsRow)
 
 	for idx := range p.PersonalBests {
-		ismbld := p.PersonalBests[idx].EventIconCode == "333mbf"
+		checkAverage := p.PersonalBests[idx].EventIconCode == "333mbf" || p.PersonalBests[idx].Event.Format == "bo1"
 		eid := p.PersonalBests[idx].EventId
 
 		personalResultEntries, err := GetPersonalResultEntriesInEvent(db, user.Id, eid)
 		if err != nil { return map[int][]EventResultsRow{}, err }
 		
-		eventResultRows, err := p.PersonalBests[idx].LoadSingleAndAverage(db, user, &personalResultEntries, ismbld)
+		eventResultRows, err := p.PersonalBests[idx].LoadSingleAndAverage(db, user, &personalResultEntries, checkAverage)
 		if err != nil { return map[int][]EventResultsRow{}, err }
 
-		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value, false, "") >= constants.VERY_SLOW && (ismbld || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW) {
+		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value, false, "") >= constants.VERY_SLOW && (checkAverage || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW) {
 			continue			
 		}
 
 		if utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Single.Value, false, "") >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearSingle()
-		} else if ismbld || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
+		} else if checkAverage || p.PersonalBests[idx].Event.Format == "bo1" || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearAverage()
 		}
 
@@ -514,7 +514,7 @@ func ComputePlacementForCompetition(rows *[]EventResultsRow, firstRowIdx int, la
 func AddRecordsToHistory(history *ProfileTypeResultHistory, recorders Recorders, uid int, p *ProfileType) {
 	singleSoFar := "DNS"
 	averageSoFar := "DNS"
-	ismbld := history.EventIconCode == "333mbf"
+	checkAverage := history.EventIconCode == "333mbf" || history.EventFormat == "bo1"
 
 	for historyIdx := len(history.History) - 1; historyIdx >= 0; historyIdx-- {
 		historyEntry := history.History[historyIdx]
@@ -527,7 +527,7 @@ func AddRecordsToHistory(history *ProfileTypeResultHistory, recorders Recorders,
 		}
 
 		currentAverage := utils.ParseSolveToMilliseconds(historyEntry.Average, false, "")
-		if !ismbld && currentAverage <= utils.ParseSolveToMilliseconds(averageSoFar, false, "") && currentAverage < constants.VERY_SLOW {
+		if !checkAverage && currentAverage <= utils.ParseSolveToMilliseconds(averageSoFar, false, "") && currentAverage < constants.VERY_SLOW {
 			history.History[historyIdx].AverageRecord = "PR"
 			averageSoFar = historyEntry.Average
 		}
@@ -535,19 +535,19 @@ func AddRecordsToHistory(history *ProfileTypeResultHistory, recorders Recorders,
 		recordersForComp, ok := recorders.NR[competitionEndDate]
 		if ok {
 			if recordersForComp.single == currentSingle { history.History[historyIdx].SingleRecord = "NR" }
-			if !ismbld && recordersForComp.average == currentAverage { history.History[historyIdx].AverageRecord = "NR" }
+			if !checkAverage && recordersForComp.average == currentAverage { history.History[historyIdx].AverageRecord = "NR" }
 		}
 
 		recordersForComp, ok = recorders.CR[competitionEndDate]
 		if ok {
 			if recordersForComp.single == currentSingle { history.History[historyIdx].SingleRecord = "CR" }
-			if !ismbld && recordersForComp.average == currentAverage { history.History[historyIdx].AverageRecord = "CR" }
+			if !checkAverage && recordersForComp.average == currentAverage { history.History[historyIdx].AverageRecord = "CR" }
 		}
 
 		recordersForComp, ok = recorders.WR[competitionEndDate]
 		if ok {
 			if recordersForComp.single == currentSingle { history.History[historyIdx].SingleRecord = "WR" }
-			if !ismbld && recordersForComp.average == currentAverage { history.History[historyIdx].AverageRecord = "WR" }
+			if !checkAverage && recordersForComp.average == currentAverage { history.History[historyIdx].AverageRecord = "WR" }
 		}
 
 		switch (history.History[historyIdx].SingleRecord) {
@@ -565,7 +565,7 @@ func AddRecordsToHistory(history *ProfileTypeResultHistory, recorders Recorders,
 				history.History[historyIdx].SingleRecordColor = constants.PR_COLOR
 		}
 
-		if !ismbld {
+		if !checkAverage {
 			switch (history.History[historyIdx].AverageRecord) {
 				case "WR":
 					history.History[historyIdx].AverageRecordColor = constants.WR_COLOR
@@ -602,7 +602,7 @@ func (p *ProfileType) CreateEventHistoryForUser(db *pgxpool.Pool, user *User, ev
 	for curIdx, row := range rows {
 		resultEntry := row.ResultEntry
 
-		ismbld := resultEntry.Iconcode == "333mbf"
+		hasAverage := resultEntry.Iconcode == "333mbf" || resultEntry.Format == "bo1"
 		hasUser = hasUser || resultEntry.Userid == user.Id
 		if resultEntry.Userid == user.Id {
 			scrambles, err := utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
@@ -615,7 +615,7 @@ func (p *ProfileType) CreateEventHistoryForUser(db *pgxpool.Pool, user *User, ev
 				hasUser = false
 				continue
 			}
-			if !ismbld {
+			if !hasAverage {
 				historyEntry.Average, err = resultEntry.AverageFormatted(resultEntry.IsFMC(), scrambles)
 				if err != nil { return err }
 			}
@@ -628,7 +628,7 @@ func (p *ProfileType) CreateEventHistoryForUser(db *pgxpool.Pool, user *User, ev
 				historyEntry.Place, err = ComputePlacementForCompetition(&rows, lastCompStartingIdx, curIdx, user.Id, event.Format, db)
 				if err != nil { return err }
 				
-				canIncreaseMedalCount := (event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) || ((!ismbld && event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW))
+				canIncreaseMedalCount := (event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) || ((!hasAverage && event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW))
 				if canIncreaseMedalCount {
 					switch historyEntry.Place {
 						case "1":
@@ -795,7 +795,7 @@ func (p *ProfileType) CountRecordsInEventFromRows(eventResultsRows *[]EventResul
 	countryId := user.CountryId
 	var lastDateWR, lastDateCR, lastDateNR time.Time
 
-	ismbld := false
+	checkAverage := false
 	for eventResultRowIdx := len(*eventResultsRows) - 1; eventResultRowIdx >= 0; eventResultRowIdx-- {
 		eventResultRow := (*eventResultsRows)[eventResultRowIdx]
 
@@ -811,28 +811,28 @@ func (p *ProfileType) CountRecordsInEventFromRows(eventResultsRows *[]EventResul
 		single := resultEntry.SingleFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
 		singleMili := utils.ParseSolveToMilliseconds(single, false, "")
 		
-		ismbld = resultEntry.Iconcode == "333mbf"
+		checkAverage = resultEntry.Iconcode == "333mbf" || resultEntry.Format == "bo1"
 
 		var averageMili int
-		if !ismbld {
+		if !checkAverage {
 			average, err := resultEntry.AverageFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
 			if err != nil { return Recorders{}, err }
 			averageMili = utils.ParseSolveToMilliseconds(average, false, "")
 		}
 		
 		if !lastDateWR.IsZero() { recordersWR[date] = recordersWR[lastDateWR] }
-		UpdateRecordersByDate(recordersWR, date, singleMili, averageMili, ismbld, resultEntry.Userid)
+		UpdateRecordersByDate(recordersWR, date, singleMili, averageMili, checkAverage, resultEntry.Userid)
 		lastDateWR = date
 		
 		if currentContId == contId {
 			if !lastDateCR.IsZero() { recordersCR[date] = recordersCR[lastDateCR] }
-			UpdateRecordersByDate(recordersCR, date, singleMili, averageMili, ismbld, resultEntry.Userid)
+			UpdateRecordersByDate(recordersCR, date, singleMili, averageMili, checkAverage, resultEntry.Userid)
 			lastDateCR = date
 		}
 
 		if currentCountryId == countryId {
 			if !lastDateNR.IsZero() { recordersNR[date] = recordersNR[lastDateNR] }
-			UpdateRecordersByDate(recordersNR, date, singleMili, averageMili, ismbld, resultEntry.Userid)
+			UpdateRecordersByDate(recordersNR, date, singleMili, averageMili, checkAverage, resultEntry.Userid)
 			lastDateNR = date
 		}
 	}
