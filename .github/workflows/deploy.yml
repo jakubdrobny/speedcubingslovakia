@@ -48,6 +48,8 @@ jobs:
           script_stop: true
           script: |
             cd ${{ secrets.WORKDIR }}/scrambling
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
             npm install
             npm run build
             systemctl daemon-reload && systemctl restart ${{ secrets.SCRAMBLING_SERVICE_NAME }}
