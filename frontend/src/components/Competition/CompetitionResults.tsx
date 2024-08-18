@@ -28,9 +28,10 @@ const CompetitionResults = () => {
     fetchCompetitionResults,
     anyComment,
   } = useContext(CompetitionContext) as CompetitionContextType;
+  const format =
+    competitionState?.events[competitionState?.currentEventIdx]?.format;
+  const bo1 = format === "bo1";
   const averageFirst = (() => {
-    const format =
-      competitionState?.events[competitionState?.currentEventIdx]?.format;
     if (!format || format?.length === 0) return true;
     return format[0] !== "b";
   })();
@@ -57,6 +58,8 @@ const CompetitionResults = () => {
     if (isOverall) {
       columnNames.splice(3, 3, "Score");
     }
+
+    if (bo1) columnNames = columnNames.filter((x) => x !== "Average");
 
     if (columnNames.includes("Average") && ismbld)
       columnNames = columnNames.filter((c) => c !== "Average");
@@ -217,7 +220,7 @@ const CompetitionResults = () => {
                             {!averageFirst ? result.single : result.average}
                           </b>
                         </td>
-                        {!ismbld && (
+                        {!ismbld && !bo1 && (
                           <td style={{ height: "1em", textAlign: "left" }}>
                             {averageFirst ? result.single : result.average}
                           </td>

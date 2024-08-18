@@ -537,7 +537,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 						if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") < constants.VERY_SLOW { rankings = append(rankings, rankingsEntry) }
 					}
 				}
-			} else if !ismbld {
+			} else if !ismbld && resultsEntry.Format != "bo1" {
 				resultFormatted, err := resultsEntry.AverageFormatted(isfmc, scrambles)
 				if err != nil {
 					log.Println("ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
@@ -671,7 +671,7 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			
 			recordsItemEntryAverage.Result = "DNS"
 			
-			if resultsEntry.Iconcode != "333mbf" {
+			if resultsEntry.Iconcode != "333mbf" && resultsEntry.Format != "bo1" {
 				resultFormatted, err := resultsEntry.AverageFormatted(isfmc, scrambles)
 				if err != nil {
 					log.Println("ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())

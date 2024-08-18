@@ -140,7 +140,13 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
       <h3>Scramble{ismbld ? "s" : ""}:</h3>
       {formatScramble()}
       <h3>Preview:</h3>
-      <div style={{ display: showScrambleImage ? "block" : "none" }}>
+      <div
+        style={{
+          display: showScrambleImage ? "flex" : "none",
+          justifyContent: "center",
+          marginBottom: "10px",
+        }}
+      >
         {scrambleImg === undefined ? (
           <DefaultScramble />
         ) : (
@@ -150,6 +156,7 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
               competitionState?.events[competitionState?.currentEventIdx]
                 ?.displayname
             }/scramble${competitionState?.currentSolveIdx + 1}`}
+            style={{ maxWidth: "80%" }}
           />
         )}
       </div>

@@ -1,7 +1,7 @@
 import { Card, Grid, Stack, Table, Typography } from "@mui/joy";
+import { getCubingIconClassName, reformatMultiTime } from "../../utils";
 
 import { ProfileTypePersonalBests } from "../../Types";
-import { reformatMultiTime } from "../../utils";
 
 const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
   pbs,
@@ -57,7 +57,7 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                     }}
                   >
                     <span
-                      className={`cubing-icon event-${entry.eventIconcode}`}
+                      className={getCubingIconClassName(entry.eventIconcode)}
                     />
                     &nbsp;{entry.eventName}
                   </td>

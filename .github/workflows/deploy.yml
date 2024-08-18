@@ -39,6 +39,21 @@ jobs:
 
             echo 'Backend rebuilt and deployment finished.'
 
+      - name: Rebuild and restart scrambling
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script_stop: true
+          script: |
+            cd ${{ secrets.WORKDIR }}/scrambling
+            npm install
+            npm run build
+            systemctl daemon-reload && systemctl restart ${{ secrets.SCRAMBLING_SERVICE_NAME }}
+
+            echo 'Scrambling rebuilt and deployment finished.'
+
       - name: Rebuild and restart frontend
         uses: appleboy/ssh-action@v1.0.3
         with:

@@ -11,12 +11,12 @@ type CompetitionEvents struct {
 	Event_id int
 }
 
-func UpdateCompetitionEvents(competition *CompetitionData, db *pgxpool.Pool, tx pgx.Tx) error {
+func UpdateCompetitionEvents(competition *CompetitionData, db *pgxpool.Pool, tx pgx.Tx, envMap map[string]string) error {
 	var err error
 	var event_ids []int
 
 	if event_ids, err = competition.RemoveAllEvents(db, tx); err != nil { return err }
-	if err := competition.AddEvents(db, tx, event_ids); err != nil { return err }
+	if err := competition.AddEvents(db, tx, event_ids, envMap); err != nil { return err }
 
 	return nil;
 }

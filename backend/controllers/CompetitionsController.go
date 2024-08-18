@@ -107,9 +107,9 @@ func GetCompetitionById(db *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-func CreateCompetition(db *pgxpool.Pool, competition models.CompetitionData) (string, string) {
+func CreateCompetition(db *pgxpool.Pool, competition models.CompetitionData, envMap map[string]string) (string, string) {
 	competition.RecomputeCompetitionId()
-	err := competition.GenerateScrambles()
+	err := competition.GenerateScrambles(envMap)
 	if err != nil { return "ERR GenerateScrambles in PostCompetition: " + err.Error(), "Failed to generate scrambles." }
 
 	tx, err := db.Begin(context.Background())
@@ -148,7 +148,7 @@ func CreateCompetition(db *pgxpool.Pool, competition models.CompetitionData) (st
 	return "", ""
 }
 
-func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
+func PostCompetition(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var competition models.CompetitionData
 
@@ -158,7 +158,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		errLog, errOut := CreateCompetition(db, competition)
+		errLog, errOut := CreateCompetition(db, competition, envMap)
 		if errLog != "" && errOut != "" {
 			log.Println(errLog)
 			c.IndentedJSON(http.StatusInternalServerError, errOut)
@@ -169,7 +169,7 @@ func PostCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-func PutCompetition(db *pgxpool.Pool) gin.HandlerFunc {
+func PutCompetition(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var competition models.CompetitionData
 
@@ -195,7 +195,7 @@ func PutCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		err = models.UpdateCompetitionEvents(&competition, db, tx)
+		err = models.UpdateCompetitionEvents(&competition, db, tx, envMap)
 		if err != nil {
 			log.Println("ERR UpdateCompetitionEvents in PutCompetition: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to update competition event connections in database.")
@@ -270,14 +270,14 @@ func GetNewWeeklyCompetitionInfo(db *pgxpool.Pool) (models.CompetitionData, erro
 	return competition, nil
 }
 
-func AddNewWeeklyCompetition(db *pgxpool.Pool) {
+func AddNewWeeklyCompetition(db *pgxpool.Pool, envMap map[string]string) {
 	competition, err := GetNewWeeklyCompetitionInfo(db)
 	if err != nil {
 		log.Println("ERR failed GetNewWeeklyCompetitionInfo in AddNewWeeklyCompetition: " + err.Error())
 		return
 	}
 
-	errLog, errOut := CreateCompetition(db, competition)
+	errLog, errOut := CreateCompetition(db, competition, envMap)
 	if errLog != "" && errOut != "" {
 		log.Println(errLog)
 		log.Println("ERR_OUT: " + errOut)

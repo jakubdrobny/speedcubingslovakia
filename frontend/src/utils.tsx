@@ -524,3 +524,9 @@ export const initialResultsStruct: CompetitionResultStruct = {
   results: [],
   anyComment: false,
 };
+
+export const getCubingIconClassName = (iconcode: any): string => {
+  return `cubing-icon ${
+    iconcode.toString().startsWith("unofficial") ? "" : "event-"
+  }${iconcode.toString()}`;
+};

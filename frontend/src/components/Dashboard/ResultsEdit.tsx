@@ -25,6 +25,7 @@ import {
 import {
   getAvailableEvents,
   getAvailableResultsStatuses,
+  getCubingIconClassName,
   getError,
   getResults,
   reformatTime,
@@ -229,7 +230,7 @@ const ResultsEdit = () => {
                 renderValue={(event) => (
                   <Box sx={{ display: "flex", gap: "0.25rem" }}>
                     <Chip variant="soft" color="primary">
-                      <span className={`cubing-icon event-${event?.label}`} />
+                      <span className={getCubingIconClassName(event?.label)} />
                       &nbsp;
                       {event?.value}
                     </Chip>
@@ -244,7 +245,7 @@ const ResultsEdit = () => {
                     value={event.displayname}
                     label={event.iconcode}
                   >
-                    <span className={`cubing-icon event-${event.iconcode}`} />
+                    <span className={getCubingIconClassName(event.iconcode)} />
                     {event.displayname}
                   </Option>
                 ))}
@@ -358,7 +359,9 @@ const ResultsEdit = () => {
                             <Typography component="div">
                               <Chip size="lg" color="primary">
                                 <span
-                                  className={`cubing-icon event-${result.iconcode}`}
+                                  className={getCubingIconClassName(
+                                    result.iconcode
+                                  )}
                                 >
                                   &nbsp;{result.eventname}
                                 </span>

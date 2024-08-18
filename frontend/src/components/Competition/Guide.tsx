@@ -53,10 +53,25 @@ const Guide = () => {
         </Stack>
       ) : competitionState.inputMethod === InputMethod.Manual ? (
         <div>
+          {competitionState?.events[competitionState?.currentEventIdx]
+            ?.iconcode === "unofficial-222bf" ? (
+            <>
+              <Typography>
+                <b>Note</b>: 2BLD is supposed to work same as 3BLD, 4BLD, ...
+                i.e. count "inspection" time into solve time.
+              </Typography>
+              <br />
+              <Divider />
+              <br />
+            </>
+          ) : (
+            <></>
+          )}
           <Typography>
             To enter your times, type just the numbers. For example, to enter 12
             seconds and 55 hundreths, type "1255".
           </Typography>
+
           <Typography>Penalties:</Typography>
           <ul>
             <li key={"3"}>

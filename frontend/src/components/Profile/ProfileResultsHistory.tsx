@@ -1,8 +1,8 @@
 import { Card, Stack, Table, Typography } from "@mui/joy";
+import { getCubingIconClassName, reformatMultiTime } from "../../utils";
 
 import { Link } from "react-router-dom";
 import { ProfileTypeResultHistory } from "../../Types";
-import { reformatMultiTime } from "../../utils";
 import { useState } from "react";
 
 const ProfileResultsHistory: React.FC<{
@@ -57,7 +57,9 @@ const ProfileResultsHistory: React.FC<{
           {resultsHistory.map((entry, idx) => (
             <span
               key={idx}
-              className={`cubing-icon event-${entry.eventIconcode} profile-cubing-icon-mock`}
+              className={`${getCubingIconClassName(
+                entry.eventIconcode
+              )} profile-cubing-icon-mock`}
               onClick={() => setCurrentHistoryIdx(idx)}
               style={{
                 padding: "0 0.25em",
@@ -104,7 +106,9 @@ const ProfileResultsHistory: React.FC<{
                   }}
                 >
                   <span
-                    className={`cubing-icon event-${resultsHistory[currentHistoryIdx].eventIconcode}`}
+                    className={getCubingIconClassName(
+                      resultsHistory[currentHistoryIdx].eventIconcode
+                    )}
                   />
                   &nbsp;{resultsHistory[currentHistoryIdx].eventName}
                 </td>

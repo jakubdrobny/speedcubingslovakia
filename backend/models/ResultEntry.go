@@ -177,6 +177,10 @@ func (r *ResultEntry) Single(isfmc bool, scrambles []string) int {
 
 
 func (r *ResultEntry) IsSuspicous(isfmc bool, scrambles []string) bool {
+	if (len(r.Iconcode) >= 10 && r.Iconcode[:10] == "unofficial") || r.Iconcode == "333ft" {
+		return false
+	}
+
 	noOfSolves, err := utils.GetNoOfSolves(r.Format)
 	if err != nil {
 		return false
@@ -327,7 +331,7 @@ func (r *ResultEntry) GetFormattedTimes(isfmc bool, scrambles []string) ([]strin
 
 	solves := r.GetSolves(isfmc, scrambles)
 	solves = solves[:noOfSolves]
-	if noOfSolves == 3 {
+	if noOfSolves <= 3 {
 		if r.Iconcode == "333mbf" {
 			return utils.FormatMultiTimes(solves), nil
 		}

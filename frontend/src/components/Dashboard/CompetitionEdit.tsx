@@ -21,6 +21,7 @@ import {
 import {
   formatCompetitionDateForInput,
   getAvailableEvents,
+  getCubingIconClassName,
   getError,
   initialCompetitionState,
   renderResponseError,
@@ -180,7 +181,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
                   {selected.map((selectedOption, idx) => (
                     <Chip key={idx} variant="soft" color="primary">
                       <span
-                        className={`cubing-icon event-${selectedOption.label}`}
+                        className={getCubingIconClassName(selectedOption.label)}
                       />
                       &nbsp;{selectedOption.value}
                     </Chip>
@@ -190,7 +191,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
             >
               {availableEvents.map((ev: CompetitionEvent) => (
                 <Option key={ev.id} value={ev.displayname} label={ev.iconcode}>
-                  <span className={`cubing-icon event-${ev.iconcode}`} />
+                  <span className={getCubingIconClassName(ev.iconcode)} />
                   {ev.displayname}
                 </Option>
               ))}
