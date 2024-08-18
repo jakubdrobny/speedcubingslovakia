@@ -7,3 +7,5 @@ frontend/.env.production
 backend/scrambler/tnoodle.log
 
 scrambling/node_modules
+scrambling/.env.development
+scrambling/.env.production
