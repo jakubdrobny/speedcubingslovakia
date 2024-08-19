@@ -167,6 +167,7 @@ const AnnouncementEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
                 }
               />
             </div>
+            <FormHelperText>This field is required.</FormHelperText>
           </FormControl>
           <FormControl>
             <Button onClick={handleSubmit} loading={loadingState.isLoading}>
