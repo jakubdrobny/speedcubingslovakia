@@ -20,10 +20,8 @@ import {
   Typography,
 } from "@mui/joy";
 import {
-  formatCompetitionDateForInput,
   getAnnouncementById,
   getAvailableTags,
-  getCubingIconClassName,
   getError,
   renderResponseError,
   updateAnnoncement,
@@ -32,6 +30,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CompetitionEditProps } from "../../Types";
+import MDEditor from "@uiw/react-md-editor";
 
 const AnnouncementEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   const navigate = useNavigate();
@@ -101,7 +100,7 @@ const AnnouncementEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   };
 
   return (
-    <Stack style={{ marginTop: "2em" }} spacing={2}>
+    <Stack style={{ margin: "1em" }} spacing={2}>
       {loadingState.error && renderResponseError(loadingState.error)}
       <Card>
         <Typography level="h3" sx={{ borderBottom: "1px solid #CDD7E1" }}>
@@ -123,6 +122,7 @@ const AnnouncementEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
                 })
               }
             />
+            <FormHelperText>This field is required.</FormHelperText>
           </FormControl>
           <FormControl>
             <FormLabel>
@@ -149,6 +149,24 @@ const AnnouncementEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
                 </Option>
               ))}
             </Select>
+            <FormHelperText>Choose at least 1 tag.</FormHelperText>
+          </FormControl>
+          <FormControl>
+            <FormLabel>
+              <Typography level="h4">Content:</Typography>
+            </FormLabel>
+            <div data-color-mode="light">
+              <div className="wmde-markdown-var"> </div>
+              <MDEditor
+                value={announcementState.content}
+                onChange={(newContent) =>
+                  setAnnoucementState({
+                    ...announcementState,
+                    content: newContent || "",
+                  })
+                }
+              />
+            </div>
           </FormControl>
           <FormControl>
             <Button onClick={handleSubmit} loading={loadingState.isLoading}>
