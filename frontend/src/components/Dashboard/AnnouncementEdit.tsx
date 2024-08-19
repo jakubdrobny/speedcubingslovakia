@@ -104,7 +104,7 @@ const AnnouncementEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
       {loadingState.error && renderResponseError(loadingState.error)}
       <Card>
         <Typography level="h3" sx={{ borderBottom: "1px solid #CDD7E1" }}>
-          {edit ? `Edit ${announcementState.title}` : "Create"} competition
+          {edit ? `Edit ${announcementState.title}` : "Create"} announcement
         </Typography>
         <Stack spacing={2}>
           <FormControl>
