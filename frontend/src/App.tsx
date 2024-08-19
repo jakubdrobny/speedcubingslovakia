@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { authorizeAdmin, setBearerIfPresent } from "./utils";
 import { useContext, useEffect } from "react";
 
+import { Announcement } from "@mui/icons-material";
+import AnnouncementEdit from "./components/Dashboard/AnnouncementEdit";
 import { AuthContext } from "./context/AuthContext";
 import Competition from "./components/Competition/Competition";
 import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
@@ -107,6 +109,14 @@ const App = () => {
             <Route path="/admin/dashboard" Component={Dashboard} />
             <Route path="/admin/manage-roles" Component={ManageRoles} />
             <Route path="/results/edit" Component={ResultsEdit} />
+            <Route
+              path="/announcements/:id/edit"
+              element={<AnnouncementEdit edit={true} />}
+            />
+            <Route
+              path="/announcements/create"
+              element={<AnnouncementEdit edit={false} />}
+            />
           </Route>
           <Route path="/profile/:id" Component={Profile} />
           <Route path="/results/users" Component={Users} />

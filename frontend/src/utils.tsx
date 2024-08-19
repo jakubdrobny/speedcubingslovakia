@@ -1,4 +1,5 @@
 import {
+  AnnouncementState,
   AuthState,
   CompetitionData,
   CompetitionEvent,
@@ -18,6 +19,7 @@ import {
   ResultEntry,
   ResultsStatus,
   SearchUser,
+  Tag,
 } from "./Types";
 import axios, { AxiosError } from "axios";
 
@@ -529,4 +531,33 @@ export const getCubingIconClassName = (iconcode: any): string => {
   return `cubing-icon ${
     iconcode.toString().startsWith("unofficial") ? "" : "event-"
   }${iconcode.toString()}`;
+};
+
+export const getAnnouncementById = async (
+  id: string | undefined
+): Promise<AnnouncementState> => {
+  if (id === undefined) {
+    return Promise.reject("Invalid competition id.");
+  }
+
+  const response = await axios.get(`/api/announcements/id/${id}`);
+  return !response.data ? undefined : response.data;
+};
+
+export const getAvailableTags = async (): Promise<Tag[]> => {
+  const response = await axios.get("/api/tags");
+  return response.data;
+};
+
+export const updateAnnoncement = async (
+  state: AnnouncementState,
+  edit: boolean
+): Promise<AnnouncementState> => {
+  const response = await axios({
+    method: edit ? "PUT" : "POST",
+    url: "/api/competitions",
+    data: state,
+  });
+
+  return response.data;
 };

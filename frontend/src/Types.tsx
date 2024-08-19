@@ -327,3 +327,24 @@ export type RecordsItemEntry = {
   competitionId: string;
   solves: string[];
 };
+
+export type Tag = {
+  tagLabel: string;
+  tagColor: string;
+};
+
+export type AnnouncementState = {
+  authorWcaId: string;
+  authorUsername: string;
+  title: string;
+  content: string;
+  tags: Tag[];
+};
+
+export const initialAnnouncementState: AnnouncementState = {
+  authorWcaId: "",
+  authorUsername: "",
+  title: "",
+  content: "",
+  tags: [],
+};
