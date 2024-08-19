@@ -214,7 +214,7 @@ func FormatTime(timeInMiliseconds int, isfmc bool) string {
 	if timeInMiliseconds == constants.DNF { return "DNF" }
 	if timeInMiliseconds == constants.DNS { return "DNS" }
 
-	if isfmc { return fmt.Sprint(int(timeInMiliseconds / 1000)) + ".00" }
+	if isfmc { return fmt.Sprintf("%.2f", float64(timeInMiliseconds) / 1000) }
 
 	if timeInMiliseconds < 0 {
 		return FormatMultiTime(timeInMiliseconds)
