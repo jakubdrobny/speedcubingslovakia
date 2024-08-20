@@ -190,6 +190,10 @@ export type CompetitionEditProps = {
   edit: boolean;
 };
 
+export type AnnouncementEditProps = {
+  edit: boolean;
+};
+
 export type ResultsStatus = {
   id: number;
   approvalFinished: boolean;
@@ -329,11 +333,13 @@ export type RecordsItemEntry = {
 };
 
 export type Tag = {
-  tagLabel: string;
-  tagColor: string;
+  label: string;
+  color: "danger" | "warning" | "success" | "primary";
 };
 
 export type AnnouncementState = {
+  id: number;
+  authorId: number;
   authorWcaId: string;
   authorUsername: string;
   title: string;
@@ -342,6 +348,8 @@ export type AnnouncementState = {
 };
 
 export const initialAnnouncementState: AnnouncementState = {
+  id: 0,
+  authorId: 0,
   authorWcaId: "",
   authorUsername: "",
   title: "",

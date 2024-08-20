@@ -88,8 +88,27 @@ CREATE TABLE IF NOT EXISTS scrambles (
   timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS tags (
+    tag_id BIGSERIAL PRIMARY KEY,
+    label TEXT NOT NULL,
+    color TEXT NOT NULL CHECK (color IN ('primary', 'warning', 'success', 'danger')),
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
+CREATE TABLE IF NOT EXISTS announcements (
+    announcement_id BIGSERIAL PRIMARY KEY,
+    author_id INTEGER REFERENCES users (user_id) NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
+CREATE TABLE IF NOT EXISTS announcement_tags (
+    announcement_tags_id BIGSERIAL PRIMARY KEY,
+    announcement_id INTEGER REFERENCES announcements (announcement_id) NOT NULL,
+    tag_id INTEGER REFERENCES tags (tag_id) NOT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 /* insert stock data */
 

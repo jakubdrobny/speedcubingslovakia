@@ -555,7 +555,7 @@ export const updateAnnoncement = async (
 ): Promise<AnnouncementState> => {
   const response = await axios({
     method: edit ? "PUT" : "POST",
-    url: "/api/competitions",
+    url: "/api/announcements",
     data: state,
   });
 

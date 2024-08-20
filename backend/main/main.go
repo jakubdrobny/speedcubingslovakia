@@ -110,5 +110,17 @@ func main() {
 		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized")});
 	}
 
+	tags := api_v1.Group("/tags")
+	{
+		tags.GET("/", controllers.GetTags(db))
+	}
+	
+	announcements := api_v1.Group("/announcements")
+	{
+		announcements.GET("/id/:id", controllers.GetAnnouncementById(db))
+		announcements.POST("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostAnnouncement(db, envMap))
+		announcements.PUT("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutAnnouncement(db, envMap))
+	}
+
 	router.Run("localhost:8000")
 }
