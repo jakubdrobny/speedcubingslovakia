@@ -3,7 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { authorizeAdmin, setBearerIfPresent } from "./utils";
 import { useContext, useEffect } from "react";
 
-import { Announcement } from "@mui/icons-material";
+import Announcement from "./components/Announcement/Announcement";
 import AnnouncementEdit from "./components/Dashboard/AnnouncementEdit";
 import { AuthContext } from "./context/AuthContext";
 import Competition from "./components/Competition/Competition";
@@ -91,6 +91,8 @@ const App = () => {
           <Route path="/" Component={Home} />
           <Route path="/competitions" Component={Competitions} />
           <Route path="/competition/:id" Component={Competition} />
+          {/* <Route path="/announcements" Component={Announcements} /> */}
+          <Route path="/announcement/:id" Component={Announcement} />
           <Route path="/not-found" Component={NotFound} />
           <Route path="/login" Component={LogIn} />
           <Route
@@ -110,11 +112,11 @@ const App = () => {
             <Route path="/admin/manage-roles" Component={ManageRoles} />
             <Route path="/results/edit" Component={ResultsEdit} />
             <Route
-              path="/announcements/:id/edit"
+              path="/announcement/:id/edit"
               element={<AnnouncementEdit edit={true} />}
             />
             <Route
-              path="/announcements/create"
+              path="/announcement/create"
               element={<AnnouncementEdit edit={false} />}
             />
           </Route>

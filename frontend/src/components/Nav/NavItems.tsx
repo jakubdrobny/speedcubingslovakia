@@ -1,10 +1,10 @@
 import { AuthContextType, NavContextType } from "../../Types";
+import { Campaign, ListAlt } from "@mui/icons-material";
 import { List, ListItemButton, ListItemDecorator } from "@mui/joy";
 
 import { AuthContext } from "../../context/AuthContext";
 import LanguageIcon from "@mui/icons-material/Language";
 import { Link } from "react-router-dom";
-import { ListAlt } from "@mui/icons-material";
 import { NavContext } from "../../context/NavContext";
 import ProfileListItem from "../Profile/ProfileListItem";
 import ResultsListItem from "./ResultsListItem";
@@ -37,6 +37,17 @@ const NavItems: React.FC<{
         Online Competitions
       </ListItemButton>
       <ResultsListItem />
+      <ListItemButton
+        component={Link}
+        to="/announcements"
+        onClick={closeNav}
+        sx={{ justifyContent: "flex-end" }}
+      >
+        <ListItemDecorator>
+          <Campaign />
+        </ListItemDecorator>
+        Announcements
+      </ListItemButton>
       {authState.isadmin && (
         <ListItemButton
           component={Link}

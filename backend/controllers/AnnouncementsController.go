@@ -116,6 +116,22 @@ func PostAnnouncement(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 			return
 		}
 
+		tx, err := db.Begin(context.Background())
+		if err != nil {
+			log.Println("ERR tx.Begin in PostAnnouncement: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to start transaction.")
+			tx.Rollback(context.Background())
+			return
+		}
+
+		logMessage, returnMessage := announcement.MakeAnnouncementUnreadForEveryone(tx)
+		if logMessage != "" {
+			log.Println(logMessage)
+			c.IndentedJSON(http.StatusInternalServerError, returnMessage)
+			tx.Rollback(context.Background())
+			return
+		}
+
 		c.IndentedJSON(http.StatusCreated, announcement)
 	}
 }

@@ -345,6 +345,7 @@ export type AnnouncementState = {
   title: string;
   content: string;
   tags: Tag[];
+  read: boolean;
 };
 
 export const initialAnnouncementState: AnnouncementState = {
@@ -355,4 +356,5 @@ export const initialAnnouncementState: AnnouncementState = {
   title: "",
   content: "",
   tags: [],
+  read: true,
 };

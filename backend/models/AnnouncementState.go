@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -60,6 +61,23 @@ func (a *AnnouncementState) AddTags(tx pgx.Tx, tag_ids []int) error {
 	return nil;
 }
 
+func (a *AnnouncementState) MakeAnnouncementUnreadForEveryone(tx pgx.Tx) (string, string) {
+	users, _, logMessage, returnMessage := GetUsersFromDB(tx, "_")
+
+	if logMessage != "" || returnMessage != "" {
+		return logMessage, returnMessage
+	}
+
+	for _, user := range users {
+		err := user.CreateAnnouncementReadConnection(tx, a.Id)
+		if err != nil {
+			return "ERR user.MakeAnnouncement in AnnouncementState.MakeAnnouncementUnreadForEveryone: " + err.Error(), "Failed to make announcement unread for user with id: " + strconv.Itoa(user.Id)
+		}
+	}
+	
+	return "", ""
+}
+
 func (a *AnnouncementState) Create(db *pgxpool.Pool, envMap map[string]string) (string, string) {
 	tx, err := db.Begin(context.Background())
 	if err != nil {
@@ -79,6 +97,11 @@ func (a *AnnouncementState) Create(db *pgxpool.Pool, envMap map[string]string) (
 			tx.Rollback(context.Background())
 			return "ERR tx.Exec INSERT INTO announcement_tags in AnnouncementState.Create: " + err.Error(), "Failed to insert announcement tag connections into database."
 		}
+	}
+
+	logMessage, returnMessage := a.MakeAnnouncementUnreadForEveryone(tx)
+	if logMessage != "" || returnMessage != "" {
+		return logMessage, returnMessage
 	}
 
 	err = tx.Commit(context.Background())
