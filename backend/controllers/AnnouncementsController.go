@@ -2,19 +2,31 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/middlewares"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 )
 
 func GetAnnouncementById(db *pgxpool.Pool) gin.HandlerFunc {
 	return func (c *gin.Context) {
-		id := c.Param("id")	
-		
-		rows, err := db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id WHERE a.announcement_id = $1;`, id)
+		id := c.Param("id")
+		uid, exists := c.Get("uid")
+		if exists { uid = uid.(int) }
+
+		var rows pgx.Rows
+		var err error
+		if !exists {
+			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id WHERE a.announcement_id = $1;`, id)
+		} else {
+			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name, ar.read FROM announcements a JOIN users u ON u.user_id = a.author_id JOIN announcement_read ar ON ar.announcement_id = a.announcement_id WHERE a.announcement_id = $1 AND ar.user_id = $2;`, id, uid)
+		}
 		if err != nil {
 			log.Println("ERR db.Query in GetAnnouncementById: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed querying announcement by id.")
@@ -25,12 +37,14 @@ func GetAnnouncementById(db *pgxpool.Pool) gin.HandlerFunc {
 		found := false
 
 		for rows.Next() {
-			err := rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername)
+			err := rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername, &announcement.Read)
 			if err != nil {
 				log.Println("ERR scanning announcement data in GetAnnouncementById: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed parsing announcement from database.")
 				return;
 			}
+
+			if !exists { announcement.Read = true }
 			found = true
 		}
 
@@ -48,6 +62,60 @@ func GetAnnouncementById(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		c.IndentedJSON(http.StatusOK, announcement)
+	}
+}
+
+func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		uidExists := middlewares.MarkAuthorization(c, db, envMap, false)
+
+		uid, _ := c.Get("uid")
+		if uidExists { uid = uid.(int) }
+		fmt.Println(uid, uidExists)
+
+		var rows pgx.Rows
+		var err error 
+		if !uidExists {
+			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id;`)
+		} else {
+			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name, ar.read FROM announcements a JOIN users u ON u.user_id = a.author_id JOIN announcement_read ar ON ar.announcement_id = a.announcement_id WHERE ar.user_id = $1;`, uid)
+		}
+
+		if err != nil {
+			log.Println("ERR db.Query in GetAnnouncements: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed querying announcements.")
+			return;
+		}
+
+		announcements := make([]models.AnnouncementState, 0)
+
+		for rows.Next() {
+			var announcement models.AnnouncementState
+
+			if !uidExists {
+				err = rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername)
+				announcement.Read = true
+			} else {
+				err = rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername, &announcement.Read)
+			}
+
+			if err != nil {
+				log.Println("ERR scanning announcement data in GetAnnouncements: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed parsing announcement from database.")
+				return;
+			}
+
+			err = announcement.GetTags(db)
+			if err != nil {
+				log.Println("ERR GetTags in GetAnnouncements: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement tags.")
+				return;
+			}
+
+			announcements = append(announcements, announcement)
+		}
+
+		c.IndentedJSON(http.StatusOK, announcements)
 	}
 }
 
@@ -131,7 +199,40 @@ func PostAnnouncement(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 			tx.Rollback(context.Background())
 			return
 		}
+		announcement.Read = false
 
 		c.IndentedJSON(http.StatusCreated, announcement)
+	}
+}
+
+func ReadAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var announcement models.AnnouncementState
+
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			log.Println("ERR strconv.Atoi in ReadAnnouncement of id (" + strconv.Itoa(id) + "): " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse announcement id to string.")
+			return
+		}
+
+		announcement.Id = id
+		announcement.AuthorId = c.MustGet("uid").(int)
+
+		err = announcement.IsRead(db)
+		if err != nil {
+			log.Println("ERR announcement.IsRead in ReadAnnouncement (" + strconv.Itoa(announcement.Id) + "): " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if announcement is read.")
+			return
+		}
+
+		if !announcement.Read {
+			err = announcement.MarkRead(db)
+			log.Println("ERR announcement.MarkRead in ReadAnnouncement (" + strconv.Itoa(announcement.Id) + "): " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to make announcement read.")
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, announcement)
 	}
 }

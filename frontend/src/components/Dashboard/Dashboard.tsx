@@ -15,7 +15,7 @@ const Dashboard = () => {
         <Button component={Link} to="/results/edit" color="primary">
           Edit results
         </Button>
-        <Button component={Link} to="/announcements/create" color="primary">
+        <Button component={Link} to="/announcement/create" color="primary">
           Create announcement
         </Button>
       </ButtonGroup>

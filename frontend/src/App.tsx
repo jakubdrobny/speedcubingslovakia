@@ -5,6 +5,7 @@ import { useContext, useEffect } from "react";
 
 import Announcement from "./components/Announcement/Announcement";
 import AnnouncementEdit from "./components/Dashboard/AnnouncementEdit";
+import Announcements from "./components/Announcement/Announcements";
 import { AuthContext } from "./context/AuthContext";
 import Competition from "./components/Competition/Competition";
 import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
@@ -91,7 +92,7 @@ const App = () => {
           <Route path="/" Component={Home} />
           <Route path="/competitions" Component={Competitions} />
           <Route path="/competition/:id" Component={Competition} />
-          {/* <Route path="/announcements" Component={Announcements} /> */}
+          <Route path="/announcements" Component={Announcements} />
           <Route path="/announcement/:id" Component={Announcement} />
           <Route path="/not-found" Component={NotFound} />
           <Route path="/login" Component={LogIn} />

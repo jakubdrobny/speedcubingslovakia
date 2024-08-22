@@ -118,6 +118,8 @@ func main() {
 	announcements := api_v1.Group("/announcements")
 	{
 		announcements.GET("/id/:id", controllers.GetAnnouncementById(db))
+		announcements.GET("/read/:id", middlewares.AuthMiddleWare(db, envMap), controllers.ReadAnnouncement(db))
+		announcements.GET("/", controllers.GetAnnouncements(db, envMap))
 		announcements.POST("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostAnnouncement(db, envMap))
 		announcements.PUT("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutAnnouncement(db, envMap))
 	}

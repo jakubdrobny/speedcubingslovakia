@@ -561,3 +561,15 @@ export const updateAnnoncement = async (
 
   return response.data;
 };
+
+export const ReadAnnouncement = async (
+  state: AnnouncementState
+): Promise<AnnouncementState> => {
+  const response = await axios.get(`/api/announcements/read/${state.id}`);
+  return response.data;
+};
+
+export const GetAnnouncements = async (): Promise<AnnouncementState[]> => {
+  const response = await axios.get(`/api/announcements`);
+  return response.data;
+};

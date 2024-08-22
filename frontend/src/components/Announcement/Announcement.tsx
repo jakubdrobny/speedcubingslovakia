@@ -1,58 +1,127 @@
 import {
   AnnouncementState,
+  AuthContextType,
   LoadingState,
   initialAnnouncementState,
 } from "../../Types";
-import { Box, Card, Chip, CircularProgress, Stack, Typography } from "@mui/joy";
+import { Card, Chip, CircularProgress, Stack, Typography } from "@mui/joy";
 import { Link, useParams } from "react-router-dom";
-import { getAnnouncementById, getError } from "../../utils";
-import { useEffect, useState } from "react";
+import {
+  ReadAnnouncement,
+  getAnnouncementById,
+  getError,
+  isObjectEmpty,
+  renderResponseError,
+} from "../../utils";
+import { useContext, useEffect, useRef, useState } from "react";
 
+import { AuthContext } from "../../context/AuthContext";
 import Markdown from "react-markdown";
 import { Paper } from "@mui/material";
 
-const Announcement = () => {
-  const { id } = useParams<{ id: string }>();
+const Announcement: React.FC<{
+  givenAnnouncementState?: AnnouncementState;
+}> = ({ givenAnnouncementState }) => {
+  const given = !isObjectEmpty(givenAnnouncementState || {});
   const [announcementState, setAnnouncementState] = useState<AnnouncementState>(
-    initialAnnouncementState
+    given
+      ? (givenAnnouncementState as AnnouncementState)
+      : initialAnnouncementState
   );
+  let { id } = useParams<{ id: string }>();
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
     error: {},
   });
+  const targetRef = useRef(null);
+  const { authState } = useContext(AuthContext) as AuthContextType;
 
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        console.log(
+          authState.token,
+          entry.isIntersecting,
+          announcementState.read
+        );
+        if (
+          authState.token &&
+          entry.isIntersecting &&
+          !announcementState.read
+        ) {
+          ReadAnnouncement(announcementState)
+            .then((res) =>
+              setAnnouncementState({ ...announcementState, read: true })
+            )
+            .catch((err) =>
+              setLoadingState({
+                isLoading: loadingState.isLoading,
+                error: getError(err),
+              })
+            );
+        }
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: 0.5,
+      }
+    );
+
+    if (targetRef.current) {
+      observer.observe(targetRef.current);
+    }
+
+    if (given) {
+      id = announcementState.id.toString();
+      return;
+    }
+
     setLoadingState({ isLoading: true, error: {} });
 
     getAnnouncementById(id)
       .then((res) => {
         setAnnouncementState(res);
-        setLoadingState({ isLoading: false, error: {} });
+        if (!res.read) return ReadAnnouncement(res);
       })
+      .then((res) => setLoadingState({ isLoading: false, error: {} }))
       .catch((err) =>
         setLoadingState({ isLoading: false, error: getError(err) })
       );
+
+    return () => {
+      if (targetRef.current) {
+        observer.unobserve(targetRef.current);
+      }
+    };
   }, []);
 
   return (
-    <div style={{ margin: "2em 0.5em" }}>
-      {loadingState.isLoading ? (
-        <div
-          style={{
+    <div style={{ margin: "0.5em", height: "100%" }}>
+      {!isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
+      ) : loadingState.isLoading ? (
+        <Typography
+          level="h3"
+          sx={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
+            height: "100%",
           }}
         >
-          <CircularProgress />
-          &nbsp; &nbsp;{" "}
-          <Typography level="h3">Loading announcement...</Typography>
-        </div>
+          <CircularProgress /> &nbsp; Loading announcement...
+        </Typography>
       ) : (
-        <Card>
+        <Card ref={targetRef}>
           <Typography level="h2" sx={{ borderBottom: "1px solid #CDD7E1" }}>
             {announcementState.title}
           </Typography>
+          {!announcementState.read && (
+            <Chip variant="soft" color="danger">
+              New
+            </Chip>
+          )}
           <Stack spacing={1} direction="row">
             <div>author:</div>
             <Link
@@ -69,8 +138,8 @@ const Announcement = () => {
           <Stack spacing={1} direction="row">
             <div>tags:</div>
             <Stack spacing={1}>
-              {announcementState.tags.map((tag) => (
-                <Chip color={tag.color} sx={{ padding: "0 12px" }}>
+              {announcementState.tags.map((tag, idx) => (
+                <Chip key={idx} color={tag.color} sx={{ padding: "0 12px" }}>
                   {tag.label}
                 </Chip>
               ))}

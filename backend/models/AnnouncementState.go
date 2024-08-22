@@ -16,6 +16,7 @@ type AnnouncementState struct {
 	AuthorWcaId string `json:"authorWcaId"`
 	AuthorUsername string `json:"authorUsername"`
 	Tags []Tag `json:"tags"`
+	Read bool `json:"read"`
 }
 
 func (a *AnnouncementState) GetTags(db *pgxpool.Pool) (error) {
@@ -61,6 +62,25 @@ func (a *AnnouncementState) AddTags(tx pgx.Tx, tag_ids []int) error {
 	return nil;
 }
 
+func (a *AnnouncementState) IsRead(db *pgxpool.Pool) error {
+	rows, err := db.Query(context.Background(), `SELECT read FROM announcement_read WHERE announcement_id = $1 AND user_id = $2;`, a.Id, a.AuthorId)
+	if err != nil { return err }
+
+	for rows.Next() {
+		err = rows.Scan(&a.Read)
+		if err != nil { return err }
+	}
+
+	return nil
+}
+
+func (a *AnnouncementState) MarkRead(db *pgxpool.Pool) error {
+	_, err := db.Exec(context.Background(), `UPDATE announcement_read SET read = TRUE, read_timestamp = CURRENT_TIMESTAMP WHERE announcement_id = $1 AND user_id = $2;`, a.Id, a.AuthorId)
+	if err != nil { return err }
+
+	return nil
+}
+
 func (a *AnnouncementState) MakeAnnouncementUnreadForEveryone(tx pgx.Tx) (string, string) {
 	users, _, logMessage, returnMessage := GetUsersFromDB(tx, "_")
 
@@ -85,11 +105,8 @@ func (a *AnnouncementState) Create(db *pgxpool.Pool, envMap map[string]string) (
 		return "ERR db.Begin in AnnouncementState.Create: " + err.Error(), "Failed to start transaction."
 	}
 
-	_, err = tx.Exec(context.Background(), `INSERT INTO announcements (title, content, author_id) VALUES ($1,$2,$3);`, a.Title, a.Content, a.AuthorId)
-	if err != nil {
-		tx.Rollback(context.Background())
-		return "ERR tx.Exec INSERT INTO annoucements in AnnouncementState.Create: " + err.Error(), "Failed inserting announcement into database."
-	}
+	row := tx.QueryRow(context.Background(), `INSERT INTO announcements (title, content, author_id) VALUES ($1,$2,$3) RETURNING announcement_id;`, a.Title, a.Content, a.AuthorId)
+	row.Scan(&a.Id)
 
 	for _, tag := range a.Tags {
 		_, err := tx.Exec(context.Background(), `INSERT INTO announcement_tags (announcement_id, tag_id) VALUES ($1,$2);`, a.Id, tag.Id)
