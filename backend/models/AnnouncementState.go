@@ -105,7 +105,7 @@ func (a *AnnouncementState) Create(db *pgxpool.Pool, envMap map[string]string) (
 		return "ERR db.Begin in AnnouncementState.Create: " + err.Error(), "Failed to start transaction."
 	}
 
-	row := tx.QueryRow(context.Background(), `INSERT INTO announcements (title, content, author_id) VALUES ($1,$2,$3) RETURNING announcement_id;`, a.Title, a.Content, a.AuthorId)
+	row := tx.QueryRow(context.Background(), `INSERT INTO announcements (title, content, author_id, created_at) VALUES ($1,$2,$3,CURRENT_TIMESTAMP) RETURNING announcement_id;`, a.Title, a.Content, a.AuthorId)
 	row.Scan(&a.Id)
 
 	for _, tag := range a.Tags {

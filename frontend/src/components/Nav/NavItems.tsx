@@ -1,6 +1,8 @@
 import { AuthContextType, NavContextType } from "../../Types";
+import { Badge, List, ListItemButton, ListItemDecorator } from "@mui/joy";
 import { Campaign, ListAlt } from "@mui/icons-material";
-import { List, ListItemButton, ListItemDecorator } from "@mui/joy";
+import { GetNoOfNewAnnouncements, saveCurrentLocation } from "../../utils";
+import { useContext, useEffect, useState } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 import LanguageIcon from "@mui/icons-material/Language";
@@ -9,14 +11,21 @@ import { NavContext } from "../../context/NavContext";
 import ProfileListItem from "../Profile/ProfileListItem";
 import ResultsListItem from "./ResultsListItem";
 import WCALogoNoText from "../../images/WCALogoNoText";
-import { saveCurrentLocation } from "../../utils";
-import { useContext } from "react";
 
 const NavItems: React.FC<{
   direction: "row" | "row-reverse" | "column" | "column-reverse";
 }> = ({ direction }) => {
-  const { authState } = useContext(AuthContext) as AuthContextType;
+  const { authStateRef } = useContext(AuthContext) as AuthContextType;
   const { closeNav } = useContext(NavContext) as NavContextType;
+  const [newAnnouncements, setNewAnnouncements] = useState<number>(0);
+
+  useEffect(() => {
+    if (authStateRef.current.token) {
+      GetNoOfNewAnnouncements()
+        .then((res) => setNewAnnouncements(res))
+        .catch((err) => {});
+    }
+  }, []);
 
   return (
     <List
@@ -43,12 +52,23 @@ const NavItems: React.FC<{
         onClick={closeNav}
         sx={{ justifyContent: "flex-end" }}
       >
-        <ListItemDecorator>
-          <Campaign />
-        </ListItemDecorator>
-        Announcements
+        {authStateRef.current.token && newAnnouncements > 0 ? (
+          <Badge badgeContent={newAnnouncements.toString()} color="danger">
+            <ListItemDecorator>
+              <Campaign />
+            </ListItemDecorator>
+            Announcements
+          </Badge>
+        ) : (
+          <>
+            <ListItemDecorator>
+              <Campaign />
+            </ListItemDecorator>
+            Announcements
+          </>
+        )}
       </ListItemButton>
-      {authState.isadmin && (
+      {authStateRef.current.isadmin && (
         <ListItemButton
           component={Link}
           to="/admin/dashboard"
@@ -61,7 +81,7 @@ const NavItems: React.FC<{
           Dashboard
         </ListItemButton>
       )}
-      {authState.token ? (
+      {authStateRef.current.token ? (
         <ProfileListItem />
       ) : (
         <ListItemButton

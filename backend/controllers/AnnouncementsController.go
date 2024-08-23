@@ -14,15 +14,18 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 )
 
-func GetAnnouncementById(db *pgxpool.Pool) gin.HandlerFunc {
+func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func (c *gin.Context) {
+		uidExists := middlewares.MarkAuthorization(c, db, envMap, false)
+
+		uid, _ := c.Get("uid")
+		if uidExists { uid = uid.(int) }
+
 		id := c.Param("id")
-		uid, exists := c.Get("uid")
-		if exists { uid = uid.(int) }
 
 		var rows pgx.Rows
 		var err error
-		if !exists {
+		if !uidExists {
 			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id WHERE a.announcement_id = $1;`, id)
 		} else {
 			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name, ar.read FROM announcements a JOIN users u ON u.user_id = a.author_id JOIN announcement_read ar ON ar.announcement_id = a.announcement_id WHERE a.announcement_id = $1 AND ar.user_id = $2;`, id, uid)
@@ -37,14 +40,19 @@ func GetAnnouncementById(db *pgxpool.Pool) gin.HandlerFunc {
 		found := false
 
 		for rows.Next() {
-			err := rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername, &announcement.Read)
+			if !uidExists {
+				err = rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername)
+				announcement.Read = true
+			} else {
+				err = rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername, &announcement.Read)
+			}
 			if err != nil {
 				log.Println("ERR scanning announcement data in GetAnnouncementById: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed parsing announcement from database.")
 				return;
 			}
 
-			if !exists { announcement.Read = true }
+			if !uidExists { announcement.Read = true }
 			found = true
 		}
 
@@ -71,7 +79,6 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 
 		uid, _ := c.Get("uid")
 		if uidExists { uid = uid.(int) }
-		fmt.Println(uid, uidExists)
 
 		var rows pgx.Rows
 		var err error 
@@ -116,6 +123,34 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 		}
 
 		c.IndentedJSON(http.StatusOK, announcements)
+	}
+}
+
+func GetNoOfNewAnnouncements(db *pgxpool.Pool) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		uid := c.MustGet("uid").(int)
+
+		rows, err := db.Query(context.Background(), `SELECT COUNT(ar.read) FROM announcement_read WHERE user_id = $1;`, uid)
+		if err != nil {
+			log.Println("ERR db.Query in GetNoOfNewAnnouncements: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to query announcement reads.")
+			return
+		}
+
+		noOfNewAnnouncements := 0
+
+		for rows.Next() {
+			err = rows.Scan(&noOfNewAnnouncements)
+			if err != nil {
+				log.Println("ERR rows.Scan in GetNoOfNewAnnouncements: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to scan announcement read data.")
+				return
+			}
+
+			fmt.Println(noOfNewAnnouncements)
+		}
+
+		c.IndentedJSON(http.StatusOK, noOfNewAnnouncements)
 	}
 }
 

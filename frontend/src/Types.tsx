@@ -132,6 +132,7 @@ export type AuthContextType = {
   authState: AuthState;
   updateAuthToken: (newToken: string) => void;
   setAuthState: (newAuthState: AuthState) => void;
+  authStateRef: { current: AuthState };
 };
 
 export type WindowSize = {

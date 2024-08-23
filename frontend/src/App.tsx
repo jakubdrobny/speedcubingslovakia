@@ -30,7 +30,7 @@ import { WindowSizeContext } from "./context/WindowSizeContext";
 import useState from "react-usestateref";
 
 const App = () => {
-  const { authState, setAuthState } = useContext(
+  const { authStateRef, setAuthState } = useContext(
     AuthContext
   ) as AuthContextType;
   const { windowSize, setWindowSize } = useContext(
@@ -49,15 +49,15 @@ const App = () => {
   const [authorizationLoadingState, setAuthorizationLoadingState] = useState<{
     loading: boolean;
     error: string;
-  }>({ loading: authState.token !== "", error: "" });
+  }>({ loading: authStateRef.current.token !== "", error: "" });
 
   useEffect(() => {
-    setBearerIfPresent(authState.token);
+    setBearerIfPresent(authStateRef.current.token);
 
-    if (authState.token) {
+    if (authStateRef.current.token) {
       authorizeAdmin()
         .then((_) => {
-          setAuthState({ ...authState, isadmin: true });
+          setAuthState({ ...authStateRef.current, isadmin: true });
           setAuthorizationLoadingState((ps) => ({ ...ps, loading: false }));
         })
         .catch((_) => {

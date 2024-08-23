@@ -573,3 +573,9 @@ export const GetAnnouncements = async (): Promise<AnnouncementState[]> => {
   const response = await axios.get(`/api/announcements`);
   return response.data;
 };
+
+export const GetNoOfNewAnnouncements = async (): Promise<number> => {
+  console.log(axios.defaults.headers.common);
+  const response = await axios.get(`/api/announcements/noOfNew`);
+  return response.data;
+};

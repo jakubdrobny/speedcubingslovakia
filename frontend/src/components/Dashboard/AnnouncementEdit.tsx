@@ -1,7 +1,5 @@
 import {
-  AnnouncementEditProps,
   AnnouncementState,
-  CompetitionEvent,
   LoadingState,
   Tag,
   initialAnnouncementState,
