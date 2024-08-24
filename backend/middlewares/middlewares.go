@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,7 +24,6 @@ func AdminMiddleWare() gin.HandlerFunc {
 
 func MarkAuthorization(c *gin.Context, db *pgxpool.Pool, envMap map[string]string, markHeaders bool) bool {
 	authDetails, err := models.GetAuthDetailsFromHeader(c, envMap["JWT_SECRET_KEY"])
-	fmt.Println(authDetails, err, "authDetails")
 	if err != nil {
 		if markHeaders {
 			c.IndentedJSON(http.StatusUnauthorized, err)

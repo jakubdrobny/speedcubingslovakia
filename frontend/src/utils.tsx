@@ -437,21 +437,27 @@ export const defaultProfile: ProfileType = {
 };
 
 export const getError = (err: AxiosError): ResponseError => {
-  if (err.response?.status === 401) {
+  const status = err.response?.status;
+  if (status === 401 || status === 200) {
     return {
-      element: (
-        <Alert color="danger" sx={{ gap: 0 }}>
-          Unauthorized/token expired. Try to{" "}
-          <span style={{ padding: "0 2px" }}></span>
-          <Link
-            to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
-            onClick={() => saveCurrentLocation(window.location.pathname)}
-          >
-            re-login
-          </Link>
-          .
-        </Alert>
-      ),
+      element:
+        status === 200 ? (
+          <Alert color="success">
+            <>{err.response?.data}</>
+          </Alert>
+        ) : (
+          <Alert color="danger" sx={{ gap: 0 }}>
+            Unauthorized/token expired. Try to{" "}
+            <span style={{ padding: "0 2px" }}></span>
+            <Link
+              to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+              onClick={() => saveCurrentLocation(window.location.pathname)}
+            >
+              re-login
+            </Link>
+            .
+          </Alert>
+        ),
     };
   }
   return { message: err.response?.data as string };
@@ -575,7 +581,15 @@ export const GetAnnouncements = async (): Promise<AnnouncementState[]> => {
 };
 
 export const GetNoOfNewAnnouncements = async (): Promise<number> => {
-  console.log(axios.defaults.headers.common);
   const response = await axios.get(`/api/announcements/noOfNew`);
+  return response.data;
+};
+
+export const DeleteAnnouncement = async (
+  announcementId: number
+): Promise<string> => {
+  const response = await axios.delete(
+    `/api/announcements/delete/${announcementId}`
+  );
   return response.data;
 };

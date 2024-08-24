@@ -4,25 +4,41 @@ import {
   LoadingState,
   initialAnnouncementState,
 } from "../../Types";
-import { Card, Chip, CircularProgress, Stack, Typography } from "@mui/joy";
-import { Link, useParams } from "react-router-dom";
 import {
+  Button,
+  ButtonGroup,
+  Card,
+  Chip,
+  CircularProgress,
+  DialogTitle,
+  Divider,
+  Modal,
+  ModalClose,
+  ModalDialog,
+  Stack,
+  Typography,
+} from "@mui/joy";
+import { Delete, Edit, Warning } from "@mui/icons-material";
+import {
+  DeleteAnnouncement,
   ReadAnnouncement,
   getAnnouncementById,
   getError,
   isObjectEmpty,
   renderResponseError,
 } from "../../utils";
+import { DialogContent, Paper } from "@mui/material";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useRef, useState } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
-import Markdown from "react-markdown";
-import { Paper } from "@mui/material";
+import MarkdownPreview from "@uiw/react-markdown-preview";
 
 const Announcement: React.FC<{
   givenAnnouncementState?: AnnouncementState;
 }> = ({ givenAnnouncementState }) => {
   const given = !isObjectEmpty(givenAnnouncementState || {});
+  const navigate = useNavigate();
   const [announcementState, setAnnouncementState] = useState<AnnouncementState>(
     given
       ? (givenAnnouncementState as AnnouncementState)
@@ -34,25 +50,21 @@ const Announcement: React.FC<{
     error: {},
   });
   const targetRef = useRef(null);
-  const { authState } = useContext(AuthContext) as AuthContextType;
+  const { authStateRef } = useContext(AuthContext) as AuthContextType;
+  const [deletingAnnouncement, setDeletingAnnouncement] =
+    useState<boolean>(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        console.log(
-          authState.token,
-          entry.isIntersecting,
-          announcementState.read
-        );
         if (
-          authState.token &&
+          authStateRef.current.token &&
           entry.isIntersecting &&
           !announcementState.read
         ) {
           ReadAnnouncement(announcementState)
-            .then((res) =>
-              setAnnouncementState({ ...announcementState, read: true })
-            )
+            .then((res) => {})
             .catch((err) =>
               setLoadingState({
                 isLoading: loadingState.isLoading,
@@ -96,6 +108,8 @@ const Announcement: React.FC<{
     };
   }, []);
 
+  console.log(announcementState.title, announcementState.read);
+
   return (
     <div style={{ margin: "0.5em", height: "100%" }}>
       {!isObjectEmpty(loadingState.error) ? (
@@ -114,8 +128,88 @@ const Announcement: React.FC<{
         </Typography>
       ) : (
         <Card ref={targetRef}>
+          <Modal
+            open={deleteModalOpen}
+            onClose={() => setDeleteModalOpen(false)}
+          >
+            <ModalDialog
+              color="danger"
+              layout="center"
+              size="lg"
+              variant="soft"
+              role="alertdialog"
+            >
+              <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
+                <Warning />
+                Deleting announcement
+              </DialogTitle>
+              <ModalClose />
+              <Divider />
+              <DialogContent>
+                <Stack direction="column" spacing={2}>
+                  <div>
+                    You are about to delete the <b>{announcementState.title}</b>{" "}
+                    announcement. This action cannot be undone. Are you sure?
+                  </div>
+                  <Stack direction="row" spacing={1}>
+                    <ButtonGroup color="danger" variant="outlined">
+                      <Button
+                        disabled={deletingAnnouncement}
+                        onClick={() => {
+                          setDeletingAnnouncement(true);
+                          DeleteAnnouncement(announcementState.id)
+                            .then((res) => {
+                              setDeletingAnnouncement(false);
+                              setDeleteModalOpen(false);
+                            })
+                            .catch((err) => {
+                              setLoadingState({
+                                error: getError(err),
+                                isLoading: loadingState.isLoading,
+                              });
+                            });
+                        }}
+                      >
+                        Yes
+                      </Button>
+                      <Button
+                        disabled={deletingAnnouncement}
+                        onClick={() => setDeleteModalOpen(false)}
+                      >
+                        No
+                      </Button>
+                    </ButtonGroup>
+                  </Stack>
+                </Stack>
+              </DialogContent>
+            </ModalDialog>
+          </Modal>
           <Typography level="h2" sx={{ borderBottom: "1px solid #CDD7E1" }}>
-            {announcementState.title}
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <div>{announcementState.title}</div>
+              {authStateRef.current.isadmin && (
+                <Stack direction="row" gap="10px">
+                  <Edit
+                    color="primary"
+                    onClick={() =>
+                      navigate(`/announcement/${announcementState.id}/edit`)
+                    }
+                    sx={{ cursor: "pointer" }}
+                    className="profile-cubing-icon-mock"
+                  />
+                  <Delete
+                    color="error"
+                    className="profile-cubing-icon-mock"
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => setDeleteModalOpen(true)}
+                  />
+                </Stack>
+              )}
+            </Stack>
           </Typography>
           {!announcementState.read && (
             <Chip variant="soft" color="danger">
@@ -137,7 +231,7 @@ const Announcement: React.FC<{
           </Stack>
           <Stack spacing={1} direction="row">
             <div>tags:</div>
-            <Stack spacing={1}>
+            <Stack spacing={1} direction="row" flexWrap="wrap" useFlexGap>
               {announcementState.tags.map((tag, idx) => (
                 <Chip key={idx} color={tag.color} sx={{ padding: "0 12px" }}>
                   {tag.label}
@@ -146,7 +240,13 @@ const Announcement: React.FC<{
             </Stack>
           </Stack>
           <Paper elevation={3} sx={{ padding: "0.5em" }}>
-            <Markdown>{announcementState.content}</Markdown>
+            <div data-color-mode="light">
+              <div className="wmde-markdown-var"> </div>
+              <MarkdownPreview
+                source={announcementState.content}
+                style={{ padding: 16 }}
+              />
+            </div>
           </Paper>
         </Card>
       )}

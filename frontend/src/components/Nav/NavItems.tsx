@@ -17,7 +17,7 @@ const NavItems: React.FC<{
 }> = ({ direction }) => {
   const { authStateRef } = useContext(AuthContext) as AuthContextType;
   const { closeNav } = useContext(NavContext) as NavContextType;
-  const [newAnnouncements, setNewAnnouncements] = useState<number>(0);
+  const [newAnnouncements, setNewAnnouncements] = useState<number>(-1);
 
   useEffect(() => {
     if (authStateRef.current.token) {
@@ -25,7 +25,7 @@ const NavItems: React.FC<{
         .then((res) => setNewAnnouncements(res))
         .catch((err) => {});
     }
-  }, []);
+  }, [authStateRef.current.token]);
 
   return (
     <List

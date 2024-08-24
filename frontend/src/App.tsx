@@ -1,5 +1,6 @@
 import { AuthContextType, WindowSizeContextType } from "./Types";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { WIN_LG, WIN_VERY_LG } from "./constants";
 import { authorizeAdmin, setBearerIfPresent } from "./utils";
 import { useContext, useEffect } from "react";
 
@@ -25,7 +26,6 @@ import Rankings from "./components/Rankings/Rankings";
 import Records from "./components/Records/Records";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
 import Users from "./components/Users/Users";
-import { WIN_LG } from "./constants";
 import { WindowSizeContext } from "./context/WindowSizeContext";
 import useState from "react-usestateref";
 

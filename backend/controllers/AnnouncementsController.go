@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -83,9 +82,9 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 		var rows pgx.Rows
 		var err error 
 		if !uidExists {
-			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id;`)
+			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id ORDER BY a.created_at DESC;`)
 		} else {
-			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name, ar.read FROM announcements a JOIN users u ON u.user_id = a.author_id JOIN announcement_read ar ON ar.announcement_id = a.announcement_id WHERE ar.user_id = $1;`, uid)
+			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name, ar.read FROM announcements a JOIN users u ON u.user_id = a.author_id JOIN announcement_read ar ON ar.announcement_id = a.announcement_id WHERE ar.user_id = $1 ORDER BY created_at DESC;`, uid)
 		}
 
 		if err != nil {
@@ -126,11 +125,19 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 	}
 }
 
-func GetNoOfNewAnnouncements(db *pgxpool.Pool) gin.HandlerFunc {
+func GetNoOfNewAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func (c *gin.Context) {
-		uid := c.MustGet("uid").(int)
+		uidExists := middlewares.MarkAuthorization(c, db, envMap, false)
 
-		rows, err := db.Query(context.Background(), `SELECT COUNT(ar.read) FROM announcement_read WHERE user_id = $1;`, uid)
+		uid, _ := c.Get("uid")
+		if uidExists {
+			uid = uid.(int)
+		} else {
+			c.IndentedJSON(http.StatusOK, 0)
+			return
+		}
+
+		rows, err := db.Query(context.Background(), `SELECT ar.read FROM announcement_read ar WHERE ar.user_id = $1;`, uid)
 		if err != nil {
 			log.Println("ERR db.Query in GetNoOfNewAnnouncements: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to query announcement reads.")
@@ -140,14 +147,15 @@ func GetNoOfNewAnnouncements(db *pgxpool.Pool) gin.HandlerFunc {
 		noOfNewAnnouncements := 0
 
 		for rows.Next() {
-			err = rows.Scan(&noOfNewAnnouncements)
+			var read bool
+			err = rows.Scan(&read)
 			if err != nil {
 				log.Println("ERR rows.Scan in GetNoOfNewAnnouncements: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to scan announcement read data.")
 				return
 			}
 
-			fmt.Println(noOfNewAnnouncements)
+			if !read { noOfNewAnnouncements++ }
 		}
 
 		c.IndentedJSON(http.StatusOK, noOfNewAnnouncements)
@@ -263,11 +271,62 @@ func ReadAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
 
 		if !announcement.Read {
 			err = announcement.MarkRead(db)
-			log.Println("ERR announcement.MarkRead in ReadAnnouncement (" + strconv.Itoa(announcement.Id) + "): " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to make announcement read.")
+			if err != nil {
+				log.Println("ERR announcement.MarkRead in ReadAnnouncement (" + strconv.Itoa(announcement.Id) + "): " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to make announcement read.")
+			}
 			return
 		}
 
 		c.IndentedJSON(http.StatusOK, announcement)
+	}
+}
+
+func DeleteAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			log.Println("ERR strconv.Atoi in ReadAnnouncement of id (" + strconv.Itoa(id) + "): " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse announcement id to string.")
+			return
+		}
+
+		tx, err := db.Begin(context.Background())
+		if err != nil {
+			log.Println("ERR db.begin in DeleteAnnouncement: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to start transaction.")
+			tx.Rollback(context.Background())
+			return
+		}
+
+		_, err = tx.Exec(context.Background(), `DELETE FROM announcement_tags WHERE announcement_id = $1;`, id)
+		if err != nil {
+			log.Println("ERR db.Exec(DELETE annoucement_tags) in DeleteAnnouncement (" + strconv.Itoa(id) + "): " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to delete announcement tags.")
+			return
+		}
+
+		_, err = tx.Exec(context.Background(), `DELETE FROM announcement_read WHERE announcement_id = $1;`, id)
+		if err != nil {
+			log.Println("ERR db.Exec(DELETE annoucement_read) in DeleteAnnouncement (" + strconv.Itoa(id) + "): " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to delete announcement read.")
+			return
+		}
+
+		_, err = tx.Exec(context.Background(), `DELETE FROM announcements WHERE announcement_id = $1;`, id)
+		if err != nil {
+			log.Println("ERR db.Exec(DELETE announcements) in DeleteAnnouncement (" + strconv.Itoa(id) + "): " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to delete announcement.")
+			return
+		}
+
+		err = tx.Commit(context.Background())
+		if err != nil {
+			log.Println("ERR tx.commit in in DeleteAnnouncement: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to finish transaction.")
+			return	
+		}
+
+		c.IndentedJSON(http.StatusOK, "Announcement created.")
 	}
 }

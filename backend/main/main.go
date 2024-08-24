@@ -119,10 +119,11 @@ func main() {
 	{
 		announcements.GET("/id/:id", controllers.GetAnnouncementById(db, envMap))
 		announcements.GET("/read/:id", middlewares.AuthMiddleWare(db, envMap), controllers.ReadAnnouncement(db))
+		announcements.DELETE("/delete/:id", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.DeleteAnnouncement(db))
 		announcements.GET("/", controllers.GetAnnouncements(db, envMap))
 		announcements.POST("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostAnnouncement(db, envMap))
 		announcements.PUT("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutAnnouncement(db, envMap))
-		announcements.GET("/noOfNew", middlewares.AuthMiddleWare(db, envMap), controllers.GetNoOfNewAnnouncements(db))
+		announcements.GET("/noOfNew", controllers.GetNoOfNewAnnouncements(db, envMap))
 	}
 
 	router.Run("localhost:8000")
