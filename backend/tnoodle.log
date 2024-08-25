@@ -1,9 +1,0 @@
-2024-04-29 14:57:45,771 INFO [main] o.w.t.d.j.s.MainLauncher [MainLauncher.kt:43] Detected os: Linux
-2024-04-29 14:57:45,780 INFO [main] o.w.t.d.j.s.MainLauncher [MainLauncher.kt:49] needsReExecing: false
-2024-04-29 14:57:46,806 INFO [main] d.s.SystemTray [SystemTray.java:813] Successfully loaded
-2024-04-29 14:57:46,827 WARN [main] d.s.SystemTray [MenuItem.java:465] Please disable tooltips, as they are not consistent across all platforms and tray types.
-2024-04-29 14:57:47,241 INFO [main] o.w.t.d.j.WebscramblesServer [WebscramblesServer.kt:81] TNoodle-WCA-1.2.2 started
-2024-04-29 14:57:47,516 INFO [main] Application [ApplicationEngineEnvironmentReloading.kt:161] Autoreload is disabled because the development mode is off.
-2024-04-29 14:57:48,536 INFO [main] Application [BaseApplicationEngine.kt:65] Application started in 1.097 seconds.
-2024-04-29 14:57:48,781 INFO [DefaultDispatcher-worker-1] Application [BaseApplicationEngine.kt:77] Responding at http://0.0.0.0:2014
-2024-04-29 14:57:48,784 INFO [main] o.w.t.d.j.s.OfflineJarUtils [OfflineJarUtils.kt:23] Attempting to open http://localhost:2014 in browser.
