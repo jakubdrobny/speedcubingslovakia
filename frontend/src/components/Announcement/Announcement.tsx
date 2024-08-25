@@ -4,39 +4,29 @@ import {
   LoadingState,
   initialAnnouncementState,
 } from "../../Types";
+import { Card, Chip, CircularProgress, Stack, Typography } from "@mui/joy";
+import { Delete, Edit } from "@mui/icons-material";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  Button,
-  ButtonGroup,
-  Card,
-  Chip,
-  CircularProgress,
-  DialogTitle,
-  Divider,
-  Modal,
-  ModalClose,
-  ModalDialog,
-  Stack,
-  Typography,
-} from "@mui/joy";
-import { Delete, Edit, Warning } from "@mui/icons-material";
-import {
-  DeleteAnnouncement,
   ReadAnnouncement,
   getAnnouncementById,
   getError,
   isObjectEmpty,
   renderResponseError,
 } from "../../utils";
-import { DialogContent, Paper } from "@mui/material";
-import { Link, useNavigate, useParams } from "react-router-dom";
 import { useContext, useEffect, useRef, useState } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 import MarkdownPreview from "@uiw/react-markdown-preview";
+import { Paper } from "@mui/material";
+import emoji from "remark-emoji";
+import {SlackSelector} from 'react-reactions'
 
 const Announcement: React.FC<{
   givenAnnouncementState?: AnnouncementState;
-}> = ({ givenAnnouncementState }) => {
+  onAnnouncementDelete?: (idx: number, title: string, id: number) => void;
+  idx?: number;
+}> = ({ givenAnnouncementState, onAnnouncementDelete, idx }) => {
   const given = !isObjectEmpty(givenAnnouncementState || {});
   const navigate = useNavigate();
   const [announcementState, setAnnouncementState] = useState<AnnouncementState>(
@@ -44,16 +34,12 @@ const Announcement: React.FC<{
       ? (givenAnnouncementState as AnnouncementState)
       : initialAnnouncementState
   );
-  let { id } = useParams<{ id: string }>();
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
     error: {},
   });
   const targetRef = useRef(null);
   const { authStateRef } = useContext(AuthContext) as AuthContextType;
-  const [deletingAnnouncement, setDeletingAnnouncement] =
-    useState<boolean>(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -64,7 +50,9 @@ const Announcement: React.FC<{
           !announcementState.read
         ) {
           ReadAnnouncement(announcementState)
-            .then((res) => {})
+            .then((res) =>
+              setAnnouncementState({ ...announcementState, read: true })
+            )
             .catch((err) =>
               setLoadingState({
                 isLoading: loadingState.isLoading,
@@ -85,13 +73,12 @@ const Announcement: React.FC<{
     }
 
     if (given) {
-      id = announcementState.id.toString();
       return;
     }
 
     setLoadingState({ isLoading: true, error: {} });
 
-    getAnnouncementById(id)
+    getAnnouncementById(announcementState.id.toString())
       .then((res) => {
         setAnnouncementState(res);
         if (!res.read) return ReadAnnouncement(res);
@@ -107,8 +94,6 @@ const Announcement: React.FC<{
       }
     };
   }, []);
-
-  console.log(announcementState.title, announcementState.read);
 
   return (
     <div style={{ margin: "0.5em", height: "100%" }}>
@@ -128,94 +113,46 @@ const Announcement: React.FC<{
         </Typography>
       ) : (
         <Card ref={targetRef}>
-          <Modal
-            open={deleteModalOpen}
-            onClose={() => setDeleteModalOpen(false)}
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ borderBottom: "1px solid #CDD7E1" }}
           >
-            <ModalDialog
-              color="danger"
-              layout="center"
-              size="lg"
-              variant="soft"
-              role="alertdialog"
-            >
-              <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
-                <Warning />
-                Deleting announcement
-              </DialogTitle>
-              <ModalClose />
-              <Divider />
-              <DialogContent>
-                <Stack direction="column" spacing={2}>
-                  <div>
-                    You are about to delete the <b>{announcementState.title}</b>{" "}
-                    announcement. This action cannot be undone. Are you sure?
-                  </div>
-                  <Stack direction="row" spacing={1}>
-                    <ButtonGroup color="danger" variant="outlined">
-                      <Button
-                        disabled={deletingAnnouncement}
-                        onClick={() => {
-                          setDeletingAnnouncement(true);
-                          DeleteAnnouncement(announcementState.id)
-                            .then((res) => {
-                              setDeletingAnnouncement(false);
-                              setDeleteModalOpen(false);
-                            })
-                            .catch((err) => {
-                              setLoadingState({
-                                error: getError(err),
-                                isLoading: loadingState.isLoading,
-                              });
-                            });
-                        }}
-                      >
-                        Yes
-                      </Button>
-                      <Button
-                        disabled={deletingAnnouncement}
-                        onClick={() => setDeleteModalOpen(false)}
-                      >
-                        No
-                      </Button>
-                    </ButtonGroup>
-                  </Stack>
-                </Stack>
-              </DialogContent>
-            </ModalDialog>
-          </Modal>
-          <Typography level="h2" sx={{ borderBottom: "1px solid #CDD7E1" }}>
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <div>{announcementState.title}</div>
-              {authStateRef.current.isadmin && (
-                <Stack direction="row" gap="10px">
-                  <Edit
-                    color="primary"
-                    onClick={() =>
-                      navigate(`/announcement/${announcementState.id}/edit`)
-                    }
-                    sx={{ cursor: "pointer" }}
-                    className="profile-cubing-icon-mock"
-                  />
-                  <Delete
-                    color="error"
-                    className="profile-cubing-icon-mock"
-                    sx={{ cursor: "pointer" }}
-                    onClick={() => setDeleteModalOpen(true)}
-                  />
-                </Stack>
+            <Stack spacing={1} direction="row" alignItems="center">
+              {!announcementState.read && (
+                <Chip variant="soft" color="danger" sx={{ height: "24px" }}>
+                  New
+                </Chip>
               )}
+              <Typography level="h2">{announcementState.title}</Typography>
             </Stack>
-          </Typography>
-          {!announcementState.read && (
-            <Chip variant="soft" color="danger">
-              New
-            </Chip>
-          )}
+            {authStateRef.current.isadmin && (
+              <Stack direction="row" gap="10px">
+                <Edit
+                  color="primary"
+                  onClick={() =>
+                    navigate(`/announcement/${announcementState.id}/edit`)
+                  }
+                  sx={{ cursor: "pointer" }}
+                  className="profile-cubing-icon-mock"
+                />
+                <Delete
+                  color="error"
+                  className="profile-cubing-icon-mock"
+                  sx={{ cursor: "pointer" }}
+                  onClick={() => {
+                    if (onAnnouncementDelete !== undefined)
+                      onAnnouncementDelete(
+                        idx || 0,
+                        announcementState.title,
+                        parseInt(announcementState.id.toString() || "0")
+                      );
+                  }}
+                />
+              </Stack>
+            )}
+          </Stack>
           <Stack spacing={1} direction="row">
             <div>author:</div>
             <Link
@@ -245,9 +182,11 @@ const Announcement: React.FC<{
               <MarkdownPreview
                 source={announcementState.content}
                 style={{ padding: 16 }}
+                remarkPlugins={[emoji]}
               />
             </div>
           </Paper>
+          <SlackSele
         </Card>
       )}
     </div>

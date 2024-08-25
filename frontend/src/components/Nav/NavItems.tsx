@@ -2,11 +2,11 @@ import { AuthContextType, NavContextType } from "../../Types";
 import { Badge, List, ListItemButton, ListItemDecorator } from "@mui/joy";
 import { Campaign, ListAlt } from "@mui/icons-material";
 import { GetNoOfNewAnnouncements, saveCurrentLocation } from "../../utils";
+import { Link, useLocation } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 import LanguageIcon from "@mui/icons-material/Language";
-import { Link } from "react-router-dom";
 import { NavContext } from "../../context/NavContext";
 import ProfileListItem from "../Profile/ProfileListItem";
 import ResultsListItem from "./ResultsListItem";
@@ -18,6 +18,7 @@ const NavItems: React.FC<{
   const { authStateRef } = useContext(AuthContext) as AuthContextType;
   const { closeNav } = useContext(NavContext) as NavContextType;
   const [newAnnouncements, setNewAnnouncements] = useState<number>(-1);
+  const location = useLocation();
 
   useEffect(() => {
     if (authStateRef.current.token) {
@@ -25,7 +26,7 @@ const NavItems: React.FC<{
         .then((res) => setNewAnnouncements(res))
         .catch((err) => {});
     }
-  }, [authStateRef.current.token]);
+  }, [location.pathname]);
 
   return (
     <List
@@ -53,7 +54,11 @@ const NavItems: React.FC<{
         sx={{ justifyContent: "flex-end" }}
       >
         {authStateRef.current.token && newAnnouncements > 0 ? (
-          <Badge badgeContent={newAnnouncements.toString()} color="danger">
+          <Badge
+            badgeContent={newAnnouncements.toString()}
+            color="danger"
+            variant="soft"
+          >
             <ListItemDecorator>
               <Campaign />
             </ListItemDecorator>
