@@ -53,24 +53,19 @@ const NavItems: React.FC<{
         onClick={closeNav}
         sx={{ justifyContent: "flex-end" }}
       >
+        <ListItemDecorator>
+          <Campaign />
+        </ListItemDecorator>
         {authStateRef.current.token && newAnnouncements > 0 ? (
           <Badge
             badgeContent={newAnnouncements.toString()}
             color="danger"
             variant="soft"
           >
-            <ListItemDecorator>
-              <Campaign />
-            </ListItemDecorator>
             Announcements
           </Badge>
         ) : (
-          <>
-            <ListItemDecorator>
-              <Campaign />
-            </ListItemDecorator>
-            Announcements
-          </>
+          <>Announcements</>
         )}
       </ListItemButton>
       {authStateRef.current.isadmin && (
