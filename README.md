@@ -27,11 +27,11 @@ Clone this repository. `https://github.com/jakubdrobny/speedcubingslovakia.git`
 3. Add `SPEEDCUBINGSLOVAKIA_BACKEND_ENV=development` to your `~/.profile` and run `source ~/.profile` to realize the changes in current terminal.
 4. Run `go run main/main.go` in the backend directory to start the server.
 
-#### Scrambling program
+#### Scrambling
 
-1. Download Java 11.
-2. Clone official scrambling program TNoodle from `https://github.com/thewca/tnoodle.git`.
-3. Inside the cloned repository run `./gradlew runBackend` to start the scrambling program.
+1. Install PM2 with `npm install -g pm2`.
+2. Run `npm install` inside the `scrambling` directory to install dependencies.
+3. Run `pm2 start index.js --name scrambling.service` inside the `scrambling` directory.
 
 #### Frontend
 
