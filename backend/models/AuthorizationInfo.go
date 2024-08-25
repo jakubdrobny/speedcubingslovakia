@@ -12,6 +12,7 @@ type AuthorizationInfo struct {
 	WcaId string `json:"wcaid"`
 	AvatarUrl string `json:"avatarUrl"`
 	IsAdmin bool `json:"isadmin"`
+	Username string `json:"username"`
 }
 
 

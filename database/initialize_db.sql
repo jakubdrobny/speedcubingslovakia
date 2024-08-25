@@ -88,8 +88,46 @@ CREATE TABLE IF NOT EXISTS scrambles (
   timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS tags (
+    tag_id BIGSERIAL PRIMARY KEY,
+    label TEXT NOT NULL,
+    color TEXT NOT NULL CHECK (color IN ('primary', 'warning', 'success', 'danger')),
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
+CREATE TABLE IF NOT EXISTS announcements (
+    announcement_id BIGSERIAL PRIMARY KEY,
+    author_id INTEGER REFERENCES users (user_id) NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
+CREATE TABLE IF NOT EXISTS announcement_tags (
+    announcement_tags_id BIGSERIAL PRIMARY KEY,
+    announcement_id INTEGER REFERENCES announcements (announcement_id) NOT NULL,
+    tag_id INTEGER REFERENCES tags (tag_id) NOT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS announcement_read (
+    announcement_read_id BIGSERIAL PRIMARY KEY,
+    announcement_id INTEGER REFERENCES announcements (announcement_id) NOT NULL,
+    user_id INTEGER REFERENCES users (user_id) NOT NULL,
+    read BOOLEAN NOT NULL DEFAULT FALSE,
+    read_timestamp TIMESTAMP,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS announcement_reaction (
+    announcement_reaction_id BIGSERIAL PRIMARY KEY,
+    announcement_id INTEGER REFERENCES announcements (announcement_id) ON DELETE CASCADE NOT NULL,
+    user_id INTEGER REFERENCES users (user_id) ON DELETE CASCADE NOT NULl,
+    emoji TEXT NOT NULL,
+    "by" TEXT NOT NULL,
+    "set" BOOLEAN NOT NULL
+);
 
 /* insert stock data */
 

@@ -43,8 +43,14 @@ func VerifyJWTToken(tokenString string, secretKey string) (AuthDetails, error) {
 
 func GetAuthDetailsFromHeader(c *gin.Context, secretKey string) (AuthDetails, error) {
 	headers := c.Request.Header["Authorization"]
-	if len(headers) <= 0 { return AuthDetails{}, fmt.Errorf("auth header missing") }
+	if len(headers) <= 0 {
+		token, err := c.Cookie("token")
+		if err != nil { return AuthDetails{}, fmt.Errorf("could not get cookie from gin.Context") }
+		headers = []string{"Bearer " + token}
+	}
 
+	if len(headers) <= 0 { return AuthDetails{}, fmt.Errorf("auth header missing") }
+	
 	header := strings.Split(headers[0], " ")
 	if len(header) < 2 || header[0] != "Bearer" { return AuthDetails{}, fmt.Errorf("bad auth header") }
 

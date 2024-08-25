@@ -22,24 +22,34 @@ func AdminMiddleWare() gin.HandlerFunc {
 	}
 }
 
-func AuthMiddleWare(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authDetails, err := models.GetAuthDetailsFromHeader(c, envMap["JWT_SECRET_KEY"])
-		if err != nil {
+func MarkAuthorization(c *gin.Context, db *pgxpool.Pool, envMap map[string]string, markHeaders bool) bool {
+	authDetails, err := models.GetAuthDetailsFromHeader(c, envMap["JWT_SECRET_KEY"])
+	if err != nil {
+		if markHeaders {
 			c.IndentedJSON(http.StatusUnauthorized, err)
 			c.Abort()
-			return
 		}
-		
-		user, err := models.GetUserById(db, authDetails.UserId)
-		if err != nil {
+		return false
+	}
+	
+	user, err := models.GetUserById(db, authDetails.UserId)
+	if err != nil {
+		if markHeaders {
 			c.IndentedJSON(http.StatusInternalServerError, err)
 			c.Abort()
-			return
 		}
+		return false
+	}
 
-		c.Set("uid", user.Id)
-		c.Set("isadmin", user.IsAdmin)
+	c.Set("uid", user.Id)
+	c.Set("isadmin", user.IsAdmin)
+
+	return true
+}
+
+func AuthMiddleWare(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		MarkAuthorization(c, db, envMap, true)
 
 		c.Next()
 	}

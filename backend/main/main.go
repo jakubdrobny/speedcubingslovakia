@@ -103,11 +103,28 @@ func main() {
 
 	users := api_v1.Group("/users")
 	{
-		users.GET("/manage-roles", middlewares.AuthMiddleWare(db, envMap), controllers.GetManageRolesUsers(db))
+		users.GET("/manage-roles", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.GetManageRolesUsers(db))
 		users.PUT("/manage-roles", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutManageRolesUsers(db))
 		users.POST("/login", controllers.PostLogIn(db, envMap))
 		users.GET("/search", controllers.GetSearchUsers(db))
-		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized")});
+		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized") });
+	}
+
+	tags := api_v1.Group("/tags")
+	{
+		tags.GET("/", controllers.GetTags(db))
+	}
+	
+	announcements := api_v1.Group("/announcements")
+	{
+		announcements.GET("/id/:id", controllers.GetAnnouncementById(db, envMap))
+		announcements.GET("/read/:id", middlewares.AuthMiddleWare(db, envMap), controllers.ReadAnnouncement(db))
+		announcements.POST("/react/:id", middlewares.AuthMiddleWare(db, envMap), controllers.ReactToAnnouncement(db))
+		announcements.DELETE("/delete/:id", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.DeleteAnnouncement(db))
+		announcements.GET("/", controllers.GetAnnouncements(db, envMap))
+		announcements.POST("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostAnnouncement(db, envMap))
+		announcements.PUT("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutAnnouncement(db, envMap))
+		announcements.GET("/noOfNew", controllers.GetNoOfNewAnnouncements(db, envMap))
 	}
 
 	router.Run("localhost:8000")

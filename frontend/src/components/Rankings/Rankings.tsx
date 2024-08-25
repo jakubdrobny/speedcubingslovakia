@@ -118,13 +118,6 @@ const Rankings = () => {
               )} profile-cubing-icon-mock`}
               onClick={() => {
                 if (!loadingState.isLoading) {
-                  console.log(
-                    eventsRef &&
-                      eventsRef.current &&
-                      idx < eventsRef.current.length,
-                    eventsRef.current[idx].displayname === "MBLD" ||
-                      eventsRef.current[idx].format === "bo1"
-                  );
                   if (
                     eventsRef &&
                     eventsRef.current &&
