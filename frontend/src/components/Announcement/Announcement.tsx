@@ -15,7 +15,7 @@ import {
 } from "../../Types";
 import { Card, Chip, CircularProgress, Stack, Typography } from "@mui/joy";
 import { Delete, Edit } from "@mui/icons-material";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { SlackCounter, SlackSelector } from "@charkour/react-reactions";
 import { useContext, useEffect, useRef } from "react";
 
@@ -42,6 +42,7 @@ const Announcement: React.FC<{
     isLoading: false,
     error: {},
   });
+  const { id } = useParams<{ id: string }>();
   const targetRef = useRef(null);
   const { authStateRef } = useContext(AuthContext) as AuthContextType;
   const [emojiSelectorOpen, setEmojiSelectorOpen] = useState<boolean>(false);
@@ -81,9 +82,11 @@ const Announcement: React.FC<{
       return;
     }
 
+    setAnnouncementState({ ...announcementState, id: parseInt(id || "0") });
+
     setLoadingState({ isLoading: true, error: {} });
 
-    getAnnouncementById(announcementState.id.toString())
+    getAnnouncementById(announcementStateRef.current.id.toString())
       .then((res) => {
         setAnnouncementState(res);
         if (!res.read) return ReadAnnouncement(res);
