@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS scrambles (
 CREATE TABLE IF NOT EXISTS tags (
     tag_id BIGSERIAL PRIMARY KEY,
     label TEXT NOT NULL,
-    color TEXT NOT NULL CHECK (color IN ('primary', 'warning', 'success', 'danger')),
+    color TEXT NOT NULL,
     timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -130,6 +130,25 @@ CREATE TABLE IF NOT EXISTS announcement_reaction (
 );
 
 /* insert stock data */
+
+
+/* tags */
+INSERT INTO tags (label, color)
+VALUES ('# competition announcement', 'success')
+ON CONFLICT (label, color) DO NOTHING;
+
+INSERT INTO tags (label, color)
+VALUES ('# competition registration opens', 'primary')
+ON CONFLICT (label, color) DO NOTHING;
+
+INSERT INTO tags (label, color)
+VALUES ('# announcement', 'warning')
+ON CONFLICT (label, color) DO NOTHING;
+
+INSERT INTO tags (label, color)
+VALUES ('# release notes', 'danger')
+ON CONFLICT (label, color) DO NOTHING;
+
 
 
 /* events */
