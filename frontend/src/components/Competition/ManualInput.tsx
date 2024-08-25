@@ -30,14 +30,8 @@ const ManualInput: React.FC<{
     let newValue = e.currentTarget.value;
     const target = e.target as HTMLInputElement;
 
-    if (
-      competitionState.events[competitionState.currentEventIdx].displayname ===
-      "FMC"
-    ) {
+    if (isfmc) {
       updateSolve(newValue);
-      window.setTimeout(function () {
-        target.setSelectionRange(newValue.length, newValue.length);
-      }, 0);
       return;
     }
 
@@ -91,7 +85,7 @@ const ManualInput: React.FC<{
         onKeyDown={handleKeyDown}
         onClick={(e) => {
           const target = e.target as HTMLInputElement;
-          if (target.tagName === "INPUT")
+          if (target.tagName === "INPUT" && !isfmc)
             target.setSelectionRange(
               target?.value?.length,
               target?.value?.length
