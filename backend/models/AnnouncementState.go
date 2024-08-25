@@ -17,6 +17,7 @@ type AnnouncementState struct {
 	AuthorUsername string `json:"authorUsername"`
 	Tags []Tag `json:"tags"`
 	Read bool `json:"read"`
+	EmojiCounters []EmojiCounter `json:"emojiCounters"`
 }
 
 func (a *AnnouncementState) GetTags(db *pgxpool.Pool) (error) {
@@ -31,6 +32,23 @@ func (a *AnnouncementState) GetTags(db *pgxpool.Pool) (error) {
 		if err != nil { return err }
 
 		a.Tags = append(a.Tags, tag)
+	}
+
+	return nil
+}
+
+func (a *AnnouncementState) GetEmojiCounters(db *pgxpool.Pool) (error) {
+	rows, err := db.Query(context.Background(), `SELECT ar.announcement_reaction_id, ar.emoji, ar.by FROM announcement_reaction ar WHERE ar.announcement_id = $1 AND ar."set" = TRUE;`, a.Id)
+	if err != nil { return err }
+
+	a.EmojiCounters = make([]EmojiCounter, 0)
+
+	for rows.Next() {
+		var emojiCounter EmojiCounter
+		err = rows.Scan(&emojiCounter.Id, &emojiCounter.Emoji, &emojiCounter.By)
+		if err != nil { return err }
+
+		a.EmojiCounters = append(a.EmojiCounters, emojiCounter)
 	}
 
 	return nil

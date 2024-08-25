@@ -1,10 +1,10 @@
 import {
+  AnnouncementReactResponse,
   AnnouncementState,
   AuthState,
   CompetitionData,
   CompetitionEvent,
   CompetitionLoadingState,
-  CompetitionResult,
   CompetitionResultStruct,
   CompetitionState,
   FilterValue,
@@ -335,6 +335,7 @@ export const logIn = async (
     isadmin: boolean;
     avatarUrl: string;
     wcaid: string;
+    username: string;
   } = response.data;
 
   setBearerIfPresent(data.access_token);
@@ -344,6 +345,7 @@ export const logIn = async (
     isadmin: data.isadmin,
     avatarUrl: data.avatarUrl,
     wcaid: data.wcaid,
+    username: data.username,
   };
 
   const cookies = new Cookies(null, { path: "/" });
@@ -366,6 +368,7 @@ export const initialAuthState: AuthState = {
   isadmin: false,
   avatarUrl: cookies.get("avatarUrl") || "",
   wcaid: cookies.get("wcaid") || "",
+  username: cookies.get("username") || "",
 };
 
 export const logOut = async () => {
@@ -591,5 +594,18 @@ export const DeleteAnnouncement = async (
   const response = await axios.delete(
     `/api/announcements/delete/${announcementId}`
   );
+  return response.data;
+};
+
+export const AddReactionToAnnouncement = async (
+  announcementId: number,
+  emoji: string,
+  by: string
+): Promise<AnnouncementReactResponse> => {
+  const response = await axios({
+    method: "POST",
+    url: `/api/announcements/react/${announcementId}`,
+    data: { announcementId, emoji, by },
+  });
   return response.data;
 };

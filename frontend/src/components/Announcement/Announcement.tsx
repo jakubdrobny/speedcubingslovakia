@@ -1,4 +1,13 @@
 import {
+  AddReactionToAnnouncement,
+  ReadAnnouncement,
+  getAnnouncementById,
+  getError,
+  isObjectEmpty,
+  renderResponseError,
+} from "../../utils";
+import {
+  AnnouncementReactResponse,
   AnnouncementState,
   AuthContextType,
   LoadingState,
@@ -6,21 +15,15 @@ import {
 } from "../../Types";
 import { Card, Chip, CircularProgress, Stack, Typography } from "@mui/joy";
 import { Delete, Edit } from "@mui/icons-material";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-  ReadAnnouncement,
-  getAnnouncementById,
-  getError,
-  isObjectEmpty,
-  renderResponseError,
-} from "../../utils";
-import { useContext, useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { SlackCounter, SlackSelector } from "@charkour/react-reactions";
+import { useContext, useEffect, useRef } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import { Paper } from "@mui/material";
 import emoji from "remark-emoji";
-import {SlackSelector} from 'react-reactions'
+import useState from "react-usestateref";
 
 const Announcement: React.FC<{
   givenAnnouncementState?: AnnouncementState;
@@ -29,17 +32,19 @@ const Announcement: React.FC<{
 }> = ({ givenAnnouncementState, onAnnouncementDelete, idx }) => {
   const given = !isObjectEmpty(givenAnnouncementState || {});
   const navigate = useNavigate();
-  const [announcementState, setAnnouncementState] = useState<AnnouncementState>(
-    given
-      ? (givenAnnouncementState as AnnouncementState)
-      : initialAnnouncementState
-  );
+  const [announcementState, setAnnouncementState, announcementStateRef] =
+    useState<AnnouncementState>(
+      given
+        ? (givenAnnouncementState as AnnouncementState)
+        : initialAnnouncementState
+    );
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
     error: {},
   });
   const targetRef = useRef(null);
   const { authStateRef } = useContext(AuthContext) as AuthContextType;
+  const [emojiSelectorOpen, setEmojiSelectorOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -95,11 +100,39 @@ const Announcement: React.FC<{
     };
   }, []);
 
+  const handleOnReactionSelect = (emoji: string) => {
+    const by = authStateRef.current.username;
+    AddReactionToAnnouncement(announcementStateRef.current.id, emoji, by)
+      .then((res: AnnouncementReactResponse) => {
+        console.log(
+          res.set
+            ? [...announcementStateRef.current.emojiCounters, { emoji, by }]
+            : [...announcementStateRef.current.emojiCounters].filter(
+                (entry) => !(entry.emoji === emoji && entry.by === by)
+              )
+        );
+        setAnnouncementState({
+          ...announcementState,
+          emojiCounters: res.set
+            ? [...announcementStateRef.current.emojiCounters, { emoji, by }]
+            : [...announcementStateRef.current.emojiCounters].filter(
+                (entry) => !(entry.emoji === emoji && entry.by === by)
+              ),
+        });
+      })
+      .catch((err) =>
+        setLoadingState({
+          isLoading: loadingState.isLoading,
+          error: getError(err),
+        })
+      );
+  };
+
   return (
-    <div style={{ margin: "0.5em", height: "100%" }}>
-      {!isObjectEmpty(loadingState.error) ? (
-        renderResponseError(loadingState.error)
-      ) : loadingState.isLoading ? (
+    <Stack style={{ margin: "0.5em", height: "100%" }} spacing={2}>
+      {!isObjectEmpty(loadingState.error) &&
+        renderResponseError(loadingState.error)}
+      {loadingState.isLoading ? (
         <Typography
           level="h3"
           sx={{
@@ -186,10 +219,21 @@ const Announcement: React.FC<{
               />
             </div>
           </Paper>
-          <SlackSele
+          <SlackCounter
+            counters={announcementStateRef.current.emojiCounters}
+            onSelect={(emoji) => handleOnReactionSelect(emoji)}
+            onAdd={() => {
+              if (authStateRef.current.token) setEmojiSelectorOpen((p) => !p);
+            }}
+          />
+          {emojiSelectorOpen && authStateRef.current.token && (
+            <SlackSelector
+              onSelect={(emoji) => handleOnReactionSelect(emoji)}
+            />
+          )}
         </Card>
       )}
-    </div>
+    </Stack>
   );
 };
 

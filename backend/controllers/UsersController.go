@@ -130,6 +130,7 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		if user.WcaId == "" { authInfo.WcaId = user.Name }
 		authInfo.AccessToken, err = utils.CreateToken(user.Id, envMap["JWT_SECRET_KEY"], authInfo.ExpiresIn)
 		authInfo.IsAdmin = user.IsAdmin
+		authInfo.Username = user.Name
 		if err != nil {
 			log.Println("ERR CreateToken in PostLogIn: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed creating token.")

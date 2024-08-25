@@ -119,6 +119,7 @@ func main() {
 	{
 		announcements.GET("/id/:id", controllers.GetAnnouncementById(db, envMap))
 		announcements.GET("/read/:id", middlewares.AuthMiddleWare(db, envMap), controllers.ReadAnnouncement(db))
+		announcements.POST("/react/:id", middlewares.AuthMiddleWare(db, envMap), controllers.ReactToAnnouncement(db))
 		announcements.DELETE("/delete/:id", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.DeleteAnnouncement(db))
 		announcements.GET("/", controllers.GetAnnouncements(db, envMap))
 		announcements.POST("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostAnnouncement(db, envMap))

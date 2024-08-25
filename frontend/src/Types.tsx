@@ -126,6 +126,7 @@ export type AuthState = {
   wcaid: string;
   isadmin: boolean;
   avatarUrl: string;
+  username: string;
 };
 
 export type AuthContextType = {
@@ -338,6 +339,11 @@ export type Tag = {
   color: "danger" | "warning" | "success" | "primary";
 };
 
+export type EmojiCounter = {
+  emoji: string;
+  by: string;
+};
+
 export type AnnouncementState = {
   id: number;
   authorId: number;
@@ -347,6 +353,7 @@ export type AnnouncementState = {
   content: string;
   tags: Tag[];
   read: boolean;
+  emojiCounters: EmojiCounter[];
 };
 
 export const initialAnnouncementState: AnnouncementState = {
@@ -358,4 +365,9 @@ export const initialAnnouncementState: AnnouncementState = {
   content: "",
   tags: [],
   read: true,
+  emojiCounters: [],
+};
+
+export type AnnouncementReactResponse = {
+  set: boolean;
 };

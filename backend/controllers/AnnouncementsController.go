@@ -68,6 +68,14 @@ func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.Handler
 			return;
 		}
 
+		err = announcement.GetEmojiCounters(db)
+		if err != nil {
+			log.Println("ERR GetEmojiCounters in GetAnnouncementById: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement emoji counters.")
+			return;
+		}
+
+
 		c.IndentedJSON(http.StatusOK, announcement)
 	}
 }
@@ -115,6 +123,13 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 			if err != nil {
 				log.Println("ERR GetTags in GetAnnouncements: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement tags.")
+				return;
+			}
+
+			err = announcement.GetEmojiCounters(db)
+			if err != nil {
+				log.Println("ERR GetEmojiCounters in GetAnnouncements: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement emoji counters.")
 				return;
 			}
 
@@ -279,6 +294,33 @@ func ReadAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		c.IndentedJSON(http.StatusOK, announcement)
+	}
+}
+
+type AnnouncementReactResponse struct {
+	Set bool `json:"set"`
+}
+
+func ReactToAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var emojiCounter models.EmojiCounter
+
+		if err := c.BindJSON(&emojiCounter); err != nil {
+			log.Println("ERR BindJSON(&emojiCounter) in ReactToAnnouncement: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse reaction data.")
+			return
+		}
+
+		uid := c.MustGet("uid").(int)
+
+		err := emojiCounter.Update(db, uid)
+		if err != nil {
+			log.Println("ERR emojiCounter.Update in ReactToAnnouncement: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if reaction data exists in database.")
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, AnnouncementReactResponse{Set: emojiCounter.Set})
 	}
 }
 
