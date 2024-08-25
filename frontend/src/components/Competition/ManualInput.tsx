@@ -17,6 +17,9 @@ const ManualInput: React.FC<{
     competitionState.currentSolveIdx + 1
   }` as keyof ResultEntry;
   const formattedTime = currentResultsRef.current[solveProp].toString();
+  const isfmc =
+    competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
+    "333fm";
 
   useEffect(
     () => setForceRerender(!forceRerender),
@@ -68,7 +71,7 @@ const ManualInput: React.FC<{
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSaveResults();
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    } else if (!isfmc && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
       e.preventDefault();
     }
   };
@@ -81,7 +84,7 @@ const ManualInput: React.FC<{
         sx={{
           marginBottom: 2,
           marginTop: 2,
-          input: { caretColor: "transparent" },
+          input: !isfmc ? { caretColor: "transparent" } : {},
         }}
         value={formattedTime}
         onChange={handleTimeInputChange}

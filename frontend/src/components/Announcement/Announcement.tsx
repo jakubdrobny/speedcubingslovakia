@@ -48,6 +48,22 @@ const Announcement: React.FC<{
   const [emojiSelectorOpen, setEmojiSelectorOpen] = useState<boolean>(false);
 
   useEffect(() => {
+    setLoadingState({ isLoading: true, error: {} });
+
+    setAnnouncementState({ ...announcementState, id: parseInt(id || "0") });
+
+    if (!given) {
+      getAnnouncementById(announcementStateRef.current.id.toString())
+        .then((res) => {
+          setAnnouncementState(res);
+          if (!res.read) return ReadAnnouncement(res);
+        })
+        .then((res) => setLoadingState({ isLoading: false, error: {} }))
+        .catch((err) =>
+          setLoadingState({ isLoading: false, error: getError(err) })
+        );
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (
@@ -78,24 +94,6 @@ const Announcement: React.FC<{
       observer.observe(targetRef.current);
     }
 
-    if (given) {
-      return;
-    }
-
-    setAnnouncementState({ ...announcementState, id: parseInt(id || "0") });
-
-    setLoadingState({ isLoading: true, error: {} });
-
-    getAnnouncementById(announcementStateRef.current.id.toString())
-      .then((res) => {
-        setAnnouncementState(res);
-        if (!res.read) return ReadAnnouncement(res);
-      })
-      .then((res) => setLoadingState({ isLoading: false, error: {} }))
-      .catch((err) =>
-        setLoadingState({ isLoading: false, error: getError(err) })
-      );
-
     return () => {
       if (targetRef.current) {
         observer.unobserve(targetRef.current);
@@ -107,13 +105,6 @@ const Announcement: React.FC<{
     const by = authStateRef.current.username;
     AddReactionToAnnouncement(announcementStateRef.current.id, emoji, by)
       .then((res: AnnouncementReactResponse) => {
-        console.log(
-          res.set
-            ? [...announcementStateRef.current.emojiCounters, { emoji, by }]
-            : [...announcementStateRef.current.emojiCounters].filter(
-                (entry) => !(entry.emoji === emoji && entry.by === by)
-              )
-        );
         setAnnouncementState({
           ...announcementState,
           emojiCounters: res.set
@@ -133,9 +124,9 @@ const Announcement: React.FC<{
 
   return (
     <Stack style={{ margin: "0.5em", height: "100%" }} spacing={2}>
-      {!isObjectEmpty(loadingState.error) &&
-        renderResponseError(loadingState.error)}
-      {loadingState.isLoading ? (
+      {!isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
+      ) : loadingState.isLoading ? (
         <Typography
           level="h3"
           sx={{
@@ -148,93 +139,95 @@ const Announcement: React.FC<{
           <CircularProgress /> &nbsp; Loading announcement...
         </Typography>
       ) : (
-        <Card ref={targetRef}>
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ borderBottom: "1px solid #CDD7E1" }}
-          >
-            <Stack spacing={1} direction="row" alignItems="center">
-              {!announcementState.read && (
-                <Chip variant="soft" color="danger" sx={{ height: "24px" }}>
-                  New
-                </Chip>
-              )}
-              <Typography level="h2">{announcementState.title}</Typography>
-            </Stack>
-            {authStateRef.current.isadmin && (
-              <Stack direction="row" gap="10px">
-                <Edit
-                  color="primary"
-                  onClick={() =>
-                    navigate(`/announcement/${announcementState.id}/edit`)
-                  }
-                  sx={{ cursor: "pointer" }}
-                  className="profile-cubing-icon-mock"
-                />
-                <Delete
-                  color="error"
-                  className="profile-cubing-icon-mock"
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => {
-                    if (onAnnouncementDelete !== undefined)
-                      onAnnouncementDelete(
-                        idx || 0,
-                        announcementState.title,
-                        parseInt(announcementState.id.toString() || "0")
-                      );
-                  }}
-                />
-              </Stack>
-            )}
-          </Stack>
-          <Stack spacing={1} direction="row">
-            <div>author:</div>
-            <Link
-              to={`/profile/${announcementState.authorWcaId}`}
-              style={{
-                color: "#0B6BCB",
-                textDecoration: "none",
-                fontWeight: 555,
-              }}
+        announcementState.id !== 0 && (
+          <Card ref={targetRef}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{ borderBottom: "1px solid #CDD7E1" }}
             >
-              {announcementState.authorUsername}
-            </Link>
-          </Stack>
-          <Stack spacing={1} direction="row">
-            <div>tags:</div>
-            <Stack spacing={1} direction="row" flexWrap="wrap" useFlexGap>
-              {announcementState.tags.map((tag, idx) => (
-                <Chip key={idx} color={tag.color} sx={{ padding: "0 12px" }}>
-                  {tag.label}
-                </Chip>
-              ))}
+              <Stack spacing={1} direction="row" alignItems="center">
+                {!announcementState.read && (
+                  <Chip variant="soft" color="danger" sx={{ height: "24px" }}>
+                    New
+                  </Chip>
+                )}
+                <Typography level="h2">{announcementState.title}</Typography>
+              </Stack>
+              {authStateRef.current.isadmin && (
+                <Stack direction="row" gap="10px">
+                  <Edit
+                    color="primary"
+                    onClick={() =>
+                      navigate(`/announcement/${announcementState.id}/edit`)
+                    }
+                    sx={{ cursor: "pointer" }}
+                    className="profile-cubing-icon-mock"
+                  />
+                  <Delete
+                    color="error"
+                    className="profile-cubing-icon-mock"
+                    sx={{ cursor: "pointer" }}
+                    onClick={() => {
+                      if (onAnnouncementDelete !== undefined)
+                        onAnnouncementDelete(
+                          idx || 0,
+                          announcementState.title,
+                          parseInt(announcementState.id.toString() || "0")
+                        );
+                    }}
+                  />
+                </Stack>
+              )}
             </Stack>
-          </Stack>
-          <Paper elevation={3} sx={{ padding: "0.5em" }}>
-            <div data-color-mode="light">
-              <div className="wmde-markdown-var"> </div>
-              <MarkdownPreview
-                source={announcementState.content}
-                style={{ padding: 16 }}
-                remarkPlugins={[emoji]}
-              />
-            </div>
-          </Paper>
-          <SlackCounter
-            counters={announcementStateRef.current.emojiCounters}
-            onSelect={(emoji) => handleOnReactionSelect(emoji)}
-            onAdd={() => {
-              if (authStateRef.current.token) setEmojiSelectorOpen((p) => !p);
-            }}
-          />
-          {emojiSelectorOpen && authStateRef.current.token && (
-            <SlackSelector
+            <Stack spacing={1} direction="row">
+              <div>author:</div>
+              <Link
+                to={`/profile/${announcementState.authorWcaId}`}
+                style={{
+                  color: "#0B6BCB",
+                  textDecoration: "none",
+                  fontWeight: 555,
+                }}
+              >
+                {announcementState.authorUsername}
+              </Link>
+            </Stack>
+            <Stack spacing={1} direction="row">
+              <div>tags:</div>
+              <Stack spacing={1} direction="row" flexWrap="wrap" useFlexGap>
+                {announcementState.tags.map((tag, idx) => (
+                  <Chip key={idx} color={tag.color} sx={{ padding: "0 12px" }}>
+                    {tag.label}
+                  </Chip>
+                ))}
+              </Stack>
+            </Stack>
+            <Paper elevation={3} sx={{ padding: "0.5em" }}>
+              <div data-color-mode="light">
+                <div className="wmde-markdown-var"> </div>
+                <MarkdownPreview
+                  source={announcementState.content}
+                  style={{ padding: 16 }}
+                  remarkPlugins={[emoji]}
+                />
+              </div>
+            </Paper>
+            <SlackCounter
+              counters={announcementStateRef.current.emojiCounters}
               onSelect={(emoji) => handleOnReactionSelect(emoji)}
+              onAdd={() => {
+                if (authStateRef.current.token) setEmojiSelectorOpen((p) => !p);
+              }}
             />
-          )}
-        </Card>
+            {emojiSelectorOpen && authStateRef.current.token && (
+              <SlackSelector
+                onSelect={(emoji) => handleOnReactionSelect(emoji)}
+              />
+            )}
+          </Card>
+        )
       )}
     </Stack>
   );
