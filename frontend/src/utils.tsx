@@ -610,6 +610,9 @@ export const AddReactionToAnnouncement = async (
   return response.data;
 };
 
-export const isBoX = (eventFormat: string): boolean => {
-  return eventFormat[0] == "b";
+export const shouldHideAverageColumn = (
+  eventFormat: string,
+  eventIconcode: string
+): boolean => {
+  return eventFormat == "bo1" || eventIconcode === "333mbf";
 };

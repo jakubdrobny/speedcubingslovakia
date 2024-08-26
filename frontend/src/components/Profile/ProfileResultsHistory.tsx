@@ -1,5 +1,9 @@
 import { Card, Stack, Table, Typography } from "@mui/joy";
-import { getCubingIconClassName, isBoX, reformatMultiTime } from "../../utils";
+import {
+  getCubingIconClassName,
+  reformatMultiTime,
+  shouldHideAverageColumn,
+} from "../../utils";
 
 import { Link } from "react-router-dom";
 import { ProfileTypeResultHistory } from "../../Types";
@@ -15,7 +19,10 @@ const ProfileResultsHistory: React.FC<{
   const [currentHistoryIdx, setCurrentHistoryIdx] = useState(0);
   const isfmc = resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm";
   const ismbld = resultsHistory[currentHistoryIdx]?.eventIconcode === "333mbf";
-  const isboX = isBoX(resultsHistory[currentHistoryIdx]?.eventFormat);
+  const isboX = shouldHideAverageColumn(
+    resultsHistory[currentHistoryIdx]?.eventFormat,
+    resultsHistory[currentHistoryIdx]?.eventIconcode
+  );
 
   const getColumnNames = () => {
     let columnNames = [
