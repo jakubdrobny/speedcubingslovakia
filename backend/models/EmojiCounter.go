@@ -16,7 +16,7 @@ type EmojiCounter struct {
 
 // checks for (emoji, by) combination
 func (ec *EmojiCounter) Exists(db *pgxpool.Pool) (bool, error) {
-	rows, err := db.Query(context.Background(), `SELECT ar.announcement_reaction_id, ar."set" FROM announcement_reaction ar WHERE ar.emoji = $1 AND ar."by" = $2;`, ec.Emoji, ec.By)
+	rows, err := db.Query(context.Background(), `SELECT ar.announcement_reaction_id, ar."set" FROM announcement_reaction ar WHERE ar.emoji = $1 AND ar."by" = $2 AND ar.announcement_id = $3;`, ec.Emoji, ec.By, ec.AnnouncementId)
 	if err != nil { return false, err }
 
 	found := false
