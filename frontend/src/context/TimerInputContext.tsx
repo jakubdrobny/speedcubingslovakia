@@ -16,7 +16,7 @@ import React, {
   useState,
 } from "react";
 
-import { CompetitionContext } from "../components/Competition/CompetitionContext";
+import { CompetitionContext } from "./CompetitionContext";
 import { milisecondsToFormattedTime } from "../utils";
 
 export const TimerInputContext = createContext<TimerInputContextType | null>(

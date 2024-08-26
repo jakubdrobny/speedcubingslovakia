@@ -3,7 +3,7 @@ import "./styles/index.css";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { BrowserRouter } from "react-router-dom";
-import { CompetitionProvider } from "./components/Competition/CompetitionContext";
+import { CompetitionProvider } from "./context/CompetitionContext";
 import { NavProvider } from "./context/NavContext";
 import ReactDOM from "react-dom/client";
 import { TimerInputProvider } from "./context/TimerInputContext";

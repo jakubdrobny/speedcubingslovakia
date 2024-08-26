@@ -5,7 +5,7 @@ import {
   ResultsCompeteChoiceEnum,
 } from "../../Types";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import { EmojiEvents } from "@mui/icons-material";
 import { getCubingIconClassName } from "../../utils";
 import { useContext } from "react";

@@ -6,7 +6,7 @@ import {
 } from "../../Types";
 import { useContext, useEffect, useRef, useState } from "react";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
 import { Typography } from "@mui/joy";
 import { reformatWithPenalties } from "../../utils";

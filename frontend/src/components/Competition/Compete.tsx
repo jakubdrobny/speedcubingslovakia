@@ -14,7 +14,8 @@ import {
 } from "../../utils";
 import { useContext, useEffect } from "react";
 
-import { CompetitionContext } from "./CompetitionContext";
+import AveragePreview from "./AveragePreview";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import ManualInput from "./ManualInput";
 import ManualInputMBLD from "./ManualInputMBLD";
 import Penalties from "./Penalties";
@@ -131,6 +132,7 @@ const Compete = () => {
               </Button>
             </Grid>
           </Grid>
+          <AveragePreview />
           <Scramble ismbld={ismbld} />
           <Grid container>
             <Grid
@@ -143,7 +145,12 @@ const Compete = () => {
             >
               <h3
                 onClick={toggleInputMethod}
-                style={{ display: "flex", alignItems: "center" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginTop: "0.5em",
+                  marginBottom: "0.25em",
+                }}
               >
                 {competitionState.inputMethod === InputMethod.Manual ? (
                   <>

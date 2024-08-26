@@ -371,3 +371,13 @@ export const initialAnnouncementState: AnnouncementState = {
 export type AnnouncementReactResponse = {
   set: boolean;
 };
+
+export type AverageInfo = {
+  single: string;
+  average: string;
+  times: string[];
+  bpa: string;
+  wpa: string;
+  showPossibleAverage: boolean;
+  finished: boolean;
+};

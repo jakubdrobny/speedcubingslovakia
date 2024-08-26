@@ -28,7 +28,7 @@ import {
 import { useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import CompetitionResults from "./CompetitionResults";
 import CompetitorArea from "./CompetitorArea";
 import { EventSelector } from "./EventSelector";

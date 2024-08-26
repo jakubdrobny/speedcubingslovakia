@@ -2,6 +2,7 @@ import {
   AnnouncementReactResponse,
   AnnouncementState,
   AuthState,
+  AverageInfo,
   CompetitionData,
   CompetitionEvent,
   CompetitionLoadingState,
@@ -612,4 +613,14 @@ export const AddReactionToAnnouncement = async (
 
 export const isBoX = (eventFormat: string): boolean => {
   return eventFormat[0] == "b";
+};
+
+export const initialAverageInfo: AverageInfo = {
+  single: "53.11",
+  average: "DNF",
+  times: ["53.11", "1:24.00", "1:23.55", "1:22.25", "DNF"],
+  bpa: "1:23.55",
+  wpa: "1:24.15",
+  showPossibleAverage: true,
+  finished: false,
 };

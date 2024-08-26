@@ -2,7 +2,7 @@ import { Alert, Card, Divider, Grid, Stack, Typography } from "@mui/joy";
 import { CompetitionContextType, InputMethod } from "../../Types";
 import { Keyboard, Timer } from "@mui/icons-material";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import { useContext } from "react";
 
 const Guide = () => {

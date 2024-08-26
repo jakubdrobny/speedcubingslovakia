@@ -1,7 +1,7 @@
 import { CompetitionContextType, ResultEntry } from "../../Types";
 import React, { useContext, useEffect, useRef, useState } from "react";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import { Input } from "@mui/joy";
 import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
 import { reformatTime } from "../../utils";
