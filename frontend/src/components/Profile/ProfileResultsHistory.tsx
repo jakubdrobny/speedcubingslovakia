@@ -152,7 +152,10 @@ const ProfileResultsHistory: React.FC<{
                       ]
                   ).map((val, idx1) => {
                     return (
-                      <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
+                      <td
+                        key={idx1 + 100000}
+                        style={idx1 % 2 === 0 ? left : right}
+                      >
                         {idx1 === 0 ? (
                           val
                         ) : (
