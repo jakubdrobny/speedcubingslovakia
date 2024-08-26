@@ -91,7 +91,7 @@ const ProfileResultsHistory: React.FC<{
                           ? goodHeight
                           : idx < 3
                           ? left
-                          : idx < 5 - (ismbld ? 1 : 0)
+                          : idx < 6 - (ismbld ? 1 : 0)
                           ? right
                           : center),
                       }}
