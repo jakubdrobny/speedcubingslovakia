@@ -50,9 +50,9 @@ const Announcement: React.FC<{
   useEffect(() => {
     setLoadingState({ isLoading: true, error: {} });
 
-    setAnnouncementState({ ...announcementState, id: parseInt(id || "0") });
-
     if (!given) {
+      setAnnouncementState({ ...announcementState, id: parseInt(id || "0") });
+
       getAnnouncementById(announcementStateRef.current.id.toString())
         .then((res) => {
           setAnnouncementState(res);
@@ -93,6 +93,8 @@ const Announcement: React.FC<{
     if (targetRef.current) {
       observer.observe(targetRef.current);
     }
+
+    setLoadingState({ isLoading: false, error: {} });
 
     return () => {
       if (targetRef.current) {
