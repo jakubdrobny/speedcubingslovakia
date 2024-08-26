@@ -216,7 +216,7 @@ const Announcement: React.FC<{
                 />
               </div>
             </Paper>
-            {/*<SlackCounter
+            <SlackCounter
               counters={announcementStateRef.current.emojiCounters}
               onSelect={(emoji) => handleOnReactionSelect(emoji)}
               onAdd={() => {
@@ -227,7 +227,7 @@ const Announcement: React.FC<{
               <SlackSelector
                 onSelect={(emoji) => handleOnReactionSelect(emoji)}
               />
-            )}*/}
+            )}
           </Card>
         )
       )}
