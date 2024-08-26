@@ -19,7 +19,7 @@ const ProfileResultsHistory: React.FC<{
   const [currentHistoryIdx, setCurrentHistoryIdx] = useState(0);
   const isfmc = resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm";
   const ismbld = resultsHistory[currentHistoryIdx]?.eventIconcode === "333mbf";
-  const isboX = shouldHideAverageColumn(
+  const hideAverageColumn = shouldHideAverageColumn(
     resultsHistory[currentHistoryIdx]?.eventFormat,
     resultsHistory[currentHistoryIdx]?.eventIconcode
   );
@@ -38,7 +38,7 @@ const ProfileResultsHistory: React.FC<{
         : "Solves",
     ];
 
-    if (columnNames.includes("Average") && isboX)
+    if (columnNames.includes("Average") && hideAverageColumn)
       columnNames.splice(
         columnNames.findIndex((x) => x === "Average"),
         2
@@ -91,7 +91,7 @@ const ProfileResultsHistory: React.FC<{
                           ? goodHeight
                           : idx < 3
                           ? left
-                          : idx < 6 - (ismbld ? 1 : 0)
+                          : idx < 6 - (hideAverageColumn ? 2 : 0)
                           ? right
                           : center),
                       }}
@@ -120,9 +120,11 @@ const ProfileResultsHistory: React.FC<{
                   />
                   &nbsp;{resultsHistory[currentHistoryIdx].eventName}
                 </td>
-                {(isboX ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5]).map((val) => (
-                  <td key={val + 10} style={goodHeight}></td>
-                ))}
+                {(hideAverageColumn ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5]).map(
+                  (val) => (
+                    <td key={val + 10} style={goodHeight}></td>
+                  )
+                )}
               </tr>
               {resultsHistory[currentHistoryIdx].history.map((entry, idx) => (
                 <tr key={idx + 1000}>
@@ -139,7 +141,7 @@ const ProfileResultsHistory: React.FC<{
                       <b>{entry.competitionName}</b>
                     </Link>
                   </td>
-                  {(isboX
+                  {(hideAverageColumn
                     ? [entry.place, entry.single, entry.singleRecord]
                     : [
                         entry.place,
