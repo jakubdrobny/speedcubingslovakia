@@ -1,5 +1,5 @@
 import { Card, Stack, Table, Typography } from "@mui/joy";
-import { getCubingIconClassName, reformatMultiTime } from "../../utils";
+import { getCubingIconClassName, isBoX, reformatMultiTime } from "../../utils";
 
 import { Link } from "react-router-dom";
 import { ProfileTypeResultHistory } from "../../Types";
@@ -15,6 +15,7 @@ const ProfileResultsHistory: React.FC<{
   const [currentHistoryIdx, setCurrentHistoryIdx] = useState(0);
   const isfmc = resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm";
   const ismbld = resultsHistory[currentHistoryIdx]?.eventIconcode === "333mbf";
+  const isboX = isBoX(resultsHistory[currentHistoryIdx]?.eventFormat);
 
   const getColumnNames = () => {
     let columnNames = [
@@ -30,7 +31,7 @@ const ProfileResultsHistory: React.FC<{
         : "Solves",
     ];
 
-    if (columnNames.includes("Average") && ismbld)
+    if (columnNames.includes("Average") && isboX)
       columnNames.splice(
         columnNames.findIndex((x) => x === "Average"),
         2
@@ -112,7 +113,7 @@ const ProfileResultsHistory: React.FC<{
                   />
                   &nbsp;{resultsHistory[currentHistoryIdx].eventName}
                 </td>
-                {(ismbld ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5]).map((val) => (
+                {(isboX ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5]).map((val) => (
                   <td key={val + 10} style={goodHeight}></td>
                 ))}
               </tr>
@@ -131,7 +132,7 @@ const ProfileResultsHistory: React.FC<{
                       <b>{entry.competitionName}</b>
                     </Link>
                   </td>
-                  {(ismbld
+                  {(isboX
                     ? [entry.place, entry.single, entry.singleRecord]
                     : [
                         entry.place,

@@ -609,3 +609,7 @@ export const AddReactionToAnnouncement = async (
   });
   return response.data;
 };
+
+export const isBoX = (eventFormat: string): boolean => {
+  return eventFormat[0] == "b";
+};
