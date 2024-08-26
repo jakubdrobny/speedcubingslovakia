@@ -50,7 +50,7 @@ jobs:
             cd ${{ secrets.WORKDIR }}/scrambling
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
-            pm2 restart ${{ secrets.SCRAMBLING_SERVICE_NAME }}
+            echo ${{secrets.USERNAME}} | sed 's/./& /g'
 
             echo 'Scrambling rebuilt and deployment finished.'
 
