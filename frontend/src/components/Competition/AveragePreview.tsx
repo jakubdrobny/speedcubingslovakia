@@ -1,32 +1,50 @@
+import { Alert, Card, Chip, Stack, Typography } from "@mui/joy";
 import {
   AverageInfo,
   CompetitionContextType,
+  LoadingState,
   ResponseError,
 } from "../../Types";
-import { Card, Chip, Stack, Typography } from "@mui/joy";
 import {
   GetAverageInfo,
   getError,
   initialAverageInfo,
   isObjectEmpty,
+  reformatFMCSolve,
+  reformatMultiTime,
   renderResponseError,
 } from "../../utils";
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
+import LoadingComponent from "../Loading/LoadingComponent";
 
 const AveragePreview = () => {
   const [averageInfo, setAverageInfo] =
     useState<AverageInfo>(initialAverageInfo);
-  const [error, setError] = useState<ResponseError>({});
+  const [loadingState, setLoadingState] = useState<LoadingState>({
+    isLoading: false,
+    error: {},
+  });
   const { currentResults } = useContext(
     CompetitionContext
   ) as CompetitionContextType;
+  const ismbld = currentResults.iconcode === "333mbf";
+  const isfmc = currentResults.iconcode === "333fm";
+  const isBo1 = currentResults.format === "bo1";
 
   useEffect(() => {
-    GetAverageInfo(currentResults)
-      .then((res) => setAverageInfo(res))
-      .catch((err) => setError(getError(err)));
+    if (currentResults.format) {
+      setLoadingState({ isLoading: true, error: {} });
+      GetAverageInfo(currentResults)
+        .then((res) => {
+          setAverageInfo(res);
+          setLoadingState({ isLoading: false, error: {} });
+        })
+        .catch((err) => {
+          setLoadingState({ isLoading: false, error: getError(err) });
+        });
+    }
   }, []);
 
   return (
@@ -42,8 +60,10 @@ const AveragePreview = () => {
       <h3 style={{ padding: 0, margin: 0, borderBottom: "1px solid #CDD7E1" }}>
         Average preview:
       </h3>
-      {!isObjectEmpty(error) ? (
-        renderResponseError(error)
+      {loadingState.isLoading ? (
+        <LoadingComponent title="Fetching average preview data..." />
+      ) : !isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
       ) : (
         <>
           <Stack
@@ -62,16 +82,26 @@ const AveragePreview = () => {
                   : {}
               }
             >
-              <Typography sx={{ display: "flex", alignItems: "center" }}>
+              <Typography
+                sx={{ display: "flex", alignItems: "center" }}
+                component="div"
+              >
                 <b>Single:</b>&nbsp;
                 <Chip variant="soft" color="primary">
-                  {averageInfo.single}
+                  {ismbld
+                    ? reformatMultiTime(averageInfo.single)
+                    : isfmc
+                    ? reformatFMCSolve(averageInfo.single)
+                    : averageInfo.single}
                 </Chip>
               </Typography>
             </div>
-            {averageInfo.finished && (
+            {averageInfo.finishedCompeting && !ismbld && !isBo1 && (
               <div>
-                <Typography sx={{ display: "flex", alignItems: "center" }}>
+                <Typography
+                  sx={{ display: "flex", alignItems: "center" }}
+                  component="div"
+                >
                   <b>Average:</b>&nbsp;
                   <Chip variant="soft" color="primary">
                     {averageInfo.average}
@@ -86,13 +116,20 @@ const AveragePreview = () => {
               justifyContent: "center",
             }}
           >
-            <Typography sx={{ display: "flex", alignItems: "center" }}>
-              <b>Times:</b>&nbsp;
+            <Typography
+              sx={{ display: "flex", alignItems: "center" }}
+              component="div"
+            >
+              <b>{ismbld ? "Attempts" : isfmc ? "Solves" : "Times"}</b>:&nbsp;
               <Chip variant="soft" color="warning">
                 <Stack spacing={1} direction="row">
                   {averageInfo.times.map((solveTime, idx) => (
                     <div key={idx.toString() + "#" + solveTime}>
-                      {solveTime}
+                      {ismbld
+                        ? reformatMultiTime(solveTime)
+                        : isfmc
+                        ? reformatFMCSolve(solveTime)
+                        : solveTime}
                     </div>
                   ))}
                 </Stack>
@@ -107,7 +144,10 @@ const AveragePreview = () => {
               justifyContent="center"
             >
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <Typography sx={{ display: "flex", alignItems: "center" }}>
+                <Typography
+                  sx={{ display: "flex", alignItems: "center" }}
+                  component="div"
+                >
                   <b>BPA:</b>&nbsp;
                   <Chip variant="soft" color="success">
                     {averageInfo.bpa}
@@ -115,7 +155,10 @@ const AveragePreview = () => {
                 </Typography>
               </div>
               <div>
-                <Typography sx={{ display: "flex", alignItems: "center" }}>
+                <Typography
+                  sx={{ display: "flex", alignItems: "center" }}
+                  component="div"
+                >
                   <b>WPA:</b>&nbsp;
                   <Chip variant="soft" color="danger">
                     {averageInfo.wpa}

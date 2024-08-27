@@ -49,7 +49,6 @@ func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
 func (r *ResultEntry) CheckFormats(isfmc bool) {
 	r.BadFormat = false
 
-	
 	if isfmc { return }
 	
 	if !utils.CheckFormat(r.Solve1) {
@@ -368,4 +367,82 @@ func (r *ResultEntry) GetSolveIdx(s string) int {
 	if r.Solve5 == s { return 4 }
 
 	return -1
+}
+
+func (r *ResultEntry) IsAverageOfX() bool {
+	return len(r.Format) > 0 && r.Format[0] == 'a'
+}
+
+// r.Format must be set
+func (r *ResultEntry) ShowPossibleAverages() (bool, error) {
+	noOfSolves, err := utils.GetNoOfSolves(r.Format)
+	if err != nil { return false, err }
+
+	if noOfSolves == 1 || !r.IsAverageOfX() { return false, nil }
+
+	ok := true
+	for idx, solve := range []string{r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5} {
+		if idx < noOfSolves - 1 {
+			ok = ok && solve != "DNS"
+		} else {
+			ok = ok && solve == "DNS"
+			break
+		}
+	}
+
+	return ok, nil
+}
+
+func (r *ResultEntry) GetNthSolve(noOfSolves int) string {
+	if noOfSolves == 1 { return r.Solve1 }
+	if noOfSolves == 2 { return r.Solve2 }
+	if noOfSolves == 3 { return r.Solve3 }
+	if noOfSolves == 4 { return r.Solve4 }
+	return r.Solve5
+}
+
+func (r *ResultEntry) SetNthSolve(noOfSolves int, newSolveValue string) {
+	if noOfSolves == 1 { r.Solve1 = newSolveValue }
+	if noOfSolves == 2 { r.Solve2 = newSolveValue }
+	if noOfSolves == 3 { r.Solve3 = newSolveValue }
+	if noOfSolves == 4 { r.Solve4 = newSolveValue }
+	r.Solve5 = newSolveValue
+}
+
+// load scrambles first into resultEntry.Scrambles
+func (r *ResultEntry) GetBPA() (string, error) {
+	noOfSolves, err := utils.GetNoOfSolves(r.Format)
+	if err != nil { return "", err}
+	if ok, _ := r.ShowPossibleAverages(); !ok { return "", fmt.Errorf("did not finish first %d solves", noOfSolves) }
+
+	oldSolveN := r.GetNthSolve(noOfSolves)
+	single := r.SingleFormatted(r.IsFMC(), r.Scrambles)
+	r.SetNthSolve(noOfSolves, single)
+
+	average, err := r.AverageFormatted(r.IsFMC(), r.Scrambles)
+	if err != nil { return "", err }
+
+	r.SetNthSolve(noOfSolves, oldSolveN)
+
+	return average, nil
+}
+
+func (r *ResultEntry) GetWPA() (string, error) {
+	noOfSolves, err := utils.GetNoOfSolves(r.Format)
+	if err != nil { return "", err}
+	if ok, _ := r.ShowPossibleAverages(); !ok { return "", fmt.Errorf("did not finish first %d solves", noOfSolves) }
+
+	oldSolveN := r.GetNthSolve(noOfSolves)
+	r.SetNthSolve(noOfSolves, "DNF")
+
+	average, err := r.AverageFormatted(r.IsFMC(), r.Scrambles)
+	if err != nil { return "", err }
+
+	r.SetNthSolve(noOfSolves, oldSolveN)
+
+	return average, nil
+}
+
+func (r *ResultEntry) FinishedCompeting() bool {
+	return r.Solve1 != "DNS" && r.Solve2 != "DNS" && r.Solve3 != "DNS" && r.Solve4 != "DNS" && r.Solve5 != "DNS"
 }

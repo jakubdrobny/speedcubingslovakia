@@ -525,6 +525,10 @@ export const reformatMultiTime = (startingTime: string): string => {
   return cubePart + " " + res;
 };
 
+export const reformatFMCSolve = (solve: string): string => {
+  return solve.split(".")[0];
+};
+
 export const saveCurrentLocation = (locationPathname: string) => {
   const cookies = new Cookies(null, { path: "/" });
   cookies.set("backlink", locationPathname, {
@@ -619,19 +623,20 @@ export const shouldHideAverageColumn = (
 };
 
 export const initialAverageInfo: AverageInfo = {
-  single: "53.11",
-  average: "DNF",
-  times: ["53.11", "1:24.00", "1:23.55", "1:22.25", "DNF"],
-  bpa: "1:23.55",
-  wpa: "1:24.15",
-  showPossibleAverage: true,
-  finished: false,
+  single: "",
+  average: "",
+  times: [],
+  bpa: "",
+  wpa: "",
+  showPossibleAverage: false,
+  finishedCompeting: false,
 };
 
 export const GetAverageInfo = async (
   resultEntry: ResultEntry
 ): Promise<AverageInfo> => {
   const response = await axios({
+    method: "POST",
     url: `/api/results/averageinfo`,
     data: resultEntry,
   });

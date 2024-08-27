@@ -731,3 +731,81 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 		c.IndentedJSON(http.StatusOK, recordItems)
 	}
 }
+
+type AverageInfo struct {
+	Single string `json:"single"`
+	Average string `json:"average"`
+	Times []string `json:"times"`
+	Bpa string `json:"bpa"`
+	Wpa string `json:"wpa"`
+	ShowPossibleAverage bool `json:"showPossibleAverage"`
+	FinishedCompeting bool `json:"finishedCompeting"`
+}
+
+func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		var resultEntry models.ResultEntry
+		var err error
+
+		if err := c.BindJSON(&resultEntry); err != nil {
+			log.Println("ERR BindJSON(&resultEntry) in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse result entry.")
+			return
+		}
+
+		var averageInfo AverageInfo
+
+		resultEntry.Scrambles, err = utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
+		if err != nil {
+			log.Println("ERR utils.GetScramblesByResultEntryId in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to get scrambles for result entry.")
+			return
+		}
+		averageInfo.Single = resultEntry.SingleFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
+		
+		avg, err := resultEntry.AverageFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
+		if err != nil {
+			log.Println("ERR resultEntry.AverageFormatted in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to get average for result entry.")
+			return
+		}
+		averageInfo.Average = avg
+
+		formattedTimes, err := resultEntry.GetFormattedTimes(resultEntry.IsFMC(), resultEntry.Scrambles)
+		if err != nil {
+			log.Println("ERR resultEntry.GetFormattedTimes in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to get times for result entry.")
+			return
+		}
+		averageInfo.Times = formattedTimes
+
+		ok, err := resultEntry.ShowPossibleAverages()
+		if err != nil {
+			log.Println("ERR resultEntry.ShowPossibleAverages in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if should calculate BPA/WPA.")
+			return
+		}
+		
+		if ok {
+			averageInfo.ShowPossibleAverage = true
+
+			averageInfo.Bpa, err = resultEntry.GetBPA()
+			if err != nil {
+				log.Println("ERR resultEntry.GetBPA in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get BPA for result entry.")
+				return
+			}
+
+			averageInfo.Wpa, err = resultEntry.GetWPA()
+			if err != nil {
+				log.Println("ERR resultEntry.GetWPA in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get WPA for result entry.")
+				return
+			}
+		}
+
+		averageInfo.FinishedCompeting = resultEntry.FinishedCompeting()
+
+		c.IndentedJSON(http.StatusOK, averageInfo)
+	}
+}

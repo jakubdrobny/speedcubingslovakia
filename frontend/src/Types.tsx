@@ -379,5 +379,5 @@ export type AverageInfo = {
   bpa: string;
   wpa: string;
   showPossibleAverage: boolean;
-  finished: boolean;
+  finishedCompeting: boolean;
 };

@@ -20,6 +20,7 @@ import { SlackCounter, SlackSelector } from "@charkour/react-reactions";
 import { useContext, useEffect, useRef } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
+import LoadingComponent from "../Loading/LoadingComponent";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import { Paper } from "@mui/material";
 import emoji from "remark-emoji";
@@ -131,17 +132,7 @@ const Announcement: React.FC<{
       {!isObjectEmpty(loadingState.error) ? (
         renderResponseError(loadingState.error)
       ) : loadingState.isLoading ? (
-        <Typography
-          level="h3"
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
-          <CircularProgress /> &nbsp; Loading announcement...
-        </Typography>
+        <LoadingComponent title={"Loading announcement..."} />
       ) : (
         announcementState.id !== 0 && (
           <Card ref={targetRef}>

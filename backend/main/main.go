@@ -79,6 +79,7 @@ func main() {
 		results.GET("/records", controllers.GetRecords(db))
 		results.GET("/regions/grouped", controllers.GetRegionsGrouped(db))
 		results.GET("/profile/:id", controllers.GetProfileResults(db))
+		results.POST("/averageinfo", controllers.GetAverageInfo(db))
 	}
 
 	events := api_v1.Group("/events")
