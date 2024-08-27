@@ -16,7 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/robfig/cron"
 )
 
 func keyFunc(c *gin.Context) string {
@@ -41,9 +40,9 @@ func main() {
 	}
 	defer db.Close()
 
-	cronScheduler := cron.New()
-	cronScheduler.AddFunc("@every 7d", func () { controllers.AddNewWeeklyCompetition(db, envMap) })
-	cronScheduler.Start()
+	// cronScheduler := cron.New()
+	// cronScheduler.AddFunc("@every 7d", func () { controllers.AddNewWeeklyCompetition(db, envMap) })
+	// cronScheduler.Start()
 
 	router := gin.Default()
 
@@ -56,17 +55,17 @@ func main() {
         MaxAge: 12 * time.Hour,
     }))
 	
-	store := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
-		Rate:  time.Minute,
-		Limit: 100,
-	})
+	// store := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
+	// 	Rate:  time.Minute,
+	// 	Limit: 100,
+	// })
 
-	rateLimitMiddleWare := ratelimit.RateLimiter(store, &ratelimit.Options{
-		ErrorHandler: errorHandler,
-		KeyFunc: keyFunc,
-	})
+	// rateLimitMiddleWare := ratelimit.RateLimiter(store, &ratelimit.Options{
+	// 	ErrorHandler: errorHandler,
+	// 	KeyFunc: keyFunc,
+	// })
 
-	router.Use(rateLimitMiddleWare)
+	// router.Use(rateLimitMiddleWare)
 
 	api_v1 := router.Group("/api")
 	

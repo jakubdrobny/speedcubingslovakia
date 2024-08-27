@@ -313,7 +313,15 @@ func ReactToAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
 
 		uid := c.MustGet("uid").(int)
 
-		err := emojiCounter.Update(db, uid)
+		conn, err := db.Acquire(context.Background())
+		if err != nil {
+			log.Println("ERR db.Acquire in ReactToAnnouncement: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to start transaction.")
+			return
+		}
+		defer conn.Release()
+
+		err = emojiCounter.Update(conn, uid)
 		if err != nil {
 			log.Println("ERR emojiCounter.Update in ReactToAnnouncement: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if reaction data exists in database.")
