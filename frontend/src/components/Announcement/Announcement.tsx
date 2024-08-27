@@ -72,9 +72,9 @@ const Announcement: React.FC<{
           !announcementState.read
         ) {
           ReadAnnouncement(announcementState)
-            .then((res) =>
-              setAnnouncementState({ ...announcementState, read: true })
-            )
+            .then((res) => {
+              //   setAnnouncementState({ ...announcementState, read: true })
+            })
             .catch((err) =>
               setLoadingState({
                 isLoading: loadingState.isLoading,
@@ -123,6 +123,8 @@ const Announcement: React.FC<{
         })
       );
   };
+
+  console.log(announcementState.read);
 
   return (
     <Stack style={{ margin: "0.5em", height: "100%" }} spacing={2}>

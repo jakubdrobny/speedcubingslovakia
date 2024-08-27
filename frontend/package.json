@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8000",
+  "proxy": "http://127.0.0.1:8000",
   "dependencies": {
     "@charkour/react-reactions": "^0.11.0",
     "@emotion/react": "^11.11.4",
@@ -23,6 +23,7 @@
     "@uiw/react-md-editor": "^4.0.4",
     "axios": "^1.6.8",
     "dayjs": "^1.11.10",
+    "hast-util-raw": "^9.0.4",
     "i": "^0.3.7",
     "jwt-decode": "^4.0.0",
     "npm": "^10.8.2",

@@ -76,9 +76,10 @@ func AddOverallPlacement(results []CompetitionResult) {
 			a, _ := strconv.ParseFloat(results[idx].Score, 64)
 			b, _ := strconv.ParseFloat(results[idx + 1].Score, 64)
 
-			if a - b > 1e-9 {
+			x, y := int(a * 100), int(b * 100)
+			if x != y {
 				place++
-				results[idx + 1].Place = fmt.Sprintf("%d.", place)
+				results[idx + 1].Place = fmt.Sprintf("%d.", idx + 2)
 			}
 		}
 	}
