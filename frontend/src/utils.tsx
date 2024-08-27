@@ -627,3 +627,13 @@ export const initialAverageInfo: AverageInfo = {
   showPossibleAverage: true,
   finished: false,
 };
+
+export const GetAverageInfo = async (
+  resultEntry: ResultEntry
+): Promise<AverageInfo> => {
+  const response = await axios({
+    url: `/api/results/averageinfo`,
+    data: resultEntry,
+  });
+  return response.data;
+};
