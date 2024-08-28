@@ -14,7 +14,7 @@ import {
 } from "../../utils";
 import { useContext, useEffect } from "react";
 
-import AveragePreview from "./AveragePreview";
+import AveragePreview from "../AveragePreview/AveragePreview";
 import { CompetitionContext } from "../../context/CompetitionContext";
 import ManualInput from "./ManualInput";
 import ManualInputMBLD from "./ManualInputMBLD";

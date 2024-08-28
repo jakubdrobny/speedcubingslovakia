@@ -380,4 +380,9 @@ export type AverageInfo = {
   wpa: string;
   showPossibleAverage: boolean;
   finishedCompeting: boolean;
+  place: string;
+  singleRecord: string;
+  singleRecordColor: string;
+  averageRecord: string;
+  averageRecordColor: string;
 };

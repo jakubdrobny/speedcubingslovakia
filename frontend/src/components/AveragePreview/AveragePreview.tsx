@@ -1,10 +1,5 @@
-import { Alert, Card, Chip, Stack, Typography } from "@mui/joy";
-import {
-  AverageInfo,
-  CompetitionContextType,
-  LoadingState,
-  ResponseError,
-} from "../../Types";
+import { AverageInfo, CompetitionContextType, LoadingState } from "../../Types";
+import { Card, Chip, Stack, Typography } from "@mui/joy";
 import {
   GetAverageInfo,
   getError,
@@ -18,10 +13,12 @@ import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import LoadingComponent from "../Loading/LoadingComponent";
+import ResultsModal from "./ResultsModal";
 
 const AveragePreview = () => {
   const [averageInfo, setAverageInfo] =
     useState<AverageInfo>(initialAverageInfo);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
     error: {},
@@ -39,6 +36,7 @@ const AveragePreview = () => {
       GetAverageInfo(currentResults)
         .then((res) => {
           setAverageInfo(res);
+          if (res.finishedCompeting) setIsModalOpen(true);
           setLoadingState({ isLoading: false, error: {} });
         })
         .catch((err) => {
@@ -57,6 +55,14 @@ const AveragePreview = () => {
       }}
       component={Card}
     >
+      <ResultsModal
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        averageInfo={averageInfo}
+        isfmc={isfmc}
+        ismbld={ismbld}
+        isbo1={isBo1}
+      />
       <h3 style={{ padding: 0, margin: 0, borderBottom: "1px solid #CDD7E1" }}>
         Average preview:
       </h3>
