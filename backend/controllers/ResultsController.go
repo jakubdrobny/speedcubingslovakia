@@ -740,6 +740,11 @@ type AverageInfo struct {
 	Wpa string `json:"wpa"`
 	ShowPossibleAverage bool `json:"showPossibleAverage"`
 	FinishedCompeting bool `json:"finishedCompeting"`
+	Place string `json:"place"`
+	SingleRecord string `json:"singleRecord"`
+	SingleRecordColor string `json:"singleRecordColor"`
+	AverageRecord string `json:"averageRecord"`
+	AverageRecordColor string `json:"averageRecordColor"`
 }
 
 func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
@@ -805,6 +810,14 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		averageInfo.FinishedCompeting = resultEntry.FinishedCompeting()
+		if averageInfo.FinishedCompeting {
+			averageInfo.Place, err = resultEntry.GetCompetitionPlace(db)
+			if err != nil {
+				log.Println("ERR resultEntry.GetCompetitionPlace in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get competition place for result entry.")
+				return
+			}
+		}
 
 		c.IndentedJSON(http.StatusOK, averageInfo)
 	}

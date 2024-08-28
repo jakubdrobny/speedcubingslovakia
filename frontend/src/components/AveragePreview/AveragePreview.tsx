@@ -15,7 +15,9 @@ import { CompetitionContext } from "../../context/CompetitionContext";
 import LoadingComponent from "../Loading/LoadingComponent";
 import ResultsModal from "./ResultsModal";
 
-const AveragePreview = () => {
+const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
+  showResultsModal,
+}) => {
   const [averageInfo, setAverageInfo] =
     useState<AverageInfo>(initialAverageInfo);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -36,7 +38,7 @@ const AveragePreview = () => {
       GetAverageInfo(currentResults)
         .then((res) => {
           setAverageInfo(res);
-          if (res.finishedCompeting) setIsModalOpen(true);
+          if (res.finishedCompeting && showResultsModal) setIsModalOpen(true);
           setLoadingState({ isLoading: false, error: {} });
         })
         .catch((err) => {

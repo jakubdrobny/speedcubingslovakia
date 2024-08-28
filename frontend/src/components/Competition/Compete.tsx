@@ -12,7 +12,7 @@ import {
   isObjectEmpty,
   renderResponseError,
 } from "../../utils";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import AveragePreview from "../AveragePreview/AveragePreview";
 import { CompetitionContext } from "../../context/CompetitionContext";
@@ -39,6 +39,7 @@ const Compete = () => {
   const ismbld =
     competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
     "333mbf";
+  const [showResultsModal, setShowResultsModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (
@@ -58,6 +59,7 @@ const Compete = () => {
         updateCurrentSolve(
           (competitionState.currentSolveIdx + 1) % competitionState.noOfSolves
         );
+        setShowResultsModal(true);
       })
       .catch((err) =>
         setLoadingState({
@@ -132,7 +134,7 @@ const Compete = () => {
               </Button>
             </Grid>
           </Grid>
-          <AveragePreview />
+          <AveragePreview showResultsModal={showResultsModal} />
           <Scramble ismbld={ismbld} />
           <Grid container>
             <Grid

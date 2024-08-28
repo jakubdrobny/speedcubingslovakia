@@ -382,3 +382,20 @@ func GetScramblesByResultEntryId(db *pgxpool.Pool, eid int, cid string) ([]strin
 
 	return scrambles, nil
 }
+
+
+// endsWith: 1. to  1st, 2. to 2nd, 3. to 3rd, 4-9. to 4-9th, ...
+// except: 11-19. to 11-19th
+func PlaceFromDotToEnglish(from string) string {
+	from = strings.Join(strings.Split(from, "."), "")
+	fromInt, _ := strconv.ParseInt(from, 10, 64)
+
+	if fromInt >= 10 && fromInt < 20 { return from + "th" }
+	
+	rem := fromInt % 10
+	if rem == 1 { return from + "st" }
+	if rem == 2 { return from + "nd" }
+	if rem == 3 { return from + "rd" }
+
+	return from + "th"
+}

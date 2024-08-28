@@ -446,3 +446,16 @@ func (r *ResultEntry) GetWPA() (string, error) {
 func (r *ResultEntry) FinishedCompeting() bool {
 	return r.Solve1 != "DNS" && r.Solve2 != "DNS" && r.Solve3 != "DNS" && r.Solve4 != "DNS" && r.Solve5 != "DNS"
 }
+
+func (r *ResultEntry) GetCompetitionPlace(db *pgxpool.Pool) (string, error) {
+	results, err := GetResultsFromCompetitionByEventName(db, r.Competitionid, r.Eventid)
+	if err != nil { return "", err }
+
+	for _, result := range results.Results {
+		if result.Username == r.Username {
+			return utils.PlaceFromDotToEnglish(result.Place), nil
+		}
+	}
+
+	return "LAST", nil
+}
