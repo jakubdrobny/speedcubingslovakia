@@ -3,9 +3,14 @@ const express = require("express");
 const crypto = require("crypto");
 const app = express();
 
+console.log(
+  require("dotenv").config({
+    path: path.join(__dirname, `.env.${process.env.NODE_ENV}`),
+  })
+);
 const port =
   require("dotenv").config({
-    path: path.join(__dirname, ".env.production"),
+    path: path.join(__dirname, `.env.${process.env.NODE_ENV}`),
   }).parsed.PORT || 3999;
 
 const cstimer = require("cstimer_module");
@@ -21,7 +26,6 @@ app.get("/api/v0/scramble/:scramblingCode", (req, res) => {
       case "klmp":
         scrambles.push(cstimer.getScramble(scramblingCode, 30));
         break;
-
       case "555wca":
         scrambles.push(cstimer.getScramble(scramblingCode, 60));
         break;
