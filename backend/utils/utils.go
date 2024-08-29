@@ -47,7 +47,7 @@ func ParseMultiToMilliseconds(s string) int {
 		return constants.DNF
 	}
 
-	res := points * 7200 * 1000
+	res := (points + 1) * 7200 * 1000
 	
 	var hours, minutes, seconds int
 	if len(timePart) == 3 {
@@ -63,7 +63,7 @@ func ParseMultiToMilliseconds(s string) int {
 	res -= hours * 3600 * 1000
 	res -= minutes * 60 * 1000
 	res -= seconds * 1000
-
+	
 	return -res
 }
 
