@@ -50,7 +50,7 @@ jobs:
             cd ${{ secrets.WORKDIR }}/scrambling
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
-            echo ${{secrets.USERNAME}} | sed 's/./& /g'
+            npm install
 
             echo 'Scrambling rebuilt and deployment finished.'
 
