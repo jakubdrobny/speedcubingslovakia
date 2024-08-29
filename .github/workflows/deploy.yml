@@ -51,6 +51,9 @@ jobs:
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
             npm install
+            rm -rf index
+            pkg -t linux index.js
+            systemctl daemon-reload && systemctl restart scrambling.service
 
             echo 'Scrambling rebuilt and deployment finished.'
 

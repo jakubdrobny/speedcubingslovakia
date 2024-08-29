@@ -2,3 +2,5 @@
 
 ./.env.development
 ./.env.production
+
+./index
