@@ -27,11 +27,12 @@ import {
   renderResponseError,
   updateCompetition,
 } from "../../utils/utils";
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CompetitionEditProps } from "../../Types";
 import { getCompetitionById } from "../../utils/utils";
+import { useEffect } from "react";
+import useState from "react-usestateref";
 
 const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   const navigate = useNavigate();
@@ -42,36 +43,40 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   const [competitionState, setCompetitionState] = useState<CompetitionState>(
     initialCompetitionState
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading, isLoadingRef] = useState<boolean>(false);
   const [error, setError] = useState<ResponseError>();
 
   useEffect(() => {
     setIsLoading(true);
     setError({});
 
-    if (edit) {
-      getCompetitionById(id)
-        .then((info: CompetitionData | undefined) => {
-          if (info === undefined) {
-            navigate("/not-found");
-          } else {
-            setCompetitionState({ ...competitionState, ...info });
-          }
-        })
-        .catch((err) => {
-          setError(getError(err));
-        });
-    }
+    const initPage = async () => {
+      try {
+        let events: CompetitionEvent[] = await getAvailableEvents();
+        events = events.filter((e) => e.displayname !== "Overall");
+        setAvailableEvents(events);
 
-    getAvailableEvents()
-      .then((res: CompetitionEvent[]) => {
-        setAvailableEvents(res.filter((e) => e.displayname !== "Overall"));
+        if (!edit) {
+          setCompetitionState({ ...competitionState, events });
+          setIsLoading(false);
+          return;
+        }
+
+        const info: CompetitionData | undefined = await getCompetitionById(id);
+        if (info === undefined) {
+          navigate("/not-found");
+        } else {
+          setCompetitionState({ ...competitionState, ...info });
+        }
+
         setIsLoading(false);
-      })
-      .catch((err) => {
+      } catch (err: any) {
         setIsLoading(false);
         setError(getError(err));
-      });
+      }
+    };
+
+    initPage();
   }, []);
 
   const handleSelectedEventsChange = (selectedEventsNames: string[]) => {
@@ -120,7 +125,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
             <Input
               placeholder="Enter competition name..."
               value={competitionState.name}
-              disabled={isLoading}
+              disabled={isLoadingRef.current}
               onChange={(e) =>
                 setCompetitionState({
                   ...competitionState,
@@ -136,7 +141,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
             <Input
               type="datetime-local"
               value={formatCompetitionDateForInput(competitionState.startdate)}
-              disabled={isLoading}
+              disabled={isLoadingRef.current}
               onChange={(e) =>
                 setCompetitionState({
                   ...competitionState,
@@ -155,7 +160,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
             <Input
               type="datetime-local"
               value={formatCompetitionDateForInput(competitionState.enddate)}
-              disabled={isLoading}
+              disabled={isLoadingRef.current}
               onChange={(e) =>
                 setCompetitionState({
                   ...competitionState,
@@ -175,7 +180,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
               multiple
               value={competitionState.events.map((e) => e.displayname)}
               onChange={(e, val) => handleSelectedEventsChange(val)}
-              disabled={isLoading}
+              disabled={isLoadingRef.current}
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", gap: "0.25rem" }}>
                   {selected.map((selectedOption, idx) => (
@@ -198,7 +203,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
             </Select>
           </FormControl>
           <FormControl>
-            <Button onClick={handleSubmit} loading={isLoading}>
+            <Button onClick={handleSubmit} loading={isLoadingRef.current}>
               {edit ? "Edit" : "Create"} competition
             </Button>
           </FormControl>
