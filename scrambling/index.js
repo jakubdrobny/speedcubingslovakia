@@ -5,7 +5,7 @@ const app = express();
 
 const port =
   require("dotenv").config({
-    path: path.join(__dirname, `.env.${process.env.NODE_ENV}`),
+    path: path.join(__dirname, ".env.production"),
   }).parsed.PORT || 3999;
 
 const cstimer = require("cstimer_module");
