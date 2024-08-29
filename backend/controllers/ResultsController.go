@@ -809,13 +809,110 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 			}
 		}
 
-		averageInfo.FinishedCompeting = resultEntry.FinishedCompeting()
+		averageInfo.FinishedCompeting, err = resultEntry.FinishedCompeting()
+		if err != nil {
+			log.Println("ERR resultEntry.FinishedCompeting in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if you finished competing.")
+			return
+		}
+
 		if averageInfo.FinishedCompeting {
 			averageInfo.Place, err = resultEntry.GetCompetitionPlace(db)
 			if err != nil {
 				log.Println("ERR resultEntry.GetCompetitionPlace in GetAverageInfo: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to get competition place for result entry.")
 				return
+			}
+		}
+
+		c.IndentedJSON(http.StatusOK, averageInfo)
+	}
+}
+
+func GetAverageInfoRecords(db *pgxpool.Pool) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		type Body struct {
+			ResultEntry models.ResultEntry `json:"resultEntry"`
+			AverageInfo AverageInfo `json:"averageInfo"`
+		}
+		var body Body
+		if err := c.BindJSON(&body); err != nil {
+			log.Println("ERR BindJSON(&body) in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse request body.")
+			return
+		}
+
+		resultEntry := body.ResultEntry
+		averageInfo := body.AverageInfo
+
+		var err error
+
+		averageInfo.FinishedCompeting, err = resultEntry.FinishedCompeting()
+		if err != nil {
+			log.Println("ERR resultEntry.FinishedCompeting in GetAverageInfoRecords: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if you finished competing.")
+			return
+		}
+
+		if averageInfo.FinishedCompeting {
+			uid := c.MustGet("uid").(int)
+
+			user, err := models.GetUserById(db, uid)
+			if err != nil {
+				log.Println("ERR models.GetUserById in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get user info.")
+				return
+			}
+			err = user.LoadContinent(db)
+			if err != nil {
+				log.Println("ERR user.LoadContinent in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get user continent.")
+				return
+			}
+
+			var profileType models.ProfileType
+			_, err = profileType.LoadPersonalBests(db, &user, resultEntry.Eventid)
+			if err != nil {
+				log.Println("ERR profileType.LoadPersonalBests in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get user continent.")
+				return
+			}
+
+			for idx := range profileType.PersonalBests {
+				personalBestEntry := profileType.PersonalBests[idx]
+				if personalBestEntry.Event.Id != resultEntry.Eventid { continue }
+				
+				if averageInfo.Single == personalBestEntry.Single.Value {
+					if personalBestEntry.Single.WR == "1" {
+						averageInfo.SingleRecord = "WR"
+						averageInfo.SingleRecordColor = constants.WR_COLOR
+					} else if personalBestEntry.Single.CR == "1" {
+						averageInfo.SingleRecord = "CR"
+						averageInfo.SingleRecordColor = constants.CR_COLOR
+					} else if personalBestEntry.Single.NR == "1" {
+						averageInfo.SingleRecord = "NR"
+						averageInfo.SingleRecordColor = constants.NR_COLOR
+					} else {
+						averageInfo.SingleRecord = "PB"
+						averageInfo.SingleRecordColor = constants.PR_COLOR
+					}
+				}
+
+				if averageInfo.Average == personalBestEntry.Average.Value {
+					if personalBestEntry.Average.WR == "1" {
+						averageInfo.AverageRecord = "WR"
+						averageInfo.AverageRecordColor = constants.WR_COLOR
+					} else if personalBestEntry.Average.CR == "1" {
+						averageInfo.AverageRecord = "CR"
+						averageInfo.AverageRecordColor = constants.CR_COLOR
+					} else if personalBestEntry.Average.NR == "1" {
+						averageInfo.AverageRecord = "NR"
+						averageInfo.AverageRecordColor = constants.NR_COLOR
+					} else {
+						averageInfo.AverageRecord = "PB"
+						averageInfo.AverageRecordColor = constants.PR_COLOR
+					}
+				}
 			}
 		}
 

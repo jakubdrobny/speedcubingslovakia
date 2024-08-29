@@ -8,7 +8,7 @@ import {
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
-import { competitionOnGoing } from "../../utils";
+import { competitionOnGoing } from "../../utils/utils";
 import { useContext } from "react";
 
 const Penalties = () => {

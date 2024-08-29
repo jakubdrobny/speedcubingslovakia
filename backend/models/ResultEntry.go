@@ -443,8 +443,17 @@ func (r *ResultEntry) GetWPA() (string, error) {
 	return average, nil
 }
 
-func (r *ResultEntry) FinishedCompeting() bool {
-	return r.Solve1 != "DNS" && r.Solve2 != "DNS" && r.Solve3 != "DNS" && r.Solve4 != "DNS" && r.Solve5 != "DNS"
+func (r *ResultEntry) FinishedCompeting() (bool, error) {
+	noOfSolves, err := utils.GetNoOfSolves(r.Format)
+	if err != nil { return false, err}
+
+	for solveNo := 1; solveNo <= noOfSolves; solveNo++ {
+		if r.GetNthSolve(solveNo) == "DNS" {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
 
 func (r *ResultEntry) GetCompetitionPlace(db *pgxpool.Pool) (string, error) {

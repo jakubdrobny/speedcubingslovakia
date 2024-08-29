@@ -32,7 +32,7 @@ import {
   renderResponseError,
   saveValidation,
   sendResults,
-} from "../../utils";
+} from "../../utils/utils";
 import { useEffect, useState } from "react";
 
 import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";

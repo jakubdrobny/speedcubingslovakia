@@ -26,12 +26,12 @@ import {
   initialCompetitionState,
   renderResponseError,
   updateCompetition,
-} from "../../utils";
+} from "../../utils/utils";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { CompetitionEditProps } from "../../Types";
-import { getCompetitionById } from "../../utils";
+import { getCompetitionById } from "../../utils/utils";
 
 const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   const navigate = useNavigate();

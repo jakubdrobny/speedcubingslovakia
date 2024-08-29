@@ -7,7 +7,7 @@ import {
   initialLoadingState,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useEffect, useState } from "react";
 
 import MedalRecordColletion from "./MedalRecordColletion";

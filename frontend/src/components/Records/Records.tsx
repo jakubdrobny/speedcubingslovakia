@@ -25,7 +25,7 @@ import {
   initialLoadingState,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 
 import LanguageIcon from "@mui/icons-material/Language";
 import RecordsTable from "./RecordsTable";

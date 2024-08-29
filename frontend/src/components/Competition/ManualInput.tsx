@@ -1,18 +1,21 @@
 import { CompetitionContextType, ResultEntry } from "../../Types";
 import React, { useContext, useEffect, useRef, useState } from "react";
+import { competitionOnGoing, reformatTime } from "../../utils/utils";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import { Input } from "@mui/joy";
 import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
-import { reformatTime } from "../../utils";
 
 const ManualInput: React.FC<{
   handleSaveResults: () => void;
 }> = ({ handleSaveResults }) => {
   const [forceRerender, setForceRerender] = useState(false);
-  const { competitionState, updateSolve, currentResultsRef } = useContext(
-    CompetitionContext
-  ) as CompetitionContextType;
+  const {
+    competitionState,
+    updateSolve,
+    currentResultsRef,
+    competitionStateRef,
+  } = useContext(CompetitionContext) as CompetitionContextType;
   const solveProp: keyof ResultEntry = `solve${
     competitionState.currentSolveIdx + 1
   }` as keyof ResultEntry;
@@ -91,6 +94,7 @@ const ManualInput: React.FC<{
               target?.value?.length
             );
         }}
+        disabled={!competitionOnGoing(competitionStateRef.current)}
         autoFocus
       />
     </div>

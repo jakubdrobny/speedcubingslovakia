@@ -3,7 +3,7 @@ import {
   getCubingIconClassName,
   reformatMultiTime,
   shouldHideAverageColumn,
-} from "../../utils";
+} from "../../utils/utils";
 
 import { Link } from "react-router-dom";
 import { ProfileTypeResultHistory } from "../../Types";

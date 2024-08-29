@@ -3,7 +3,7 @@ import { Input, Stack, Typography } from "@mui/joy";
 import { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
-import { competitionOnGoing } from "../../utils";
+import { competitionOnGoing } from "../../utils/utils";
 import useState from "react-usestateref";
 
 const ManualInputMBLD = () => {

@@ -13,7 +13,7 @@ import {
   isObjectEmpty,
   reformatMultiTime,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "../../context/CompetitionContext";

@@ -5,7 +5,7 @@ import {
   getError,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import {
   AnnouncementReactResponse,
   AnnouncementState,

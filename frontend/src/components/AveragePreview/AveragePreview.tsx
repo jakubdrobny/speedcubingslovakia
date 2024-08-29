@@ -2,18 +2,20 @@ import { AverageInfo, CompetitionContextType, LoadingState } from "../../Types";
 import { Card, Chip, Stack, Typography } from "@mui/joy";
 import {
   GetAverageInfo,
+  GetAverageInfoRecords,
   getError,
   initialAverageInfo,
   isObjectEmpty,
   reformatFMCSolve,
   reformatMultiTime,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import LoadingComponent from "../Loading/LoadingComponent";
 import ResultsModal from "./ResultsModal";
+import SizedConfetti from "./SizedConfetti";
 
 const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
   showResultsModal,
@@ -21,6 +23,7 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
   const [averageInfo, setAverageInfo] =
     useState<AverageInfo>(initialAverageInfo);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [party, setParty] = useState<boolean>(false);
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
     error: {},
@@ -38,7 +41,19 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
       GetAverageInfo(currentResults)
         .then((res) => {
           setAverageInfo(res);
-          if (res.finishedCompeting && showResultsModal) setIsModalOpen(true);
+          if (res.finishedCompeting && showResultsModal)
+            return GetAverageInfoRecords(currentResults, res);
+        })
+        .then((res) => {
+          if (!res) {
+            setLoadingState({ isLoading: false, error: {} });
+            return;
+          }
+          setAverageInfo(res);
+          if (res.finishedCompeting && showResultsModal) {
+            setIsModalOpen(true);
+            if (hasAnyRecord(res)) setParty(true);
+          }
           setLoadingState({ isLoading: false, error: {} });
         })
         .catch((err) => {
@@ -46,6 +61,10 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
         });
     }
   }, []);
+
+  const hasAnyRecord = (averageInfo: AverageInfo): boolean => {
+    return !(!averageInfo.singleRecord && !averageInfo.averageRecord);
+  };
 
   return (
     <Stack
@@ -64,6 +83,8 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
         isfmc={isfmc}
         ismbld={ismbld}
         isbo1={isBo1}
+        party={party}
+        setParty={setParty}
       />
       <h3 style={{ padding: 0, margin: 0, borderBottom: "1px solid #CDD7E1" }}>
         Average preview:

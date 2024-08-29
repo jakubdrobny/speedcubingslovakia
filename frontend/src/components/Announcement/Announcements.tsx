@@ -18,7 +18,7 @@ import {
   getError,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 
 import Announcement from "./Announcement";
 import { Warning } from "@mui/icons-material";

@@ -16,7 +16,7 @@ import {
   initialLoadingState,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 
 import { Link } from "react-router-dom";
 import { Search } from "@mui/icons-material";

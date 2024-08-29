@@ -12,12 +12,12 @@ import {
   formatDate,
   loadFilteredCompetitions,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
 import Table from "@mui/joy/Table";
-import { getError } from "../../utils";
+import { getError } from "../../utils/utils";
 
 const Competitions = () => {
   const [competitionData, setCompetitionData] = useState<CompetitionData[]>([]);

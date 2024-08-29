@@ -392,8 +392,9 @@ func GetPersonalResultEntriesInEvent(db *pgxpool.Pool, uid int, eid int) ([]Resu
 
 	return resultEntries, nil
 }
- 
-func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user *User) (map[int][]EventResultsRow, error) {
+
+// eid = 0 - all events, eid > 0 - only event with that id
+func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user *User, eid int) (map[int][]EventResultsRow, error) {
 	rows, err := db.Query(context.Background(), `SELECT e.fulldisplayname, e.iconcode, e.event_id, e.format, e.displayname FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 GROUP BY e.fulldisplayname, e.iconcode, e.event_id ORDER BY e.event_id;`, user.Id);
 	if err != nil { return map[int][]EventResultsRow{}, err }
 
@@ -412,7 +413,7 @@ func (p *ProfileType) LoadPersonalBests(db *pgxpool.Pool, user *User) (map[int][
 			Iconcode: pbEntry.EventIconCode,
 		}
 		
-		p.PersonalBests = append(p.PersonalBests, pbEntry)
+		if eid == 0 || pbEntry.EventId == eid { p.PersonalBests = append(p.PersonalBests, pbEntry) }
 	}
 	
 	newPersonalBests := make([]ProfileTypePersonalBests, 0)
@@ -872,7 +873,7 @@ func (p *ProfileType) Load(db *pgxpool.Pool, uid int) (error) {
 	err = user.LoadContinent(db)
 	if err != nil { return err }
 
-	rows, err := p.LoadPersonalBests(db, &user)
+	rows, err := p.LoadPersonalBests(db, &user, 0)
 	if err != nil { return err }
 
 	recorders, err := p.LoadRecordCollection(db, &user, rows)
