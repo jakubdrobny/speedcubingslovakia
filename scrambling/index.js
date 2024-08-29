@@ -3,11 +3,6 @@ const express = require("express");
 const crypto = require("crypto");
 const app = express();
 
-console.log(
-  require("dotenv").config({
-    path: path.join(__dirname, `.env.${process.env.NODE_ENV}`),
-  })
-);
 const port =
   require("dotenv").config({
     path: path.join(__dirname, `.env.${process.env.NODE_ENV}`),
