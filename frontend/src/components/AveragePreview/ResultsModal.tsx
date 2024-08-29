@@ -6,10 +6,13 @@ import {
   ModalClose,
   ModalDialog,
 } from "@mui/joy";
-import { reformatFMCSolve, reformatMultiTime } from "../../utils";
+import { reformatFMCSolve, reformatMultiTime } from "../../utils/utils";
 
 import { AverageInfo } from "../../Types";
 import { EmojiEvents } from "@mui/icons-material";
+import SizedConfetti from "./SizedConfetti";
+import { useContainerDimensions } from "../../utils/useContainerDimensions";
+import { useRef } from "react";
 
 const ResultsModal: React.FC<{
   isModalOpen: boolean;
@@ -18,7 +21,18 @@ const ResultsModal: React.FC<{
   isfmc: boolean;
   ismbld: boolean;
   isbo1: boolean;
-}> = ({ isModalOpen, setIsModalOpen, averageInfo, isfmc, ismbld, isbo1 }) => {
+  party: boolean;
+  setParty: (newParty: boolean) => void;
+}> = ({
+  isModalOpen,
+  setIsModalOpen,
+  averageInfo,
+  isfmc,
+  ismbld,
+  isbo1,
+  party,
+  setParty,
+}) => {
   const single = ismbld
     ? reformatMultiTime(averageInfo.single)
     : isfmc
@@ -29,47 +43,72 @@ const ResultsModal: React.FC<{
     : isfmc
     ? reformatFMCSolve(averageInfo.average)
     : averageInfo.average;
+  const modalRef = useRef<HTMLDivElement>(null);
+  const modalDimensionsRef = useContainerDimensions(modalRef);
 
   return (
-    <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-      <ModalDialog
-        color="success"
-        layout="center"
-        size="md"
-        variant="soft"
-        role="alertdialog"
+    <div>
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        ref={modalRef}
       >
-        <DialogTitle>
-          <EmojiEvents />
-          Results
-        </DialogTitle>
-        <ModalClose />
-        <Divider />
-        <DialogContent>
-          <div>
-            You are currently in the <b>{averageInfo.place}</b> place with a{" "}
-            <b>
-              {single}{" "}
-              <span style={{ color: averageInfo.singleRecordColor }}>
-                {averageInfo.singleRecord}
-              </span>
-            </b>
-            single
-            {!isbo1 && !ismbld && (
-              <>
-                {" "}
-                and <b>{average}</b>{" "}
-                <span style={{ color: averageInfo.averageRecordColor }}>
-                  {averageInfo.averageRecord}
-                </span>{" "}
-                average
-              </>
-            )}
-            .
-          </div>
-        </DialogContent>
-      </ModalDialog>
-    </Modal>
+        <>
+          <SizedConfetti
+            style={{ pointerEvents: "none" }}
+            numberOfPieces={party ? 500 : 0}
+            recycle={false}
+            onConfettiComplete={(confetti: any) => {
+              setParty(false);
+              confetti.reset();
+            }}
+          />
+          <ModalDialog
+            color="success"
+            layout="center"
+            size="md"
+            variant="soft"
+            role="alertdialog"
+            // ref={modalRef}
+          >
+            <DialogTitle>
+              <EmojiEvents />
+              Results
+            </DialogTitle>
+            <ModalClose />
+            <Divider />
+            <DialogContent>
+              <div>
+                You are currently in the <b>{averageInfo.place}</b> place with a{" "}
+                <b>
+                  {single}{" "}
+                  <span style={{ color: averageInfo.singleRecordColor }}>
+                    {averageInfo.singleRecord}
+                    {averageInfo.singleRecord ? " " : ""}
+                  </span>
+                </b>
+                Single
+                {!isbo1 && !ismbld && (
+                  <>
+                    {" "}
+                    and a{" "}
+                    <b>
+                      {average}{" "}
+                      <span style={{ color: averageInfo.averageRecordColor }}>
+                        {averageInfo.averageRecord}
+                        {averageInfo.averageRecord ? " " : ""}
+                      </span>
+                    </b>{" "}
+                    Average
+                  </>
+                )}
+                .
+              </div>
+            </DialogContent>
+          </ModalDialog>
+        </>
+      </Modal>
+    </div>
   );
 };
 

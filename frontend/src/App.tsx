@@ -1,7 +1,7 @@
 import { AuthContextType, WindowSizeContextType } from "./Types";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { WIN_LG, WIN_VERY_LG } from "./constants";
-import { authorizeAdmin, setBearerIfPresent } from "./utils";
+import { authorizeAdmin, setBearerIfPresent } from "./utils/utils";
 import { useContext, useEffect } from "react";
 
 import Announcement from "./components/Announcement/Announcement";

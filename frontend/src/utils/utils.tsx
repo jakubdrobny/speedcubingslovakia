@@ -21,8 +21,9 @@ import {
   ResultsStatus,
   SearchUser,
   Tag,
-} from "./Types";
+} from "../Types";
 import axios, { AxiosError } from "axios";
+import { useEffect, useState } from "react";
 
 import { Alert } from "@mui/joy";
 import Cookies from "universal-cookie";
@@ -630,6 +631,11 @@ export const initialAverageInfo: AverageInfo = {
   wpa: "",
   showPossibleAverage: false,
   finishedCompeting: false,
+  place: "",
+  singleRecord: "",
+  singleRecordColor: "",
+  averageRecord: "",
+  averageRecordColor: "",
 };
 
 export const GetAverageInfo = async (
@@ -642,3 +648,48 @@ export const GetAverageInfo = async (
   });
   return response.data;
 };
+
+export const GetAverageInfoRecords = async (
+  resultEntry: ResultEntry,
+  averageInfo: AverageInfo
+): Promise<AverageInfo> => {
+  const response = await axios({
+    method: "POST",
+    url: `/api/results/averageinfo/records`,
+    data: { resultEntry, averageInfo },
+  });
+  return response.data;
+};
+
+export const isBrowser = typeof window !== "undefined";
+
+export const useWindowSize = (
+  initialWidth = Infinity,
+  initialHeight = Infinity
+) => {
+  const [state, setState] = useState<{ width: number; height: number }>({
+    width: isBrowser ? window.innerWidth : initialWidth,
+    height: isBrowser ? window.innerHeight : initialHeight,
+  });
+
+  useEffect((): (() => void) | void => {
+    if (isBrowser) {
+      const handler = () => {
+        setState({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+      };
+
+      window.addEventListener("resize", handler);
+
+      return () => {
+        window.removeEventListener("resize", handler);
+      };
+    }
+  }, []);
+
+  return state;
+};
+
+export default useWindowSize;

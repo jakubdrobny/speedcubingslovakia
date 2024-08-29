@@ -24,7 +24,7 @@ import {
   initialCompetitionState,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 

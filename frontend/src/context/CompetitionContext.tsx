@@ -19,7 +19,7 @@ import {
   initialCompetitionState,
   initialCurrentResults,
   sendResults,
-} from "../utils";
+} from "../utils/utils";
 
 import useState from "react-usestateref";
 

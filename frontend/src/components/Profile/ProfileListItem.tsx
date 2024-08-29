@@ -7,7 +7,7 @@ import {
   Tooltip,
 } from "@mui/joy";
 import { Logout, Person } from "@mui/icons-material";
-import { initialAuthState, logOut } from "../../utils";
+import { initialAuthState, logOut } from "../../utils/utils";
 
 import { AuthContext } from "../../context/AuthContext";
 import { NavContext } from "../../context/NavContext";

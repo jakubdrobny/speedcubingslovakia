@@ -1,6 +1,6 @@
 import { Alert, CircularProgress, Grid, Typography } from "@mui/joy";
 import { AuthContextType, AuthState } from "../../Types";
-import { getError, logIn } from "../../utils";
+import { getError, logIn } from "../../utils/utils";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 

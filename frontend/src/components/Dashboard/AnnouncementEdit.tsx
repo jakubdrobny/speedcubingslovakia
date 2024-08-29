@@ -24,7 +24,7 @@ import {
   getError,
   renderResponseError,
   updateAnnoncement,
-} from "../../utils";
+} from "../../utils/utils";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 

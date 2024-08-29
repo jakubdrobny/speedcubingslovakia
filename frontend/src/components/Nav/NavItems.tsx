@@ -1,7 +1,10 @@
 import { AuthContextType, NavContextType } from "../../Types";
 import { Badge, List, ListItemButton, ListItemDecorator } from "@mui/joy";
 import { Campaign, ListAlt } from "@mui/icons-material";
-import { GetNoOfNewAnnouncements, saveCurrentLocation } from "../../utils";
+import {
+  GetNoOfNewAnnouncements,
+  saveCurrentLocation,
+} from "../../utils/utils";
 import { Link, useLocation } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 

@@ -9,7 +9,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { CompetitionContext } from "../../context/CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
 import { Typography } from "@mui/joy";
-import { reformatWithPenalties } from "../../utils";
+import { reformatWithPenalties } from "../../utils/utils";
 import { useLocation } from "react-router-dom";
 
 const Timer = () => {

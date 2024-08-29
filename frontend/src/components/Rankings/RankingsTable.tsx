@@ -3,7 +3,7 @@ import { Card, Table } from "@mui/joy";
 import { Link } from "react-router-dom";
 import { RankingsEntry } from "../../Types";
 import React from "react";
-import { reformatMultiTime } from "../../utils";
+import { reformatMultiTime } from "../../utils/utils";
 
 const RankingsTable: React.FC<{
   rankings: RankingsEntry[];

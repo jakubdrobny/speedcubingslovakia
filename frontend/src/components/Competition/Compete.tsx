@@ -11,7 +11,7 @@ import {
   getError,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useContext, useEffect, useState } from "react";
 
 import AveragePreview from "../AveragePreview/AveragePreview";
