@@ -52,7 +52,7 @@ jobs:
             source ~/.nvm/nvm.sh
             npm install
             rm -rf index
-            pkg -t linux index.js
+            pkg -t linux package.json
             systemctl daemon-reload && systemctl restart scrambling.service
 
             echo 'Scrambling rebuilt and deployment finished.'
