@@ -16,6 +16,10 @@ app.get("/api/v0/scramble/:scramblingCode", (req, res) => {
   let scrambles = [];
   for (let i = 0; i < numScrambles; i++) {
     switch (scramblingCode) {
+      case "klmp":
+        scrambles.push(cstimer.getScramble(scramblingCode, 30));
+        break;
+
       case "555wca":
         scrambles.push(cstimer.getScramble(scramblingCode, 60));
         break;
