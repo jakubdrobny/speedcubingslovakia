@@ -246,7 +246,7 @@ VALUES ('2x2 - 7x7 Relay', '2-7 Relay', 'bo1', 'unofficial-234567relay', 'r23456
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
-VALUES ('Kilominx', 'Kilo', 'ao5', 'unofficial-kilominx', 'klmso')
+VALUES ('Kilominx', 'Kilo', 'ao5', 'unofficial-kilominx', 'klmp')
 ON CONFLICT (fulldisplayname, displayname, format, iconcode, scramblingcode) DO NOTHING;
 
 INSERT INTO events (fulldisplayname, displayname, format, iconcode, scramblingcode)
