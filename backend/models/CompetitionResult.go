@@ -86,7 +86,7 @@ func AddOverallPlacement(results []CompetitionResult) {
 }
 
 func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int, db *pgxpool.Pool) ([]CompetitionResult, error) {
-	cums := make(map[int]float64)
+	cums := make(map[int]map[int]float64)
 	res := make(map[int]CompetitionResult)
 
 	for _, row := range rows {
@@ -116,14 +116,19 @@ func GetScores(rows []KinchQueryRow, bests map[int]BestEntry, noOfEvents int, db
 			finalContrib = math.Max(finalContrib, singleContrib)
 		}
 
-		cums[resultEntry.Userid] += finalContrib * 100
+		if cums[resultEntry.Userid] == nil { cums[resultEntry.Userid] = map[int]float64{} }
+		cums[resultEntry.Userid][resultEntry.Eventid] = math.Max(finalContrib * 100, cums[resultEntry.Userid][resultEntry.Eventid])
 		res[resultEntry.Userid] = competitionResult
 	}
 
 	competitionResults := make([]CompetitionResult, 0)
-	for uid, cum := range cums {
+	for uid, cumEvents := range cums {
 		competitionResult := res[uid]
+
+		cum := 0.
+		for _, curCum := range cumEvents { cum += float64(curCum) }
 		competitionResult.Score = fmt.Sprintf("%.2f", cum / float64(noOfEvents))
+
 		competitionResults = append(competitionResults, competitionResult)
 	}
 
@@ -165,20 +170,37 @@ func GetKinchQueryRows(rawRows pgx.Rows, db *pgxpool.Pool) ([]KinchQueryRow, err
 	return rows, nil
 }
 
+// cid = "" is for all competitions, i.e. GetRankings
 func GetOverallResults(db *pgxpool.Pool, cid string) ([]CompetitionResult, error) {
-	rawRows, err := db.Query(context.Background(), `SELECT u.user_id, u.wcaid, u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.event_id, e.iconcode, r.event_id, r.competition_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1;`, cid)
+	var rawRows pgx.Rows
+	var err error
+	if cid != "" {
+		rawRows, err = db.Query(context.Background(), `SELECT u.user_id, u.wcaid, u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.event_id, e.iconcode, r.event_id, r.competition_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.competition_id = $1;`, cid)
+	} else {
+		rawRows, err = db.Query(context.Background(), `SELECT u.user_id, u.wcaid, u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.event_id, e.iconcode, r.event_id, r.competition_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id;`)
+	}
 	if err != nil { return []CompetitionResult{}, err }
 	rows, err := GetKinchQueryRows(rawRows, db)
 	if err != nil { return []CompetitionResult{}, err }
 
-	competition, err := GetCompetitionByIdObject(db, cid)
-	if err != nil { return []CompetitionResult{}, err }
-	err = competition.GetEvents(db)
-	if err != nil { return []CompetitionResult{}, err }
-	
 	bests := make(map[int]BestEntry)
-	for _, ev := range competition.Events { bests[ev.Id] = BestEntry{constants.DNS, constants.DNS} }
-	noOfEvents := len(competition.Events) - 1
+	var noOfEvents int
+	
+	if cid != "" {
+		competition, err := GetCompetitionByIdObject(db, cid)
+		if err != nil { return []CompetitionResult{}, err }
+		err = competition.GetEvents(db)
+		if err != nil { return []CompetitionResult{}, err }
+		
+		for _, ev := range competition.Events { bests[ev.Id] = BestEntry{constants.DNS, constants.DNS} }
+		noOfEvents = len(competition.Events) - 1
+	} else {
+		events, err := GetAvailableEvents(db)
+		if err != nil { return []CompetitionResult{}, err }
+
+		for _, ev := range events { bests[ev.Id] = BestEntry{constants.DNS, constants.DNS} }
+		noOfEvents = len(events)
+	}
 
 	err = ComputeBests(bests, rows)
 	if err != nil { return []CompetitionResult{}, err }

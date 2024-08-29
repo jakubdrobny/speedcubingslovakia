@@ -11,10 +11,15 @@ const RankingsTable: React.FC<{
   loading: boolean;
   isfmc: boolean;
   ismbld: boolean;
-}> = ({ rankings, single, loading, isfmc, ismbld }) => {
+  isoverall: boolean;
+}> = ({ rankings, single, loading, isfmc, ismbld, isoverall }) => {
   const columnNames = (() => {
     let columnNames = ["#", "Name", "Result", "Represeting", "Competition"];
     if (!single) columnNames.push(isfmc ? "Moves" : "Times");
+    if (isoverall)
+      columnNames = columnNames.filter(
+        (c) => !["Moves", "Times", "Competition"].includes(c)
+      );
     return columnNames;
   })();
 
@@ -95,15 +100,19 @@ const RankingsTable: React.FC<{
                     />
                     &nbsp;&nbsp;{ranking.country_name}
                   </td>
-                  <td style={{ height: "1em" }}>
-                    <Link to={`/competition/${ranking.competitionId}`}>
-                      {ranking.competitionName}
-                    </Link>
-                  </td>
-                  {!single && (
-                    <td style={{ height: "1em" }}>
-                      {ranking.times.join(", ")}
-                    </td>
+                  {!isoverall && (
+                    <>
+                      <td style={{ height: "1em" }}>
+                        <Link to={`/competition/${ranking.competitionId}`}>
+                          {ranking.competitionName}
+                        </Link>
+                      </td>
+                      {!single && (
+                        <td style={{ height: "1em" }}>
+                          {ranking.times.join(", ")}
+                        </td>
+                      )}
+                    </>
                   )}
                 </tr>
               );
