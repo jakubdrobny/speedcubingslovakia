@@ -157,6 +157,8 @@ const Announcements = () => {
                 idx={idx}
                 givenAnnouncementState={announcement}
                 onAnnouncementDelete={onAnnouncementDelete}
+                givenLoadingStateAllAnnouncements={loadingState}
+                setLoadingStateForAllAnnouncements={setLoadingState}
               />
             ))}
           </Stack>

@@ -3,6 +3,7 @@ import {
   ReadAnnouncement,
   getAnnouncementById,
   getError,
+  initialLoadingState,
   isObjectEmpty,
   renderResponseError,
 } from "../../utils/utils";
@@ -11,6 +12,7 @@ import {
   AnnouncementState,
   AuthContextType,
   LoadingState,
+  ResponseError,
   initialAnnouncementState,
 } from "../../Types";
 import { Card, Chip, CircularProgress, Stack, Typography } from "@mui/joy";
@@ -30,7 +32,17 @@ const Announcement: React.FC<{
   givenAnnouncementState?: AnnouncementState;
   onAnnouncementDelete?: (idx: number, title: string, id: number) => void;
   idx?: number;
-}> = ({ givenAnnouncementState, onAnnouncementDelete, idx }) => {
+  givenLoadingStateAllAnnouncements?: LoadingState;
+  setLoadingStateForAllAnnouncements?: (
+    newLoadingStateAllAnnouncements: LoadingState
+  ) => void;
+}> = ({
+  givenAnnouncementState,
+  onAnnouncementDelete,
+  idx,
+  givenLoadingStateAllAnnouncements,
+  setLoadingStateForAllAnnouncements,
+}) => {
   const given = !isObjectEmpty(givenAnnouncementState || {});
   const navigate = useNavigate();
   const [announcementState, setAnnouncementState, announcementStateRef] =
@@ -49,9 +61,8 @@ const Announcement: React.FC<{
   const [emojiSelectorOpen, setEmojiSelectorOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    setLoadingState({ isLoading: true, error: {} });
-
     if (!given) {
+      setLoadingState({ isLoading: true, error: {} });
       setAnnouncementState({ ...announcementState, id: parseInt(id || "0") });
 
       getAnnouncementById(announcementStateRef.current.id.toString())
@@ -117,15 +128,23 @@ const Announcement: React.FC<{
               ),
         });
       })
-      .catch((err) =>
-        setLoadingState({
-          isLoading: loadingState.isLoading,
-          error: getError(err),
-        })
-      );
+      .catch((err) => {
+        if (err.response?.status === 401) {
+          if (setLoadingStateForAllAnnouncements)
+            setLoadingStateForAllAnnouncements({
+              isLoading: false,
+              error: {
+                message: "You need to be logged in to react to announcements.",
+              },
+            });
+        } else {
+          setLoadingState({
+            isLoading: loadingState.isLoading,
+            error: getError(err),
+          });
+        }
+      });
   };
-
-  console.log(announcementState.read);
 
   return (
     <Stack style={{ margin: "0.5em", height: "100%" }} spacing={2}>
@@ -214,6 +233,16 @@ const Announcement: React.FC<{
               onSelect={(emoji) => handleOnReactionSelect(emoji)}
               onAdd={() => {
                 if (authStateRef.current.token) setEmojiSelectorOpen((p) => !p);
+                else {
+                  if (setLoadingStateForAllAnnouncements)
+                    setLoadingStateForAllAnnouncements({
+                      isLoading: false,
+                      error: {
+                        message:
+                          "You need to be logged in to react to announcements.",
+                      },
+                    });
+                }
               }}
             />
             {emojiSelectorOpen && authStateRef.current.token && (
