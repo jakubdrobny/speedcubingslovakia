@@ -1,8 +1,12 @@
 import { AuthContextType, WindowSizeContextType } from "./Types";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { authorizeAdmin, setBearerIfPresent } from "./utils";
+import { WIN_LG, WIN_VERY_LG } from "./constants";
+import { authorizeAdmin, setBearerIfPresent } from "./utils/utils";
 import { useContext, useEffect } from "react";
 
+import Announcement from "./components/Announcement/Announcement";
+import AnnouncementEdit from "./components/Dashboard/AnnouncementEdit";
+import Announcements from "./components/Announcement/Announcements";
 import { AuthContext } from "./context/AuthContext";
 import Competition from "./components/Competition/Competition";
 import CompetitionEdit from "./components/Dashboard/CompetitionEdit";
@@ -22,12 +26,11 @@ import Rankings from "./components/Rankings/Rankings";
 import Records from "./components/Records/Records";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
 import Users from "./components/Users/Users";
-import { WIN_LG } from "./constants";
 import { WindowSizeContext } from "./context/WindowSizeContext";
 import useState from "react-usestateref";
 
 const App = () => {
-  const { authState, setAuthState } = useContext(
+  const { authStateRef, setAuthState } = useContext(
     AuthContext
   ) as AuthContextType;
   const { windowSize, setWindowSize } = useContext(
@@ -46,15 +49,15 @@ const App = () => {
   const [authorizationLoadingState, setAuthorizationLoadingState] = useState<{
     loading: boolean;
     error: string;
-  }>({ loading: authState.token !== "", error: "" });
+  }>({ loading: authStateRef.current.token !== "", error: "" });
 
   useEffect(() => {
-    setBearerIfPresent(authState.token);
+    setBearerIfPresent(authStateRef.current.token);
 
-    if (authState.token) {
+    if (authStateRef.current.token) {
       authorizeAdmin()
         .then((_) => {
-          setAuthState({ ...authState, isadmin: true });
+          setAuthState({ ...authStateRef.current, isadmin: true });
           setAuthorizationLoadingState((ps) => ({ ...ps, loading: false }));
         })
         .catch((_) => {
@@ -89,6 +92,8 @@ const App = () => {
           <Route path="/" Component={Home} />
           <Route path="/competitions" Component={Competitions} />
           <Route path="/competition/:id" Component={Competition} />
+          <Route path="/announcements" Component={Announcements} />
+          <Route path="/announcement/:id" Component={Announcement} />
           <Route path="/not-found" Component={NotFound} />
           <Route path="/login" Component={LogIn} />
           <Route
@@ -107,6 +112,14 @@ const App = () => {
             <Route path="/admin/dashboard" Component={Dashboard} />
             <Route path="/admin/manage-roles" Component={ManageRoles} />
             <Route path="/results/edit" Component={ResultsEdit} />
+            <Route
+              path="/announcement/:id/edit"
+              element={<AnnouncementEdit edit={true} />}
+            />
+            <Route
+              path="/announcement/create"
+              element={<AnnouncementEdit edit={false} />}
+            />
           </Route>
           <Route path="/profile/:id" Component={Profile} />
           <Route path="/results/users" Component={Users} />

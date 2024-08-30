@@ -1,9 +1,11 @@
 import {
+  AnnouncementReactResponse,
+  AnnouncementState,
   AuthState,
+  AverageInfo,
   CompetitionData,
   CompetitionEvent,
   CompetitionLoadingState,
-  CompetitionResult,
   CompetitionResultStruct,
   CompetitionState,
   FilterValue,
@@ -18,8 +20,10 @@ import {
   ResultEntry,
   ResultsStatus,
   SearchUser,
-} from "./Types";
+  Tag,
+} from "../Types";
 import axios, { AxiosError } from "axios";
+import { useEffect, useState } from "react";
 
 import { Alert } from "@mui/joy";
 import Cookies from "universal-cookie";
@@ -333,6 +337,7 @@ export const logIn = async (
     isadmin: boolean;
     avatarUrl: string;
     wcaid: string;
+    username: string;
   } = response.data;
 
   setBearerIfPresent(data.access_token);
@@ -342,6 +347,7 @@ export const logIn = async (
     isadmin: data.isadmin,
     avatarUrl: data.avatarUrl,
     wcaid: data.wcaid,
+    username: data.username,
   };
 
   const cookies = new Cookies(null, { path: "/" });
@@ -364,6 +370,7 @@ export const initialAuthState: AuthState = {
   isadmin: false,
   avatarUrl: cookies.get("avatarUrl") || "",
   wcaid: cookies.get("wcaid") || "",
+  username: cookies.get("username") || "",
 };
 
 export const logOut = async () => {
@@ -435,21 +442,27 @@ export const defaultProfile: ProfileType = {
 };
 
 export const getError = (err: AxiosError): ResponseError => {
-  if (err.response?.status === 401) {
+  const status = err.response?.status;
+  if (status === 401 || status === 200) {
     return {
-      element: (
-        <Alert color="danger" sx={{ gap: 0 }}>
-          Unauthorized/token expired. Try to{" "}
-          <span style={{ padding: "0 2px" }}></span>
-          <Link
-            to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
-            onClick={() => saveCurrentLocation(window.location.pathname)}
-          >
-            re-login
-          </Link>
-          .
-        </Alert>
-      ),
+      element:
+        status === 200 ? (
+          <Alert color="success">
+            <>{err.response?.data}</>
+          </Alert>
+        ) : (
+          <Alert color="danger" sx={{ gap: 0 }}>
+            Unauthorized/token expired. Try to{" "}
+            <span style={{ padding: "0 2px" }}></span>
+            <Link
+              to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+              onClick={() => saveCurrentLocation(window.location.pathname)}
+            >
+              re-login
+            </Link>
+            .
+          </Alert>
+        ),
     };
   }
   return { message: err.response?.data as string };
@@ -513,6 +526,10 @@ export const reformatMultiTime = (startingTime: string): string => {
   return cubePart + " " + res;
 };
 
+export const reformatFMCSolve = (solve: string): string => {
+  return solve.split(".")[0];
+};
+
 export const saveCurrentLocation = (locationPathname: string) => {
   const cookies = new Cookies(null, { path: "/" });
   cookies.set("backlink", locationPathname, {
@@ -530,3 +547,149 @@ export const getCubingIconClassName = (iconcode: any): string => {
     iconcode.toString().startsWith("unofficial") ? "" : "event-"
   }${iconcode.toString()}`;
 };
+
+export const getAnnouncementById = async (
+  id: string | undefined
+): Promise<AnnouncementState> => {
+  if (id === undefined) {
+    return Promise.reject("Invalid competition id.");
+  }
+
+  const response = await axios.get(`/api/announcements/id/${id}`);
+  return !response.data ? undefined : response.data;
+};
+
+export const getAvailableTags = async (): Promise<Tag[]> => {
+  const response = await axios.get("/api/tags");
+  return response.data;
+};
+
+export const updateAnnoncement = async (
+  state: AnnouncementState,
+  edit: boolean
+): Promise<AnnouncementState> => {
+  const response = await axios({
+    method: edit ? "PUT" : "POST",
+    url: "/api/announcements",
+    data: state,
+  });
+
+  return response.data;
+};
+
+export const ReadAnnouncement = async (
+  state: AnnouncementState
+): Promise<AnnouncementState> => {
+  const response = await axios.get(`/api/announcements/read/${state.id}`);
+  return response.data;
+};
+
+export const GetAnnouncements = async (): Promise<AnnouncementState[]> => {
+  const response = await axios.get(`/api/announcements`);
+  return response.data;
+};
+
+export const GetNoOfNewAnnouncements = async (): Promise<number> => {
+  const response = await axios.get(`/api/announcements/noOfNew`);
+  return response.data;
+};
+
+export const DeleteAnnouncement = async (
+  announcementId: number
+): Promise<string> => {
+  const response = await axios.delete(
+    `/api/announcements/delete/${announcementId}`
+  );
+  return response.data;
+};
+
+export const AddReactionToAnnouncement = async (
+  announcementId: number,
+  emoji: string,
+  by: string
+): Promise<AnnouncementReactResponse> => {
+  const response = await axios({
+    method: "POST",
+    url: `/api/announcements/react/${announcementId}`,
+    data: { announcementId, emoji, by },
+  });
+  return response.data;
+};
+
+export const shouldHideAverageColumn = (
+  eventFormat: string,
+  eventIconcode: string
+): boolean => {
+  return eventFormat == "bo1" || eventIconcode === "333mbf";
+};
+
+export const initialAverageInfo: AverageInfo = {
+  single: "",
+  average: "",
+  times: [],
+  bpa: "",
+  wpa: "",
+  showPossibleAverage: false,
+  finishedCompeting: false,
+  place: "",
+  singleRecord: "",
+  singleRecordColor: "",
+  averageRecord: "",
+  averageRecordColor: "",
+};
+
+export const GetAverageInfo = async (
+  resultEntry: ResultEntry
+): Promise<AverageInfo> => {
+  const response = await axios({
+    method: "POST",
+    url: `/api/results/averageinfo`,
+    data: resultEntry,
+  });
+  return response.data;
+};
+
+export const GetAverageInfoRecords = async (
+  resultEntry: ResultEntry,
+  averageInfo: AverageInfo
+): Promise<AverageInfo> => {
+  const response = await axios({
+    method: "POST",
+    url: `/api/results/averageinfo/records`,
+    data: { resultEntry, averageInfo },
+  });
+  return response.data;
+};
+
+export const isBrowser = typeof window !== "undefined";
+
+export const useWindowSize = (
+  initialWidth = Infinity,
+  initialHeight = Infinity
+) => {
+  const [state, setState] = useState<{ width: number; height: number }>({
+    width: isBrowser ? window.innerWidth : initialWidth,
+    height: isBrowser ? window.innerHeight : initialHeight,
+  });
+
+  useEffect((): (() => void) | void => {
+    if (isBrowser) {
+      const handler = () => {
+        setState({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+      };
+
+      window.addEventListener("resize", handler);
+
+      return () => {
+        window.removeEventListener("resize", handler);
+      };
+    }
+  }, []);
+
+  return state;
+};
+
+export default useWindowSize;

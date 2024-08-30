@@ -8,7 +8,7 @@ import {
 import { East, West } from "@mui/icons-material";
 import React, { useContext, useEffect, useState } from "react";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import DefaultScramble from "../../images/DefaultScramble";
 import { Stack } from "@mui/system";
 import { TimerInputContext } from "../../context/TimerInputContext";
@@ -137,7 +137,9 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
           : { display: "none" }
       }
     >
-      <h3>Scramble{ismbld ? "s" : ""}:</h3>
+      <h3 style={{ marginTop: "0.25em", marginBottom: "1em" }}>
+        Scramble{ismbld ? "s" : ""}:
+      </h3>
       {formatScramble()}
       <h3>Preview:</h3>
       <div

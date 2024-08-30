@@ -11,10 +11,11 @@ import {
   getError,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
-import { useContext, useEffect } from "react";
+} from "../../utils/utils";
+import { useContext, useEffect, useState } from "react";
 
-import { CompetitionContext } from "./CompetitionContext";
+import AveragePreview from "../AveragePreview/AveragePreview";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import ManualInput from "./ManualInput";
 import ManualInputMBLD from "./ManualInputMBLD";
 import Penalties from "./Penalties";
@@ -38,6 +39,7 @@ const Compete = () => {
   const ismbld =
     competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
     "333mbf";
+  const [showResultsModal, setShowResultsModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (
@@ -57,6 +59,7 @@ const Compete = () => {
         updateCurrentSolve(
           (competitionState.currentSolveIdx + 1) % competitionState.noOfSolves
         );
+        setShowResultsModal(true);
       })
       .catch((err) =>
         setLoadingState({
@@ -131,6 +134,7 @@ const Compete = () => {
               </Button>
             </Grid>
           </Grid>
+          <AveragePreview showResultsModal={showResultsModal} />
           <Scramble ismbld={ismbld} />
           <Grid container>
             <Grid
@@ -143,7 +147,12 @@ const Compete = () => {
             >
               <h3
                 onClick={toggleInputMethod}
-                style={{ display: "flex", alignItems: "center" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginTop: "0.5em",
+                  marginBottom: "0.25em",
+                }}
               >
                 {competitionState.inputMethod === InputMethod.Manual ? (
                   <>

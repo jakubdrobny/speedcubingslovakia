@@ -1,5 +1,5 @@
 import { Card, Grid, Stack, Table, Typography } from "@mui/joy";
-import { getCubingIconClassName, reformatMultiTime } from "../../utils";
+import { getCubingIconClassName, reformatMultiTime } from "../../utils/utils";
 
 import { ProfileTypePersonalBests } from "../../Types";
 

@@ -1,6 +1,6 @@
 import { Card, Textarea } from "@mui/joy";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import { CompetitionContextType } from "../../Types";
 import { useContext } from "react";
 

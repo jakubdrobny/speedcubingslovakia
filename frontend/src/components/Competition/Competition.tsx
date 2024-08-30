@@ -24,11 +24,11 @@ import {
   initialCompetitionState,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import CompetitionResults from "./CompetitionResults";
 import CompetitorArea from "./CompetitorArea";
 import { EventSelector } from "./EventSelector";

@@ -8,7 +8,7 @@ import {
   InputMethod,
   ResultEntry,
   ResultsCompeteChoiceEnum,
-} from "../../Types";
+} from "../Types";
 import React, { ReactNode, createContext } from "react";
 import {
   competitionOnGoing,
@@ -19,7 +19,7 @@ import {
   initialCompetitionState,
   initialCurrentResults,
   sendResults,
-} from "../../utils";
+} from "../utils/utils";
 
 import useState from "react-usestateref";
 

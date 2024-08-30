@@ -126,12 +126,14 @@ export type AuthState = {
   wcaid: string;
   isadmin: boolean;
   avatarUrl: string;
+  username: string;
 };
 
 export type AuthContextType = {
   authState: AuthState;
   updateAuthToken: (newToken: string) => void;
   setAuthState: (newAuthState: AuthState) => void;
+  authStateRef: { current: AuthState };
 };
 
 export type WindowSize = {
@@ -187,6 +189,10 @@ export enum DashboardPanel {
 }
 
 export type CompetitionEditProps = {
+  edit: boolean;
+};
+
+export type AnnouncementEditProps = {
   edit: boolean;
 };
 
@@ -326,4 +332,57 @@ export type RecordsItemEntry = {
   competitionName: string;
   competitionId: string;
   solves: string[];
+};
+
+export type Tag = {
+  label: string;
+  color: "danger" | "warning" | "success" | "primary";
+};
+
+export type EmojiCounter = {
+  emoji: string;
+  by: string;
+};
+
+export type AnnouncementState = {
+  id: number;
+  authorId: number;
+  authorWcaId: string;
+  authorUsername: string;
+  title: string;
+  content: string;
+  tags: Tag[];
+  read: boolean;
+  emojiCounters: EmojiCounter[];
+};
+
+export const initialAnnouncementState: AnnouncementState = {
+  id: 0,
+  authorId: 0,
+  authorWcaId: "",
+  authorUsername: "",
+  title: "",
+  content: "",
+  tags: [],
+  read: true,
+  emojiCounters: [],
+};
+
+export type AnnouncementReactResponse = {
+  set: boolean;
+};
+
+export type AverageInfo = {
+  single: string;
+  average: string;
+  times: string[];
+  bpa: string;
+  wpa: string;
+  showPossibleAverage: boolean;
+  finishedCompeting: boolean;
+  place: string;
+  singleRecord: string;
+  singleRecordColor: string;
+  averageRecord: string;
+  averageRecordColor: string;
 };

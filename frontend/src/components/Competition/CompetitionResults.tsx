@@ -13,10 +13,10 @@ import {
   isObjectEmpty,
   reformatMultiTime,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useContext, useEffect } from "react";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import { CompetitionContextType } from "../../Types";
 import { Link } from "react-router-dom";
 

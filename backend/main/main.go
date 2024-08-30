@@ -16,7 +16,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/robfig/cron"
 )
 
 func keyFunc(c *gin.Context) string {
@@ -41,14 +40,14 @@ func main() {
 	}
 	defer db.Close()
 
-	cronScheduler := cron.New()
-	cronScheduler.AddFunc("@every 7d", func () { controllers.AddNewWeeklyCompetition(db, envMap) })
-	cronScheduler.Start()
+	// cronScheduler := cron.New()
+	// cronScheduler.AddFunc("@every 7d", func () { controllers.AddNewWeeklyCompetition(db, envMap) })
+	// cronScheduler.Start()
 
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-        AllowOrigins: []string{"http://localhost:3000"},
+        AllowOrigins: []string{"http://127.0.0.1:3000"},
         AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowHeaders: []string{"Origin", "Content-Type"},
         ExposeHeaders: []string{"Content-Length"},
@@ -56,17 +55,17 @@ func main() {
         MaxAge: 12 * time.Hour,
     }))
 	
-	store := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
-		Rate:  time.Minute,
-		Limit: 100,
-	})
+	// store := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
+	// 	Rate:  time.Minute,
+	// 	Limit: 100,
+	// })
 
-	rateLimitMiddleWare := ratelimit.RateLimiter(store, &ratelimit.Options{
-		ErrorHandler: errorHandler,
-		KeyFunc: keyFunc,
-	})
+	// rateLimitMiddleWare := ratelimit.RateLimiter(store, &ratelimit.Options{
+	// 	ErrorHandler: errorHandler,
+	// 	KeyFunc: keyFunc,
+	// })
 
-	router.Use(rateLimitMiddleWare)
+	// router.Use(rateLimitMiddleWare)
 
 	api_v1 := router.Group("/api")
 	
@@ -80,6 +79,8 @@ func main() {
 		results.GET("/records", controllers.GetRecords(db))
 		results.GET("/regions/grouped", controllers.GetRegionsGrouped(db))
 		results.GET("/profile/:id", controllers.GetProfileResults(db))
+		results.POST("/averageinfo", middlewares.AuthMiddleWare(db, envMap), controllers.GetAverageInfo(db))
+		results.POST("/averageinfo/records", middlewares.AuthMiddleWare(db, envMap), controllers.GetAverageInfoRecords(db))
 	}
 
 	events := api_v1.Group("/events")
@@ -103,11 +104,28 @@ func main() {
 
 	users := api_v1.Group("/users")
 	{
-		users.GET("/manage-roles", middlewares.AuthMiddleWare(db, envMap), controllers.GetManageRolesUsers(db))
+		users.GET("/manage-roles", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.GetManageRolesUsers(db))
 		users.PUT("/manage-roles", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutManageRolesUsers(db))
 		users.POST("/login", controllers.PostLogIn(db, envMap))
 		users.GET("/search", controllers.GetSearchUsers(db))
-		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized")});
+		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized") });
+	}
+
+	tags := api_v1.Group("/tags")
+	{
+		tags.GET("/", controllers.GetTags(db))
+	}
+	
+	announcements := api_v1.Group("/announcements")
+	{
+		announcements.GET("/id/:id", controllers.GetAnnouncementById(db, envMap))
+		announcements.GET("/read/:id", middlewares.AuthMiddleWare(db, envMap), controllers.ReadAnnouncement(db))
+		announcements.POST("/react/:id", middlewares.AuthMiddleWare(db, envMap), controllers.ReactToAnnouncement(db))
+		announcements.DELETE("/delete/:id", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.DeleteAnnouncement(db))
+		announcements.GET("/", controllers.GetAnnouncements(db, envMap))
+		announcements.POST("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostAnnouncement(db, envMap))
+		announcements.PUT("/", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutAnnouncement(db, envMap))
+		announcements.GET("/noOfNew", controllers.GetNoOfNewAnnouncements(db, envMap))
 	}
 
 	router.Run("localhost:8000")

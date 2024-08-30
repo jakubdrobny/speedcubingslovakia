@@ -24,9 +24,10 @@ import {
   initialLoadingState,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useCallback, useContext, useEffect } from "react";
 
+import { EmojiEvents } from "@mui/icons-material";
 import RankingsTable from "./RankingsTable";
 import { WindowSizeContext } from "../../context/WindowSizeContext";
 import useState from "react-usestateref";
@@ -48,6 +49,7 @@ const Rankings = () => {
   const [rankings, setRankings] = useState<RankingsEntry[]>([]);
   const isfmc = events[currentEventIdx]?.iconcode === "333fm";
   const ismbld = events[currentEventIdx]?.iconcode === "333mbf";
+  const isoverall = events[currentEventIdx]?.displayname === "Overall";
   const [queryTypeValue, setQueryTypeValue, queryTypeValueRef] =
     useState<string>(defaultQueryTypeValue);
   const { windowSize, setWindowSize } = useContext(
@@ -90,6 +92,13 @@ const Rankings = () => {
     setLoadingState({ isLoading: true, error: {} });
     getAvailableEvents()
       .then((res: CompetitionEvent[]) => {
+        res.push({
+          id: -1,
+          displayname: "Overall",
+          format: "",
+          iconcode: "",
+          scramblingcode: "",
+        });
         setEvents(res);
         return getRegionGroups();
       })
@@ -109,7 +118,7 @@ const Rankings = () => {
       </Typography>
       <Stack direction="row" spacing={1}>
         <Typography level="h3">Event:</Typography>
-        <div>
+        <Stack direction="row" flexWrap="wrap" useFlexGap>
           {events.map((event: CompetitionEvent, idx: number) => (
             <span
               key={idx}
@@ -118,19 +127,13 @@ const Rankings = () => {
               )} profile-cubing-icon-mock`}
               onClick={() => {
                 if (!loadingState.isLoading) {
-                  console.log(
-                    eventsRef &&
-                      eventsRef.current &&
-                      idx < eventsRef.current.length,
-                    eventsRef.current[idx].displayname === "MBLD" ||
-                      eventsRef.current[idx].format === "bo1"
-                  );
                   if (
                     eventsRef &&
                     eventsRef.current &&
                     idx < eventsRef.current.length &&
                     (eventsRef.current[idx].displayname === "MBLD" ||
-                      eventsRef.current[idx].format === "bo1")
+                      eventsRef.current[idx].format === "bo1" ||
+                      eventsRef.current[idx].displayname === "Overall")
                   )
                     setSingle(true);
                   setCurrentEventIdx(idx);
@@ -143,9 +146,13 @@ const Rankings = () => {
                 color: currentEventIdx === idx ? "#0B6BCB" : "",
                 cursor: "pointer",
               }}
-            />
+            >
+              {idx === events.length - 1 && (
+                <EmojiEvents sx={{ paddingTop: "1px", fontSize: "1em" }} />
+              )}
+            </span>
           ))}
-        </div>
+        </Stack>
       </Stack>
       <Stack
         direction="row"
@@ -176,6 +183,7 @@ const Rankings = () => {
               Single
             </Button>
             {!ismbld &&
+              !isoverall &&
               eventsRef.current[currentEventIdxRef.current]?.format !==
                 "bo1" && (
                 <Button
@@ -247,6 +255,7 @@ const Rankings = () => {
           loading={loadingState.isLoading}
           isfmc={isfmc}
           ismbld={ismbld}
+          isoverall={isoverall}
         />
       )}
     </Stack>

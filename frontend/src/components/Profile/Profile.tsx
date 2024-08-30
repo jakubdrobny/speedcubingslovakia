@@ -1,6 +1,5 @@
 import { Alert, CircularProgress, Grid, Stack, Typography } from "@mui/joy";
 import { LoadingState, ProfileType } from "../../Types";
-import { WIN_LG, WIN_SMALL } from "../../constants";
 import {
   defaultProfile,
   getError,
@@ -8,13 +7,14 @@ import {
   initialLoadingState,
   isObjectEmpty,
   renderResponseError,
-} from "../../utils";
+} from "../../utils/utils";
 import { useEffect, useState } from "react";
 
 import MedalRecordColletion from "./MedalRecordColletion";
 import ProfileBasics from "./ProfileBasics";
 import ProfilePersonalBests from "./ProfilePersonalBests";
 import ProfileResultsHistory from "./ProfileResultsHistory";
+import { WIN_SMALL } from "../../constants";
 import { WindowSizeContext } from "../../context/WindowSizeContext";
 import { WindowSizeContextType } from "../../Types";
 import { useContext } from "react";

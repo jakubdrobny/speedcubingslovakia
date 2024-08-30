@@ -1,22 +1,28 @@
 import { CompetitionContextType, ResultEntry } from "../../Types";
 import React, { useContext, useEffect, useRef, useState } from "react";
+import { competitionOnGoing, reformatTime } from "../../utils/utils";
 
-import { CompetitionContext } from "./CompetitionContext";
+import { CompetitionContext } from "../../context/CompetitionContext";
 import { Input } from "@mui/joy";
 import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
-import { reformatTime } from "../../utils";
 
 const ManualInput: React.FC<{
   handleSaveResults: () => void;
 }> = ({ handleSaveResults }) => {
   const [forceRerender, setForceRerender] = useState(false);
-  const { competitionState, updateSolve, currentResultsRef } = useContext(
-    CompetitionContext
-  ) as CompetitionContextType;
+  const {
+    competitionState,
+    updateSolve,
+    currentResultsRef,
+    competitionStateRef,
+  } = useContext(CompetitionContext) as CompetitionContextType;
   const solveProp: keyof ResultEntry = `solve${
     competitionState.currentSolveIdx + 1
   }` as keyof ResultEntry;
   const formattedTime = currentResultsRef.current[solveProp].toString();
+  const isfmc =
+    competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
+    "333fm";
 
   useEffect(
     () => setForceRerender(!forceRerender),
@@ -27,14 +33,8 @@ const ManualInput: React.FC<{
     let newValue = e.currentTarget.value;
     const target = e.target as HTMLInputElement;
 
-    if (
-      competitionState.events[competitionState.currentEventIdx].displayname ===
-      "FMC"
-    ) {
+    if (isfmc) {
       updateSolve(newValue);
-      window.setTimeout(function () {
-        target.setSelectionRange(newValue.length, newValue.length);
-      }, 0);
       return;
     }
 
@@ -68,7 +68,7 @@ const ManualInput: React.FC<{
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSaveResults();
-    } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    } else if (!isfmc && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
       e.preventDefault();
     }
   };
@@ -81,19 +81,20 @@ const ManualInput: React.FC<{
         sx={{
           marginBottom: 2,
           marginTop: 2,
-          input: { caretColor: "transparent" },
+          input: !isfmc ? { caretColor: "transparent" } : {},
         }}
         value={formattedTime}
         onChange={handleTimeInputChange}
         onKeyDown={handleKeyDown}
         onClick={(e) => {
           const target = e.target as HTMLInputElement;
-          if (target.tagName === "INPUT")
+          if (target.tagName === "INPUT" && !isfmc)
             target.setSelectionRange(
               target?.value?.length,
               target?.value?.length
             );
         }}
+        disabled={!competitionOnGoing(competitionStateRef.current)}
         autoFocus
       />
     </div>

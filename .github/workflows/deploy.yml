@@ -50,7 +50,10 @@ jobs:
             cd ${{ secrets.WORKDIR }}/scrambling
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
-            pm2 restart ${{ secrets.SCRAMBLING_SERVICE_NAME }}
+            npm install
+            rm -rf index
+            pkg -t linux package.json
+            systemctl daemon-reload && systemctl restart scrambling.service
 
             echo 'Scrambling rebuilt and deployment finished.'
 

@@ -1,5 +1,9 @@
 import { Card, Stack, Table, Typography } from "@mui/joy";
-import { getCubingIconClassName, reformatMultiTime } from "../../utils";
+import {
+  getCubingIconClassName,
+  reformatMultiTime,
+  shouldHideAverageColumn,
+} from "../../utils/utils";
 
 import { Link } from "react-router-dom";
 import { ProfileTypeResultHistory } from "../../Types";
@@ -15,6 +19,10 @@ const ProfileResultsHistory: React.FC<{
   const [currentHistoryIdx, setCurrentHistoryIdx] = useState(0);
   const isfmc = resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm";
   const ismbld = resultsHistory[currentHistoryIdx]?.eventIconcode === "333mbf";
+  const hideAverageColumn = shouldHideAverageColumn(
+    resultsHistory[currentHistoryIdx]?.eventFormat,
+    resultsHistory[currentHistoryIdx]?.eventIconcode
+  );
 
   const getColumnNames = () => {
     let columnNames = [
@@ -30,7 +38,7 @@ const ProfileResultsHistory: React.FC<{
         : "Solves",
     ];
 
-    if (columnNames.includes("Average") && ismbld)
+    if (columnNames.includes("Average") && hideAverageColumn)
       columnNames.splice(
         columnNames.findIndex((x) => x === "Average"),
         2
@@ -83,7 +91,7 @@ const ProfileResultsHistory: React.FC<{
                           ? goodHeight
                           : idx < 3
                           ? left
-                          : idx < 5 - (ismbld ? 1 : 0)
+                          : idx < 6 - (hideAverageColumn ? 2 : 0)
                           ? right
                           : center),
                       }}
@@ -112,9 +120,11 @@ const ProfileResultsHistory: React.FC<{
                   />
                   &nbsp;{resultsHistory[currentHistoryIdx].eventName}
                 </td>
-                {(ismbld ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5]).map((val) => (
-                  <td key={val + 10} style={goodHeight}></td>
-                ))}
+                {(hideAverageColumn ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5]).map(
+                  (val) => (
+                    <td key={val + 10} style={goodHeight}></td>
+                  )
+                )}
               </tr>
               {resultsHistory[currentHistoryIdx].history.map((entry, idx) => (
                 <tr key={idx + 1000}>
@@ -131,7 +141,7 @@ const ProfileResultsHistory: React.FC<{
                       <b>{entry.competitionName}</b>
                     </Link>
                   </td>
-                  {(ismbld
+                  {(hideAverageColumn
                     ? [entry.place, entry.single, entry.singleRecord]
                     : [
                         entry.place,
@@ -142,7 +152,10 @@ const ProfileResultsHistory: React.FC<{
                       ]
                   ).map((val, idx1) => {
                     return (
-                      <td key={idx1 + 100000} style={idx1 === 0 ? left : right}>
+                      <td
+                        key={idx1 + 100000}
+                        style={idx1 % 2 === 0 ? left : right}
+                      >
                         {idx1 === 0 ? (
                           val
                         ) : (

@@ -47,7 +47,7 @@ func ParseMultiToMilliseconds(s string) int {
 		return constants.DNF
 	}
 
-	res := points * 7200 * 1000
+	res := (points + 1) * 7200 * 1000
 	
 	var hours, minutes, seconds int
 	if len(timePart) == 3 {
@@ -63,7 +63,7 @@ func ParseMultiToMilliseconds(s string) int {
 	res -= hours * 3600 * 1000
 	res -= minutes * 60 * 1000
 	res -= seconds * 1000
-
+	
 	return -res
 }
 
@@ -214,7 +214,7 @@ func FormatTime(timeInMiliseconds int, isfmc bool) string {
 	if timeInMiliseconds == constants.DNF { return "DNF" }
 	if timeInMiliseconds == constants.DNS { return "DNS" }
 
-	if isfmc { return fmt.Sprint(int(timeInMiliseconds / 1000)) + ".00" }
+	if isfmc { return fmt.Sprintf("%.2f", float64(timeInMiliseconds) / 1000) }
 
 	if timeInMiliseconds < 0 {
 		return FormatMultiTime(timeInMiliseconds)
@@ -381,4 +381,21 @@ func GetScramblesByResultEntryId(db *pgxpool.Pool, eid int, cid string) ([]strin
 	}
 
 	return scrambles, nil
+}
+
+
+// endsWith: 1. to  1st, 2. to 2nd, 3. to 3rd, 4-9. to 4-9th, ...
+// except: 11-19. to 11-19th
+func PlaceFromDotToEnglish(from string) string {
+	from = strings.Join(strings.Split(from, "."), "")
+	fromInt, _ := strconv.ParseInt(from, 10, 64)
+
+	if fromInt >= 10 && fromInt < 20 { return from + "th" }
+	
+	rem := fromInt % 10
+	if rem == 1 { return from + "st" }
+	if rem == 2 { return from + "nd" }
+	if rem == 3 { return from + "rd" }
+
+	return from + "th"
 }

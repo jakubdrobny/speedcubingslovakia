@@ -42,11 +42,30 @@ func (u *User) Update(db *pgxpool.Pool) error {
 	return nil
 }
 
+func (u *User) CreateAllAnnouncementReadConnection(db *pgxpool.Pool) error {
+	rows, err := db.Query(context.Background(), `SELECT a.announcement_id FROM announcements a;`)
+	if err != nil { return err }
+
+	for rows.Next() {
+		var announcementId int
+		err = rows.Scan(&announcementId)
+		if err != nil { return nil }
+
+		_, err = db.Exec(context.Background(), `INSERT INTO announcement_read (announcement_id, user_id, read, read_timestamp) VALUES ($1,$2,FALSE,NULL);`, announcementId, u.Id)
+		if err != nil { return err }
+	}
+
+	return nil
+}
+
 func (u *User) Insert(db *pgxpool.Pool) error {
-	_, err := db.Exec(context.Background(), `INSERT INTO users (name, country_id, sex, url, avatarurl, wcaid, isadmin) VALUES ($1,$2,$3,$4,$5,$6,false);`, u.Name, u.CountryId, u.Sex, u.Url, u.AvatarUrl, u.WcaId)
+	err := db.QueryRow(context.Background(), `INSERT INTO users (name, country_id, sex, url, avatarurl, wcaid, isadmin) VALUES ($1,$2,$3,$4,$5,$6,false) RETURNING user_id;`, u.Name, u.CountryId, u.Sex, u.Url, u.AvatarUrl, u.WcaId).Scan(&u.Id)
 	if err != nil { return err }
 	exists, err := u.Exists(db)
-	if !exists || err != nil { return fmt.Errorf("%s %t", err, exists)}
+	if !exists || err != nil { return fmt.Errorf("%s %t", err, exists) }
+
+	err = u.CreateAllAnnouncementReadConnection(db)
+	if err != nil { return err }
 
 	return nil
 }

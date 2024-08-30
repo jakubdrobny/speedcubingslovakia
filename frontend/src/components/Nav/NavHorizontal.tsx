@@ -1,6 +1,6 @@
 import { Button, Grid, List, ListItemButton, Typography } from "@mui/joy";
 import { NavContextType, WindowSizeContextType } from "../../Types";
-import { WIN_LG, WIN_SMALL } from "../../constants";
+import { WIN_SMALL, WIN_VERY_LG } from "../../constants";
 
 import { DensityMedium } from "@mui/icons-material";
 import { Link } from "react-router-dom";
@@ -58,7 +58,7 @@ const NavHorizontal = () => {
             width: "100%",
           }}
         >
-          {windowSize.width < WIN_LG ? (
+          {windowSize.width < WIN_VERY_LG ? (
             <Button
               onClick={toggleNavOpen}
               variant={navOpen ? "solid" : "outlined"}

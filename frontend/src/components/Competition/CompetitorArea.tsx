@@ -5,7 +5,7 @@ import { AuthContextType } from "../../Types";
 import CommentBox from "./CommentBox";
 import Compete from "./Compete";
 import Guide from "./Guide";
-import { saveCurrentLocation } from "../../utils";
+import { saveCurrentLocation } from "../../utils/utils";
 import { useContext } from "react";
 
 const CompetitorArea: React.FC<{ loading: boolean }> = ({ loading }) => {

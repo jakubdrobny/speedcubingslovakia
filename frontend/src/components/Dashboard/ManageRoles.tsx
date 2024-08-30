@@ -13,7 +13,7 @@ import {
   getManageUsers,
   renderResponseError,
   updateUserRoles,
-} from "../../utils";
+} from "../../utils/utils";
 import { useEffect, useState } from "react";
 
 const ManageRoles = () => {

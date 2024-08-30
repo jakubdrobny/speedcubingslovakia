@@ -473,94 +473,116 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 
 		rankings := make([]RankingsEntry, 0)
 
-		isfmc := false
-
-		var rows pgx.Rows
-
-		if regionType == "World" {
-			rows, err = db.Query(context.Background(), `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.event_id = $1 AND rs.visible IS TRUE;`, eid)
+		if eid == -1 {
+			competitionResults, err := models.GetOverallResults(db, "")
 			if err != nil {
-				log.Println("ERR db.Query (World) in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rankings entries from database.")
+				log.Println("ERR models.GetOverallResults in GetRankings: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed getting overall rankings.")
 				return
 			}
-		} else {
-			regionTypeColumn := "cont.name"
-			if regionType == "Country" { regionTypeColumn = "c.name" }
-			rows, err = db.Query(context.Background(), `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.event_id = $1 AND ` + regionTypeColumn + ` = $2 AND rs.visible IS TRUE;`, eid, regionPrecise)
-			if err != nil {
-				log.Println("ERR db.Query (" + regionType + ") in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rankings entries from database.")
-				return
-			}
-		}
-
-		for rows.Next() {
-			var rankingsEntry RankingsEntry
-			var resultsEntry models.ResultEntry
-			err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.WcaId, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format, &resultsEntry.Iconcode, &resultsEntry.Eventid, &resultsEntry.Status.Visible)
-			if err != nil {
-				log.Println("ERR scanning rows in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
-				return
-			}
-
-			if rankingsEntry.WcaId == "" { rankingsEntry.WcaId = rankingsEntry.Username }
-			isfmc = utils.IsFMC(resultsEntry.Iconcode)
-			scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
-			if err != nil {
-				log.Println("ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
-				return
-			}
-
-			ismbld := resultsEntry.Iconcode == "333mbf"
-
-			if single {
-				if persons {
-					rankingsEntry.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
-					if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
-					rankingsEntry.Times = make([]string, 0)
-
-					rankings = append(rankings, rankingsEntry)
-				} else {
-					rankingsEntry.Times = make([]string, 0)
-
-					noOfSolves, _ := utils.GetNoOfSolves(resultsEntry.Format)
-
-					for idx, solve := range []string{resultsEntry.Solve1, resultsEntry.Solve2, resultsEntry.Solve3, resultsEntry.Solve4, resultsEntry.Solve5} {
-						if idx >= noOfSolves { break }
-						
-						result := utils.ParseSolveToMilliseconds(solve, isfmc, scrambles[idx])
-						if ismbld { rankingsEntry.Result = solve
-						} else { rankingsEntry.Result = utils.FormatTime(result, isfmc) }
-						if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") < constants.VERY_SLOW { rankings = append(rankings, rankingsEntry) }
-					}
-				}
-			} else if !ismbld && resultsEntry.Format != "bo1" {
-				resultFormatted, err := resultsEntry.AverageFormatted(isfmc, scrambles)
-				if err != nil {
-					log.Println("ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
-					c.IndentedJSON(http.StatusInternalServerError, "Failed to calculate average in rankings entry.")
-					return
-				}
-				rankingsEntry.Result = resultFormatted
-				if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
-				rankingsEntry.Times, _ = resultsEntry.GetFormattedTimes(isfmc, scrambles)
+			
+			for _, result := range competitionResults {
+				var rankingsEntry RankingsEntry
+				rankingsEntry.Place = result.Place
+				rankingsEntry.Username = result.Username
+				rankingsEntry.WcaId = result.WcaId
+				rankingsEntry.CountryName = result.CountryName
+				rankingsEntry.CountryISO2 = result.CountryIso2
+				rankingsEntry.Result = result.Score
 
 				rankings = append(rankings, rankingsEntry)
 			}
+		} else {
+			isfmc := false
+
+			var rows pgx.Rows
+
+			if regionType == "World" {
+				rows, err = db.Query(context.Background(), `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.event_id = $1 AND rs.visible IS TRUE;`, eid)
+				if err != nil {
+					log.Println("ERR db.Query (World) in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to query rankings entries from database.")
+					return
+				}
+			} else {
+				regionTypeColumn := "cont.name"
+				if regionType == "Country" { regionTypeColumn = "c.name" }
+				rows, err = db.Query(context.Background(), `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.event_id = $1 AND ` + regionTypeColumn + ` = $2 AND rs.visible IS TRUE;`, eid, regionPrecise)
+				if err != nil {
+					log.Println("ERR db.Query (" + regionType + ") in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to query rankings entries from database.")
+					return
+				}
+			}
+
+			for rows.Next() {
+				var rankingsEntry RankingsEntry
+				var resultsEntry models.ResultEntry
+				err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.WcaId, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format, &resultsEntry.Iconcode, &resultsEntry.Eventid, &resultsEntry.Status.Visible)
+				if err != nil {
+					log.Println("ERR scanning rows in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
+					return
+				}
+
+				if rankingsEntry.WcaId == "" { rankingsEntry.WcaId = rankingsEntry.Username }
+				isfmc = utils.IsFMC(resultsEntry.Iconcode)
+				scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
+				if err != nil {
+					log.Println("ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
+					return
+				}
+
+				ismbld := resultsEntry.Iconcode == "333mbf"
+
+				if single {
+					if persons {
+						rankingsEntry.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
+						if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
+						rankingsEntry.Times = make([]string, 0)
+
+						rankings = append(rankings, rankingsEntry)
+					} else {
+						rankingsEntry.Times = make([]string, 0)
+
+						noOfSolves, _ := utils.GetNoOfSolves(resultsEntry.Format)
+
+						for idx, solve := range []string{resultsEntry.Solve1, resultsEntry.Solve2, resultsEntry.Solve3, resultsEntry.Solve4, resultsEntry.Solve5} {
+							if idx >= noOfSolves { break }
+							
+							result := utils.ParseSolveToMilliseconds(solve, isfmc, scrambles[idx])
+							if ismbld { rankingsEntry.Result = solve
+							} else { rankingsEntry.Result = utils.FormatTime(result, isfmc) }
+							if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") < constants.VERY_SLOW { rankings = append(rankings, rankingsEntry) }
+						}
+					}
+				} else if !ismbld && resultsEntry.Format != "bo1" {
+					resultFormatted, err := resultsEntry.AverageFormatted(isfmc, scrambles)
+					if err != nil {
+						log.Println("ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+						c.IndentedJSON(http.StatusInternalServerError, "Failed to calculate average in rankings entry.")
+						return
+					}
+					rankingsEntry.Result = resultFormatted
+					if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
+					rankingsEntry.Times, _ = resultsEntry.GetFormattedTimes(isfmc, scrambles)
+
+					rankings = append(rankings, rankingsEntry)
+				}
+			}
+
+			if persons { rankings = MergeNonUniqueRankings(rankings, isfmc) }
+			sort.Slice(rankings, func (i int, j int) bool {
+				val1, val2 := utils.ParseSolveToMilliseconds(rankings[i].Result, false, ""), utils.ParseSolveToMilliseconds(rankings[j].Result, false, "")
+				if val1 == val2 { return rankings[i].Username < rankings[j].Username }
+				return val1 < val2
+			})
+			AddPlacementToRankings(rankings)
 		}
 
-		if persons { rankings = MergeNonUniqueRankings(rankings, isfmc) }
-		sort.Slice(rankings, func (i int, j int) bool {
-			val1, val2 := utils.ParseSolveToMilliseconds(rankings[i].Result, false, ""), utils.ParseSolveToMilliseconds(rankings[j].Result, false, "")
-			if val1 == val2 { return rankings[i].Username < rankings[j].Username }
-			return val1 < val2
-		})
-		AddPlacementToRankings(rankings)
 		if len(rankings) > numOfEntries { rankings = rankings[:numOfEntries] }
-
+		
 		c.IndentedJSON(http.StatusOK, rankings)
 	}
 }
@@ -729,5 +751,193 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 
 
 		c.IndentedJSON(http.StatusOK, recordItems)
+	}
+}
+
+type AverageInfo struct {
+	Single string `json:"single"`
+	Average string `json:"average"`
+	Times []string `json:"times"`
+	Bpa string `json:"bpa"`
+	Wpa string `json:"wpa"`
+	ShowPossibleAverage bool `json:"showPossibleAverage"`
+	FinishedCompeting bool `json:"finishedCompeting"`
+	Place string `json:"place"`
+	SingleRecord string `json:"singleRecord"`
+	SingleRecordColor string `json:"singleRecordColor"`
+	AverageRecord string `json:"averageRecord"`
+	AverageRecordColor string `json:"averageRecordColor"`
+}
+
+func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		var resultEntry models.ResultEntry
+		var err error
+
+		if err := c.BindJSON(&resultEntry); err != nil {
+			log.Println("ERR BindJSON(&resultEntry) in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse result entry.")
+			return
+		}
+
+		var averageInfo AverageInfo
+
+		resultEntry.Scrambles, err = utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
+		if err != nil {
+			log.Println("ERR utils.GetScramblesByResultEntryId in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to get scrambles for result entry.")
+			return
+		}
+		averageInfo.Single = resultEntry.SingleFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
+		
+		avg, err := resultEntry.AverageFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
+		if err != nil {
+			log.Println("ERR resultEntry.AverageFormatted in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to get average for result entry.")
+			return
+		}
+		averageInfo.Average = avg
+
+		formattedTimes, err := resultEntry.GetFormattedTimes(resultEntry.IsFMC(), resultEntry.Scrambles)
+		if err != nil {
+			log.Println("ERR resultEntry.GetFormattedTimes in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to get times for result entry.")
+			return
+		}
+		averageInfo.Times = formattedTimes
+
+		ok, err := resultEntry.ShowPossibleAverages()
+		if err != nil {
+			log.Println("ERR resultEntry.ShowPossibleAverages in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if should calculate BPA/WPA.")
+			return
+		}
+		
+		if ok {
+			averageInfo.ShowPossibleAverage = true
+
+			averageInfo.Bpa, err = resultEntry.GetBPA()
+			if err != nil {
+				log.Println("ERR resultEntry.GetBPA in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get BPA for result entry.")
+				return
+			}
+
+			averageInfo.Wpa, err = resultEntry.GetWPA()
+			if err != nil {
+				log.Println("ERR resultEntry.GetWPA in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get WPA for result entry.")
+				return
+			}
+		}
+
+		averageInfo.FinishedCompeting, err = resultEntry.FinishedCompeting()
+		if err != nil {
+			log.Println("ERR resultEntry.FinishedCompeting in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if you finished competing.")
+			return
+		}
+
+		if averageInfo.FinishedCompeting {
+			averageInfo.Place, err = resultEntry.GetCompetitionPlace(db)
+			if err != nil {
+				log.Println("ERR resultEntry.GetCompetitionPlace in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get competition place for result entry.")
+				return
+			}
+		}
+
+		c.IndentedJSON(http.StatusOK, averageInfo)
+	}
+}
+
+func GetAverageInfoRecords(db *pgxpool.Pool) gin.HandlerFunc {
+	return func (c *gin.Context) {
+		type Body struct {
+			ResultEntry models.ResultEntry `json:"resultEntry"`
+			AverageInfo AverageInfo `json:"averageInfo"`
+		}
+		var body Body
+		if err := c.BindJSON(&body); err != nil {
+			log.Println("ERR BindJSON(&body) in GetAverageInfo: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse request body.")
+			return
+		}
+
+		resultEntry := body.ResultEntry
+		averageInfo := body.AverageInfo
+
+		var err error
+
+		averageInfo.FinishedCompeting, err = resultEntry.FinishedCompeting()
+		if err != nil {
+			log.Println("ERR resultEntry.FinishedCompeting in GetAverageInfoRecords: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if you finished competing.")
+			return
+		}
+
+		if averageInfo.FinishedCompeting {
+			uid := c.MustGet("uid").(int)
+
+			user, err := models.GetUserById(db, uid)
+			if err != nil {
+				log.Println("ERR models.GetUserById in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get user info.")
+				return
+			}
+			err = user.LoadContinent(db)
+			if err != nil {
+				log.Println("ERR user.LoadContinent in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get user continent.")
+				return
+			}
+
+			var profileType models.ProfileType
+			_, err = profileType.LoadPersonalBests(db, &user, resultEntry.Eventid)
+			if err != nil {
+				log.Println("ERR profileType.LoadPersonalBests in GetAverageInfo: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed to get user continent.")
+				return
+			}
+
+			for idx := range profileType.PersonalBests {
+				personalBestEntry := profileType.PersonalBests[idx]
+				if personalBestEntry.Event.Id != resultEntry.Eventid { continue }
+				
+				if averageInfo.Single == personalBestEntry.Single.Value {
+					if personalBestEntry.Single.WR == "1" {
+						averageInfo.SingleRecord = "WR"
+						averageInfo.SingleRecordColor = constants.WR_COLOR
+					} else if personalBestEntry.Single.CR == "1" {
+						averageInfo.SingleRecord = "CR"
+						averageInfo.SingleRecordColor = constants.CR_COLOR
+					} else if personalBestEntry.Single.NR == "1" {
+						averageInfo.SingleRecord = "NR"
+						averageInfo.SingleRecordColor = constants.NR_COLOR
+					} else {
+						averageInfo.SingleRecord = "PB"
+						averageInfo.SingleRecordColor = constants.PR_COLOR
+					}
+				}
+
+				if averageInfo.Average == personalBestEntry.Average.Value {
+					if personalBestEntry.Average.WR == "1" {
+						averageInfo.AverageRecord = "WR"
+						averageInfo.AverageRecordColor = constants.WR_COLOR
+					} else if personalBestEntry.Average.CR == "1" {
+						averageInfo.AverageRecord = "CR"
+						averageInfo.AverageRecordColor = constants.CR_COLOR
+					} else if personalBestEntry.Average.NR == "1" {
+						averageInfo.AverageRecord = "NR"
+						averageInfo.AverageRecordColor = constants.NR_COLOR
+					} else {
+						averageInfo.AverageRecord = "PB"
+						averageInfo.AverageRecordColor = constants.PR_COLOR
+					}
+				}
+			}
+		}
+
+		c.IndentedJSON(http.StatusOK, averageInfo)
 	}
 }
