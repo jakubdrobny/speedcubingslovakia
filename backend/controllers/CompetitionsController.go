@@ -238,7 +238,7 @@ func GetResultsFromCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 func GetNewWeeklyCompetitionInfo(db *pgxpool.Pool) (models.CompetitionData, error) {
 	var competition models.CompetitionData
 
-	rows, err := db.Query(context.Background(), `SELECT c.name, c.enddate FROM competitions c WHERE c.competition_id LIKE ('WeeklyCompetition%') ORDER BY c.competition_id DESC;`)
+	rows, err := db.Query(context.Background(), `SELECT c.name, c.enddate FROM competitions c WHERE c.competition_id LIKE ('WeeklyCompetition%') ORDER BY c.enddate DESC;`)
 	if err != nil { return models.CompetitionData{}, err }
 
 	competition.Name = "Weekly Competition 1"
@@ -249,6 +249,7 @@ func GetNewWeeklyCompetitionInfo(db *pgxpool.Pool) (models.CompetitionData, erro
 		if err != nil { return models.CompetitionData{}, err }
 
 		nameSplit := strings.Split(latest.Name, " ")
+		log.Println(nameSplit)
 		if len(nameSplit) != 3 { return models.CompetitionData{}, fmt.Errorf("Invalid last competition name format: " + latest.Name + ". Should be Weekly Competition {number}")}
 
 		newCompNum, err := strconv.Atoi(nameSplit[2])
@@ -276,6 +277,8 @@ func AddNewWeeklyCompetition(db *pgxpool.Pool, envMap map[string]string) {
 		log.Println("ERR failed GetNewWeeklyCompetitionInfo in AddNewWeeklyCompetition: " + err.Error())
 		return
 	}
+
+	log.Println(competition)
 
 	errLog, errOut := CreateCompetition(db, competition, envMap)
 	if errLog != "" && errOut != "" {
