@@ -3,5 +3,5 @@
 set -o allexport
 . ~/.profile
 set +o allexport
-cd ~/skola/Tvorba-internetovych-aplikacii/speedcubingslovakia/backend
-go run cronjob/WeeklyCompetitionJob.go >> ~/cronjob_tmp_output/WeeklyCompetitionJob.txt 2>&1
+cd $SPEEDCUBINGSLOVAKIA_PATH/backend
+go run cronjob/WeeklyCompetitionJob.go >> $SPEEDCUBINGSLOVAKIA_CRONJOB_LOGFILE_PATH/WeeklyCompetitionJob.txt 2>&1
