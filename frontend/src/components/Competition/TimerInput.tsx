@@ -4,7 +4,7 @@ import {
   TimerInputContextType,
   TimerInputCurrentState,
 } from "../../Types";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
@@ -14,8 +14,7 @@ import { useLocation } from "react-router-dom";
 
 const Timer: React.FC<{
   handleSaveResults: (moveIndex: boolean) => void;
-  loadingResults: boolean;
-}> = ({ handleSaveResults, loadingResults }) => {
+}> = ({ handleSaveResults }) => {
   const { competitionState, currentResultsRef, competitionStateRef } =
     useContext(CompetitionContext) as CompetitionContextType;
   const { timerInputState /*,timerElementRef*/ } = useContext(
@@ -51,30 +50,23 @@ const Timer: React.FC<{
   useEffect(() => {
     const routePattern = /^\/competition(?:\/.*)?$/;
     if (routePattern.test(location.pathname)) {
-      if (!loadingResults) {
-        window.addEventListener("keydown", handleTimerInputKeyDown);
-        window.addEventListener("keyup", _handleTimerInputKeyUp);
-        if (timerRef && timerRef.current) {
-          timerRef.current.addEventListener(
-            "touchstart",
-            handleTimerInputKeyDown
-          );
-          timerRef.current.addEventListener("touchend", _handleTimerInputKeyUp);
-        }
-      } else {
-        removeTimerListeners();
+      window.addEventListener("keydown", handleTimerInputKeyDown);
+      window.addEventListener("keyup", _handleTimerInputKeyUp);
+      if (timerRef && timerRef.current) {
+        timerRef.current.addEventListener(
+          "touchstart",
+          handleTimerInputKeyDown
+        );
+        timerRef.current.addEventListener("touchend", _handleTimerInputKeyUp);
       }
+    } else {
+      removeTimerListeners();
     }
 
     return () => {
       removeTimerListeners();
     };
-  }, [
-    location.pathname,
-    handleTimerInputKeyDown,
-    handleTimerInputKeyUp,
-    loadingResults,
-  ]);
+  }, [location.pathname, handleTimerInputKeyDown, handleTimerInputKeyUp]);
 
   return (
     <div
@@ -92,11 +84,6 @@ const Timer: React.FC<{
     >
       <Typography
         level="h1"
-        style={{
-          color: loadingResults
-            ? "var(--variant-solidDisabledColor, var(--joy-palette-primary-solidDisabledColor, var(--joy-palette-neutral-400, #9FA6AD)))"
-            : timerInputState.color,
-        }}
         // ref={timerElementRef}
       >
         {timerInputState.currentState === TimerInputCurrentState.Ready

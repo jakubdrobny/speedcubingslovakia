@@ -8,8 +8,7 @@ import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
 
 const ManualInput: React.FC<{
   handleSaveResults: (moveIndex: boolean) => void;
-  loadingResults: boolean;
-}> = ({ handleSaveResults, loadingResults }) => {
+}> = ({ handleSaveResults }) => {
   const [forceRerender, setForceRerender] = useState(false);
   const {
     competitionState,
@@ -95,9 +94,7 @@ const ManualInput: React.FC<{
               target?.value?.length
             );
         }}
-        disabled={
-          !competitionOnGoing(competitionStateRef.current) || loadingResults
-        }
+        disabled={!competitionOnGoing(competitionStateRef.current)}
         autoFocus
       />
     </div>

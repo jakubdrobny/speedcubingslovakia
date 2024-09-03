@@ -6,9 +6,7 @@ import { CompetitionContext } from "../../context/CompetitionContext";
 import { competitionOnGoing } from "../../utils/utils";
 import useState from "react-usestateref";
 
-const ManualInputMBLD: React.FC<{ loadingResults: boolean }> = ({
-  loadingResults,
-}) => {
+const ManualInputMBLD = () => {
   const [forceRerender, setForceRerender] = useState(false);
   const { competitionStateRef, updateSolve, currentResultsRef } = useContext(
     CompetitionContext
@@ -121,10 +119,7 @@ const ManualInputMBLD: React.FC<{ loadingResults: boolean }> = ({
                   else setAttemptedCubes(nval);
                   handleSomethingChanged();
                 }}
-                disabled={
-                  !competitionOnGoing(competitionStateRef.current) ||
-                  loadingResults
-                }
+                disabled={!competitionOnGoing(competitionStateRef.current)}
                 sx={{ width: "3em", padding: 0 }}
               />
             )
@@ -162,10 +157,7 @@ const ManualInputMBLD: React.FC<{ loadingResults: boolean }> = ({
                   else setSeconds(nval);
                   handleSomethingChanged();
                 }}
-                disabled={
-                  !competitionOnGoing(competitionStateRef.current) ||
-                  loadingResults
-                }
+                disabled={!competitionOnGoing(competitionStateRef.current)}
                 sx={{ width: "3em", padding: 0 }}
               />
             )

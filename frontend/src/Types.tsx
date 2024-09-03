@@ -1,4 +1,3 @@
-import { ExecOptionsWithStringEncoding } from "child_process";
 import { ReactElement } from "react";
 
 export type CompetitionData = {

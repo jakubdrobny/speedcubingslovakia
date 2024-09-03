@@ -75,6 +75,10 @@ const Compete = () => {
     <>
       {!isObjectEmpty(loadingState.error) ? (
         renderResponseError(loadingState.error)
+      ) : loadingState.results ? (
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <CircularProgress />
+        </div>
       ) : (
         <Card>
           <Grid container>
@@ -143,9 +147,7 @@ const Compete = () => {
               }}
             >
               <h3
-                onClick={() => {
-                  if (!loadingState.results) toggleInputMethod();
-                }}
+                onClick={() => toggleInputMethod()}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -170,21 +172,15 @@ const Compete = () => {
               {competitionState.inputMethod === InputMethod.Manual ||
               !competitionOnGoing(competitionState) ? (
                 ismbld ? (
-                  <ManualInputMBLD loadingResults={loadingState.results} />
+                  <ManualInputMBLD />
                 ) : (
-                  <ManualInput
-                    handleSaveResults={handleSaveResults}
-                    loadingResults={loadingState.results}
-                  />
+                  <ManualInput handleSaveResults={handleSaveResults} />
                 )
               ) : (
-                <TimerInput
-                  handleSaveResults={handleSaveResults}
-                  loadingResults={loadingState.results}
-                />
+                <TimerInput handleSaveResults={handleSaveResults} />
               )}
             </Grid>
-            <Penalties loadingResults={loadingState.results} />
+            <Penalties />
             <Grid xs={12} sx={{ marginTop: 2 }}>
               <Button
                 color="primary"
@@ -194,8 +190,7 @@ const Compete = () => {
                 disabled={
                   !competitionOnGoing(competitionState) ||
                   timerInputState.currentState !==
-                    TimerInputCurrentState.NotSolving ||
-                  loadingState.results
+                    TimerInputCurrentState.NotSolving
                 }
               >
                 Save
