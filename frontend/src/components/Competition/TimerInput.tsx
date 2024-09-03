@@ -84,6 +84,7 @@ const Timer: React.FC<{
     >
       <Typography
         level="h1"
+        style={{ color: timerInputState.color }}
         // ref={timerElementRef}
       >
         {timerInputState.currentState === TimerInputCurrentState.Ready
