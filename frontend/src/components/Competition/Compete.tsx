@@ -147,7 +147,13 @@ const Compete = () => {
               }}
             >
               <h3
-                onClick={() => toggleInputMethod()}
+                onClick={() => {
+                  if (
+                    timerInputState.currentState ===
+                    TimerInputCurrentState.NotSolving
+                  )
+                    toggleInputMethod();
+                }}
                 style={{
                   display: "flex",
                   alignItems: "center",

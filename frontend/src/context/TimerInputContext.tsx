@@ -36,7 +36,8 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
   let timingInterval: { current: ReturnType<typeof setInterval> | undefined } =
     useRef(undefined);
   const elapsedTime = useRef(0);
-  //   const timerElementRef = useRef<HTMLElement | null>(null);
+  const timerRef = useRef<HTMLDivElement | null>(null);
+  const timerRefStyle = useRef<any>();
   //   const allNodesPositions = useRef<string[]>([]);
 
   //   const hideAllElementsExceptTimer = () => {
@@ -50,11 +51,11 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
   //     );
 
   //     if (timerElementRef.current !== null) {
-  //       timerElementRef.current.style.visibility = "visible";
-  //       timerElementRef.current.style.position = "absolute";
-  //       timerElementRef.current.style.top = "50%";
-  //       timerElementRef.current.style.bottom = "50%";
-  //       timerElementRef.current.style.transform = "translate(-50%, -50%)";
+  //   timerElementRef.current.style.visibility = "visible";
+  //   timerElementRef.current.style.position = "absolute";
+  //   timerElementRef.current.style.top = "50%";
+  //   timerElementRef.current.style.bottom = "50%";
+  //   timerElementRef.current.style.transform = "translate(-50%, -50%)";
   //     }
   //   };
   //   const revertHidingAllElementsExceptTimer = () => {
@@ -71,6 +72,25 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
   //       timerElementRef.current.style.transform = "";
   //     }
   //   };
+
+  const makeTimerFullScreen = () => {
+    if (timerRef && timerRef.current) {
+      timerRefStyle.current = timerRef.current.style;
+      timerRef.current.style.position = "fixed";
+      timerRef.current.style.width = "100%";
+      timerRef.current.style.top = "0px";
+      timerRef.current.style.left = "0px";
+      timerRef.current.style.height = "100%";
+      timerRef.current.style.background = "white";
+      timerRef.current.style.zIndex = "10000000";
+    }
+  };
+
+  const makeTimerNotFullScreen = () => {
+    if (timerRef && timerRef.current) {
+      timerRef.current = timerRefStyle.current;
+    }
+  };
 
   const handleTimerInputKeyDown = useCallback(
     (e: Event) => {
@@ -95,6 +115,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
               color: TimerColors.Green,
             }));
             // hideAllElementsExceptTimer();
+            makeTimerFullScreen();
           }, 1000);
         }
 
@@ -154,6 +175,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
               color: TimerColors.Default,
             }));
             // revertHidingAllElementsExceptTimer();
+            makeTimerNotFullScreen();
           }
         } else if (
           timerInputStateRef.current.currentState ===
@@ -167,6 +189,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
           }));
           holdingTimeout.current = undefined;
           // revertHidingAllElementsExceptTimer();
+          makeTimerNotFullScreen();
         }
       }
     },
@@ -186,7 +209,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
         timerInputState,
         handleTimerInputKeyDown,
         handleTimerInputKeyUp,
-        // timerElementRef,
+        timerRef,
       }}
     >
       {children}

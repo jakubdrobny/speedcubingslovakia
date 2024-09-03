@@ -17,7 +17,7 @@ const Timer: React.FC<{
 }> = ({ handleSaveResults }) => {
   const { competitionState, currentResultsRef, competitionStateRef } =
     useContext(CompetitionContext) as CompetitionContextType;
-  const { timerInputState /*,timerElementRef*/ } = useContext(
+  const { timerInputState, timerRef } = useContext(
     TimerInputContext
   ) as TimerInputContextType;
   const formattedTime =
@@ -30,7 +30,6 @@ const Timer: React.FC<{
   const { handleTimerInputKeyDown, handleTimerInputKeyUp } = useContext(
     TimerInputContext
   ) as TimerInputContextType;
-  const timerRef = useRef<any>(null);
 
   const _handleTimerInputKeyUp = (e: Event) =>
     handleTimerInputKeyUp(e, handleSaveResults);
@@ -82,11 +81,7 @@ const Timer: React.FC<{
       }}
       ref={timerRef}
     >
-      <Typography
-        level="h1"
-        style={{ color: timerInputState.color }}
-        // ref={timerElementRef}
-      >
+      <Typography level="h1" style={{ color: timerInputState.color }}>
         {timerInputState.currentState === TimerInputCurrentState.Ready
           ? "Ready"
           : timerInputState.currentState === TimerInputCurrentState.Solving

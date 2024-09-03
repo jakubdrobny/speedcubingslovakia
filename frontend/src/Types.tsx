@@ -152,7 +152,7 @@ export type TimerInputContextType = {
     e: Event,
     handleSaveResults?: (moveIndex: boolean) => void
   ) => void;
-  //   timerElementRef: { current: HTMLElement | null };
+  timerRef: { current: HTMLDivElement | null };
 };
 
 export type TimerInputState = {
