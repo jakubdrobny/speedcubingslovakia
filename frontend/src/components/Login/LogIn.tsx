@@ -43,27 +43,31 @@ const LogIn = () => {
         width: "100%",
       }}
     >
-      {loadingState.loading || !loadingState.error ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: "100%",
-          }}
-        >
-          <CircularProgress />
-          &nbsp; &nbsp; <Typography level="h3">Logging in...</Typography>
-        </div>
-      ) : (
-        <>
-          <Alert color="danger" sx={{ gap: 0 }}>
-            Oops. Something went wrong. Please&nbsp;
-            <a href={process.env.REACT_APP_WCA_GET_CODE_URL || ""}>try again</a>
-            .
-          </Alert>
-        </>
-      )}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        {loadingState.loading || !loadingState.error ? (
+          <>
+            <CircularProgress />
+            &nbsp; &nbsp; <Typography level="h3">Logging in...</Typography>
+          </>
+        ) : (
+          <>
+            <Alert color="danger" sx={{ gap: 0 }}>
+              Oops. Something went wrong. Please&nbsp;
+              <a href={process.env.REACT_APP_WCA_GET_CODE_URL || ""}>
+                try again
+              </a>
+              .
+            </Alert>
+          </>
+        )}
+      </div>
     </Grid>
   );
 };

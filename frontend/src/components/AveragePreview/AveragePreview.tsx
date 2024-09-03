@@ -15,7 +15,6 @@ import { useContext, useEffect, useState } from "react";
 import { CompetitionContext } from "../../context/CompetitionContext";
 import LoadingComponent from "../Loading/LoadingComponent";
 import ResultsModal from "./ResultsModal";
-import SizedConfetti from "./SizedConfetti";
 
 const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
   showResultsModal,
@@ -60,7 +59,7 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
           setLoadingState({ isLoading: false, error: getError(err) });
         });
     }
-  }, []);
+  }, [currentResults.format]);
 
   const hasAnyRecord = (averageInfo: AverageInfo): boolean => {
     return !(!averageInfo.singleRecord && !averageInfo.averageRecord);
@@ -89,7 +88,7 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
       <h3 style={{ padding: 0, margin: 0, borderBottom: "1px solid #CDD7E1" }}>
         Average preview:
       </h3>
-      {loadingState.isLoading ? (
+      {loadingState.isLoading || !currentResults.format ? (
         <LoadingComponent title="Fetching average preview data..." />
       ) : !isObjectEmpty(loadingState.error) ? (
         renderResponseError(loadingState.error)

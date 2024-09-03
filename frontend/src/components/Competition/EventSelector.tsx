@@ -38,7 +38,7 @@ export const EventSelector = () => {
                 idx === competitionState.currentEventIdx ? "solid" : "soft"
               }
               color="primary"
-              loading={loadingState.results}
+              disabled={loadingState.results}
             >
               {resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete ||
               idx < events.length - 1 ? (

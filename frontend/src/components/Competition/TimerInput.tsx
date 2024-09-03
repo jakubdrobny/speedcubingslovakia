@@ -4,7 +4,7 @@ import {
   TimerInputContextType,
   TimerInputCurrentState,
 } from "../../Types";
-import { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
@@ -12,7 +12,9 @@ import { Typography } from "@mui/joy";
 import { reformatWithPenalties } from "../../utils/utils";
 import { useLocation } from "react-router-dom";
 
-const Timer = () => {
+const Timer: React.FC<{
+  handleSaveResults: (moveIndex: boolean) => void;
+}> = ({ handleSaveResults }) => {
   const { competitionState, currentResultsRef, competitionStateRef } =
     useContext(CompetitionContext) as CompetitionContextType;
   const { timerInputState /*,timerElementRef*/ } = useContext(
@@ -30,30 +32,39 @@ const Timer = () => {
   ) as TimerInputContextType;
   const timerRef = useRef<any>(null);
 
+  const _handleTimerInputKeyUp = (e: Event) =>
+    handleTimerInputKeyUp(e, handleSaveResults);
+
+  const removeTimerListeners = () => {
+    window.removeEventListener("keydown", handleTimerInputKeyDown);
+    window.removeEventListener("keyup", _handleTimerInputKeyUp);
+    if (timerRef && timerRef.current) {
+      timerRef.current.removeEventListener(
+        "touchstart",
+        handleTimerInputKeyDown
+      );
+      timerRef.current.removeEventListener("touchend", _handleTimerInputKeyUp);
+    }
+  };
+
   useEffect(() => {
     const routePattern = /^\/competition(?:\/.*)?$/;
     if (routePattern.test(location.pathname)) {
       window.addEventListener("keydown", handleTimerInputKeyDown);
-      window.addEventListener("keyup", handleTimerInputKeyUp);
+      window.addEventListener("keyup", _handleTimerInputKeyUp);
       if (timerRef && timerRef.current) {
         timerRef.current.addEventListener(
           "touchstart",
           handleTimerInputKeyDown
         );
-        timerRef.current.addEventListener("touchend", handleTimerInputKeyUp);
+        timerRef.current.addEventListener("touchend", _handleTimerInputKeyUp);
       }
+    } else {
+      removeTimerListeners();
     }
 
     return () => {
-      window.removeEventListener("keydown", handleTimerInputKeyDown);
-      window.removeEventListener("keyup", handleTimerInputKeyUp);
-      if (timerRef && timerRef.current) {
-        timerRef.current.removeEventListener(
-          "touchstart",
-          handleTimerInputKeyDown
-        );
-        timerRef.current.removeEventListener("touchend", handleTimerInputKeyUp);
-      }
+      removeTimerListeners();
     };
   }, [location.pathname, handleTimerInputKeyDown, handleTimerInputKeyUp]);
 
@@ -73,7 +84,6 @@ const Timer = () => {
     >
       <Typography
         level="h1"
-        style={{ color: timerInputState.color }}
         // ref={timerElementRef}
       >
         {timerInputState.currentState === TimerInputCurrentState.Ready

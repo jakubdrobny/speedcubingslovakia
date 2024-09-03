@@ -13,11 +13,11 @@ import React, {
   useContext,
   useEffect,
   useRef,
-  useState,
 } from "react";
 
 import { CompetitionContext } from "./CompetitionContext";
 import { milisecondsToFormattedTime } from "../utils/utils";
+import useState from "react-usestateref";
 
 export const TimerInputContext = createContext<TimerInputContextType | null>(
   null
@@ -26,7 +26,7 @@ export const TimerInputContext = createContext<TimerInputContextType | null>(
 export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
   children,
 }) => {
-  const [timerInputState, setTimerInputState] =
+  const [timerInputState, setTimerInputState, timerInputStateRef] =
     useState<TimerInputState>(initialState);
   const { saveResults, updateSolve, updateCurrentSolve, competitionState } =
     useContext(CompetitionContext) as CompetitionContextType;
@@ -80,7 +80,8 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
         if (
           !holdingTimeout.current &&
           !timingInterval.current &&
-          timerInputState.currentState === TimerInputCurrentState.NotSolving
+          timerInputStateRef.current.currentState ===
+            TimerInputCurrentState.NotSolving
         ) {
           setTimerInputState((ps) => ({
             ...ps,
@@ -99,7 +100,8 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
 
         if (
           timingInterval.current &&
-          timerInputState.currentState === TimerInputCurrentState.Solving
+          timerInputStateRef.current.currentState ===
+            TimerInputCurrentState.Solving
         ) {
           clearInterval(timingInterval.current);
           timingInterval.current = undefined;
@@ -117,14 +119,17 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
   );
 
   const handleTimerInputKeyUp = useCallback(
-    (e: Event) => {
+    (e: Event, handleSaveResults?: (moveIndex: boolean) => void) => {
       const ev = e as KeyboardEvent;
 
       if (ev.key === " " || ev.type === "touchend") {
         if (holdingTimeout.current) {
           clearTimeout(holdingTimeout.current);
           holdingTimeout.current = undefined;
-          if (timerInputState.currentState === TimerInputCurrentState.Ready) {
+          if (
+            timerInputStateRef.current.currentState ===
+            TimerInputCurrentState.Ready
+          ) {
             setTimerInputState((ps) => ({
               ...ps,
               currentState: TimerInputCurrentState.Solving,
@@ -137,34 +142,31 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
               10
             );
           } else {
+            if (
+              handleSaveResults !== undefined &&
+              timerInputStateRef.current.currentState ===
+                TimerInputCurrentState.Finishing
+            )
+              handleSaveResults(true);
             setTimerInputState((ps) => ({
               ...ps,
               currentState: TimerInputCurrentState.NotSolving,
               color: TimerColors.Default,
             }));
-            updateCurrentSolve(
-              (competitionState.currentSolveIdx + 1) %
-                competitionState.noOfSolves
-            );
             // revertHidingAllElementsExceptTimer();
           }
-        } else {
-          if (
-            timerInputState.currentState === TimerInputCurrentState.Finishing
-          ) {
-            setTimerInputState((ps) => ({
-              ...ps,
-              currentState: TimerInputCurrentState.NotSolving,
-              color: TimerColors.Default,
-            }));
-            saveResults();
-            updateCurrentSolve(
-              (competitionState.currentSolveIdx + 1) %
-                competitionState.noOfSolves
-            );
-            holdingTimeout.current = undefined;
-            // revertHidingAllElementsExceptTimer();
-          }
+        } else if (
+          timerInputStateRef.current.currentState ===
+          TimerInputCurrentState.Finishing
+        ) {
+          if (handleSaveResults !== undefined) handleSaveResults(true);
+          setTimerInputState((ps) => ({
+            ...ps,
+            currentState: TimerInputCurrentState.NotSolving,
+            color: TimerColors.Default,
+          }));
+          holdingTimeout.current = undefined;
+          // revertHidingAllElementsExceptTimer();
         }
       }
     },

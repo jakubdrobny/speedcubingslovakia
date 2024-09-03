@@ -7,7 +7,7 @@ import { Input } from "@mui/joy";
 import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
 
 const ManualInput: React.FC<{
-  handleSaveResults: () => void;
+  handleSaveResults: (moveIndex: boolean) => void;
 }> = ({ handleSaveResults }) => {
   const [forceRerender, setForceRerender] = useState(false);
   const {
@@ -67,7 +67,7 @@ const ManualInput: React.FC<{
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      handleSaveResults();
+      handleSaveResults(true);
     } else if (!isfmc && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
       e.preventDefault();
     }

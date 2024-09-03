@@ -107,16 +107,12 @@ const Announcements = () => {
                         disabled={deletingAnnouncement}
                         onClick={() => {
                           setDeletingAnnouncement(true);
-
-                          console.log(deleteCandidateRef.current.idx);
                           const newAnnouncements = announcements.slice();
                           newAnnouncements.splice(
                             deleteCandidateRef.current.idx,
                             1
                           );
                           setAnnouncements(newAnnouncements);
-
-                          console.log(announcementsRef.current);
                           DeleteAnnouncement(deleteCandidateRef.current.id)
                             .then((res) => {
                               setDeletingAnnouncement(false);

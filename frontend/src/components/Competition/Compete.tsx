@@ -51,14 +51,15 @@ const Compete = () => {
     fetchCompeteResultEntry();
   }, []);
 
-  const handleSaveResults = () => {
+  const handleSaveResults = (moveIndex: boolean) => {
     setLoadingState({ ...loadingState, results: true, compinfo: false });
     saveResults()
       .then(() => {
         setLoadingState({ ...loadingState, results: false, error: {} });
-        updateCurrentSolve(
-          (competitionState.currentSolveIdx + 1) % competitionState.noOfSolves
-        );
+        if (moveIndex)
+          updateCurrentSolve(
+            (competitionState.currentSolveIdx + 1) % competitionState.noOfSolves
+          );
         setShowResultsModal(true);
       })
       .catch((err) =>
@@ -94,7 +95,7 @@ const Compete = () => {
                 }
                 disabled={
                   timerInputState.currentState !==
-                  TimerInputCurrentState.NotSolving
+                    TimerInputCurrentState.NotSolving || loadingState.results
                 }
                 sx={{ backgroundColor: "#FBFCFE" }}
               >
@@ -126,7 +127,7 @@ const Compete = () => {
                 }
                 disabled={
                   timerInputState.currentState !==
-                  TimerInputCurrentState.NotSolving
+                    TimerInputCurrentState.NotSolving || loadingState.results
                 }
               >
                 Next&nbsp;
@@ -146,7 +147,7 @@ const Compete = () => {
               }}
             >
               <h3
-                onClick={toggleInputMethod}
+                onClick={() => toggleInputMethod()}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -167,50 +168,34 @@ const Compete = () => {
                 )}
               </h3>
             </Grid>
-            {loadingState.results ? (
-              <Grid
-                xs={12}
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
+            <Grid xs={12}>
+              {competitionState.inputMethod === InputMethod.Manual ||
+              !competitionOnGoing(competitionState) ? (
+                ismbld ? (
+                  <ManualInputMBLD />
+                ) : (
+                  <ManualInput handleSaveResults={handleSaveResults} />
+                )
+              ) : (
+                <TimerInput handleSaveResults={handleSaveResults} />
+              )}
+            </Grid>
+            <Penalties />
+            <Grid xs={12} sx={{ marginTop: 2 }}>
+              <Button
+                color="primary"
+                variant="solid"
+                onClick={() => handleSaveResults(false)}
+                sx={{ width: "100%" }}
+                disabled={
+                  !competitionOnGoing(competitionState) ||
+                  timerInputState.currentState !==
+                    TimerInputCurrentState.NotSolving
+                }
               >
-                <CircularProgress />
-              </Grid>
-            ) : (
-              <>
-                <Grid xs={12}>
-                  {competitionState.inputMethod === InputMethod.Manual ||
-                  !competitionOnGoing(competitionState) ? (
-                    ismbld ? (
-                      <ManualInputMBLD />
-                    ) : (
-                      <ManualInput handleSaveResults={handleSaveResults} />
-                    )
-                  ) : (
-                    <TimerInput />
-                  )}
-                </Grid>
-                <Penalties />
-                <Grid xs={12} sx={{ marginTop: 2 }}>
-                  <Button
-                    color="primary"
-                    variant="solid"
-                    onClick={handleSaveResults}
-                    sx={{ width: "100%" }}
-                    disabled={
-                      !competitionOnGoing(competitionState) ||
-                      timerInputState.currentState !==
-                        TimerInputCurrentState.NotSolving
-                    }
-                    loading={loadingState.results}
-                  >
-                    Save
-                  </Button>
-                </Grid>
-              </>
-            )}
+                Save
+              </Button>
+            </Grid>
           </Grid>
         </Card>
       )}{" "}
