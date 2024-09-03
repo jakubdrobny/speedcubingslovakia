@@ -149,7 +149,10 @@ export type WindowSizeContextType = {
 export type TimerInputContextType = {
   timerInputState: TimerInputState;
   handleTimerInputKeyDown: EventListener;
-  handleTimerInputKeyUp: EventListener;
+  handleTimerInputKeyUp: (
+    e: Event,
+    handleSaveResults?: (moveIndex: boolean) => void
+  ) => void;
   //   timerElementRef: { current: HTMLElement | null };
 };
 

@@ -60,7 +60,7 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
           setLoadingState({ isLoading: false, error: getError(err) });
         });
     }
-  }, []);
+  }, [currentResults.format]);
 
   const hasAnyRecord = (averageInfo: AverageInfo): boolean => {
     return !(!averageInfo.singleRecord && !averageInfo.averageRecord);

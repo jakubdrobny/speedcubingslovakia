@@ -11,7 +11,9 @@ import { TimerInputContext } from "../../context/TimerInputContext";
 import { competitionOnGoing } from "../../utils/utils";
 import { useContext } from "react";
 
-const Penalties = () => {
+const Penalties: React.FC<{ loadingResults: boolean }> = ({
+  loadingResults,
+}) => {
   const { timerInputState } = useContext(
     TimerInputContext
   ) as TimerInputContextType;
@@ -34,7 +36,9 @@ const Penalties = () => {
           : { display: "none" }
       }
     >
-      <ButtonGroup disabled={!competitionOnGoing(competitionState)}>
+      <ButtonGroup
+        disabled={!competitionOnGoing(competitionState) || loadingResults}
+      >
         <Button
           color="primary"
           variant="outlined"

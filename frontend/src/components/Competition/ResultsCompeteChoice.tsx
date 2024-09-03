@@ -22,7 +22,7 @@ const ResultsCompeteChoice: React.FC<{
             : "soft"
         }
         color="primary"
-        loading={loading}
+        disabled={loading}
       >
         <EmojiEvents />
         &nbsp; Results
@@ -37,7 +37,7 @@ const ResultsCompeteChoice: React.FC<{
             : "soft"
         }
         color="primary"
-        loading={loading}
+        disabled={loading}
       >
         <AddAlarm />
         &nbsp; Compete

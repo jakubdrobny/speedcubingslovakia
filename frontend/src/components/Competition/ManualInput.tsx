@@ -7,8 +7,9 @@ import { Input } from "@mui/joy";
 import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
 
 const ManualInput: React.FC<{
-  handleSaveResults: () => void;
-}> = ({ handleSaveResults }) => {
+  handleSaveResults: (moveIndex: boolean) => void;
+  loadingResults: boolean;
+}> = ({ handleSaveResults, loadingResults }) => {
   const [forceRerender, setForceRerender] = useState(false);
   const {
     competitionState,
@@ -67,7 +68,7 @@ const ManualInput: React.FC<{
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      handleSaveResults();
+      handleSaveResults(true);
     } else if (!isfmc && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
       e.preventDefault();
     }
@@ -94,7 +95,9 @@ const ManualInput: React.FC<{
               target?.value?.length
             );
         }}
-        disabled={!competitionOnGoing(competitionStateRef.current)}
+        disabled={
+          !competitionOnGoing(competitionStateRef.current) || loadingResults
+        }
         autoFocus
       />
     </div>
