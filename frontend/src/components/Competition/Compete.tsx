@@ -1,4 +1,4 @@
-import { Button, Card, CircularProgress, Grid } from "@mui/joy";
+import { Box, Button, Card, CircularProgress, Grid } from "@mui/joy";
 import {
   CompetitionContextType,
   InputMethod,
@@ -12,10 +12,11 @@ import {
   isObjectEmpty,
   renderResponseError,
 } from "../../utils/utils";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
 import AveragePreview from "../AveragePreview/AveragePreview";
 import { CompetitionContext } from "../../context/CompetitionContext";
+import LoadingComponent from "../Loading/LoadingComponent";
 import ManualInput from "./ManualInput";
 import ManualInputMBLD from "./ManualInputMBLD";
 import Penalties from "./Penalties";
@@ -40,6 +41,7 @@ const Compete = () => {
     competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
     "333mbf";
   const [showResultsModal, setShowResultsModal] = useState<boolean>(false);
+  const competeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (
@@ -61,6 +63,9 @@ const Compete = () => {
             (competitionState.currentSolveIdx + 1) % competitionState.noOfSolves
           );
         setShowResultsModal(true);
+        if (competeRef && competeRef.current) {
+          competeRef.current.scrollIntoView();
+        }
       })
       .catch((err) =>
         setLoadingState({
@@ -72,13 +77,9 @@ const Compete = () => {
   };
 
   return (
-    <>
+    <div ref={competeRef}>
       {!isObjectEmpty(loadingState.error) ? (
         renderResponseError(loadingState.error)
-      ) : loadingState.results ? (
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <CircularProgress />
-        </div>
       ) : (
         <Card>
           <Grid container>
@@ -135,7 +136,10 @@ const Compete = () => {
               </Button>
             </Grid>
           </Grid>
-          <AveragePreview showResultsModal={showResultsModal} />
+          <AveragePreview
+            showResultsModal={showResultsModal}
+            loadingResults={loadingState.results}
+          />
           <Scramble ismbld={ismbld} />
           <Grid container>
             <Grid
@@ -175,8 +179,12 @@ const Compete = () => {
               </h3>
             </Grid>
             <Grid xs={12}>
-              {competitionState.inputMethod === InputMethod.Manual ||
-              !competitionOnGoing(competitionState) ? (
+              {loadingState.results ? (
+                <Box sx={{ pt: 2.25, pb: 2.25 }}>
+                  <LoadingComponent title="" />
+                </Box>
+              ) : competitionState.inputMethod === InputMethod.Manual ||
+                !competitionOnGoing(competitionState) ? (
                 ismbld ? (
                   <ManualInputMBLD />
                 ) : (
@@ -196,7 +204,8 @@ const Compete = () => {
                 disabled={
                   !competitionOnGoing(competitionState) ||
                   timerInputState.currentState !==
-                    TimerInputCurrentState.NotSolving
+                    TimerInputCurrentState.NotSolving ||
+                  loadingState.results
                 }
               >
                 Save
@@ -204,8 +213,8 @@ const Compete = () => {
             </Grid>
           </Grid>
         </Card>
-      )}{" "}
-    </>
+      )}
+    </div>
   );
 };
 

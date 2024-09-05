@@ -16,9 +16,10 @@ import { CompetitionContext } from "../../context/CompetitionContext";
 import LoadingComponent from "../Loading/LoadingComponent";
 import ResultsModal from "./ResultsModal";
 
-const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
-  showResultsModal,
-}) => {
+const AveragePreview: React.FC<{
+  showResultsModal: boolean;
+  loadingResults: boolean;
+}> = ({ showResultsModal, loadingResults }) => {
   const [averageInfo, setAverageInfo] =
     useState<AverageInfo>(initialAverageInfo);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -35,7 +36,7 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
   const isBo1 = currentResults.format === "bo1";
 
   useEffect(() => {
-    if (currentResults.format) {
+    if (currentResults.format && !loadingResults) {
       setLoadingState({ isLoading: true, error: {} });
       GetAverageInfo(currentResults)
         .then((res) => {
@@ -59,7 +60,7 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
           setLoadingState({ isLoading: false, error: getError(err) });
         });
     }
-  }, [currentResults.format]);
+  }, [currentResults.format, loadingResults]);
 
   const hasAnyRecord = (averageInfo: AverageInfo): boolean => {
     return !(!averageInfo.singleRecord && !averageInfo.averageRecord);
@@ -88,9 +89,7 @@ const AveragePreview: React.FC<{ showResultsModal: boolean }> = ({
       <h3 style={{ padding: 0, margin: 0, borderBottom: "1px solid #CDD7E1" }}>
         Average preview:
       </h3>
-      {loadingState.isLoading || !currentResults.format ? (
-        <LoadingComponent title="Fetching average preview data..." />
-      ) : !isObjectEmpty(loadingState.error) ? (
+      {!isObjectEmpty(loadingState.error) ? (
         renderResponseError(loadingState.error)
       ) : (
         <>
