@@ -69,6 +69,7 @@ const Timer: React.FC<{
 
   return (
     <div
+      id="TimerInput"
       style={{
         display: "flex",
         justifyContent: "center",
@@ -78,6 +79,8 @@ const Timer: React.FC<{
         MozUserSelect: "none",
         msUserSelect: "none",
         WebkitUserSelect: "none",
+        WebkitTouchCallout: "none",
+        WebkitTapHighlightColor: "rgba(0,0,0,0)",
       }}
       ref={timerRef}
     >
