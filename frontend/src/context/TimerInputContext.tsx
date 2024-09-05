@@ -28,49 +28,55 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
 }) => {
   const [timerInputState, setTimerInputState, timerInputStateRef] =
     useState<TimerInputState>(initialState);
-  const { saveResults, updateSolve, updateCurrentSolve, competitionState } =
-    useContext(CompetitionContext) as CompetitionContextType;
+  const { updateSolve } = useContext(
+    CompetitionContext
+  ) as CompetitionContextType;
   let holdingTimeout: {
     current: ReturnType<typeof setTimeout> | undefined | 1;
   } = useRef(undefined);
   let timingInterval: { current: ReturnType<typeof setInterval> | undefined } =
     useRef(undefined);
   const elapsedTime = useRef(0);
-  //   const timerElementRef = useRef<HTMLElement | null>(null);
-  //   const allNodesPositions = useRef<string[]>([]);
+  const timerRef = useRef<HTMLDivElement | null>(null);
+  const timerRefStyle = useRef<any>();
+  const allNodesStyles = useRef<string[]>([]);
 
-  //   const hideAllElementsExceptTimer = () => {
-  //     allNodesPositions.current = [];
-  //     (document.querySelectorAll("*") as NodeListOf<HTMLElement>).forEach(
-  //       (el: HTMLElement) => {
-  //         el.style.visibility = "hidden";
-  //         allNodesPositions.current.push(el.style.position);
-  //         el.style.position = "static";
-  //       }
-  //     );
+  const hideAllElementsExceptTimer = () => {
+    allNodesStyles.current = [];
+    (document.querySelectorAll("*") as NodeListOf<HTMLElement>).forEach(
+      (el: HTMLElement) => {
+        if (el.tagName === "A") {
+          allNodesStyles.current.push(el.style.pointerEvents);
+          el.style.pointerEvents = "none";
+        }
+      }
+    );
 
-  //     if (timerElementRef.current !== null) {
-  //       timerElementRef.current.style.visibility = "visible";
-  //       timerElementRef.current.style.position = "absolute";
-  //       timerElementRef.current.style.top = "50%";
-  //       timerElementRef.current.style.bottom = "50%";
-  //       timerElementRef.current.style.transform = "translate(-50%, -50%)";
-  //     }
-  //   };
-  //   const revertHidingAllElementsExceptTimer = () => {
-  //     (document.querySelectorAll("*") as NodeListOf<HTMLElement>).forEach(
-  //       (el: HTMLElement, idx: number) => {
-  //         el.style.removeProperty("visibility");
-  //         el.style.position = allNodesPositions.current[idx];
-  //       }
-  //     );
-  //     if (timerElementRef.current !== null) {
-  //       timerElementRef.current.style.position = "relative";
-  //       timerElementRef.current.style.top = "";
-  //       timerElementRef.current.style.bottom = "";
-  //       timerElementRef.current.style.transform = "";
-  //     }
-  //   };
+    if (timerRef && timerRef.current) {
+      timerRefStyle.current = timerRef.current.style;
+      timerRef.current.style.position = "fixed";
+      timerRef.current.style.width = "100%";
+      timerRef.current.style.top = "0px";
+      timerRef.current.style.left = "0px";
+      timerRef.current.style.height = "100%";
+      timerRef.current.style.background = "white";
+      timerRef.current.style.zIndex = "10000000";
+    }
+  };
+  const revertHidingAllElementsExceptTimer = () => {
+    if (timerRef && timerRef.current) {
+      timerRef.current.setAttribute("style", timerRefStyle.current.cssText);
+      timerRef.current?.focus();
+    }
+
+    (document.querySelectorAll("*") as NodeListOf<HTMLElement>).forEach(
+      (el: HTMLElement, idx: number) => {
+        if (el.tagName === "A") {
+          el.style.pointerEvents = allNodesStyles.current[idx];
+        }
+      }
+    );
+  };
 
   const handleTimerInputKeyDown = useCallback(
     (e: Event) => {
@@ -94,7 +100,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
               currentState: TimerInputCurrentState.Ready,
               color: TimerColors.Green,
             }));
-            // hideAllElementsExceptTimer();
+            hideAllElementsExceptTimer();
           }, 1000);
         }
 
@@ -153,7 +159,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
               currentState: TimerInputCurrentState.NotSolving,
               color: TimerColors.Default,
             }));
-            // revertHidingAllElementsExceptTimer();
+            revertHidingAllElementsExceptTimer();
           }
         } else if (
           timerInputStateRef.current.currentState ===
@@ -166,7 +172,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
             color: TimerColors.Default,
           }));
           holdingTimeout.current = undefined;
-          // revertHidingAllElementsExceptTimer();
+          revertHidingAllElementsExceptTimer();
         }
       }
     },
@@ -186,7 +192,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
         timerInputState,
         handleTimerInputKeyDown,
         handleTimerInputKeyUp,
-        // timerElementRef,
+        timerRef,
       }}
     >
       {children}
