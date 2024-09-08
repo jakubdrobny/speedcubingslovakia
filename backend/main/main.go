@@ -47,14 +47,14 @@ func main() {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-        AllowOrigins: []string{"http://127.0.0.1:3000"},
-        AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders: []string{"Origin", "Content-Type"},
-        ExposeHeaders: []string{"Content-Length"},
-        AllowCredentials: true,
-        MaxAge: 12 * time.Hour,
-    }))
-	
+		AllowOrigins:     []string{"http://127.0.0.1:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	// store := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
 	// 	Rate:  time.Minute,
 	// 	Limit: 100,
@@ -68,7 +68,7 @@ func main() {
 	// router.Use(rateLimitMiddleWare)
 
 	api_v1 := router.Group("/api")
-	
+
 	results := api_v1.Group("/results")
 	{
 		results.GET("/edit/:uname/:cname/:eid/:rsname", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.GetResultsQuery(db))
@@ -108,14 +108,14 @@ func main() {
 		users.PUT("/manage-roles", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PutManageRolesUsers(db))
 		users.POST("/login", controllers.PostLogIn(db, envMap))
 		users.GET("/search", controllers.GetSearchUsers(db))
-		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized") });
+		users.GET("/auth/admin", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized") })
 	}
 
 	tags := api_v1.Group("/tags")
 	{
 		tags.GET("/", controllers.GetTags(db))
 	}
-	
+
 	announcements := api_v1.Group("/announcements")
 	{
 		announcements.GET("/id/:id", controllers.GetAnnouncementById(db, envMap))

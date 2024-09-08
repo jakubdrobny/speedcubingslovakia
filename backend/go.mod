@@ -1,6 +1,6 @@
 module github.com/jakubdrobny/speedcubingslovakia/backend
 
-go 1.22
+go 1.23.0
 
 require (
 	github.com/JGLTechnologies/gin-rate-limit v1.5.4
@@ -17,6 +17,7 @@ require (
 	github.com/robfig/cron v1.2.0
 	github.com/tdewolff/canvas v0.0.0-20240420213651-d5a04e36ef50
 	github.com/tdewolff/minify/v2 v2.20.20
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
 
 require (
@@ -77,6 +78,7 @@ require (
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	star-tex.org/x/tex v0.4.0 // indirect
 )
