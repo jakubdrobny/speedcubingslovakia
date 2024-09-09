@@ -419,6 +419,11 @@ func (r *ResultEntry) GetFormattedTimes(isfmc bool, scrambles []string) ([]strin
 	return solves, nil
 }
 
+func GetFormattedTimes(times []string, format string, scrambles []string) ([]string, error) {
+	resultEntry := ResultEntry{Format: format, Solve1: times[0], Solve2: times[1], Solve3: times[2], Solve4: times[3], Solve5: times[4]}
+	return resultEntry.GetFormattedTimes(resultEntry.IsFMC(), scrambles)
+}
+
 func (r *ResultEntry) IsFMC() bool {
 	return r.Iconcode == "333fm"
 }
@@ -579,8 +584,12 @@ func (r *ResultEntry) GetCompetitionPlace(db *pgxpool.Pool) (string, error) {
 	return "LAST", nil
 }
 
-func (r *ResultEntry) SuspicousChangeInResults(previouslySavedTimes []string) bool {
+func (r *ResultEntry) SuspicousChangeInResults(previouslySavedTimes []string, noOfSolves int) bool {
 	for idx, newTime := range []string{r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5} {
+		if idx >= noOfSolves {
+			continue
+		}
+
 		oldTime := previouslySavedTimes[idx]
 		if oldTime != "DNS" && oldTime != newTime {
 			return true
@@ -590,11 +599,39 @@ func (r *ResultEntry) SuspicousChangeInResults(previouslySavedTimes []string) bo
 	return false
 }
 
+func (r *ResultEntry) GetSuspicousChangeTimesHTML(previouslySavedTimes []string, noOfSolves int, oldTimesFormatted, newTimesFormatted []string) string {
+	prevItems, currItems := make([]string, noOfSolves), make([]string, noOfSolves)
+
+	for idx, newTime := range []string{r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5} {
+		if idx >= noOfSolves {
+			continue
+		}
+
+		oldTime := previouslySavedTimes[idx]
+		color := "black"
+		if oldTime != "DNS" && oldTime != newTime {
+			color = "red"
+		}
+
+		prevItems[idx] = "<td style=\"text-align: center; border: 1px solid black; color:" + color + ";\">" + oldTimesFormatted[idx] + "</td>"
+		currItems[idx] = "<td style=\"text-align: center; border: 1px solid black; color:" + color + ";\">" + newTimesFormatted[idx] + "</td>"
+	}
+
+	return "<table style=\"border: 1px solid black;\"><tr><th style=\"border: 1px solid black;\">Previous times:</th>" + strings.Join(prevItems, "") + "</tr><tr><th style=\"border: 1px solid black;\">Current times:</th>" + strings.Join(currItems, "") + "</tr></table>"
+}
+
 func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap map[string]string, previouslySavedTimes []string) {
 	select {
 	case <-c.Request.Context().Done():
+		noOfSolves, err := utils.GetNoOfSolves(r.Format)
+		if err != nil {
+			log.Println("ERR utils.GetScramGetNoOfSolvesblesByResultEntryId in r.SendSuspicousMail: " + err.Error())
+			return
+		}
+
+		suspicousChangeInResults := r.SuspicousChangeInResults(previouslySavedTimes, noOfSolves)
 		suspicousResult := !r.Status.ApprovalFinished
-		suspicousChangeInResults := r.SuspicousChangeInResults(previouslySavedTimes)
+
 		if suspicousResult || suspicousChangeInResults {
 			log.Println("Sending email...")
 
@@ -610,9 +647,15 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 				return
 			}
 
-			times, err := r.GetFormattedTimes(r.IsFMC(), scrambles)
+			newTimesFormatted, err := r.GetFormattedTimes(r.IsFMC(), scrambles)
 			if err != nil {
 				log.Println("ERR r.GetFormattedTimes in r.SendSuspicousMail: " + err.Error())
+				return
+			}
+
+			oldTimesFormatted, err := GetFormattedTimes(previouslySavedTimes, r.Format, scrambles)
+			if err != nil {
+				log.Println("ERR GetFormattedTimes in r.SendSuspicousMail: " + err.Error())
 				return
 			}
 
@@ -639,30 +682,39 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 				mailSubject = "DEVELOPMENT: " + mailSubject
 			}
 
+			content := "<html>" +
+				"<head>" +
+				"<style>" +
+				`.mui-joy-btn { font-size: 0.875rem; box-sizing: border-box; border-radius: 6px; border: none; background-color: transparent; display: inline-flex; align-items: center; justify-content: center; position: relative; text-decoration: none; font-weight: 600; }
+					.mui-joy-btn-soft-success { color: #0a470a; background-color: #e3fbe3; }
+					.mui-joy-btn-soft-danger { color: #7d1212; background-color: #fce4e4; }` +
+				"</style></head><body>" +
+				"<b>Username:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/profile/" + r.WcaId + "\">" + r.Username + "</a><br>" +
+				"<b>Competition:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/competition/" + r.Competitionid + "\">" + r.Competitionname + "</a><br>" +
+				"<b>Event:</b> " + r.Eventname + "<br>" +
+				"<b>Single:</b> " + r.SingleFormatted(r.IsFMC(), scrambles) + "<br>" +
+				"<b>Average:</b> " + average + "<br>"
+
+			if suspicousChangeInResults {
+				suspicousChangeTimesHTML := r.GetSuspicousChangeTimesHTML(previouslySavedTimes, noOfSolves, oldTimesFormatted, newTimesFormatted)
+				content += suspicousChangeTimesHTML
+			} else {
+				content += "<b>Times:</b> " + strings.Join(newTimesFormatted, ", ") + "<br>"
+			}
+			content +=
+				"<b>Comment:</b> " + r.Comment + "<br>" +
+					"<a class=\"mui-joy-btn mui-joy-btn-soft-danger\" style=\"padding:10px;\" " +
+					"href=\"" + envMap["MAIL_VALIDATE_URL"] + "?resultId=" + strconv.Itoa(r.Id) + "&verdict=false&atoken=" + adminToken + "\">Deny</a>&nbsp;" +
+					"<a class=\"mui-joy-btn mui-joy-btn-soft-success\" style=\"padding:10px;\" " +
+					"href=\"" + envMap["MAIL_VALIDATE_URL"] + "?resultId=" + strconv.Itoa(r.Id) + "&verdict=true&atoken=" + adminToken + "\">Allow</a><br>" +
+					"<span style=\"font-size: 0.5rem\">Token for validating these results will expire in 24 hours.</span>" +
+					"</body></html>"
+
 			err = email.SendMail(
 				envMap["MAIL_USERNAME"],
 				envMap["MAIL_USERNAME"],
 				mailSubject,
-				"<html>"+
-					"<head>"+
-					"<style>"+
-					`.mui-joy-btn { font-size: 0.875rem; box-sizing: border-box; border-radius: 6px; border: none; background-color: transparent; display: inline-flex; align-items: center; justify-content: center; position: relative; text-decoration: none; font-weight: 600; }
-					.mui-joy-btn-soft-success { color: #0a470a; background-color: #e3fbe3; }
-					.mui-joy-btn-soft-danger { color: #7d1212; background-color: #fce4e4; }`+
-					"</style></head><body>"+
-					"<b>Username:</b> <a href=\""+envMap["WEBSITE_HOME"]+"/profile/"+r.WcaId+"\">"+r.Username+"</a><br>"+
-					"<b>Competition:</b> <a href=\""+envMap["WEBSITE_HOME"]+"/competition/"+r.Competitionid+"\">"+r.Competitionname+"</a><br>"+
-					"<b>Event:</b> "+r.Eventname+"<br>"+
-					"<b>Single:</b> "+r.SingleFormatted(r.IsFMC(), scrambles)+"<br>"+
-					"<b>Average:</b> "+average+"<br>"+
-					"<b>Times:</b> "+strings.Join(times, ", ")+"<br>"+
-					"<b>Comment:</b> "+r.Comment+"<br>"+
-					"<a class=\"mui-joy-btn mui-joy-btn-soft-danger\" style=\"padding:10px;\" "+
-					"href=\""+envMap["MAIL_VALIDATE_URL"]+"?resultId="+strconv.Itoa(r.Id)+"&verdict=false&atoken="+adminToken+"\">Deny</a>&nbsp;"+
-					"<a class=\"mui-joy-btn mui-joy-btn-soft-success\" style=\"padding:10px;\" "+
-					"href=\""+envMap["MAIL_VALIDATE_URL"]+"?resultId="+strconv.Itoa(r.Id)+"&verdict=true&atoken="+adminToken+"\">Allow</a><br>"+
-					"<span style=\"font-size: 0.5rem\">Token for validating these results will expire in 24 hours.</span>"+
-					"</body></html>",
+				content,
 				envMap,
 			)
 			if err != nil {
