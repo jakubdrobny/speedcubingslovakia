@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -604,10 +605,16 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 				return
 			}
 
+			mailSubject := "Suspicous result detected !!!"
+			backendEnv := os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")
+			if backendEnv == "development" {
+				mailSubject = "DEVELOPMENT: " + mailSubject
+			}
+
 			err = email.SendMail(
 				envMap["MAIL_USERNAME"],
 				envMap["MAIL_USERNAME"],
-				"TEST: Suspicous result detected !!!",
+				mailSubject,
 				"<html>"+
 					"<head>"+
 					"<style>"+
