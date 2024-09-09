@@ -75,6 +75,7 @@ func main() {
 		results.GET("/compete/:cid/:eid", middlewares.AuthMiddleWare(db, envMap), controllers.GetResultsByIdAndEvent(db))
 		results.POST("/save", middlewares.AuthMiddleWare(db, envMap), controllers.PostResults(db, envMap))
 		results.POST("/save-validation", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.PostResultsValidation(db))
+		results.GET("/save-validation", middlewares.AuthMiddleWare(db, envMap), middlewares.AdminMiddleWare(), controllers.GetResultsValidation(db))
 		results.GET("/rankings", controllers.GetRankings(db))
 		results.GET("/records", controllers.GetRecords(db))
 		results.GET("/regions/grouped", controllers.GetRegionsGrouped(db))

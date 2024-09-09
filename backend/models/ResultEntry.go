@@ -615,8 +615,8 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 					.mui-joy-btn-soft-success { color: #0a470a; background-color: #e3fbe3; }
 					.mui-joy-btn-soft-danger { color: #7d1212; background-color: #fce4e4; }`+
 					"</style></head><body>"+
-					"<b>Username:</b> <a href=\"https://speedcubingslovakia.sk/profile/"+r.WcaId+"\">"+r.Username+"</a><br>"+
-					"<b>Competition:</b> <a href=\"https://speedcubingslovakia.sk/competition/"+r.Competitionid+"\">"+r.Competitionname+"</a><br>"+
+					"<b>Username:</b> <a href=\""+envMap["WEBSITE_HOME"]+"/profile/"+r.WcaId+"\">"+r.Username+"</a><br>"+
+					"<b>Competition:</b> <a href=\""+envMap["WEBSITE_HOME"]+"/competition/"+r.Competitionid+"\">"+r.Competitionname+"</a><br>"+
 					"<b>Event:</b> "+r.Eventname+"<br>"+
 					"<b>Single:</b> "+r.SingleFormatted(r.IsFMC(), scrambles)+"<br>"+
 					"<b>Average:</b> "+average+"<br>"+

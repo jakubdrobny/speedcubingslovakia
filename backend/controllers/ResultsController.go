@@ -137,13 +137,72 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
+type ValidateResultsBody struct {
+	ResultId int  `json:"resultId"`
+	Verdict  bool `json:"verdict"`
+}
+
+func ValidateResults(db *pgxpool.Pool, body ValidateResultsBody) (string, string) {
+	resultEntry, err := models.GetResultEntryById(db, body.ResultId)
+	if err != nil {
+		return "ERR GetResultEntryById in PostResultsValidation: " + err.Error(), "Failed getting result entry from database."
+	}
+
+	statusId := 3
+	if !body.Verdict {
+		statusId = 2
+	}
+	resultStatus, err := models.GetResultsStatus(db, statusId)
+	if err != nil {
+		return "ERR GetResultsStatus in PostResultsValidation: " + err.Error(), "Failed getting result status in database."
+	}
+
+	resultEntry.Status = resultStatus
+	err = resultEntry.Update(db, resultEntry.IsFMC(), true)
+	if err != nil {
+		return "ERR resultEntry.Update in PostResultsValidation: " + err.Error(), "Failed updating result entry in database."
+	}
+
+	return "", ""
+}
+
+func GetResultsValidation(db *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		resultId, err := strconv.Atoi(c.DefaultQuery("resultId", "0"))
+		if err != nil {
+			log.Println("ERR strconv.Atoi in GetResutsValidation: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse result id.")
+			return
+		}
+
+		verdict, err := strconv.ParseBool(c.DefaultQuery("verdict", "false"))
+		if err != nil {
+			log.Println("ERR strconv.ParseBool in GetResutsValidation: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse verdict.")
+			return
+		}
+
+		body := ValidateResultsBody{ResultId: resultId, Verdict: verdict}
+
+		logMsg, retMsg := ValidateResults(db, body)
+		if logMsg != "" || retMsg != "" {
+			log.Println(logMsg)
+			c.IndentedJSON(http.StatusInternalServerError, retMsg)
+			return
+		}
+
+		retMsg = "Result APPROVED."
+		if !verdict {
+			retMsg = "Result DENIED."
+		}
+
+		c.IndentedJSON(http.StatusCreated, retMsg)
+	}
+}
+
 func PostResultsValidation(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		type ReqBody struct {
-			ResultId int  `json:"resultId"`
-			Verdict  bool `json:"verdict"`
-		}
-		var body ReqBody
+		var body ValidateResultsBody
 
 		if err := c.BindJSON(&body); err != nil {
 			log.Println("ERR BindJSON in PostResultsValidation: " + err.Error())
@@ -151,29 +210,10 @@ func PostResultsValidation(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		resultEntry, err := models.GetResultEntryById(db, body.ResultId)
-		if err != nil {
-			log.Println("ERR GetResultEntryById in PostResultsValidation: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed getting result entry from database.")
-			return
-		}
-
-		statusId := 3
-		if !body.Verdict {
-			statusId = 2
-		}
-		resultStatus, err := models.GetResultsStatus(db, statusId)
-		if err != nil {
-			log.Println("ERR GetResultsStatus in PostResultsValidation: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed getting result status in database.")
-			return
-		}
-
-		resultEntry.Status = resultStatus
-		err = resultEntry.Update(db, resultEntry.IsFMC(), true)
-		if err != nil {
-			log.Println("ERR resultEntry.Update in PostResultsValidation: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed updating result entry in database.")
+		logMsg, retMsg := ValidateResults(db, body)
+		if logMsg != "" || retMsg != "" {
+			log.Println(logMsg)
+			c.IndentedJSON(http.StatusInternalServerError, retMsg)
 			return
 		}
 
