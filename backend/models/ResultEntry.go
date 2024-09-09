@@ -621,10 +621,12 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 					"<b>Single:</b> "+r.SingleFormatted(r.IsFMC(), scrambles)+"<br>"+
 					"<b>Average:</b> "+average+"<br>"+
 					"<b>Times:</b> "+strings.Join(times, ", ")+"<br>"+
+					"<b>Comment:</b> "+r.Comment+"<br>"+
 					"<a class=\"mui-joy-btn mui-joy-btn-soft-danger\" style=\"padding:10px;\" "+
 					"href=\""+envMap["MAIL_VALIDATE_URL"]+"?resultId="+strconv.Itoa(r.Id)+"&verdict=false&atoken="+adminToken+"\">Deny</a>&nbsp;"+
 					"<a class=\"mui-joy-btn mui-joy-btn-soft-success\" style=\"padding:10px;\" "+
-					"href=\""+envMap["MAIL_VALIDATE_URL"]+"?resultId="+strconv.Itoa(r.Id)+"&verdict=true&atoken="+adminToken+"\">Allow</a>&nbsp;"+
+					"href=\""+envMap["MAIL_VALIDATE_URL"]+"?resultId="+strconv.Itoa(r.Id)+"&verdict=true&atoken="+adminToken+"\">Allow</a><br>"+
+					"<span style=\"font-size: 0.5rem\">Token for validating these results will expire in 24 hours.</span>"+
 					"</body></html>",
 				envMap,
 			)
