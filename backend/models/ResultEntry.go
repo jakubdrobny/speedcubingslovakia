@@ -147,9 +147,13 @@ func (r *ResultEntry) ValidateMultiEntry(entry string) string {
 }
 
 func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error {
-	err := r.LoadId(db)
-	if err != nil {
-		return err
+	var err error
+
+	if r.Id == 0 {
+		err = r.LoadId(db)
+		if err != nil {
+			return err
+		}
 	}
 
 	if isfmc {
@@ -575,10 +579,22 @@ func (r *ResultEntry) GetCompetitionPlace(db *pgxpool.Pool) (string, error) {
 	return "LAST", nil
 }
 
-func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap map[string]string) {
+func (r *ResultEntry) SuspicousChangeInResults(previouslySavedTimes []string) bool {
+	for idx, newTime := range []string{r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5} {
+		oldTime := previouslySavedTimes[idx]
+		if oldTime != "DNS" && oldTime != newTime {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap map[string]string, previouslySavedTimes []string) {
 	select {
 	case <-c.Request.Context().Done():
-		if !r.Status.ApprovalFinished {
+		suspicousChangeInResults := r.SuspicousChangeInResults(previouslySavedTimes)
+		if !r.Status.ApprovalFinished || suspicousChangeInResults {
 			log.Println("Sending email...")
 
 			scrambles, err := utils.GetScramblesByResultEntryId(db, r.Eventid, r.Competitionid)
@@ -605,7 +621,12 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 				return
 			}
 
-			mailSubject := "Suspicous result detected !!!"
+			mailSubject := "Suspicous result"
+			if suspicousChangeInResults {
+				mailSubject += " and change in results"
+			}
+			mailSubject += " detected !!!"
+
 			backendEnv := os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")
 			if backendEnv == "development" {
 				mailSubject = "DEVELOPMENT: " + mailSubject
@@ -646,4 +667,15 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 		}
 	}
 
+}
+
+func (r *ResultEntry) GetPreviouslySavedTimes(db *pgxpool.Pool) ([]string, error) {
+	times := make([]string, 5)
+
+	err := db.QueryRow(context.Background(), `SELECT solve1, solve2, solve3, solve4, solve5 FROM results r WHERE r.result_id = $1;`, r.Id).Scan(&times[0], &times[1], &times[2], &times[3], &times[4])
+	if err != nil {
+		return []string{}, err
+	}
+
+	return times, nil
 }

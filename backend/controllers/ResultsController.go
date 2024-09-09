@@ -334,6 +334,22 @@ func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 			return
 		}
 
+		if resultEntry.Id == 0 {
+			err = resultEntry.LoadId(db)
+			if err != nil {
+				log.Println("ERR resultEntry.LoadId in PostResults: " + err.Error())
+				c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry id.")
+				return
+			}
+		}
+
+		previousTimes, err := resultEntry.GetPreviouslySavedTimes(db)
+		if err != nil {
+			log.Println("ERR resultEntry.GetPreviouslySavedTimes in PostResults: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry in database.")
+			return
+		}
+
 		err = resultEntry.Update(db, resultEntry.IsFMC())
 		if err != nil {
 			log.Println("ERR resultEntry.Update in PostResults: " + err.Error())
@@ -341,7 +357,7 @@ func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 			return
 		}
 
-		go resultEntry.SendSuspicousMail(c, db, envMap)
+		go resultEntry.SendSuspicousMail(c, db, envMap, previousTimes)
 
 		c.IndentedJSON(http.StatusCreated, resultEntry)
 		return
