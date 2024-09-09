@@ -580,7 +580,6 @@ func (r *ResultEntry) GetCompetitionPlace(db *pgxpool.Pool) (string, error) {
 }
 
 func (r *ResultEntry) SuspicousChangeInResults(previouslySavedTimes []string) bool {
-	fmt.Println([]string{r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5}, previouslySavedTimes)
 	for idx, newTime := range []string{r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5} {
 		oldTime := previouslySavedTimes[idx]
 		if oldTime != "DNS" && oldTime != newTime {
