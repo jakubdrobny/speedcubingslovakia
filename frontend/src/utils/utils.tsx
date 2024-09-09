@@ -238,6 +238,7 @@ export const initialCurrentResults: ResultEntry = {
   id: 0,
   userid: 0,
   username: "",
+  wcaid: "",
   competitionid: "",
   competitionname: "",
   eventid: 0,

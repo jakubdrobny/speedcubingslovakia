@@ -18,7 +18,7 @@ import (
 )
 
 func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		userName := c.Param("uname")
 		competitionName := c.Param("cname")
 		resultsStatusDisplayName := c.Param("rsname")
@@ -28,7 +28,7 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse eventId.")
 			return
 		}
-		
+
 		resultEntries := make([]models.ResultEntry, 0)
 
 		if competitionName == "_" && userName == "_" {
@@ -42,7 +42,7 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 			for rows.Next() {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
-				if err != nil { 
+				if err != nil {
 					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionId not set and userName not set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 					return
@@ -67,7 +67,7 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 			for rows.Next() {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
-				if err != nil { 
+				if err != nil {
 					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionName not set and userName set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 					return
@@ -92,7 +92,7 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 			for rows.Next() {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
-				if err != nil { 
+				if err != nil {
 					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionName set and userName not set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 					return
@@ -117,7 +117,7 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 			for rows.Next() {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
-				if err != nil { 
+				if err != nil {
 					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionName set and userName set): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
 					return
@@ -138,33 +138,35 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func PostResultsValidation(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		type ReqBody struct {
-			ResultId int `json:"resultId"`
-			Verdict bool `json:"verdict"`
+			ResultId int  `json:"resultId"`
+			Verdict  bool `json:"verdict"`
 		}
 		var body ReqBody
 
 		if err := c.BindJSON(&body); err != nil {
 			log.Println("ERR BindJSON in PostResultsValidation: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed parsing data.")
-			return;
+			return
 		}
 
 		resultEntry, err := models.GetResultEntryById(db, body.ResultId)
 		if err != nil {
 			log.Println("ERR GetResultEntryById in PostResultsValidation: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed getting result entry from database.")
-			return;
+			return
 		}
 
 		statusId := 3
-		if !body.Verdict { statusId = 2 }
+		if !body.Verdict {
+			statusId = 2
+		}
 		resultStatus, err := models.GetResultsStatus(db, statusId)
 		if err != nil {
 			log.Println("ERR GetResultsStatus in PostResultsValidation: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed getting result status in database.")
-			return;
+			return
 		}
 
 		resultEntry.Status = resultStatus
@@ -179,10 +181,8 @@ func PostResultsValidation(db *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-
-
 func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		eventId, err := strconv.Atoi(c.Param("eid"))
 		if err != nil {
 			log.Println("ERR strconv.eid in GetResultsByIdAndEvent: " + err.Error())
@@ -192,7 +192,7 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 
 		competitionId := c.Param("cid")
 		userId := c.MustGet("uid").(int)
-		
+
 		user, err := models.GetUserById(db, userId)
 		if err != nil {
 			log.Println("ERR GetUserById in GetResultsByIdAndEvent: " + err.Error())
@@ -211,7 +211,7 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 		if err != nil {
 			log.Println("ERR GetCompetitionByIdObject in GetResultsByIdAndEvent: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed getting competition information from database.")
-			return	
+			return
 		}
 
 		resultEntry, err := models.GetResultEntry(db, userId, competitionId, eventId)
@@ -226,25 +226,26 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 				if err != nil {
 					log.Println("ERR GetResultsStatus.approved in GetResultsByIdAndEvent: " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed getting result status in database.")
-					return	
+					return
 				}
 
 				resultEntry = models.ResultEntry{
-					Userid: userId,
-					Username: user.Name,
-					Competitionid: competitionId,
+					Userid:          userId,
+					Username:        user.Name,
+					WcaId:           user.WcaId,
+					Competitionid:   competitionId,
 					Competitionname: competition.Name,
-					Eventid: event.Id,
-					Eventname: event.Displayname,
-					Iconcode: event.Iconcode,
-					Format: event.Format,
-					Solve1: "DNS",
-					Solve2: "DNS",
-					Solve3: "DNS",
-					Solve4: "DNS",
-					Solve5: "DNS",
-					Comment: "",
-					Status: approvedResultsStatus,
+					Eventid:         event.Id,
+					Eventname:       event.Displayname,
+					Iconcode:        event.Iconcode,
+					Format:          event.Format,
+					Solve1:          "DNS",
+					Solve2:          "DNS",
+					Solve3:          "DNS",
+					Solve4:          "DNS",
+					Solve5:          "DNS",
+					Comment:         "",
+					Status:          approvedResultsStatus,
 				}
 
 				err = resultEntry.Insert(db)
@@ -261,11 +262,12 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 				c.IndentedJSON(http.StatusInternalServerError, "Failed getting result status in database.")
 				return
 			}
-			
+
 			resultEntry.Status = currentStatus
 			resultEntry.Eventname = event.Displayname
 			resultEntry.Competitionname = competition.Name
 			resultEntry.Username = user.Name
+			resultEntry.WcaId = user.WcaId
 			resultEntry.Iconcode = event.Iconcode
 			resultEntry.Format = event.Format
 
@@ -281,15 +283,15 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-func PostResults(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		var resultEntry models.ResultEntry
 		var err error
 
 		if err = c.BindJSON(&resultEntry); err != nil {
 			log.Println("ERR BindJSON in PostResults: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed parsing data.")
-			return;
+			return
 		}
 
 		err = resultEntry.Update(db, resultEntry.IsFMC())
@@ -299,12 +301,15 @@ func PostResults(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
+		go resultEntry.SendSuspicousMail(c, db, envMap)
+
 		c.IndentedJSON(http.StatusCreated, resultEntry)
+		return
 	}
 }
 
 func GetProfileResults(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		id := c.Param("id")
 
 		uid, err := models.GetUserByWCAID(db, id)
@@ -336,12 +341,12 @@ func GetProfileResults(db *pgxpool.Pool) gin.HandlerFunc {
 }
 
 type RegionSelectGroup struct {
-	GroupName string `json:"groupName"`;
-	GroupMembers []string `json:"groupMembers"`;
+	GroupName    string   `json:"groupName"`
+	GroupMembers []string `json:"groupMembers"`
 }
 
 func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		regionSelectGroups := make([]RegionSelectGroup, 0)
 		regionSelectGroups = append(regionSelectGroups, RegionSelectGroup{"World", []string{"World"}})
 
@@ -366,41 +371,43 @@ func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 }
 
 type RankingsEntry struct {
-	Place string `json:"place"`
-	Username string `json:"username"`
-	WcaId string `json:"wca_id"`
-	CountryISO2 string `json:"country_iso2"`
-	CountryName string `json:"country_name"`
-	Result string `json:"result"`
-	CompetitionId string `json:"competitionId"`
-	CompetitionName string `json:"competitionName"`
-	Times []string `json:"times"`
+	Place           string   `json:"place"`
+	Username        string   `json:"username"`
+	WcaId           string   `json:"wca_id"`
+	CountryISO2     string   `json:"country_iso2"`
+	CountryName     string   `json:"country_name"`
+	Result          string   `json:"result"`
+	CompetitionId   string   `json:"competitionId"`
+	CompetitionName string   `json:"competitionName"`
+	Times           []string `json:"times"`
 }
 
 type RecordsItem struct {
-	EventName string `json:"eventname"`
-	Iconcode string `json:"iconcode"`
-	Entries []RecordsItemEntry `json:"entries"`
+	EventName string             `json:"eventname"`
+	Iconcode  string             `json:"iconcode"`
+	Entries   []RecordsItemEntry `json:"entries"`
 }
 
 type RecordsItemEntry struct {
-	Type string `json:"type"` // Single or Average
-	Username string `json:"username"`
-	WcaId string `json:"wcaId"`
-	Result string `json:"result"`
-	CountryIso2 string `json:"countryIso2"`
-	CountryName string `json:"countryName"`
-	CompetitionName string `json:"competitionName"`
-	CompetitionId string `json:"competitionId"`
-	Solves []string `json:"solves"`
+	Type               string    `json:"type"` // Single or Average
+	Username           string    `json:"username"`
+	WcaId              string    `json:"wcaId"`
+	Result             string    `json:"result"`
+	CountryIso2        string    `json:"countryIso2"`
+	CountryName        string    `json:"countryName"`
+	CompetitionName    string    `json:"competitionName"`
+	CompetitionId      string    `json:"competitionId"`
+	Solves             []string  `json:"solves"`
 	CompetitionEndDate time.Time `json:"-"`
-	EventName string `json:"-"`
-	IconCode string `json:"-"`
+	EventName          string    `json:"-"`
+	IconCode           string    `json:"-"`
 }
 
 func AddPlacementToRankings(rankings []RankingsEntry) {
-	if len(rankings) == 0 { return }
-	
+	if len(rankings) == 0 {
+		return
+	}
+
 	oldIdx := 0
 
 	for idx := range rankings {
@@ -408,14 +415,14 @@ func AddPlacementToRankings(rankings []RankingsEntry) {
 			rankings[0].Place = "1."
 		} else {
 			if utils.ParseSolveToMilliseconds(rankings[oldIdx].Result, false, "") != utils.ParseSolveToMilliseconds(rankings[idx].Result, false, "") {
-				rankings[idx].Place = fmt.Sprintf("%d.", idx + 1)
+				rankings[idx].Place = fmt.Sprintf("%d.", idx+1)
 				oldIdx = idx
 			}
 		}
 	}
 }
 
-func MergeNonUniqueRankings(rankings []RankingsEntry, isfmc bool) ([]RankingsEntry) {
+func MergeNonUniqueRankings(rankings []RankingsEntry, isfmc bool) []RankingsEntry {
 	result := make([]RankingsEntry, 0)
 	best := make(map[string]RankingsEntry)
 
@@ -426,13 +433,15 @@ func MergeNonUniqueRankings(rankings []RankingsEntry, isfmc bool) ([]RankingsEnt
 		}
 	}
 
-	for _, v := range best { result = append(result, v) }
+	for _, v := range best {
+		result = append(result, v)
+	}
 
 	return result
 }
 
 func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		eid, err := strconv.Atoi(c.Query("eid"))
 		if err != nil {
 			log.Println("ERR strconv(eid) in GetRankings: " + err.Error())
@@ -460,13 +469,13 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 
 		persons := queryType == "Persons"
 		if numOfEntries != 100 && numOfEntries != 1000 {
-			log.Println("ERR invalid no. of entries (" + string(numOfEntries) +  ") in query in GetRankings. Possible values: 100, 1000")
+			log.Println("ERR invalid no. of entries (" + string(numOfEntries) + ") in query in GetRankings. Possible values: 100, 1000")
 			c.IndentedJSON(http.StatusInternalServerError, "Failed parsing eventId.")
 			return
 		}
 
 		if !persons && queryType != "Results" {
-			log.Println("ERR invalid query type (" + string(queryType) +  ") in query in GetRankings. Possible values: Persons, Results")
+			log.Println("ERR invalid query type (" + string(queryType) + ") in query in GetRankings. Possible values: Persons, Results")
 			c.IndentedJSON(http.StatusInternalServerError, "Failed parsing eventId.")
 			return
 		}
@@ -480,7 +489,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 				c.IndentedJSON(http.StatusInternalServerError, "Failed getting overall rankings.")
 				return
 			}
-			
+
 			for _, result := range competitionResults {
 				var rankingsEntry RankingsEntry
 				rankingsEntry.Place = result.Place
@@ -506,8 +515,10 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 				}
 			} else {
 				regionTypeColumn := "cont.name"
-				if regionType == "Country" { regionTypeColumn = "c.name" }
-				rows, err = db.Query(context.Background(), `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.event_id = $1 AND ` + regionTypeColumn + ` = $2 AND rs.visible IS TRUE;`, eid, regionPrecise)
+				if regionType == "Country" {
+					regionTypeColumn = "c.name"
+				}
+				rows, err = db.Query(context.Background(), `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.event_id = $1 AND `+regionTypeColumn+` = $2 AND rs.visible IS TRUE;`, eid, regionPrecise)
 				if err != nil {
 					log.Println("ERR db.Query (" + regionType + ") in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
 					c.IndentedJSON(http.StatusInternalServerError, "Failed to query rankings entries from database.")
@@ -525,7 +536,9 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 					return
 				}
 
-				if rankingsEntry.WcaId == "" { rankingsEntry.WcaId = rankingsEntry.Username }
+				if rankingsEntry.WcaId == "" {
+					rankingsEntry.WcaId = rankingsEntry.Username
+				}
 				isfmc = utils.IsFMC(resultsEntry.Iconcode)
 				scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
 				if err != nil {
@@ -539,7 +552,9 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 				if single {
 					if persons {
 						rankingsEntry.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
-						if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
+						if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW {
+							continue
+						}
 						rankingsEntry.Times = make([]string, 0)
 
 						rankings = append(rankings, rankingsEntry)
@@ -549,12 +564,19 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 						noOfSolves, _ := utils.GetNoOfSolves(resultsEntry.Format)
 
 						for idx, solve := range []string{resultsEntry.Solve1, resultsEntry.Solve2, resultsEntry.Solve3, resultsEntry.Solve4, resultsEntry.Solve5} {
-							if idx >= noOfSolves { break }
-							
+							if idx >= noOfSolves {
+								break
+							}
+
 							result := utils.ParseSolveToMilliseconds(solve, isfmc, scrambles[idx])
-							if ismbld { rankingsEntry.Result = solve
-							} else { rankingsEntry.Result = utils.FormatTime(result, isfmc) }
-							if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") < constants.VERY_SLOW { rankings = append(rankings, rankingsEntry) }
+							if ismbld {
+								rankingsEntry.Result = solve
+							} else {
+								rankingsEntry.Result = utils.FormatTime(result, isfmc)
+							}
+							if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") < constants.VERY_SLOW {
+								rankings = append(rankings, rankingsEntry)
+							}
 						}
 					}
 				} else if !ismbld && resultsEntry.Format != "bo1" {
@@ -565,32 +587,42 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 						return
 					}
 					rankingsEntry.Result = resultFormatted
-					if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW { continue; }
+					if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW {
+						continue
+					}
 					rankingsEntry.Times, _ = resultsEntry.GetFormattedTimes(isfmc, scrambles)
 
 					rankings = append(rankings, rankingsEntry)
 				}
 			}
 
-			if persons { rankings = MergeNonUniqueRankings(rankings, isfmc) }
-			sort.Slice(rankings, func (i int, j int) bool {
+			if persons {
+				rankings = MergeNonUniqueRankings(rankings, isfmc)
+			}
+			sort.Slice(rankings, func(i int, j int) bool {
 				val1, val2 := utils.ParseSolveToMilliseconds(rankings[i].Result, false, ""), utils.ParseSolveToMilliseconds(rankings[j].Result, false, "")
-				if val1 == val2 { return rankings[i].Username < rankings[j].Username }
+				if val1 == val2 {
+					return rankings[i].Username < rankings[j].Username
+				}
 				return val1 < val2
 			})
 			AddPlacementToRankings(rankings)
 		}
 
-		if len(rankings) > numOfEntries { rankings = rankings[:numOfEntries] }
-		
+		if len(rankings) > numOfEntries {
+			rankings = rankings[:numOfEntries]
+		}
+
 		c.IndentedJSON(http.StatusOK, rankings)
 	}
 }
 
-const (ALL_EVENT = -1)
+const (
+	ALL_EVENT = -1
+)
 
 func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		eid, err := strconv.Atoi(c.Query("eid"))
 		if err != nil {
 			log.Println("ERR strconv(eid) in GetRankings: " + err.Error())
@@ -606,14 +638,14 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 		isfmc := false
 
 		var rows pgx.Rows
-		
+
 		if regionType == "World" {
-			queryString := `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible, comp.enddate, e.fulldisplayname FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE rs.visible IS TRUE`;
+			queryString := `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible, comp.enddate, e.fulldisplayname FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE rs.visible IS TRUE`
 			eidQueryPart := ` AND r.event_id = $1;`
 			if eid != ALL_EVENT {
-				rows, err = db.Query(context.Background(), queryString + eidQueryPart, eid)
+				rows, err = db.Query(context.Background(), queryString+eidQueryPart, eid)
 			} else {
-				rows, err = db.Query(context.Background(), queryString + `;`)	
+				rows, err = db.Query(context.Background(), queryString+`;`)
 			}
 			if err != nil {
 				log.Println("ERR db.Query (World) in GetRecords (" + regionType + "+" + regionPrecise + "): " + err.Error())
@@ -622,14 +654,16 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			}
 		} else {
 			regionTypeColumn := "cont.name"
-			if regionType == "Country" { regionTypeColumn = "c.name" }
+			if regionType == "Country" {
+				regionTypeColumn = "c.name"
+			}
 
 			queryString := `SELECT u.name, u.wcaid, c.iso2, c.name, r.competition_id, comp.name, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, rs.visible, comp.enddate, e.fulldisplayname FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN competitions comp ON comp.competition_id = r.competition_id JOIN continents cont ON cont.continent_id = c.continent_id JOIN events e ON r.event_id = e.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE ` + regionTypeColumn + ` = $1 AND rs.visible IS TRUE `
 			eidQueryPart := ` AND r.event_id = $2;`
 			if eid != ALL_EVENT {
-				rows, err = db.Query(context.Background(), queryString + eidQueryPart, regionPrecise, eid)
+				rows, err = db.Query(context.Background(), queryString+eidQueryPart, regionPrecise, eid)
 			} else {
-				rows, err = db.Query(context.Background(), queryString + `;`, regionPrecise)	
+				rows, err = db.Query(context.Background(), queryString+`;`, regionPrecise)
 			}
 			if err != nil {
 				log.Println("ERR db.Query (" + regionType + ") in GetRecords (" + regionType + "+" + regionPrecise + "): " + err.Error())
@@ -651,8 +685,10 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
 				return
 			}
-			
-			if rankingsEntry.WcaId == "" { rankingsEntry.WcaId = rankingsEntry.Username }
+
+			if rankingsEntry.WcaId == "" {
+				rankingsEntry.WcaId = rankingsEntry.Username
+			}
 			isfmc = utils.IsFMC(resultsEntry.Iconcode)
 			scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
 			if err != nil {
@@ -660,19 +696,19 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
 				return
 			}
-			
+
 			recordsItemEntrySingle := RecordsItemEntry{
-				Type: "Single",
-				Username: rankingsEntry.Username,
-				WcaId: rankingsEntry.WcaId,
-				CountryIso2: rankingsEntry.CountryISO2,
-				CountryName: rankingsEntry.CountryName,
-				CompetitionName: rankingsEntry.CompetitionName,
-				CompetitionId: rankingsEntry.CompetitionId,
-				Solves: []string{},
+				Type:               "Single",
+				Username:           rankingsEntry.Username,
+				WcaId:              rankingsEntry.WcaId,
+				CountryIso2:        rankingsEntry.CountryISO2,
+				CountryName:        rankingsEntry.CountryName,
+				CompetitionName:    rankingsEntry.CompetitionName,
+				CompetitionId:      rankingsEntry.CompetitionId,
+				Solves:             []string{},
 				CompetitionEndDate: competitionEndDate,
-				EventName: resultsEntry.Eventname,
-				IconCode: resultsEntry.Iconcode,
+				EventName:          resultsEntry.Eventname,
+				IconCode:           resultsEntry.Iconcode,
 			}
 
 			recordsItemEntryAverage := recordsItemEntrySingle
@@ -682,7 +718,9 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			}
 
 			recordsItemEntrySingle.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
-			if utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") >= constants.VERY_SLOW { continue; }
+			if utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") >= constants.VERY_SLOW {
+				continue
+			}
 			singleEntry, ok := singleEntries[resultsEntry.Eventid]
 			if !ok || utils.ParseSolveToMilliseconds(singleEntry[0].Result, false, "") >= utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") {
 				if !ok || utils.ParseSolveToMilliseconds(singleEntry[0].Result, false, "") > utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") {
@@ -690,9 +728,9 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 				}
 				singleEntries[resultsEntry.Eventid] = append(singleEntries[resultsEntry.Eventid], recordsItemEntrySingle)
 			}
-			
+
 			recordsItemEntryAverage.Result = "DNS"
-			
+
 			if resultsEntry.Iconcode != "333mbf" && resultsEntry.Format != "bo1" {
 				resultFormatted, err := resultsEntry.AverageFormatted(isfmc, scrambles)
 				if err != nil {
@@ -701,7 +739,9 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 					return
 				}
 				recordsItemEntryAverage.Result = resultFormatted
-				if utils.ParseSolveToMilliseconds(recordsItemEntryAverage.Result, false, "") >= constants.VERY_SLOW { continue; }
+				if utils.ParseSolveToMilliseconds(recordsItemEntryAverage.Result, false, "") >= constants.VERY_SLOW {
+					continue
+				}
 				recordsItemEntryAverage.Solves, _ = resultsEntry.GetFormattedTimes(isfmc, scrambles)
 
 				averageEntry, ok := averageEntries[resultsEntry.Eventid]
@@ -720,28 +760,34 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			eventIDs[idx] = key
 			idx++
 		}
-		sort.Slice(eventIDs, func (i int, j int) bool { return eventIDs[i] < eventIDs[j] })
+		sort.Slice(eventIDs, func(i int, j int) bool { return eventIDs[i] < eventIDs[j] })
 
 		for _, eventID := range eventIDs {
-			if len(singleEntries[eventID]) == 0 { continue }
+			if len(singleEntries[eventID]) == 0 {
+				continue
+			}
 
 			recordItem := RecordsItem{
 				EventName: singleEntries[eventID][0].EventName,
-				Iconcode: singleEntries[eventID][0].IconCode,
-				Entries: []RecordsItemEntry{},
+				Iconcode:  singleEntries[eventID][0].IconCode,
+				Entries:   []RecordsItemEntry{},
 			}
 
-			sort.Slice(singleEntries[eventID], func (i int, j int) bool {
+			sort.Slice(singleEntries[eventID], func(i int, j int) bool {
 				item1 := singleEntries[eventID][i]
 				item2 := singleEntries[eventID][j]
-				if item1.CompetitionEndDate.Equal(item1.CompetitionEndDate) { return item1.Username < item2.Username }
+				if item1.CompetitionEndDate.Equal(item1.CompetitionEndDate) {
+					return item1.Username < item2.Username
+				}
 				return item1.CompetitionEndDate.Before(item2.CompetitionEndDate)
 			})
 			recordItem.Entries = append(recordItem.Entries, singleEntries[eventID]...)
-			sort.Slice(averageEntries[eventID], func (i int, j int) bool {
+			sort.Slice(averageEntries[eventID], func(i int, j int) bool {
 				item1 := averageEntries[eventID][i]
 				item2 := averageEntries[eventID][j]
-				if item1.CompetitionEndDate.Equal(item1.CompetitionEndDate) { return item1.Username < item2.Username }
+				if item1.CompetitionEndDate.Equal(item1.CompetitionEndDate) {
+					return item1.Username < item2.Username
+				}
 				return item1.CompetitionEndDate.Before(item2.CompetitionEndDate)
 			})
 			recordItem.Entries = append(recordItem.Entries, averageEntries[eventID]...)
@@ -749,28 +795,27 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			recordItems = append(recordItems, recordItem)
 		}
 
-
 		c.IndentedJSON(http.StatusOK, recordItems)
 	}
 }
 
 type AverageInfo struct {
-	Single string `json:"single"`
-	Average string `json:"average"`
-	Times []string `json:"times"`
-	Bpa string `json:"bpa"`
-	Wpa string `json:"wpa"`
-	ShowPossibleAverage bool `json:"showPossibleAverage"`
-	FinishedCompeting bool `json:"finishedCompeting"`
-	Place string `json:"place"`
-	SingleRecord string `json:"singleRecord"`
-	SingleRecordColor string `json:"singleRecordColor"`
-	AverageRecord string `json:"averageRecord"`
-	AverageRecordColor string `json:"averageRecordColor"`
+	Single              string   `json:"single"`
+	Average             string   `json:"average"`
+	Times               []string `json:"times"`
+	Bpa                 string   `json:"bpa"`
+	Wpa                 string   `json:"wpa"`
+	ShowPossibleAverage bool     `json:"showPossibleAverage"`
+	FinishedCompeting   bool     `json:"finishedCompeting"`
+	Place               string   `json:"place"`
+	SingleRecord        string   `json:"singleRecord"`
+	SingleRecordColor   string   `json:"singleRecordColor"`
+	AverageRecord       string   `json:"averageRecord"`
+	AverageRecordColor  string   `json:"averageRecordColor"`
 }
 
 func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		var resultEntry models.ResultEntry
 		var err error
 
@@ -789,7 +834,7 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 		averageInfo.Single = resultEntry.SingleFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
-		
+
 		avg, err := resultEntry.AverageFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
 		if err != nil {
 			log.Println("ERR resultEntry.AverageFormatted in GetAverageInfo: " + err.Error())
@@ -812,7 +857,7 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if should calculate BPA/WPA.")
 			return
 		}
-		
+
 		if ok {
 			averageInfo.ShowPossibleAverage = true
 
@@ -852,10 +897,10 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func GetAverageInfoRecords(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		type Body struct {
 			ResultEntry models.ResultEntry `json:"resultEntry"`
-			AverageInfo AverageInfo `json:"averageInfo"`
+			AverageInfo AverageInfo        `json:"averageInfo"`
 		}
 		var body Body
 		if err := c.BindJSON(&body); err != nil {
@@ -902,8 +947,10 @@ func GetAverageInfoRecords(db *pgxpool.Pool) gin.HandlerFunc {
 
 			for idx := range profileType.PersonalBests {
 				personalBestEntry := profileType.PersonalBests[idx]
-				if personalBestEntry.Event.Id != resultEntry.Eventid { continue }
-				
+				if personalBestEntry.Event.Id != resultEntry.Eventid {
+					continue
+				}
+
 				if averageInfo.Single == personalBestEntry.Single.Value {
 					if personalBestEntry.Single.WR == "1" {
 						averageInfo.SingleRecord = "WR"
