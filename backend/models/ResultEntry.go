@@ -580,6 +580,7 @@ func (r *ResultEntry) GetCompetitionPlace(db *pgxpool.Pool) (string, error) {
 }
 
 func (r *ResultEntry) SuspicousChangeInResults(previouslySavedTimes []string) bool {
+	fmt.Println([]string{r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5}, previouslySavedTimes)
 	for idx, newTime := range []string{r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5} {
 		oldTime := previouslySavedTimes[idx]
 		if oldTime != "DNS" && oldTime != newTime {
@@ -593,8 +594,9 @@ func (r *ResultEntry) SuspicousChangeInResults(previouslySavedTimes []string) bo
 func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap map[string]string, previouslySavedTimes []string) {
 	select {
 	case <-c.Request.Context().Done():
+		suspicousResult := !r.Status.ApprovalFinished
 		suspicousChangeInResults := r.SuspicousChangeInResults(previouslySavedTimes)
-		if !r.Status.ApprovalFinished || suspicousChangeInResults {
+		if suspicousResult || suspicousChangeInResults {
 			log.Println("Sending email...")
 
 			scrambles, err := utils.GetScramblesByResultEntryId(db, r.Eventid, r.Competitionid)
@@ -621,9 +623,15 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 				return
 			}
 
-			mailSubject := "Suspicous result"
+			mailSubject := "Suspicous"
+			if suspicousResult {
+				mailSubject += " result"
+			}
 			if suspicousChangeInResults {
-				mailSubject += " and change in results"
+				if suspicousResult {
+					mailSubject += " and"
+				}
+				mailSubject += " change in results"
 			}
 			mailSubject += " detected !!!"
 
