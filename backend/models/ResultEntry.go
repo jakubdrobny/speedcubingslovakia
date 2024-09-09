@@ -598,6 +598,12 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 				return
 			}
 
+			adminToken, err := utils.CreateToken(1, envMap["JWT_SECRET_KEY"], 60*24) // admin token for a day
+			if err != nil {
+				log.Println("ERR utils.CreateToken in r.SendSuspicousMail: " + err.Error())
+				return
+			}
+
 			err = email.SendMail(
 				envMap["MAIL_USERNAME"],
 				envMap["MAIL_USERNAME"],
@@ -616,9 +622,9 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 					"<b>Average:</b> "+average+"<br>"+
 					"<b>Times:</b> "+strings.Join(times, ", ")+"<br>"+
 					"<a class=\"mui-joy-btn mui-joy-btn-soft-danger\" style=\"padding:10px;\" "+
-					"href=\""+envMap["MAIL_VALIDATE_URL"]+"?resultId="+strconv.Itoa(r.Id)+"&verdict=false\">Deny</a>&nbsp;"+
+					"href=\""+envMap["MAIL_VALIDATE_URL"]+"?resultId="+strconv.Itoa(r.Id)+"&verdict=false&atoken="+adminToken+"\">Deny</a>&nbsp;"+
 					"<a class=\"mui-joy-btn mui-joy-btn-soft-success\" style=\"padding:10px;\" "+
-					"href=\""+envMap["MAIL_VALIDATE_URL"]+"?resultId="+strconv.Itoa(r.Id)+"&verdict=true\">Allow</a>&nbsp;"+
+					"href=\""+envMap["MAIL_VALIDATE_URL"]+"?resultId="+strconv.Itoa(r.Id)+"&verdict=true&atoken="+adminToken+"\">Allow</a>&nbsp;"+
 					"</body></html>",
 				envMap,
 			)
