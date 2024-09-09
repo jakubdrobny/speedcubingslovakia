@@ -96,6 +96,7 @@ export type ResultEntry = {
   id: number;
   userid: number;
   username: string;
+  wcaid: string;
   competitionid: string;
   competitionname: string;
   eventid: number;
