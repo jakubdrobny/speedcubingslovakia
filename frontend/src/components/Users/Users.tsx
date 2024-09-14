@@ -112,8 +112,8 @@ const Users = () => {
                         <Geography
                           key={geo.rsmKey}
                           geography={geo}
-                          stroke="#FFFFFF"
-                          strokeWidth={0.5}
+                          stroke="black"
+                          strokeWidth={0.05}
                           onMouseEnter={() => {
                             setTooltipContent(
                               <Stack spacing={1} direction="column">
