@@ -132,6 +132,9 @@ const Users = () => {
                                   &nbsp;&nbsp;
                                   <Typography sx={{ color: "white" }}>
                                     {geo.properties.name}
+                                    {geo.properties.users.length !== 0 && (
+                                      <>&nbsp;({geo.properties.users.length})</>
+                                    )}
                                   </Typography>
                                 </div>
                                 {geo &&
