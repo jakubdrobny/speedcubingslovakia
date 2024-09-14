@@ -15,33 +15,49 @@ import {
   renderResponseError,
 } from "../../utils/utils";
 import { Stack, Typography } from "@mui/joy";
-import { useEffect, useState } from "react";
 
+import { EmojiEvents } from "@mui/icons-material";
 import LoadingComponent from "../Loading/LoadingComponent";
 import { LoadingState } from "../../Types";
 import { Tooltip } from "react-tooltip";
 import { scaleLinear } from "d3-scale";
+import { useEffect } from "react";
+import useState from "react-usestateref";
 
 const Users = () => {
   const [loadingState, setLoadingState] =
     useState<LoadingState>(initialLoadingState);
   const [mapData, setMapData] = useState<FeatureCollection>();
-  const [tooltipContent, setTooltipContent] = useState<string>("");
+  const [tooltipContent, setTooltipContent] = useState<any>("");
   const colorScale = scaleLinear<string, string>()
     .domain([0, 1])
     .range(["#F5F4F6", "rgb(38, 62, 89)"]);
   const [maxNoOfCompetitors, setMaxNoOfCompetitors] = useState<number>(0);
+  const [
+    totalNoOfCompetitors,
+    setTotalNoOfCompetitors,
+    totalNoOfCompetitorsRef,
+  ] = useState<number>(0);
 
   useEffect(() => {
     setLoadingState({ isLoading: true, error: {} });
 
-    console.log("loading");
+    setTotalNoOfCompetitors(0);
     GetMapData()
       .then((res: FeatureCollection) => {
         let _maxNoOfCompetitors = 0;
-        res.features.map((f) =>
-          Math.max(maxNoOfCompetitors, f.properties?.users.length)
-        );
+        res?.features?.map((f) => {
+          if (f && f.properties && f.properties.users) {
+            const countryNoOfCompetitors = f.properties?.users?.length;
+            _maxNoOfCompetitors = Math.max(
+              _maxNoOfCompetitors,
+              countryNoOfCompetitors
+            );
+            setTotalNoOfCompetitors(
+              totalNoOfCompetitorsRef.current + countryNoOfCompetitors
+            );
+          }
+        });
         setMaxNoOfCompetitors(_maxNoOfCompetitors);
 
         setMapData(res);
@@ -54,7 +70,9 @@ const Users = () => {
 
   return (
     <Stack sx={{ margin: "1em" }}>
-      <Typography level="h2">Users</Typography>
+      <Typography level="h2">
+        Users {totalNoOfCompetitors !== 0 && <>({totalNoOfCompetitors})</>}
+      </Typography>
       {loadingState.isLoading ? (
         <LoadingComponent title="Loading map data..." />
       ) : !isObjectEmpty(loadingState.error) ? (
@@ -66,7 +84,8 @@ const Users = () => {
             data-tooltip-content=""
             data-tooltip-float={true}
             data-tooltip-place="bottom-start"
-            data-tooltip-offset={10}
+            data-tooltip-offset={20}
+            style={{ marginTop: "-100px" }}
           >
             <ComposableMap
               projectionConfig={{
@@ -96,9 +115,42 @@ const Users = () => {
                           strokeWidth={0.5}
                           onMouseEnter={() => {
                             setTooltipContent(
-                              `<span className={fi fi-${geo.properties.countryIso2.toLowerCase()}}/>&nbsp;&nbsp;${
-                                geo.properties.countryName
-                              }`
+                              <Stack spacing={1} direction="column">
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    borderBottom: "1px solid white",
+                                  }}
+                                >
+                                  <span
+                                    className={`fi fi-${geo.properties.countryIso2.toLowerCase()}`}
+                                  />
+                                  &nbsp;&nbsp;
+                                  <Typography sx={{ color: "white" }}>
+                                    {geo.properties.name}
+                                  </Typography>
+                                </div>
+                                {geo &&
+                                  geo.properties &&
+                                  geo.properties.users &&
+                                  geo.properties.users.map((user: any) => (
+                                    <Typography
+                                      sx={{
+                                        color: "white",
+                                        display: "flex",
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      <b>{user.username}</b>&nbsp;(
+                                      <Stack spacing={0.5} direction="row">
+                                        <div>{user.score}</div>
+                                        <EmojiEvents />
+                                      </Stack>
+                                      )
+                                    </Typography>
+                                  ))}
+                              </Stack>
                             );
                           }}
                           onMouseLeave={() => {
@@ -123,9 +175,7 @@ const Users = () => {
               </ZoomableGroup>
             </ComposableMap>
           </div>
-          <Tooltip id="my-tooltip" noArrow>
-            {tooltipContent}
-          </Tooltip>
+          <Tooltip id="my-tooltip" noArrow children={tooltipContent}></Tooltip>
         </>
       )}
     </Stack>

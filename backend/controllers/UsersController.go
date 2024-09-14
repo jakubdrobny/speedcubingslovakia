@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -165,7 +165,7 @@ func GetSearchUsers(db *pgxpool.Pool) gin.HandlerFunc {
 
 		err = tx.Commit(context.Background())
 		if err != nil {
-			log.Println("ERR tx.commit in in GetSearchUsers: " + err.Error())
+			log.Println("ERR tx.commit in GetSearchUsers: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to finish transaction.")
 			return
 		}
@@ -176,8 +176,36 @@ func GetSearchUsers(db *pgxpool.Pool) gin.HandlerFunc {
 
 func GetUserMapData(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		buf, _ := os.ReadFile("tmp.json")
-		fmt.Println(string(buf))
-		c.Data(200, "application/json; charset=utf-8", buf)
+		buf, err := os.ReadFile("main/CountriesGeo.json")
+		if err != nil {
+			log.Println("ERR os.ReadFile in GetUserMapData: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to load map data.")
+			return
+		}
+
+		var featureCollection models.FeatureCollection
+		err = json.Unmarshal(buf, &featureCollection)
+		if err != nil {
+			log.Println("ERR json.Unmarshal in GetUserMapData: " + err.Error())
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse map data.")
+			return
+		}
+
+		usersByCountry, logMsg, retMsg, err := models.GetUsersByCountryWithKinchScore(db)
+		if err != nil {
+			log.Println(logMsg)
+			c.IndentedJSON(http.StatusInternalServerError, retMsg)
+			return
+		}
+
+		for idx := range featureCollection.Features {
+			countryIso2 := featureCollection.Features[idx].Properties.CountryIso2
+			if _, ok := usersByCountry[countryIso2]; !ok {
+				usersByCountry[countryIso2] = make([]models.MapDataUser, 0)
+			}
+			featureCollection.Features[idx].Properties.Users = usersByCountry[countryIso2]
+		}
+
+		c.IndentedJSON(http.StatusOK, featureCollection)
 	}
 }
