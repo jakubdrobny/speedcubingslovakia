@@ -72,7 +72,7 @@ const Users = () => {
   }, []);
 
   return (
-    <Stack sx={{ margin: "1em" }}>
+    <Stack sx={{ margin: "1em" }} spacing={2}>
       <Typography level="h2">
         Users {totalNoOfCompetitors !== 0 && <>({totalNoOfCompetitors})</>}
       </Typography>
@@ -90,9 +90,8 @@ const Users = () => {
             data-tooltip-offset={20}
           >
             <ComposableMap
-              projectionConfig={{
-                scale: 147,
-              }}
+              projection="geoEqualEarth"
+              projectionConfig={{ scale: 147, center: [0, -25] }}
             >
               <ZoomableGroup>
                 <Sphere
