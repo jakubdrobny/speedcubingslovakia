@@ -29,9 +29,12 @@ const Users = () => {
     useState<LoadingState>(initialLoadingState);
   const [mapData, setMapData] = useState<FeatureCollection>();
   const [tooltipContent, setTooltipContent] = useState<any>("");
-  const colorScale = scaleLinear<string, string>()
+  const defaultColorScale = scaleLinear<string, string>()
     .domain([0, 1])
     .range(["#F5F4F6", "rgb(38, 62, 89)"]);
+  const hoverColorScale = scaleLinear<string, string>()
+    .domain([0, 1])
+    .range(["#F5F4F6", "rgb(89, 38, 38)"]);
   const [maxNoOfCompetitors, setMaxNoOfCompetitors] = useState<number>(0);
   const [
     totalNoOfCompetitors,
@@ -159,12 +162,14 @@ const Users = () => {
                           className="geo-no-outline"
                           style={{
                             default: {
-                              fill: colorScale(
+                              fill: defaultColorScale(
                                 geo.properties.users.length / maxNoOfCompetitors
                               ),
                             },
                             hover: {
-                              fill: "#F53",
+                              fill: hoverColorScale(
+                                geo.properties.users.length / maxNoOfCompetitors
+                              ),
                             },
                           }}
                         />
