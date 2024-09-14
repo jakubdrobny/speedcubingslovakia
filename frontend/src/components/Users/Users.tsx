@@ -88,7 +88,6 @@ const Users = () => {
             data-tooltip-float={true}
             data-tooltip-place="bottom-start"
             data-tooltip-offset={20}
-            style={{ marginTop: "-100px" }}
           >
             <ComposableMap
               projectionConfig={{
