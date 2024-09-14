@@ -6,89 +6,128 @@ import {
   Sphere,
   ZoomableGroup,
 } from "react-simple-maps";
-import { LoadingState, SearchUser } from "../../Types";
+import { FeatureCollection, GeoJsonObject } from "geojson";
+import {
+  GetMapData,
+  getError,
+  initialLoadingState,
+  isObjectEmpty,
+  renderResponseError,
+} from "../../utils/utils";
 import { Stack, Typography } from "@mui/joy";
-import { getError, getUsers, initialLoadingState } from "../../utils/utils";
 import { useEffect, useState } from "react";
 
+import LoadingComponent from "../Loading/LoadingComponent";
+import { LoadingState } from "../../Types";
 import { Tooltip } from "react-tooltip";
-import { csv } from "d3-fetch";
 import { scaleLinear } from "d3-scale";
 
-const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
-// const geoUrl = "/features.json";
-
-const colorScale = scaleLinear<string, string>()
-  .domain([0.29, 0.68])
-  .range(["#ffedea", "#ff5233"]);
-
 const Users = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [loadingState, setLoadingState] =
     useState<LoadingState>(initialLoadingState);
-  const [users, setUsers] = useState<SearchUser[]>([]);
-  const [tooltipContent, setTooltipContent] = useState("");
+  const [mapData, setMapData] = useState<FeatureCollection>();
+  const [tooltipContent, setTooltipContent] = useState<string>("");
+  const colorScale = scaleLinear<string, string>()
+    .domain([0, 1])
+    .range(["#F5F4F6", "rgb(38, 62, 89)"]);
+  const [maxNoOfCompetitors, setMaxNoOfCompetitors] = useState<number>(0);
 
-  const searchForUsers = () => {
+  useEffect(() => {
     setLoadingState({ isLoading: true, error: {} });
 
-    getUsers(searchQuery)
-      .then((res: SearchUser[]) => {
-        setUsers(res);
+    console.log("loading");
+    GetMapData()
+      .then((res: FeatureCollection) => {
+        let _maxNoOfCompetitors = 0;
+        res.features.map((f) =>
+          Math.max(maxNoOfCompetitors, f.properties?.users.length)
+        );
+        setMaxNoOfCompetitors(_maxNoOfCompetitors);
+
+        setMapData(res);
         setLoadingState({ isLoading: false, error: {} });
       })
       .catch((err) => {
         setLoadingState({ isLoading: false, error: getError(err) });
       });
-  };
-
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    csv(`${process.env.PUBLIC_URL}/vulnerability.csv`).then((data: any) => {
-      setData(data);
-    });
   }, []);
 
   return (
     <Stack sx={{ margin: "1em" }}>
       <Typography level="h2">Users</Typography>
-      <div data-tooltip-id="my-tooltip" data-tooltip-content="">
-        <ComposableMap
-          projectionConfig={{
-            scale: 147,
-          }}
-        >
-          <ZoomableGroup>
-            <Sphere
-              id="sphere-id"
-              fill="transparent"
-              stroke="#E4E5E6"
-              strokeWidth={1}
-            />
-            <Graticule stroke="#E4E5E6" strokeWidth={1} />
-            {data.length > 0 && (
-              <Geographies geography={geoUrl}>
-                {({ geographies }) =>
-                  geographies.map((geo) => {
-                    const d = data.find((s: any) => s.ISO3 === geo.id);
-                    return (
-                      <Geography
-                        key={geo.rsmKey}
-                        geography={geo}
-                        fill={"#0B6BCB"}
-                        stroke="white"
-                        strokeWidth={1}
-                      />
-                    );
-                  })
-                }
-              </Geographies>
-            )}
-          </ZoomableGroup>
-        </ComposableMap>
-      </div>
-      <Tooltip id="my-tooltip">{tooltipContent}</Tooltip>
+      {loadingState.isLoading ? (
+        <LoadingComponent title="Loading map data..." />
+      ) : !isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
+      ) : (
+        <>
+          <div
+            data-tooltip-id="my-tooltip"
+            data-tooltip-content=""
+            data-tooltip-float={true}
+            data-tooltip-place="bottom-start"
+            data-tooltip-offset={10}
+          >
+            <ComposableMap
+              projectionConfig={{
+                scale: 147,
+              }}
+            >
+              <ZoomableGroup>
+                <Sphere
+                  id="sphere-id"
+                  fill="transparent"
+                  stroke="#ebe8eb"
+                  strokeWidth={0.5}
+                />
+                <Graticule
+                  fill="transparent"
+                  stroke="#ebe8eb"
+                  strokeWidth={0.5}
+                />
+                <Geographies geography={mapData}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => {
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          stroke="#FFFFFF"
+                          strokeWidth={0.5}
+                          onMouseEnter={() => {
+                            setTooltipContent(
+                              `<span className={fi fi-${geo.properties.countryIso2.toLowerCase()}}/>&nbsp;&nbsp;${
+                                geo.properties.countryName
+                              }`
+                            );
+                          }}
+                          onMouseLeave={() => {
+                            setTooltipContent("");
+                          }}
+                          className="geo-no-outline"
+                          style={{
+                            default: {
+                              fill: colorScale(
+                                geo.properties.users.length / maxNoOfCompetitors
+                              ),
+                            },
+                            hover: {
+                              fill: "#F53",
+                            },
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </Geographies>
+              </ZoomableGroup>
+            </ComposableMap>
+          </div>
+          <Tooltip id="my-tooltip" noArrow>
+            {tooltipContent}
+          </Tooltip>
+        </>
+      )}
     </Stack>
   );
 };
