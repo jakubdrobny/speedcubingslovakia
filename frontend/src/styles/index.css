@@ -118,3 +118,7 @@ input[type="number"] {
 input[type="number"] {
   text-align: center;
 }
+
+.geo-no-outline:focus {
+  outline: none;
+}

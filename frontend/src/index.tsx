@@ -1,4 +1,5 @@
 import "./styles/index.css";
+import "react-tooltip/dist/react-tooltip.css";
 
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
