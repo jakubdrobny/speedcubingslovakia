@@ -31,10 +31,10 @@ const Users = () => {
   const [tooltipContent, setTooltipContent] = useState<any>("");
   const defaultColorScale = scaleLinear<string, string>()
     .domain([0, 1])
-    .range(["rgba(11, 107, 203, 0.1)", "rgba(11, 107, 203, 1)"]);
+    .range(["rgb(230, 242, 255)", "rgb(11, 107, 203)"]);
   const hoverColorScale = scaleLinear<string, string>()
     .domain([0, 1])
-    .range(["rgba(196, 28, 28, 0.1)", "rgba(196, 28, 28, 1)"]);
+    .range(["rgb(255, 210, 210)", "rgb(196, 28, 28)"]);
   const [maxNoOfCompetitors, setMaxNoOfCompetitors] = useState<number>(0);
   const [
     totalNoOfCompetitors,
