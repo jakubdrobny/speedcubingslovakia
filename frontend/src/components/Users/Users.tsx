@@ -6,7 +6,6 @@ import {
   Sphere,
   ZoomableGroup,
 } from "react-simple-maps";
-import { FeatureCollection, GeoJsonObject } from "geojson";
 import {
   GetMapData,
   getError,
@@ -17,6 +16,7 @@ import {
 import { Stack, Typography } from "@mui/joy";
 
 import { EmojiEvents } from "@mui/icons-material";
+import { FeatureCollection } from "geojson";
 import LoadingComponent from "../Loading/LoadingComponent";
 import { LoadingState } from "../../Types";
 import { Tooltip } from "react-tooltip";
@@ -31,10 +31,10 @@ const Users = () => {
   const [tooltipContent, setTooltipContent] = useState<any>("");
   const defaultColorScale = scaleLinear<string, string>()
     .domain([0, 1])
-    .range(["#F5F4F6", "rgb(38, 62, 89)"]);
+    .range(["rgba(11, 107, 203, 0.1)", "rgba(11, 107, 203, 1)"]);
   const hoverColorScale = scaleLinear<string, string>()
     .domain([0, 1])
-    .range(["#F5F4F6", "rgb(89, 38, 38)"]);
+    .range(["rgba(196, 28, 28, 0.1)", "rgba(196, 28, 28, 1)"]);
   const [maxNoOfCompetitors, setMaxNoOfCompetitors] = useState<number>(0);
   const [
     totalNoOfCompetitors,
@@ -162,14 +162,22 @@ const Users = () => {
                           className="geo-no-outline"
                           style={{
                             default: {
-                              fill: defaultColorScale(
-                                geo.properties.users.length / maxNoOfCompetitors
-                              ),
+                              fill:
+                                geo.properties.users.length === 0
+                                  ? "#F5F4F6"
+                                  : defaultColorScale(
+                                      geo.properties.users.length /
+                                        maxNoOfCompetitors
+                                    ),
                             },
                             hover: {
-                              fill: hoverColorScale(
-                                geo.properties.users.length / maxNoOfCompetitors
-                              ),
+                              fill:
+                                geo.properties.users.length === 0
+                                  ? "#F5F4F6"
+                                  : hoverColorScale(
+                                      geo.properties.users.length /
+                                        maxNoOfCompetitors
+                                    ),
                             },
                           }}
                         />
