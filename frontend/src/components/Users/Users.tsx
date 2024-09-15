@@ -1,86 +1,197 @@
 import {
-  Alert,
-  Button,
-  Card,
-  FormControl,
-  FormHelperText,
-  FormLabel,
-  Input,
-  Stack,
-  Typography,
-} from "@mui/joy";
-import { LoadingState, SearchUser } from "../../Types";
+  ComposableMap,
+  Geographies,
+  Geography,
+  Graticule,
+  Sphere,
+  ZoomableGroup,
+} from "react-simple-maps";
 import {
+  GetMapData,
   getError,
-  getUsers,
   initialLoadingState,
   isObjectEmpty,
   renderResponseError,
 } from "../../utils/utils";
+import { Stack, Typography } from "@mui/joy";
 
-import { Link } from "react-router-dom";
-import { Search } from "@mui/icons-material";
-import { useState } from "react";
+import { EmojiEvents } from "@mui/icons-material";
+import { FeatureCollection } from "geojson";
+import LoadingComponent from "../Loading/LoadingComponent";
+import { LoadingState } from "../../Types";
+import { Tooltip } from "react-tooltip";
+import { scaleLinear } from "d3-scale";
+import { useEffect } from "react";
+import useState from "react-usestateref";
 
 const Users = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [loadingState, setLoadingState] =
     useState<LoadingState>(initialLoadingState);
-  const [users, setUsers] = useState<SearchUser[]>([]);
+  const [mapData, setMapData] = useState<FeatureCollection>();
+  const [tooltipContent, setTooltipContent] = useState<any>("");
+  const defaultColorScale = scaleLinear<string, string>()
+    .domain([0, 1])
+    .range(["rgb(230, 242, 255)", "rgb(11, 107, 203)"]);
+  const hoverColorScale = scaleLinear<string, string>()
+    .domain([0, 1])
+    .range(["rgb(255, 210, 210)", "rgb(196, 28, 28)"]);
+  const [maxNoOfCompetitors, setMaxNoOfCompetitors] = useState<number>(0);
+  const [
+    totalNoOfCompetitors,
+    setTotalNoOfCompetitors,
+    totalNoOfCompetitorsRef,
+  ] = useState<number>(0);
 
-  const searchForUsers = () => {
+  useEffect(() => {
     setLoadingState({ isLoading: true, error: {} });
 
-    getUsers(searchQuery)
-      .then((res: SearchUser[]) => {
-        setUsers(res);
+    setTotalNoOfCompetitors(0);
+    GetMapData()
+      .then((res: FeatureCollection) => {
+        let _maxNoOfCompetitors = 0;
+        res?.features?.map((f) => {
+          if (f && f.properties && f.properties.users) {
+            const countryNoOfCompetitors = f.properties?.users?.length;
+            _maxNoOfCompetitors = Math.max(
+              _maxNoOfCompetitors,
+              countryNoOfCompetitors
+            );
+            setTotalNoOfCompetitors(
+              totalNoOfCompetitorsRef.current + countryNoOfCompetitors
+            );
+          }
+        });
+        setMaxNoOfCompetitors(_maxNoOfCompetitors);
+
+        setMapData(res);
         setLoadingState({ isLoading: false, error: {} });
       })
       .catch((err) => {
         setLoadingState({ isLoading: false, error: getError(err) });
       });
-  };
+  }, []);
 
   return (
     <Stack sx={{ margin: "1em" }} spacing={2}>
-      <Typography level="h2">Find users</Typography>
-      <FormControl disabled={loadingState.isLoading}>
-        <FormLabel>Enter WCA ID or username:</FormLabel>
-        <Input
-          placeholder="Enter WCA ID or username... (eg. 2016DROB01)"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => (e.key === "Enter" ? searchForUsers() : null)}
-          autoFocus
-          startDecorator={
-            <Button
-              startDecorator={<Search />}
-              variant="soft"
-              color="neutral"
-              onClick={searchForUsers}
+      <Typography level="h2">
+        Users {totalNoOfCompetitors !== 0 && <>({totalNoOfCompetitors})</>}
+      </Typography>
+      {loadingState.isLoading ? (
+        <LoadingComponent title="Loading map data..." />
+      ) : !isObjectEmpty(loadingState.error) ? (
+        renderResponseError(loadingState.error)
+      ) : (
+        <>
+          <div
+            data-tooltip-id="my-tooltip"
+            data-tooltip-content=""
+            data-tooltip-float={true}
+            data-tooltip-place="bottom-start"
+            data-tooltip-offset={20}
+          >
+            <ComposableMap
+              projection="geoEqualEarth"
+              projectionConfig={{ scale: 147, center: [0, -25] }}
             >
-              Search
-            </Button>
-          }
-        />
-        <FormHelperText>
-          Leave empty for all users. Matches WCA ID exactly, but name as a part
-          case insensitive.
-        </FormHelperText>
-      </FormControl>
-      {!isObjectEmpty(loadingState.error)
-        ? renderResponseError(loadingState.error)
-        : users.map((u: SearchUser) => (
-            <Card sx={{ display: "flex", flexDirection: "row" }}>
-              <span style={{ fontWeight: "bold" }}>{u.username}: </span>
-              <Link
-                to={`/profile/${u.wcaid}`}
-                style={{ textDecoration: "none" }}
-              >
-                {u.wcaid}
-              </Link>
-            </Card>
-          ))}
+              <ZoomableGroup>
+                <Sphere
+                  id="sphere-id"
+                  fill="transparent"
+                  stroke="#ebe8eb"
+                  strokeWidth={0.5}
+                />
+                <Graticule
+                  fill="transparent"
+                  stroke="#ebe8eb"
+                  strokeWidth={0.5}
+                />
+                <Geographies geography={mapData}>
+                  {({ geographies }) =>
+                    geographies.map((geo) => {
+                      return (
+                        <Geography
+                          key={geo.rsmKey}
+                          geography={geo}
+                          stroke="black"
+                          strokeWidth={0.05}
+                          onMouseEnter={() => {
+                            setTooltipContent(
+                              <Stack spacing={1} direction="column">
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    borderBottom: "1px solid white",
+                                  }}
+                                >
+                                  <span
+                                    className={`fi fi-${geo.properties.countryIso2.toLowerCase()}`}
+                                  />
+                                  &nbsp;&nbsp;
+                                  <Typography sx={{ color: "white" }}>
+                                    {geo.properties.name}
+                                    {geo.properties.users.length !== 0 && (
+                                      <>&nbsp;({geo.properties.users.length})</>
+                                    )}
+                                  </Typography>
+                                </div>
+                                {geo &&
+                                  geo.properties &&
+                                  geo.properties.users &&
+                                  geo.properties.users.map((user: any) => (
+                                    <Typography
+                                      sx={{
+                                        color: "white",
+                                        display: "flex",
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      <b>{user.username}</b>&nbsp;(
+                                      <Stack spacing={0.5} direction="row">
+                                        <div>{user.score}</div>
+                                        <EmojiEvents />
+                                      </Stack>
+                                      )
+                                    </Typography>
+                                  ))}
+                              </Stack>
+                            );
+                          }}
+                          onMouseLeave={() => {
+                            setTooltipContent("");
+                          }}
+                          className="geo-no-outline"
+                          style={{
+                            default: {
+                              fill:
+                                geo.properties.users.length === 0
+                                  ? "#F5F4F6"
+                                  : defaultColorScale(
+                                      geo.properties.users.length /
+                                        maxNoOfCompetitors
+                                    ),
+                            },
+                            hover: {
+                              fill:
+                                geo.properties.users.length === 0
+                                  ? "#F5F4F6"
+                                  : hoverColorScale(
+                                      geo.properties.users.length /
+                                        maxNoOfCompetitors
+                                    ),
+                            },
+                          }}
+                        />
+                      );
+                    })
+                  }
+                </Geographies>
+              </ZoomableGroup>
+            </ComposableMap>
+          </div>
+          <Tooltip id="my-tooltip" noArrow children={tooltipContent}></Tooltip>
+        </>
+      )}
     </Stack>
   );
 };

@@ -1,6 +1,6 @@
 import React from "react";
 import ReactConfetti from "react-confetti";
-import useWindowSize from "../../utils/utils";
+import useWindowSize from "../../utils/useWindowSize";
 
 const SizedConfetti = React.forwardRef<HTMLCanvasElement, any>(
   (passedProps, ref) => {
