@@ -2,103 +2,195 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"sort"
+	"syscall"
+	"time"
 
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
+	"github.com/araddon/dateparse"
+	"github.com/joho/godotenv"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/option"
 )
 
-// Retrieve a token, saves the token, then returns the generated client.
-func getClient(config *oauth2.Config) *http.Client {
-	// The file token.json stores the user's access and refresh tokens, and is
-	// created automatically when the authorization flow completes for the first
-	// time.
-	tokFile := "token.json"
-	tok, err := tokenFromFile(tokFile)
+// return filename, stdout, stderr, err
+func DumpDatabase(envMap map[string]string, filename string) error {
+	cmd := exec.Command("pg_dump", envMap["PG_DUMP_CONNECTION_STRING"], "-f", filename)
+
+	_, err := cmd.CombinedOutput()
 	if err != nil {
-		tok = getTokenFromWeb(config)
-		saveToken(tokFile, tok)
+		return err
 	}
-	return config.Client(context.Background(), tok)
+
+	return nil
 }
 
-// Request a token from the web, then returns the retrieved token.
-func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
-	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	fmt.Printf("Go to the following link in your browser then type the "+
-		"authorization code: \n%v\n", authURL)
-
-	var authCode string
-	if _, err := fmt.Scan(&authCode); err != nil {
-		log.Fatalf("Unable to read authorization code %v", err)
+func UploadFile(service *drive.Service, file *os.File, parentFolders ...string) (string, error) {
+	driveFile := &drive.File{
+		Name:    filepath.Base(file.Name()),
+		Parents: parentFolders,
 	}
-
-	tok, err := config.Exchange(context.TODO(), authCode)
+	fileSrv := service.Files
+	call := fileSrv.Create(driveFile).Media(file)
+	createdFile, err := call.Do()
 	if err != nil {
-		log.Fatalf("Unable to retrieve token from web %v", err)
+		return "", err
 	}
-	return tok
+	return createdFile.Id, nil
 }
 
-// Retrieves a token from a local file.
-func tokenFromFile(file string) (*oauth2.Token, error) {
-	f, err := os.Open(file)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	tok := &oauth2.Token{}
-	err = json.NewDecoder(f).Decode(tok)
-	return tok, err
+type BackupFileEntry struct {
+	Path  string
+	Id    string
+	CTime time.Time
 }
 
-// Saves a token to a file path.
-func saveToken(path string, token *oauth2.Token) {
-	fmt.Printf("Saving credential file to: %s\n", path)
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+func RemoveOldestBackups(folderPath, driveBackupFolderId string, fileService *drive.FilesService) error {
+	entries, err := os.ReadDir(folderPath)
 	if err != nil {
-		log.Fatalf("Unable to cache oauth token: %v", err)
+		return err
 	}
-	defer f.Close()
-	json.NewEncoder(f).Encode(token)
+
+	// remove from local
+	backupsFileEntries := make([]BackupFileEntry, 0)
+
+	for _, e := range entries {
+		filePath := folderPath + "/" + e.Name()
+		fi, err := os.Stat(filePath)
+		if err != nil {
+			return nil
+		}
+
+		stat := fi.Sys().(*syscall.Stat_t)
+		ctime := time.Unix(int64(stat.Ctim.Sec), int64(stat.Ctim.Nsec))
+
+		backupsFileEntries = append(backupsFileEntries, BackupFileEntry{Path: filePath, CTime: ctime})
+	}
+
+	if len(backupsFileEntries) <= 10 {
+		log.Println("Not enough file entries to erase extra one.")
+		return nil
+	}
+
+	sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
+
+	for i := range len(backupsFileEntries) - 10 {
+		err = os.Remove(backupsFileEntries[i].Path)
+		if err != nil {
+			return err
+		}
+	}
+
+	// remove from gdrive
+	backupsFileEntries = make([]BackupFileEntry, 0)
+
+	f, err := fileService.List().Fields("files(id,name,createdTime,parents)").Do()
+	if err != nil {
+		return err
+	}
+
+	for _, e := range f.Files {
+		isInFolder := false
+
+		for _, parent := range e.Parents {
+			if parent == driveBackupFolderId {
+				isInFolder = true
+				break
+			}
+		}
+
+		if !isInFolder {
+			continue
+		}
+
+		parsedTime, err := dateparse.ParseAny(e.CreatedTime)
+		if err != nil {
+			return err
+		}
+
+		backupsFileEntries = append(backupsFileEntries, BackupFileEntry{Id: e.Id, CTime: parsedTime})
+	}
+
+	sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
+	for i := range len(backupsFileEntries) - 10 {
+		err := fileService.Delete(backupsFileEntries[i].Id).SupportsAllDrives(true).Do()
+		if err != nil {
+			return nil
+		}
+	}
+
+	return nil
 }
 
 func main() {
-	ctx := context.Background()
-	b, err := os.ReadFile(fmt.Sprintf("drive-credentials-%s.json", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")))
+	log.Println("Starting database backup procedure...")
+	log.Println("Loading environment variables...")
+	envMap, err := godotenv.Read(fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")))
 	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
+		log.Printf("Unable to load enviromental variables from file: %v\n", err)
+		return
 	}
 
-	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, drive.DriveScope, drive.DriveMetadataScope)
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-	client := getClient(config)
+	log.Println("Environment variables successfully loaded.")
 
-	srv, err := drive.NewService(ctx, option.WithHTTPClient(client))
+	log.Println("Creating new drive service...")
+	credsFilePath := fmt.Sprintf("drive-credentials-%s.json", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV"))
+	service, err := drive.NewService(context.Background(), option.WithCredentialsFile(credsFilePath))
 	if err != nil {
-		log.Fatalf("Unable to retrieve Drive client: %v", err)
+		log.Printf("Unable to retrieve Drive client: %v", err)
+		return
 	}
 
-	r, err := srv.Files.List().PageSize(10).
-		Fields("nextPageToken, files(id, name)").Do()
+	log.Println("New drive service successfully created.")
+	log.Println("Dumping database into file...")
+
+	filename := envMap["DB_BACKUPS_FOLDER_PATH"] + "/" + time.Now().Format("2006-01-02_15-04-05") + ".sql"
+	err = DumpDatabase(envMap, filename)
 	if err != nil {
-		log.Fatalf("Unable to retrieve files: %v", err)
+		log.Println("ERR in DumpDatabase: " + err.Error())
+		return
 	}
-	fmt.Println("Files:")
-	if len(r.Files) == 0 {
-		fmt.Println("No files found.")
-	} else {
-		for _, i := range r.Files {
-			fmt.Println(i)
-		}
+
+	log.Println("Database dump file successfully created.")
+
+	log.Println("Opening dump file...")
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Println("Failed to open file.")
+		return
 	}
+
+	log.Println("Dump file successfully opened.")
+	log.Println("Uploading dump file to Google Drive...")
+
+	_, err = UploadFile(service, f, envMap["DRIVE_BACKUP_FOLDER_ID"])
+	if err != nil {
+		log.Println("ERR in UploadFile: " + err.Error())
+		return
+	}
+
+	log.Println("Dump file uploaded successfully to Google Drive.")
+	log.Println("Closing dump file in os...")
+
+	err = f.Close()
+	if err != nil {
+		log.Println("ERR in f.Close(): " + err.Error())
+		return
+	}
+
+	log.Println("Dump file in os successfully closed.")
+	log.Println("Removing oldest backup dump in $DB_BACKUPS_FOLDER_PATH... (if more than 10 dump files are stored)")
+
+	err = RemoveOldestBackups(envMap["DB_BACKUPS_FOLDER_PATH"], envMap["DRIVE_BACKUP_FOLDER_ID"], service.Files)
+	if err != nil {
+		log.Println("ERR in RemoveOldestBackups: " + err.Error())
+		return
+	}
+
+	log.Println("Oldest backup dump in $DB_BACKUPS_FOLDER_PATH successfully removed. (if more than 10 dump files are stored)")
+	log.Println("Database backup procedure successfully finished.")
 }
