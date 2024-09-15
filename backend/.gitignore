@@ -1,3 +1,5 @@
 .env.production
 .env.development
 scrambler/tnoodle.log
+drive-credentials-development.json
+drive-credentials-production.json
