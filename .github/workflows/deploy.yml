@@ -23,16 +23,6 @@ jobs:
 
             echo 'Latest code pulled from repository.'
 
-      - name: Reinstall cronjobs after editing file
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
-          script_stop: true
-          script: |
-            crontab -e
-
       - name: Rebuild and restart backend
         uses: appleboy/ssh-action@v1.0.3
         with:
