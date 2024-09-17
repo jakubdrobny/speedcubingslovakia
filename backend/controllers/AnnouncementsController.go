@@ -14,11 +14,13 @@ import (
 )
 
 func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		uidExists := middlewares.MarkAuthorization(c, db, envMap, false)
 
 		uid, _ := c.Get("uid")
-		if uidExists { uid = uid.(int) }
+		if uidExists {
+			uid = uid.(int)
+		}
 
 		id := c.Param("id")
 
@@ -32,7 +34,7 @@ func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.Handler
 		if err != nil {
 			log.Println("ERR db.Query in GetAnnouncementById: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed querying announcement by id.")
-			return;
+			return
 		}
 
 		var announcement models.AnnouncementState
@@ -48,47 +50,50 @@ func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.Handler
 			if err != nil {
 				log.Println("ERR scanning announcement data in GetAnnouncementById: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed parsing announcement from database.")
-				return;
+				return
 			}
 
-			if !uidExists { announcement.Read = true }
+			if !uidExists {
+				announcement.Read = true
+			}
 			found = true
 		}
 
 		if !found {
 			log.Println("ERR announcement with id: ", id, " not found in GetAnnouncementById.")
-			c.IndentedJSON(http.StatusInternalServerError, "Announcement not found.")	
-			return;
+			c.IndentedJSON(http.StatusInternalServerError, "Announcement not found.")
+			return
 		}
 
 		err = announcement.GetTags(db)
 		if err != nil {
 			log.Println("ERR GetTags in GetAnnouncementById: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement tags.")
-			return;
+			return
 		}
 
 		err = announcement.GetEmojiCounters(db)
 		if err != nil {
 			log.Println("ERR GetEmojiCounters in GetAnnouncementById: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement emoji counters.")
-			return;
+			return
 		}
-
 
 		c.IndentedJSON(http.StatusOK, announcement)
 	}
 }
 
 func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		uidExists := middlewares.MarkAuthorization(c, db, envMap, false)
 
 		uid, _ := c.Get("uid")
-		if uidExists { uid = uid.(int) }
+		if uidExists {
+			uid = uid.(int)
+		}
 
 		var rows pgx.Rows
-		var err error 
+		var err error
 		if !uidExists {
 			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id ORDER BY a.created_at DESC;`)
 		} else {
@@ -98,7 +103,7 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 		if err != nil {
 			log.Println("ERR db.Query in GetAnnouncements: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed querying announcements.")
-			return;
+			return
 		}
 
 		announcements := make([]models.AnnouncementState, 0)
@@ -116,21 +121,21 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 			if err != nil {
 				log.Println("ERR scanning announcement data in GetAnnouncements: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed parsing announcement from database.")
-				return;
+				return
 			}
 
 			err = announcement.GetTags(db)
 			if err != nil {
 				log.Println("ERR GetTags in GetAnnouncements: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement tags.")
-				return;
+				return
 			}
 
 			err = announcement.GetEmojiCounters(db)
 			if err != nil {
 				log.Println("ERR GetEmojiCounters in GetAnnouncements: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement emoji counters.")
-				return;
+				return
 			}
 
 			announcements = append(announcements, announcement)
@@ -141,7 +146,7 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 }
 
 func GetNoOfNewAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		uidExists := middlewares.MarkAuthorization(c, db, envMap, false)
 
 		uid, _ := c.Get("uid")
@@ -170,7 +175,9 @@ func GetNoOfNewAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.Han
 				return
 			}
 
-			if !read { noOfNewAnnouncements++ }
+			if !read {
+				noOfNewAnnouncements++
+			}
 		}
 
 		c.IndentedJSON(http.StatusOK, noOfNewAnnouncements)
@@ -216,7 +223,7 @@ func PutAnnouncement(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc
 		if err != nil {
 			log.Println("ERR tx.commit in in PutAnnouncement: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to finish transaction.")
-			return	
+			return
 		}
 
 		c.IndentedJSON(http.StatusCreated, announcement)
@@ -374,7 +381,7 @@ func DeleteAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
 		if err != nil {
 			log.Println("ERR tx.commit in in DeleteAnnouncement: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to finish transaction.")
-			return	
+			return
 		}
 
 		c.IndentedJSON(http.StatusOK, "Announcement created.")

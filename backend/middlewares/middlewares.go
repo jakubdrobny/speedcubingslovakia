@@ -31,7 +31,7 @@ func MarkAuthorization(c *gin.Context, db *pgxpool.Pool, envMap map[string]strin
 		}
 		return false
 	}
-	
+
 	user, err := models.GetUserById(db, authDetails.UserId)
 	if err != nil {
 		if markHeaders {

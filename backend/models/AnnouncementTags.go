@@ -9,8 +9,12 @@ func UpdateAnnouncementTags(announcement *AnnouncementState, db *pgxpool.Pool, t
 	var err error
 	var tag_ids []int
 
-	if tag_ids, err = announcement.RemoveAllTags(db, tx); err != nil { return err }
-	if err := announcement.AddTags(tx, tag_ids); err != nil { return err }
+	if tag_ids, err = announcement.RemoveAllTags(db, tx); err != nil {
+		return err
+	}
+	if err := announcement.AddTags(tx, tag_ids); err != nil {
+		return err
+	}
 
-	return nil;
+	return nil
 }

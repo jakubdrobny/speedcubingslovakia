@@ -131,7 +131,7 @@ func main() {
 	log.Println("Loading environment variables...")
 	envMap, err := godotenv.Read(fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")))
 	if err != nil {
-		log.Printf("Unable to load enviromental variables from file: %v\n", err)
+		log.Printf("Unable to load environmental variables from file: %v\n", err)
 		return
 	}
 
