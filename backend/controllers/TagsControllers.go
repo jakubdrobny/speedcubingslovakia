@@ -10,13 +10,13 @@ import (
 )
 
 func GetTags(db *pgxpool.Pool) gin.HandlerFunc {
-	return func (c *gin.Context) {
+	return func(c *gin.Context) {
 		statuses, err := models.GetAvailableTags(db)
 		if err != nil {
 			log.Println("ERR GetAvailableTags in GetTags: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed querying tags from database.")
 		} else {
-			c.IndentedJSON(http.StatusOK, statuses);
+			c.IndentedJSON(http.StatusOK, statuses)
 		}
 	}
 }
