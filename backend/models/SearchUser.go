@@ -8,9 +8,9 @@ import (
 )
 
 type SearchUser struct {
-	Id int `json:"-"`
+	Id       int    `json:"-"`
 	Username string `json:"username"`
-	WCAID string `json:"wcaid"`
+	WCAID    string `json:"wcaid"`
 }
 
 func GetUsersFromDB(tx pgx.Tx, query string) ([]SearchUser, int, string, string) {

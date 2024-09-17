@@ -8,7 +8,7 @@ import (
 )
 
 type Cube struct {
-	State [6][3][3]int
+	State    [6][3][3]int
 	Scramble string
 	Solution string
 }
@@ -52,15 +52,17 @@ func IndexFunc[T any](arr []T, test func(T) bool) int {
 func (c *Cube) ValidMoves() bool {
 	moves := strings.Split(c.Solution, " ")
 	for _, move := range moves {
-		idx := IndexFunc(VALID_MOVES, func (m string) bool { return m == move })
-		if idx == -1 { return false }
+		idx := IndexFunc(VALID_MOVES, func(m string) bool { return m == move })
+		if idx == -1 {
+			return false
+		}
 	}
 
 	return true
 }
 
 func (c *Cube) RotateFace(face int) {
-	for i, j := 0, len(c.State[face])-1; i<j; i, j = i+1, j-1 {
+	for i, j := 0, len(c.State[face])-1; i < j; i, j = i+1, j-1 {
 		c.State[face][i], c.State[face][j] = c.State[face][j], c.State[face][i]
 	}
 
@@ -97,50 +99,50 @@ func (c *Cube) ApplyDPrime() {
 
 func (c *Cube) ApplyF() {
 	c.RotateFace(2)
-	c.State[0][2][0], c.State[0][2][1], c.State[0][2][2], c.State[3][0][0], c.State[3][1][0], c.State[3][2][0], c.State[5][0][2], c.State[5][0][1],  c.State[5][0][0], c.State[1][2][2], c.State[1][1][2], c.State[1][0][2] = c.State[1][2][2], c.State[1][1][2], c.State[1][0][2], c.State[0][2][0], c.State[0][2][1], c.State[0][2][2], c.State[3][0][0], c.State[3][1][0], c.State[3][2][0], c.State[5][0][2], c.State[5][0][1],  c.State[5][0][0]
+	c.State[0][2][0], c.State[0][2][1], c.State[0][2][2], c.State[3][0][0], c.State[3][1][0], c.State[3][2][0], c.State[5][0][2], c.State[5][0][1], c.State[5][0][0], c.State[1][2][2], c.State[1][1][2], c.State[1][0][2] = c.State[1][2][2], c.State[1][1][2], c.State[1][0][2], c.State[0][2][0], c.State[0][2][1], c.State[0][2][2], c.State[3][0][0], c.State[3][1][0], c.State[3][2][0], c.State[5][0][2], c.State[5][0][1], c.State[5][0][0]
 }
 
 func (c *Cube) ApplyFPrime() {
 	c.RotateFace(2)
 	c.RotateFace(2)
 	c.RotateFace(2)
-	c.State[0][2][0], c.State[0][2][1], c.State[0][2][2], c.State[3][0][0], c.State[3][1][0], c.State[3][2][0], c.State[5][0][2], c.State[5][0][1],  c.State[5][0][0], c.State[1][2][2], c.State[1][1][2], c.State[1][0][2] = c.State[3][0][0], c.State[3][1][0], c.State[3][2][0], c.State[5][0][2], c.State[5][0][1],  c.State[5][0][0], c.State[1][2][2], c.State[1][1][2], c.State[1][0][2], c.State[0][2][0], c.State[0][2][1], c.State[0][2][2]
+	c.State[0][2][0], c.State[0][2][1], c.State[0][2][2], c.State[3][0][0], c.State[3][1][0], c.State[3][2][0], c.State[5][0][2], c.State[5][0][1], c.State[5][0][0], c.State[1][2][2], c.State[1][1][2], c.State[1][0][2] = c.State[3][0][0], c.State[3][1][0], c.State[3][2][0], c.State[5][0][2], c.State[5][0][1], c.State[5][0][0], c.State[1][2][2], c.State[1][1][2], c.State[1][0][2], c.State[0][2][0], c.State[0][2][1], c.State[0][2][2]
 }
 
 func (c *Cube) ApplyB() {
 	c.RotateFace(4)
-	c.State[0][0][0], c.State[0][0][1], c.State[0][0][2], c.State[3][0][2], c.State[3][1][2], c.State[3][2][2], c.State[5][2][2], c.State[5][2][1],  c.State[5][2][0], c.State[1][2][0], c.State[1][1][0], c.State[1][0][0] = c.State[3][0][2], c.State[3][1][2], c.State[3][2][2], c.State[5][2][2], c.State[5][2][1],  c.State[5][2][0], c.State[1][2][0], c.State[1][1][0], c.State[1][0][0], c.State[0][0][0], c.State[0][0][1], c.State[0][0][2]
+	c.State[0][0][0], c.State[0][0][1], c.State[0][0][2], c.State[3][0][2], c.State[3][1][2], c.State[3][2][2], c.State[5][2][2], c.State[5][2][1], c.State[5][2][0], c.State[1][2][0], c.State[1][1][0], c.State[1][0][0] = c.State[3][0][2], c.State[3][1][2], c.State[3][2][2], c.State[5][2][2], c.State[5][2][1], c.State[5][2][0], c.State[1][2][0], c.State[1][1][0], c.State[1][0][0], c.State[0][0][0], c.State[0][0][1], c.State[0][0][2]
 }
 
 func (c *Cube) ApplyBPrime() {
 	c.RotateFace(4)
 	c.RotateFace(4)
 	c.RotateFace(4)
-	c.State[0][0][0], c.State[0][0][1], c.State[0][0][2], c.State[3][0][2], c.State[3][1][2], c.State[3][2][2], c.State[5][2][2], c.State[5][2][1],  c.State[5][2][0], c.State[1][2][0], c.State[1][1][0], c.State[1][0][0] = c.State[1][2][0], c.State[1][1][0], c.State[1][0][0], c.State[0][0][0], c.State[0][0][1], c.State[0][0][2], c.State[3][0][2], c.State[3][1][2], c.State[3][2][2], c.State[5][2][2], c.State[5][2][1],  c.State[5][2][0]
+	c.State[0][0][0], c.State[0][0][1], c.State[0][0][2], c.State[3][0][2], c.State[3][1][2], c.State[3][2][2], c.State[5][2][2], c.State[5][2][1], c.State[5][2][0], c.State[1][2][0], c.State[1][1][0], c.State[1][0][0] = c.State[1][2][0], c.State[1][1][0], c.State[1][0][0], c.State[0][0][0], c.State[0][0][1], c.State[0][0][2], c.State[3][0][2], c.State[3][1][2], c.State[3][2][2], c.State[5][2][2], c.State[5][2][1], c.State[5][2][0]
 }
 
 func (c *Cube) ApplyR() {
 	c.RotateFace(3)
-	c.State[0][0][2], c.State[0][1][2], c.State[0][2][2], c.State[2][0][2], c.State[2][1][2], c.State[2][2][2], c.State[5][0][2], c.State[5][1][2],  c.State[5][2][2], c.State[4][2][0], c.State[4][1][0], c.State[4][0][0] = c.State[2][0][2], c.State[2][1][2], c.State[2][2][2], c.State[5][0][2], c.State[5][1][2],  c.State[5][2][2], c.State[4][2][0], c.State[4][1][0], c.State[4][0][0], c.State[0][0][2], c.State[0][1][2], c.State[0][2][2]
+	c.State[0][0][2], c.State[0][1][2], c.State[0][2][2], c.State[2][0][2], c.State[2][1][2], c.State[2][2][2], c.State[5][0][2], c.State[5][1][2], c.State[5][2][2], c.State[4][2][0], c.State[4][1][0], c.State[4][0][0] = c.State[2][0][2], c.State[2][1][2], c.State[2][2][2], c.State[5][0][2], c.State[5][1][2], c.State[5][2][2], c.State[4][2][0], c.State[4][1][0], c.State[4][0][0], c.State[0][0][2], c.State[0][1][2], c.State[0][2][2]
 }
 
 func (c *Cube) ApplyRPrime() {
 	c.RotateFace(3)
 	c.RotateFace(3)
 	c.RotateFace(3)
-	c.State[0][0][2], c.State[0][1][2], c.State[0][2][2], c.State[2][0][2], c.State[2][1][2], c.State[2][2][2], c.State[5][0][2], c.State[5][1][2],  c.State[5][2][2], c.State[4][2][0], c.State[4][1][0], c.State[4][0][0] = c.State[4][2][0], c.State[4][1][0], c.State[4][0][0], c.State[0][0][2], c.State[0][1][2], c.State[0][2][2], c.State[2][0][2], c.State[2][1][2], c.State[2][2][2], c.State[5][0][2], c.State[5][1][2],  c.State[5][2][2]
+	c.State[0][0][2], c.State[0][1][2], c.State[0][2][2], c.State[2][0][2], c.State[2][1][2], c.State[2][2][2], c.State[5][0][2], c.State[5][1][2], c.State[5][2][2], c.State[4][2][0], c.State[4][1][0], c.State[4][0][0] = c.State[4][2][0], c.State[4][1][0], c.State[4][0][0], c.State[0][0][2], c.State[0][1][2], c.State[0][2][2], c.State[2][0][2], c.State[2][1][2], c.State[2][2][2], c.State[5][0][2], c.State[5][1][2], c.State[5][2][2]
 }
 
 func (c *Cube) ApplyL() {
 	c.RotateFace(1)
-	c.State[0][0][0], c.State[0][1][0], c.State[0][2][0], c.State[2][0][0], c.State[2][1][0], c.State[2][2][0], c.State[5][0][0], c.State[5][1][0],  c.State[5][2][0], c.State[4][2][2], c.State[4][1][2], c.State[4][0][2] = c.State[4][2][2], c.State[4][1][2], c.State[4][0][2], c.State[0][0][0], c.State[0][1][0], c.State[0][2][0], c.State[2][0][0], c.State[2][1][0], c.State[2][2][0], c.State[5][0][0], c.State[5][1][0],  c.State[5][2][0]
+	c.State[0][0][0], c.State[0][1][0], c.State[0][2][0], c.State[2][0][0], c.State[2][1][0], c.State[2][2][0], c.State[5][0][0], c.State[5][1][0], c.State[5][2][0], c.State[4][2][2], c.State[4][1][2], c.State[4][0][2] = c.State[4][2][2], c.State[4][1][2], c.State[4][0][2], c.State[0][0][0], c.State[0][1][0], c.State[0][2][0], c.State[2][0][0], c.State[2][1][0], c.State[2][2][0], c.State[5][0][0], c.State[5][1][0], c.State[5][2][0]
 }
 
 func (c *Cube) ApplyLPrime() {
 	c.RotateFace(1)
 	c.RotateFace(1)
 	c.RotateFace(1)
-	c.State[0][0][0], c.State[0][1][0], c.State[0][2][0], c.State[2][0][0], c.State[2][1][0], c.State[2][2][0], c.State[5][0][0], c.State[5][1][0],  c.State[5][2][0], c.State[4][2][2], c.State[4][1][2], c.State[4][0][2] = c.State[2][0][0], c.State[2][1][0], c.State[2][2][0], c.State[5][0][0], c.State[5][1][0],  c.State[5][2][0], c.State[4][2][2], c.State[4][1][2], c.State[4][0][2], c.State[0][0][0], c.State[0][1][0], c.State[0][2][0]
+	c.State[0][0][0], c.State[0][1][0], c.State[0][2][0], c.State[2][0][0], c.State[2][1][0], c.State[2][2][0], c.State[5][0][0], c.State[5][1][0], c.State[5][2][0], c.State[4][2][2], c.State[4][1][2], c.State[4][0][2] = c.State[2][0][0], c.State[2][1][0], c.State[2][2][0], c.State[5][0][0], c.State[5][1][0], c.State[5][2][0], c.State[4][2][2], c.State[4][1][2], c.State[4][0][2], c.State[0][0][0], c.State[0][1][0], c.State[0][2][0]
 }
 
 func (c *Cube) ApplyX() {
@@ -187,7 +189,7 @@ func (c *Cube) ApplyYPrime() {
 	c.RotateFace(0)
 	c.RotateFace(0)
 	c.RotateFace(0)
-	
+
 	c.RotateFace(5)
 
 	c.State[1], c.State[2], c.State[3], c.State[4] = c.State[4], c.State[1], c.State[2], c.State[3]
@@ -211,7 +213,7 @@ func (c *Cube) ApplyZPrime() {
 	c.RotateFace(2)
 	c.RotateFace(2)
 	c.RotateFace(2)
-	
+
 	c.RotateFace(4)
 
 	for _, f := range []int{0, 1, 3, 5} {
@@ -225,153 +227,149 @@ func (c *Cube) ApplyZPrime() {
 
 func (c *Cube) ApplyMove(move string) {
 	switch move {
-		case "U":
-			c.ApplyU()
-		case "U'":
-			c.ApplyUPrime()
-		case "U2":
-			c.ApplyU()
-			c.ApplyU()
+	case "U":
+		c.ApplyU()
+	case "U'":
+		c.ApplyUPrime()
+	case "U2":
+		c.ApplyU()
+		c.ApplyU()
 
-		case "D":
-			c.ApplyD()
-		case "D'":
-			c.ApplyDPrime()
-		case "D2":
-			c.ApplyD()
-			c.ApplyD()
+	case "D":
+		c.ApplyD()
+	case "D'":
+		c.ApplyDPrime()
+	case "D2":
+		c.ApplyD()
+		c.ApplyD()
 
-		case "F":
-			c.ApplyF()
-		case "F'":
-			c.ApplyFPrime()
-		case "F2":
-			c.ApplyF()
-			c.ApplyF()
+	case "F":
+		c.ApplyF()
+	case "F'":
+		c.ApplyFPrime()
+	case "F2":
+		c.ApplyF()
+		c.ApplyF()
 
-		case "B":
-			c.ApplyB()
-		case "B'":
-			c.ApplyBPrime()
-		case "B2":
-			c.ApplyB()
-			c.ApplyB()
+	case "B":
+		c.ApplyB()
+	case "B'":
+		c.ApplyBPrime()
+	case "B2":
+		c.ApplyB()
+		c.ApplyB()
 
-		case "R":
-			c.ApplyR()
-		case "R'":
-			c.ApplyRPrime()
-		case "R2":
-			c.ApplyR()
-			c.ApplyR()
+	case "R":
+		c.ApplyR()
+	case "R'":
+		c.ApplyRPrime()
+	case "R2":
+		c.ApplyR()
+		c.ApplyR()
 
-		case "L":
-			c.ApplyL()
-		case "L'":
-			c.ApplyLPrime()
-		case "L2":
-			c.ApplyL()
-			c.ApplyL()
+	case "L":
+		c.ApplyL()
+	case "L'":
+		c.ApplyLPrime()
+	case "L2":
+		c.ApplyL()
+		c.ApplyL()
 
+	case "Uw":
+		c.ApplyD()
+		c.ApplyY()
+	case "Uw'":
+		c.ApplyDPrime()
+		c.ApplyYPrime()
+	case "Uw2":
+		c.ApplyD()
+		c.ApplyY()
+		c.ApplyD()
+		c.ApplyY()
 
+	case "Dw":
+		c.ApplyU()
+		c.ApplyYPrime()
+	case "Dw'":
+		c.ApplyUPrime()
+		c.ApplyY()
+	case "Dw2":
+		c.ApplyU()
+		c.ApplyYPrime()
+		c.ApplyU()
+		c.ApplyYPrime()
 
-		case "Uw":
-			c.ApplyD()
-			c.ApplyY()
-		case "Uw'":
-			c.ApplyDPrime()
-			c.ApplyYPrime()
-		case "Uw2":
-			c.ApplyD()
-			c.ApplyY()
-			c.ApplyD()
-			c.ApplyY()
+	case "Fw":
+		c.ApplyB()
+		c.ApplyZ()
+	case "Fw'":
+		c.ApplyBPrime()
+		c.ApplyZPrime()
+	case "Fw2":
+		c.ApplyB()
+		c.ApplyZ()
+		c.ApplyB()
+		c.ApplyZ()
 
-		case "Dw":
-			c.ApplyU()
-			c.ApplyYPrime()
-		case "Dw'":
-			c.ApplyUPrime()
-			c.ApplyY()
-		case "Dw2":
-			c.ApplyU()
-			c.ApplyYPrime()
-			c.ApplyU()
-			c.ApplyYPrime()
+	case "Bw":
+		c.ApplyF()
+		c.ApplyZPrime()
+	case "Bw'":
+		c.ApplyFPrime()
+		c.ApplyZ()
+	case "Bw2":
+		c.ApplyF()
+		c.ApplyZPrime()
+		c.ApplyF()
+		c.ApplyZPrime()
 
-		case "Fw":
-			c.ApplyB()
-			c.ApplyZ()
-		case "Fw'":
-			c.ApplyBPrime()
-			c.ApplyZPrime()
-		case "Fw2":
-			c.ApplyB()
-			c.ApplyZ()
-			c.ApplyB()
-			c.ApplyZ()
+	case "Rw":
+		c.ApplyL()
+		c.ApplyX()
+	case "Rw'":
+		c.ApplyLPrime()
+		c.ApplyXPrime()
+	case "Rw2":
+		c.ApplyL()
+		c.ApplyX()
+		c.ApplyL()
+		c.ApplyX()
 
-		case "Bw":
-			c.ApplyF()
-			c.ApplyZPrime()
-		case "Bw'":
-			c.ApplyFPrime()
-			c.ApplyZ()
-		case "Bw2":
-			c.ApplyF()
-			c.ApplyZPrime()
-			c.ApplyF()
-			c.ApplyZPrime()
+	case "Lw":
+		c.ApplyR()
+		c.ApplyXPrime()
+	case "Lw'":
+		c.ApplyRPrime()
+		c.ApplyX()
+	case "Lw2":
+		c.ApplyR()
+		c.ApplyXPrime()
+		c.ApplyR()
+		c.ApplyXPrime()
 
-		case "Rw":
-			c.ApplyL()
-			c.ApplyX()
-		case "Rw'":
-			c.ApplyLPrime()
-			c.ApplyXPrime()
-		case "Rw2":
-			c.ApplyL()
-			c.ApplyX()
-			c.ApplyL()
-			c.ApplyX()
+	case "x":
+		c.ApplyX()
+	case "x'":
+		c.ApplyXPrime()
+	case "x2":
+		c.ApplyX()
+		c.ApplyX()
 
-		case "Lw":
-			c.ApplyR()
-			c.ApplyXPrime()
-		case "Lw'":
-			c.ApplyRPrime()
-			c.ApplyX()
-		case "Lw2":
-			c.ApplyR()
-			c.ApplyXPrime()
-			c.ApplyR()
-			c.ApplyXPrime()
+	case "y":
+		c.ApplyY()
+	case "y'":
+		c.ApplyYPrime()
+	case "y2":
+		c.ApplyY()
+		c.ApplyY()
 
-
-
-		case "x":
-			c.ApplyX()
-		case "x'":
-			c.ApplyXPrime()
-		case "x2":
-			c.ApplyX()
-			c.ApplyX()
-
-		case "y":
-			c.ApplyY()
-		case "y'":
-			c.ApplyYPrime()
-		case "y2":
-			c.ApplyY()
-			c.ApplyY()
-
-		case "z":
-			c.ApplyZ()
-		case "z'":
-			c.ApplyZPrime()
-		case "z2":
-			c.ApplyZ()
-			c.ApplyZ()
+	case "z":
+		c.ApplyZ()
+	case "z'":
+		c.ApplyZPrime()
+	case "z2":
+		c.ApplyZ()
+		c.ApplyZ()
 	}
 }
 
@@ -404,7 +402,7 @@ func (c *Cube) Solved() bool {
 			return false
 		}
 	}
-	
+
 	return true
 }
 
@@ -412,7 +410,7 @@ func (c *Cube) OfficialSolutionLength() int {
 	moveCount := 0
 
 	for _, move := range strings.Split(c.Solution, " ") {
-		idx := IndexFunc(ROTATIONS, func (rot string) bool { return rot == move })
+		idx := IndexFunc(ROTATIONS, func(rot string) bool { return rot == move })
 		if idx == -1 {
 			moveCount++
 		}
@@ -434,7 +432,6 @@ func (c *Cube) PrintState() {
 		fmt.Println()
 	}
 
-	
 	for i := range []int{0, 1, 2} {
 		for _, face := range []int{1, 2, 3, 4} {
 			for j := range []int{0, 1, 2} {
@@ -456,12 +453,16 @@ func (c *Cube) PrintState() {
 func ParseFMCSolutionToMilliseconds(scramble string, solution string) int {
 	c := Cube{InitialState(), scramble, solution}
 
-	if !c.ValidMoves() { return constants.DNF }
+	if !c.ValidMoves() {
+		return constants.DNF
+	}
 
 	c.ApplyScramble()
 	c.ApplySolution()
 
-	if !c.Solved() || c.TotalSolutionLength() > 80 { return constants.DNF }
-	
+	if !c.Solved() || c.TotalSolutionLength() > 80 {
+		return constants.DNF
+	}
+
 	return c.OfficialSolutionLength()
 }

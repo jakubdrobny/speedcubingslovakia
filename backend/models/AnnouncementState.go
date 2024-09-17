@@ -9,27 +9,31 @@ import (
 )
 
 type AnnouncementState struct {
-	Id int `json:"id"`
-	Title string `json:"title"`
-	Content string `json:"content"`
-	AuthorId int `json:"authorId"`
-	AuthorWcaId string `json:"authorWcaId"`
-	AuthorUsername string `json:"authorUsername"`
-	Tags []Tag `json:"tags"`
-	Read bool `json:"read"`
-	EmojiCounters []EmojiCounter `json:"emojiCounters"`
+	Id             int            `json:"id"`
+	Title          string         `json:"title"`
+	Content        string         `json:"content"`
+	AuthorId       int            `json:"authorId"`
+	AuthorWcaId    string         `json:"authorWcaId"`
+	AuthorUsername string         `json:"authorUsername"`
+	Tags           []Tag          `json:"tags"`
+	Read           bool           `json:"read"`
+	EmojiCounters  []EmojiCounter `json:"emojiCounters"`
 }
 
-func (a *AnnouncementState) GetTags(db *pgxpool.Pool) (error) {
+func (a *AnnouncementState) GetTags(db *pgxpool.Pool) error {
 	rows, err := db.Query(context.Background(), `SELECT t.tag_id, t.label, t.color FROM tags t JOIN announcement_tags at ON t.tag_id = at.tag_id WHERE at.announcement_id = $1;`, a.Id)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	a.Tags = make([]Tag, 0)
 
 	for rows.Next() {
 		var tag Tag
 		err = rows.Scan(&tag.Id, &tag.Label, &tag.Color)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 
 		a.Tags = append(a.Tags, tag)
 	}
@@ -37,16 +41,20 @@ func (a *AnnouncementState) GetTags(db *pgxpool.Pool) (error) {
 	return nil
 }
 
-func (a *AnnouncementState) GetEmojiCounters(db *pgxpool.Pool) (error) {
+func (a *AnnouncementState) GetEmojiCounters(db *pgxpool.Pool) error {
 	rows, err := db.Query(context.Background(), `SELECT ar.announcement_reaction_id, ar.emoji, ar.by FROM announcement_reaction ar WHERE ar.announcement_id = $1 AND ar."set" = TRUE;`, a.Id)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	a.EmojiCounters = make([]EmojiCounter, 0)
 
 	for rows.Next() {
 		var emojiCounter EmojiCounter
 		err = rows.Scan(&emojiCounter.Id, &emojiCounter.Emoji, &emojiCounter.By)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 
 		a.EmojiCounters = append(a.EmojiCounters, emojiCounter)
 	}
@@ -56,13 +64,17 @@ func (a *AnnouncementState) GetEmojiCounters(db *pgxpool.Pool) (error) {
 
 func (a *AnnouncementState) RemoveAllTags(db *pgxpool.Pool, tx pgx.Tx) ([]int, error) {
 	rows, err := tx.Query(context.Background(), `SELECT tag_id FROM announcement_tags WHERE announcement_id = $1;`, a.Id)
-	if err != nil { return []int{}, err }
+	if err != nil {
+		return []int{}, err
+	}
 
 	tag_ids := make([]int, 0)
 	for rows.Next() {
 		var tag_id int
 		err = rows.Scan(&tag_id)
-		if err != nil { return []int{}, err }
+		if err != nil {
+			return []int{}, err
+		}
 
 		tag_ids = append(tag_ids, tag_id)
 	}
@@ -74,19 +86,25 @@ func (a *AnnouncementState) RemoveAllTags(db *pgxpool.Pool, tx pgx.Tx) ([]int, e
 func (a *AnnouncementState) AddTags(tx pgx.Tx, tag_ids []int) error {
 	for _, tag := range a.Tags {
 		_, err := tx.Exec(context.Background(), `INSERT INTO announcement_tags (announcement_id, tag_id) VALUES ($1, $2);`, a.Id, tag.Id)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 	}
 
-	return nil;
+	return nil
 }
 
 func (a *AnnouncementState) IsRead(db *pgxpool.Pool) error {
 	rows, err := db.Query(context.Background(), `SELECT read FROM announcement_read WHERE announcement_id = $1 AND user_id = $2;`, a.Id, a.AuthorId)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	for rows.Next() {
 		err = rows.Scan(&a.Read)
-		if err != nil { return err }
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -94,7 +112,9 @@ func (a *AnnouncementState) IsRead(db *pgxpool.Pool) error {
 
 func (a *AnnouncementState) MarkRead(db *pgxpool.Pool) error {
 	_, err := db.Exec(context.Background(), `UPDATE announcement_read SET read = TRUE, read_timestamp = CURRENT_TIMESTAMP WHERE announcement_id = $1 AND user_id = $2;`, a.Id, a.AuthorId)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -112,7 +132,7 @@ func (a *AnnouncementState) MakeAnnouncementUnreadForEveryone(tx pgx.Tx) (string
 			return "ERR user.MakeAnnouncement in AnnouncementState.MakeAnnouncementUnreadForEveryone: " + err.Error(), "Failed to make announcement unread for user with id: " + strconv.Itoa(user.Id)
 		}
 	}
-	
+
 	return "", ""
 }
 
@@ -140,7 +160,9 @@ func (a *AnnouncementState) Create(db *pgxpool.Pool, envMap map[string]string) (
 	}
 
 	err = tx.Commit(context.Background())
-	if err != nil { return "ERR tx.commit in AnnouncementState.Create: " + err.Error(), "Failed to finish transaction." }
+	if err != nil {
+		return "ERR tx.commit in AnnouncementState.Create: " + err.Error(), "Failed to finish transaction."
+	}
 
 	return "", ""
 }
