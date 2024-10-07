@@ -139,6 +139,89 @@ func CompareSolves(t1 *int, s2 string, isfmc bool, scramble string) {
 }
 
 func GetWorldRecords(eventName string) (int, int, error) {
+	single := map[string]string{
+		"333":                    "3.13",
+		"222":                    "0.43",
+		"444":                    "15.71",
+		"555":                    "31.60",
+		"666":                    "58.03",
+		"777":                    "1:34.15",
+		"333bf":                  "12.00",
+		"333fm":                  "16",
+		"333oh":                  "5.66",
+		"clock":                  "1.97",
+		"minx":                   "23.18",
+		"pyram":                  "0.73",
+		"skewb":                  "0.75",
+		"sq1":                    "3.41",
+		"444bf":                  "51.96",
+		"555bf":                  "2:04.41",
+		"333mbf":                 "62/65 57:47",
+		"unofficial-222bf":       "3.00",
+		"unofficial-666bf":       "4:00.00",
+		"unofficial-777bf":       "8:00.00",
+		"333ft":                  "13.00",
+		"unofficial-333mts":      "10.00",
+		"unofficial-234relay":    "20.00",
+		"unofficial-2345relay":   "55.00",
+		"unofficial-23456relay":  "2:00.00",
+		"unofficial-234567relay": "3:40.00",
+		"unofficial-kilominx":    "8.00",
+		"unofficial-miniguild":   "2:30.00",
+		"unofficial-redi":        "2.70",
+		"unofficial-mpyram":      "10.00",
+		"unofficial-15puzzle":    "5.00",
+		"unofficial-mirror":      "8.00",
+		"unofficial-fto":         "11.00",
+	}
+	average := map[string]string{
+
+		"333":                 "4.09",
+		"222":                 "0.78",
+		"444":                 "19.38",
+		"555":                 "34.76",
+		"666":                 "1:05.66",
+		"777":                 "1:39.68",
+		"333bf":               "14.05",
+		"333fm":               "20.00",
+		"333oh":               "8.09",
+		"clock":               "2.39",
+		"minx":                "26.84",
+		"pyram":               "1.27",
+		"skewb":               "1.52",
+		"sq1":                 "4.81",
+		"444bf":               "1:06.46",
+		"555bf":               "2:27.63",
+		"unofficial-222bf":    "3.00",
+		"333ft":               "17.00",
+		"unofficial-333mts":   "12.00",
+		"unofficial-kilominx": "10.00",
+		"unofficial-redi":     "4.00",
+		"unofficial-mpyram":   "16.00",
+		"unofficial-15puzzle": "8.00",
+		"unofficial-mirror":   "11.50",
+		"unofficial-fto":      "15.00",
+	}
+
+	var retSingle, retAverage int
+	recSingle, ok := single[eventName]
+	if !ok {
+		retSingle = constants.VERY_SLOW
+	} else {
+		retSingle = ParseSolveToMilliseconds(recSingle, false, "")
+	}
+
+	recAverage, ok := average[eventName]
+	if !ok {
+		retAverage = constants.VERY_SLOW
+	} else {
+		retAverage = ParseSolveToMilliseconds(recAverage, false, "")
+	}
+
+	return retSingle, retAverage, nil
+}
+
+func DOES_NOT_WORK_CURRENTLY_FOR_SOME_REASON_GetWorldRecords(eventName string) (int, int, error) {
 	c := colly.NewCollector()
 
 	single, average := constants.VERY_SLOW, constants.VERY_SLOW

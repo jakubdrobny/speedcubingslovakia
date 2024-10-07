@@ -242,9 +242,10 @@ func (r *ResultEntry) Single(isfmc bool, scrambles []string) int {
 }
 
 func (r *ResultEntry) IsSuspicous(isfmc bool, scrambles []string) bool {
-	if (len(r.Iconcode) >= 10 && r.Iconcode[:10] == "unofficial") || r.Iconcode == "333ft" {
-		return false
-	}
+	// Not necessary since using new GetWorldRecords function
+	//if (len(r.Iconcode) >= 10 && r.Iconcode[:10] == "unofficial") || r.Iconcode == "333ft" {
+	//return false
+	//}
 
 	noOfSolves, err := utils.GetNoOfSolves(r.Format)
 	if err != nil {

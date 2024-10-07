@@ -31,14 +31,14 @@ import Cookies from "universal-cookie";
 import { Link } from "react-router-dom";
 
 export const loadFilteredCompetitions = async (
-  filterValue: FilterValue
+  filterValue: FilterValue,
 ): Promise<CompetitionData[]> => {
   const response = await axios.get(`/api/competitions/filter/${filterValue}`);
   return response.data;
 };
 
 export const getCompetitionById = async (
-  id: string | undefined
+  id: string | undefined,
 ): Promise<CompetitionData> => {
   if (id === undefined) {
     return Promise.reject("Invalid competition id.");
@@ -50,7 +50,7 @@ export const getCompetitionById = async (
 
 export const getResultsFromCompetitionAndEvent = async (
   cid: string | undefined,
-  event: CompetitionEvent | undefined
+  event: CompetitionEvent | undefined,
 ): Promise<ResultEntry> => {
   if (cid === undefined || event === undefined)
     return Promise.reject("invalid competition/event id");
@@ -95,7 +95,7 @@ export const milisecondsToFormattedTime = (toFormat: number): string => {
 
   res[res.length - 1] = res[res.length - 1].slice(
     0,
-    res[res.length - 1].length - 1
+    res[res.length - 1].length - 1,
   );
   let sliceIdx = 0;
   while (sliceIdx < res.length - 2 && res[sliceIdx] === "0") sliceIdx += 1;
@@ -114,7 +114,7 @@ export const milisecondsToFormattedTime = (toFormat: number): string => {
 
 export const reformatWithPenalties = (
   oldFormattedTime: string,
-  penalty: string
+  penalty: string,
 ) => {
   if (oldFormattedTime === "DNF") {
     return oldFormattedTime;
@@ -143,7 +143,7 @@ export const getManageUsers = async (): Promise<ManageRolesUser[]> => {
 };
 
 export const updateUserRoles = async (
-  newUsers: ManageRolesUser[]
+  newUsers: ManageRolesUser[],
 ): Promise<ManageRolesUser[]> => {
   const response = await axios.put("/api/users/manage-roles", newUsers);
   return response.data;
@@ -163,7 +163,7 @@ export const getAvailableResultsStatuses = async (): Promise<
 
 export const updateCompetition = async (
   state: CompetitionState,
-  edit: boolean
+  edit: boolean,
 ): Promise<CompetitionState> => {
   const reqBody: CompetitionData = {
     id: state.id,
@@ -175,7 +175,7 @@ export const updateCompetition = async (
       ? state.enddate
       : state.enddate + ":00Z",
     events: state.events.toSorted(
-      (e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id
+      (e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id,
     ),
     scrambles: [],
   };
@@ -193,7 +193,7 @@ export const getResults = async (
   username: string,
   cid: string,
   competeEvent: CompetitionEvent | undefined,
-  resultsStatus: string
+  resultsStatus: string,
 ) => {
   if (competeEvent === undefined || !resultsStatus)
     return Promise.reject("proste nie");
@@ -202,7 +202,7 @@ export const getResults = async (
   cid = cid === "" ? "_" : cid;
 
   const response = await axios.get(
-    `/api/results/edit/${username}/${cid}/${competeEvent.id}/${resultsStatus}`
+    `/api/results/edit/${username}/${cid}/${competeEvent.id}/${resultsStatus}`,
   );
   return response.data;
 };
@@ -263,8 +263,10 @@ export const initialCurrentResults: ResultEntry = {
 
 export const reformatTime = (
   oldFormattedTime: string,
-  added: boolean = false
+  added: boolean = false,
 ): string => {
+  oldFormattedTime = sanitazeFromBrackets(oldFormattedTime);
+
   if (added) {
     let idx = 0;
     while (
@@ -279,9 +281,8 @@ export const reformatTime = (
   let digits = !matchedDigits ? "" : matchedDigits.join("");
   if (digits.length < 3) digits = digits.padStart(3, "0");
 
-  let newFormattedTime = `${digits[digits.length - 1]}${
-    digits[digits.length - 2]
-  }.`;
+  let newFormattedTime = `${digits[digits.length - 1]}${digits[digits.length - 2]
+    }.`;
   let idx = digits.length - 3;
   while (idx >= 0) {
     newFormattedTime += digits[idx--];
@@ -295,7 +296,7 @@ export const reformatTime = (
 };
 
 export const sendResults = async (
-  resultEntry: ResultEntry
+  resultEntry: ResultEntry,
 ): Promise<ResultEntry> => {
   const response = await axios.post("/api/results/save", resultEntry);
   return response.data;
@@ -303,7 +304,7 @@ export const sendResults = async (
 
 export const saveValidation = async (
   resultEntry: ResultEntry,
-  verdict: boolean
+  verdict: boolean,
 ) => {
   const response = await axios.post("/api/results/save-validation", {
     resultId: resultEntry.id,
@@ -325,7 +326,7 @@ export const formatDate = (dateString: string): String => {
 };
 
 export const logIn = async (
-  searchParams: URLSearchParams
+  searchParams: URLSearchParams,
 ): Promise<AuthState> => {
   const code = searchParams.get("code");
   if (code === null) {
@@ -392,10 +393,10 @@ export const setBearerIfPresent = (token: string) => {
 
 export const getCompetitionResults = async (
   competitionId: string,
-  event: CompetitionEvent
+  event: CompetitionEvent,
 ): Promise<CompetitionResultStruct> => {
   const response = await axios.get(
-    `/api/competitions/results/${competitionId}/${event.id}`
+    `/api/competitions/results/${competitionId}/${event.id}`,
   );
   return response.data;
 };
@@ -486,14 +487,12 @@ export const getRankings = async (
   single: boolean,
   regionGroup: string,
   region: string,
-  queryType: string
+  queryType: string,
 ): Promise<RankingsEntry[]> => {
   const response = await axios.get(
-    `/api/results/rankings?eid=${eid}&type=${
-      single ? "single" : "average"
-    }&regionGroup=${regionGroup}&region=${region}&queryType=${
-      queryType.split("+")[1]
-    }&numOfEntries=${queryType.split("+")[0]}`
+    `/api/results/rankings?eid=${eid}&type=${single ? "single" : "average"
+    }&regionGroup=${regionGroup}&region=${region}&queryType=${queryType.split("+")[1]
+    }&numOfEntries=${queryType.split("+")[0]}`,
   );
   return response.data;
 };
@@ -501,15 +500,28 @@ export const getRankings = async (
 export const getRecords = async (
   eid: number,
   regionGroup: string,
-  region: string
+  region: string,
 ): Promise<RecordsItem[]> => {
   const response = await axios.get(
-    `/api/results/records?eid=${eid}&regionGroup=${regionGroup}&region=${region}`
+    `/api/results/records?eid=${eid}&regionGroup=${regionGroup}&region=${region}`,
   );
   return response.data;
 };
 
+export const sanitazeFromBrackets = (oldTime: string): string => {
+  if (oldTime.length == 0) return oldTime;
+
+  let newTime = oldTime;
+  if (newTime.length > 0 && newTime[0] == "(") newTime = newTime.slice(1);
+  if (newTime.length > 0 && newTime[newTime.length - 1] == ")")
+    newTime = newTime.slice(0, -1);
+
+  return newTime;
+};
+
 export const reformatMultiTime = (startingTime: string): string => {
+  startingTime = sanitazeFromBrackets(startingTime);
+
   if (startingTime === "DNS" || startingTime === "DNF") return startingTime;
   if (startingTime.indexOf(":") === -1) return startingTime;
 
@@ -545,13 +557,12 @@ export const initialResultsStruct: CompetitionResultStruct = {
 };
 
 export const getCubingIconClassName = (iconcode: any): string => {
-  return `cubing-icon ${
-    iconcode.toString().startsWith("unofficial") ? "" : "event-"
-  }${iconcode.toString()}`;
+  return `cubing-icon ${iconcode.toString().startsWith("unofficial") ? "" : "event-"
+    }${iconcode.toString()}`;
 };
 
 export const getAnnouncementById = async (
-  id: string | undefined
+  id: string | undefined,
 ): Promise<AnnouncementState> => {
   if (id === undefined) {
     return Promise.reject("Invalid competition id.");
@@ -568,7 +579,7 @@ export const getAvailableTags = async (): Promise<Tag[]> => {
 
 export const updateAnnoncement = async (
   state: AnnouncementState,
-  edit: boolean
+  edit: boolean,
 ): Promise<AnnouncementState> => {
   const response = await axios({
     method: edit ? "PUT" : "POST",
@@ -580,7 +591,7 @@ export const updateAnnoncement = async (
 };
 
 export const ReadAnnouncement = async (
-  state: AnnouncementState
+  state: AnnouncementState,
 ): Promise<AnnouncementState> => {
   const response = await axios.get(`/api/announcements/read/${state.id}`);
   return response.data;
@@ -597,10 +608,10 @@ export const GetNoOfNewAnnouncements = async (): Promise<number> => {
 };
 
 export const DeleteAnnouncement = async (
-  announcementId: number
+  announcementId: number,
 ): Promise<string> => {
   const response = await axios.delete(
-    `/api/announcements/delete/${announcementId}`
+    `/api/announcements/delete/${announcementId}`,
   );
   return response.data;
 };
@@ -608,7 +619,7 @@ export const DeleteAnnouncement = async (
 export const AddReactionToAnnouncement = async (
   announcementId: number,
   emoji: string,
-  by: string
+  by: string,
 ): Promise<AnnouncementReactResponse> => {
   const response = await axios({
     method: "POST",
@@ -620,7 +631,7 @@ export const AddReactionToAnnouncement = async (
 
 export const shouldHideAverageColumn = (
   eventFormat: string,
-  eventIconcode: string
+  eventIconcode: string,
 ): boolean => {
   return eventFormat == "bo1" || eventIconcode === "333mbf";
 };
@@ -641,7 +652,7 @@ export const initialAverageInfo: AverageInfo = {
 };
 
 export const GetAverageInfo = async (
-  resultEntry: ResultEntry
+  resultEntry: ResultEntry,
 ): Promise<AverageInfo> => {
   const response = await axios({
     method: "POST",
@@ -653,7 +664,7 @@ export const GetAverageInfo = async (
 
 export const GetAverageInfoRecords = async (
   resultEntry: ResultEntry,
-  averageInfo: AverageInfo
+  averageInfo: AverageInfo,
 ): Promise<AverageInfo> => {
   const response = await axios({
     method: "POST",

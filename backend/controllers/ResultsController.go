@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
@@ -32,10 +33,20 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 		resultEntries := make([]models.ResultEntry, 0)
 
 		if competitionName == "_" && userName == "_" {
-			rows, err := db.Query(context.Background(), `SELECT re.result_id FROM results re JOIN results_status rs ON rs.results_status_id = re.status_id WHERE re.event_id = $1 AND rs.displayname LIKE $2;`, eventId, resultsStatusDisplayName)
+			rows, err := db.Query(
+				context.Background(),
+				`SELECT re.result_id FROM results re JOIN results_status rs ON rs.results_status_id = re.status_id WHERE re.event_id = $1 AND rs.displayname LIKE $2;`,
+				eventId,
+				resultsStatusDisplayName,
+			)
 			if err != nil {
-				log.Println("ERR db.Query in GetResultsQuery (competitionName not set and userName not set): " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
+				log.Println(
+					"ERR db.Query in GetResultsQuery (competitionName not set and userName not set): " + err.Error(),
+				)
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed querying result entry from database.",
+				)
 				return
 			}
 
@@ -43,15 +54,25 @@ func GetResultsQuery(db *pgxpool.Pool) gin.HandlerFunc {
 				var resultEntryId int
 				err = rows.Scan(&resultEntryId)
 				if err != nil {
-					log.Println("ERR scanning resultEntryId in GetResultsQuery (competitionId not set and userName not set): " + err.Error())
-					c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry from database.")
+					log.Println(
+						"ERR scanning resultEntryId in GetResultsQuery (competitionId not set and userName not set): " + err.Error(),
+					)
+					c.IndentedJSON(
+						http.StatusInternalServerError,
+						"Failed querying result entry from database.",
+					)
 					return
 				}
 
 				resultEntry, err := models.GetResultEntryById(db, resultEntryId)
 				if err != nil {
-					log.Println("ERR GetResultEntryById in GetResultsQuery (competitionId not set and userName not set): " + err.Error())
-					c.IndentedJSON(http.StatusInternalServerError, "Failed getting result entry from database.")
+					log.Println(
+						"ERR GetResultEntryById in GetResultsQuery (competitionId not set and userName not set): " + err.Error(),
+					)
+					c.IndentedJSON(
+						http.StatusInternalServerError,
+						"Failed getting result entry from database.",
+					)
 					return
 				}
 				resultEntries = append(resultEntries, resultEntry)
@@ -236,21 +257,30 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 		user, err := models.GetUserById(db, userId)
 		if err != nil {
 			log.Println("ERR GetUserById in GetResultsByIdAndEvent: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed getting user information from database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed getting user information from database.",
+			)
 			return
 		}
 
 		event, err := models.GetEventById(db, eventId)
 		if err != nil {
 			log.Println("ERR GetEventById in GetResultsByIdAndEvent: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed getting event information from database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed getting event information from database.",
+			)
 			return
 		}
 
 		competition, err := models.GetCompetitionByIdObject(db, competitionId)
 		if err != nil {
 			log.Println("ERR GetCompetitionByIdObject in GetResultsByIdAndEvent: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed getting competition information from database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed getting competition information from database.",
+			)
 			return
 		}
 
@@ -259,7 +289,10 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 		if err != nil {
 			if err.Error() != "not found" {
 				log.Println("ERR GetResultEntry in GetResultsByIdAndEvent: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed getting result entry from database.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed getting result entry from database.",
+				)
 				return
 			} else {
 				approvedResultsStatus, err := models.GetResultsStatus(db, 3)
@@ -346,7 +379,10 @@ func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		previousTimes, err := resultEntry.GetPreviouslySavedTimes(db)
 		if err != nil {
 			log.Println("ERR resultEntry.GetPreviouslySavedTimes in PostResults: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed querying result entry in database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed querying result entry in database.",
+			)
 			return
 		}
 
@@ -371,7 +407,10 @@ func GetProfileResults(db *pgxpool.Pool) gin.HandlerFunc {
 		uid, err := models.GetUserByWCAID(db, id)
 		if err != nil {
 			log.Println("ERR in GetProfileResults in GetUserByWCAID: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Finding user by WCA ID in database failed.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Finding user by WCA ID in database failed.",
+			)
 			return
 		}
 
@@ -379,7 +418,10 @@ func GetProfileResults(db *pgxpool.Pool) gin.HandlerFunc {
 			uid, err = models.GetUserByName(db, id)
 			if err != nil {
 				log.Println("ERR in GetProfileResults in GetUserByName: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Finding user by name in database failed.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Finding user by name in database failed.",
+				)
 				return
 			}
 		}
@@ -404,12 +446,18 @@ type RegionSelectGroup struct {
 func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		regionSelectGroups := make([]RegionSelectGroup, 0)
-		regionSelectGroups = append(regionSelectGroups, RegionSelectGroup{"World", []string{"World"}})
+		regionSelectGroups = append(
+			regionSelectGroups,
+			RegionSelectGroup{"World", []string{"World"}},
+		)
 
 		continents, err := utils.GetContinents(db)
 		if err != nil {
 			log.Println("ERR GetContinents in GetRegionsGrouped: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed querying continents from database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed querying continents from database.",
+			)
 			return
 		}
 		regionSelectGroups = append(regionSelectGroups, RegionSelectGroup{"Continent", continents})
@@ -417,7 +465,10 @@ func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 		countries, err := utils.GetCountries(db)
 		if err != nil {
 			log.Println("ERR GetCountries in GetRegionsGrouped: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed querying countries from database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed querying countries from database.",
+			)
 			return
 		}
 		regionSelectGroups = append(regionSelectGroups, RegionSelectGroup{"Country", countries})
@@ -484,7 +535,16 @@ func MergeNonUniqueRankings(rankings []RankingsEntry, isfmc bool) []RankingsEntr
 
 	for _, rankingsEntry := range rankings {
 		entry, ok := best[rankingsEntry.Username]
-		if !ok || utils.ParseSolveToMilliseconds(entry.Result, false, "") > utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") {
+		if !ok ||
+			utils.ParseSolveToMilliseconds(
+				entry.Result,
+				false,
+				"",
+			) > utils.ParseSolveToMilliseconds(
+				rankingsEntry.Result,
+				false,
+				"",
+			) {
 			best[rankingsEntry.Username] = rankingsEntry
 		}
 	}
@@ -507,8 +567,13 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 
 		_type := c.Query("type")
 		if _type != "single" && _type != "average" {
-			log.Println("ERR invalid type in GetRankings (" + _type + "): invalid type, should be single/average.")
-			c.IndentedJSON(http.StatusInternalServerError, "Invalid type (neither single nor average).")
+			log.Println(
+				"ERR invalid type in GetRankings (" + _type + "): invalid type, should be single/average.",
+			)
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Invalid type (neither single nor average).",
+			)
 			return
 		}
 		single := _type == "single"
@@ -525,13 +590,21 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 
 		persons := queryType == "Persons"
 		if numOfEntries != 100 && numOfEntries != 1000 {
-			log.Println("ERR invalid no. of entries (" + string(numOfEntries) + ") in query in GetRankings. Possible values: 100, 1000")
+			log.Println(
+				"ERR invalid no. of entries (" + string(
+					numOfEntries,
+				) + ") in query in GetRankings. Possible values: 100, 1000",
+			)
 			c.IndentedJSON(http.StatusInternalServerError, "Failed parsing eventId.")
 			return
 		}
 
 		if !persons && queryType != "Results" {
-			log.Println("ERR invalid query type (" + string(queryType) + ") in query in GetRankings. Possible values: Persons, Results")
+			log.Println(
+				"ERR invalid query type (" + string(
+					queryType,
+				) + ") in query in GetRankings. Possible values: Persons, Results",
+			)
 			c.IndentedJSON(http.StatusInternalServerError, "Failed parsing eventId.")
 			return
 		}
@@ -704,8 +777,13 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 				rows, err = db.Query(context.Background(), queryString+`;`)
 			}
 			if err != nil {
-				log.Println("ERR db.Query (World) in GetRecords (" + regionType + "+" + regionPrecise + "): " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to query records entries from database.")
+				log.Println(
+					"ERR db.Query (World) in GetRecords (" + regionType + "+" + regionPrecise + "): " + err.Error(),
+				)
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to query records entries from database.",
+				)
 				return
 			}
 		} else {
@@ -735,10 +813,33 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			var rankingsEntry RankingsEntry
 			var resultsEntry models.ResultEntry
 			var competitionEndDate time.Time
-			err := rows.Scan(&rankingsEntry.Username, &rankingsEntry.WcaId, &rankingsEntry.CountryISO2, &rankingsEntry.CountryName, &rankingsEntry.CompetitionId, &rankingsEntry.CompetitionName, &resultsEntry.Solve1, &resultsEntry.Solve2, &resultsEntry.Solve3, &resultsEntry.Solve4, &resultsEntry.Solve5, &resultsEntry.Format, &resultsEntry.Iconcode, &resultsEntry.Eventid, &resultsEntry.Status.Visible, &competitionEndDate, &resultsEntry.Eventname)
+			err := rows.Scan(
+				&rankingsEntry.Username,
+				&rankingsEntry.WcaId,
+				&rankingsEntry.CountryISO2,
+				&rankingsEntry.CountryName,
+				&rankingsEntry.CompetitionId,
+				&rankingsEntry.CompetitionName,
+				&resultsEntry.Solve1,
+				&resultsEntry.Solve2,
+				&resultsEntry.Solve3,
+				&resultsEntry.Solve4,
+				&resultsEntry.Solve5,
+				&resultsEntry.Format,
+				&resultsEntry.Iconcode,
+				&resultsEntry.Eventid,
+				&resultsEntry.Status.Visible,
+				&competitionEndDate,
+				&resultsEntry.Eventname,
+			)
 			if err != nil {
-				log.Println("ERR scanning rows in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
+				log.Println(
+					"ERR scanning rows in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error(),
+				)
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to query rows from database.",
+				)
 				return
 			}
 
@@ -746,9 +847,15 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 				rankingsEntry.WcaId = rankingsEntry.Username
 			}
 			isfmc = utils.IsFMC(resultsEntry.Iconcode)
-			scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
+			scrambles, err := utils.GetScramblesByResultEntryId(
+				db,
+				resultsEntry.Eventid,
+				rankingsEntry.CompetitionId,
+			)
 			if err != nil {
-				log.Println("ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+				log.Println(
+					"ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error(),
+				)
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
 				return
 			}
@@ -774,15 +881,40 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			}
 
 			recordsItemEntrySingle.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
-			if utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") >= constants.VERY_SLOW {
+			if utils.ParseSolveToMilliseconds(
+				recordsItemEntrySingle.Result,
+				false,
+				"",
+			) >= constants.VERY_SLOW {
 				continue
 			}
 			singleEntry, ok := singleEntries[resultsEntry.Eventid]
-			if !ok || utils.ParseSolveToMilliseconds(singleEntry[0].Result, false, "") >= utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") {
-				if !ok || utils.ParseSolveToMilliseconds(singleEntry[0].Result, false, "") > utils.ParseSolveToMilliseconds(recordsItemEntrySingle.Result, false, "") {
+			if !ok ||
+				utils.ParseSolveToMilliseconds(
+					singleEntry[0].Result,
+					false,
+					"",
+				) >= utils.ParseSolveToMilliseconds(
+					recordsItemEntrySingle.Result,
+					false,
+					"",
+				) {
+				if !ok ||
+					utils.ParseSolveToMilliseconds(
+						singleEntry[0].Result,
+						false,
+						"",
+					) > utils.ParseSolveToMilliseconds(
+						recordsItemEntrySingle.Result,
+						false,
+						"",
+					) {
 					singleEntries[resultsEntry.Eventid] = []RecordsItemEntry{}
 				}
-				singleEntries[resultsEntry.Eventid] = append(singleEntries[resultsEntry.Eventid], recordsItemEntrySingle)
+				singleEntries[resultsEntry.Eventid] = append(
+					singleEntries[resultsEntry.Eventid],
+					recordsItemEntrySingle,
+				)
 			}
 
 			recordsItemEntryAverage.Result = "DNS"
@@ -790,22 +922,52 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 			if resultsEntry.Iconcode != "333mbf" && resultsEntry.Format != "bo1" {
 				resultFormatted, err := resultsEntry.AverageFormatted(isfmc, scrambles)
 				if err != nil {
-					log.Println("ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
-					c.IndentedJSON(http.StatusInternalServerError, "Failed to calculate average in rankings entry.")
+					log.Println(
+						"ERR AverageFormatted in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error(),
+					)
+					c.IndentedJSON(
+						http.StatusInternalServerError,
+						"Failed to calculate average in rankings entry.",
+					)
 					return
 				}
 				recordsItemEntryAverage.Result = resultFormatted
-				if utils.ParseSolveToMilliseconds(recordsItemEntryAverage.Result, false, "") >= constants.VERY_SLOW {
+				if utils.ParseSolveToMilliseconds(
+					recordsItemEntryAverage.Result,
+					false,
+					"",
+				) >= constants.VERY_SLOW {
 					continue
 				}
 				recordsItemEntryAverage.Solves, _ = resultsEntry.GetFormattedTimes(isfmc, scrambles)
 
 				averageEntry, ok := averageEntries[resultsEntry.Eventid]
-				if !ok || utils.ParseSolveToMilliseconds(averageEntry[0].Result, false, "") >= utils.ParseSolveToMilliseconds(recordsItemEntryAverage.Result, false, "") {
-					if !ok || utils.ParseSolveToMilliseconds(averageEntry[0].Result, false, "") > utils.ParseSolveToMilliseconds(recordsItemEntryAverage.Result, false, "") {
+				if !ok ||
+					utils.ParseSolveToMilliseconds(
+						averageEntry[0].Result,
+						false,
+						"",
+					) >= utils.ParseSolveToMilliseconds(
+						recordsItemEntryAverage.Result,
+						false,
+						"",
+					) {
+					if !ok ||
+						utils.ParseSolveToMilliseconds(
+							averageEntry[0].Result,
+							false,
+							"",
+						) > utils.ParseSolveToMilliseconds(
+							recordsItemEntryAverage.Result,
+							false,
+							"",
+						) {
 						averageEntries[resultsEntry.Eventid] = []RecordsItemEntry{}
 					}
-					averageEntries[resultsEntry.Eventid] = append(averageEntries[resultsEntry.Eventid], recordsItemEntryAverage)
+					averageEntries[resultsEntry.Eventid] = append(
+						averageEntries[resultsEntry.Eventid],
+						recordsItemEntryAverage,
+					)
 				}
 			}
 		}
@@ -883,10 +1045,17 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 
 		var averageInfo AverageInfo
 
-		resultEntry.Scrambles, err = utils.GetScramblesByResultEntryId(db, resultEntry.Eventid, resultEntry.Competitionid)
+		resultEntry.Scrambles, err = utils.GetScramblesByResultEntryId(
+			db,
+			resultEntry.Eventid,
+			resultEntry.Competitionid,
+		)
 		if err != nil {
 			log.Println("ERR utils.GetScramblesByResultEntryId in GetAverageInfo: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to get scrambles for result entry.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to get scrambles for result entry.",
+			)
 			return
 		}
 		averageInfo.Single = resultEntry.SingleFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
@@ -894,12 +1063,18 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 		avg, err := resultEntry.AverageFormatted(resultEntry.IsFMC(), resultEntry.Scrambles)
 		if err != nil {
 			log.Println("ERR resultEntry.AverageFormatted in GetAverageInfo: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to get average for result entry.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to get average for result entry.",
+			)
 			return
 		}
 		averageInfo.Average = avg
 
-		formattedTimes, err := resultEntry.GetFormattedTimes(resultEntry.IsFMC(), resultEntry.Scrambles)
+		formattedTimes, err := resultEntry.GetFormattedTimes(
+			resultEntry.IsFMC(),
+			resultEntry.Scrambles,
+		)
 		if err != nil {
 			log.Println("ERR resultEntry.GetFormattedTimes in GetAverageInfo: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to get times for result entry.")
@@ -910,7 +1085,10 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 		ok, err := resultEntry.ShowPossibleAverages()
 		if err != nil {
 			log.Println("ERR resultEntry.ShowPossibleAverages in GetAverageInfo: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if should calculate BPA/WPA.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to check if should calculate BPA/WPA.",
+			)
 			return
 		}
 
@@ -920,14 +1098,20 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 			averageInfo.Bpa, err = resultEntry.GetBPA()
 			if err != nil {
 				log.Println("ERR resultEntry.GetBPA in GetAverageInfo: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to get BPA for result entry.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to get BPA for result entry.",
+				)
 				return
 			}
 
 			averageInfo.Wpa, err = resultEntry.GetWPA()
 			if err != nil {
 				log.Println("ERR resultEntry.GetWPA in GetAverageInfo: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to get WPA for result entry.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to get WPA for result entry.",
+				)
 				return
 			}
 		}
@@ -935,7 +1119,10 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 		averageInfo.FinishedCompeting, err = resultEntry.FinishedCompeting()
 		if err != nil {
 			log.Println("ERR resultEntry.FinishedCompeting in GetAverageInfo: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if you finished competing.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to check if you finished competing.",
+			)
 			return
 		}
 
@@ -943,7 +1130,10 @@ func GetAverageInfo(db *pgxpool.Pool) gin.HandlerFunc {
 			averageInfo.Place, err = resultEntry.GetCompetitionPlace(db)
 			if err != nil {
 				log.Println("ERR resultEntry.GetCompetitionPlace in GetAverageInfo: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to get competition place for result entry.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to get competition place for result entry.",
+				)
 				return
 			}
 		}
@@ -972,8 +1162,13 @@ func GetAverageInfoRecords(db *pgxpool.Pool) gin.HandlerFunc {
 
 		averageInfo.FinishedCompeting, err = resultEntry.FinishedCompeting()
 		if err != nil {
-			log.Println("ERR resultEntry.FinishedCompeting in GetAverageInfoRecords: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if you finished competing.")
+			log.Println(
+				"ERR resultEntry.FinishedCompeting in GetAverageInfoRecords: " + err.Error(),
+			)
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to check if you finished competing.",
+			)
 			return
 		}
 

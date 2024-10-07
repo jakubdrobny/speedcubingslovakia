@@ -24,7 +24,7 @@ import {
 import useState from "react-usestateref";
 
 export const CompetitionContext = createContext<CompetitionContextType | null>(
-  null
+  null,
 );
 
 export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
@@ -41,13 +41,13 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   const [results, setResults] = useState<CompetitionResult[]>([]);
   const [anyComment, setAnyComment] = useState<boolean>(false);
   const [loadingState, setLoadingState] = useState<CompetitionLoadingState>(
-    initialCompetitionLoadingState
+    initialCompetitionLoadingState,
   );
 
   const updateBasicInfo = (info: CompetitionData) => {
     const match =
       info.events[competitionStateRef.current.currentEventIdx].format.match(
-        /\d+$/
+        /\d+$/,
       )?.[0];
     const noOfSolves = match ? parseInt(match) : 1;
 
@@ -68,12 +68,12 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     event: CompetitionEvent = competitionStateRef.current.events[
       competitionStateRef.current.currentEventIdx
     ],
-    compId: string = competitionState.id
+    compId: string = competitionState.id,
   ) => {
     if (event.displayname === "Overall") {
       event =
         competitionStateRef.current.events[
-          competitionStateRef.current.currentEventIdx - 1
+        competitionStateRef.current.currentEventIdx - 1
         ];
       setCompetitionState((ps) => ({
         ...ps,
@@ -108,7 +108,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     event: CompetitionEvent = competitionStateRef.current.events[
       competitionStateRef.current.currentEventIdx
     ],
-    compId: string = competitionState.id
+    compId: string = competitionState.id,
   ) => {
     setLoadingState((ps) => ({ ...ps, results: true, error: {} }));
     getCompetitionResults(compId, event)
@@ -187,15 +187,14 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     setCompetitionState((ps) => ({
       ...ps,
       penalties: ps.penalties.map((val: string, idx: number) =>
-        idx === curSolveIdx ? newPenalty : val
+        idx === curSolveIdx ? newPenalty : val,
       ),
     }));
   };
 
   const updateSolve = (newTime: string) => {
-    const solveProp: keyof ResultEntry = `solve${
-      competitionStateRef.current.currentSolveIdx + 1
-    }` as keyof ResultEntry;
+    const solveProp: keyof ResultEntry = `solve${competitionStateRef.current.currentSolveIdx + 1
+      }` as keyof ResultEntry;
     setCurrentResults((ps) => ({
       ...ps,
       [solveProp]: newTime,
@@ -208,9 +207,9 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     if (
       competitionState.currentEventIdx < competitionState.events.length &&
       competitionState.events[competitionState.currentEventIdx].displayname !==
-        "FMC" &&
+      "FMC" &&
       competitionState.events[competitionState.currentEventIdx].displayname !==
-        "MBLD"
+      "MBLD"
     ) {
       setCompetitionState((ps) => ({
         ...ps,
@@ -219,7 +218,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
             ? InputMethod.Timer
             : InputMethod.Manual,
         penalties: ps.penalties.map((val: string, idx: number) =>
-          idx === ps.currentSolveIdx ? "0" : val
+          idx === ps.currentSolveIdx ? "0" : val,
         ),
       }));
     }
