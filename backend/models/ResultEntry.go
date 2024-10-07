@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/email"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
@@ -39,10 +40,24 @@ type ResultEntry struct {
 	Status          ResultsStatus `json:"status"`
 	BadFormat       bool          `json:"badFormat"`
 	Scrambles       []string      `json:"-"`
+	Email           string        `json:"-"`
 }
 
 func (r *ResultEntry) Insert(db *pgxpool.Pool) error {
-	_, err := db.Exec(context.Background(), `INSERT INTO results (competition_id, user_id, event_id, solve1, solve2, solve3, solve4, solve5, comment, status_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`, r.Competitionid, r.Userid, r.Eventid, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id)
+	_, err := db.Exec(
+		context.Background(),
+		`INSERT INTO results (competition_id, user_id, event_id, solve1, solve2, solve3, solve4, solve5, comment, status_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`,
+		r.Competitionid,
+		r.Userid,
+		r.Eventid,
+		r.Solve1,
+		r.Solve2,
+		r.Solve3,
+		r.Solve4,
+		r.Solve5,
+		r.Comment,
+		r.Status.Id,
+	)
 	if err != nil {
 		return err
 	}
@@ -109,7 +124,13 @@ func IsValidTimePeriod(db *pgxpool.Pool, competitionId string) (bool, error) {
 }
 
 func (r *ResultEntry) LoadId(db *pgxpool.Pool) error {
-	rows, err := db.Query(context.Background(), `SELECT result_id FROM results WHERE user_id = $1 AND competition_id = $2 AND event_id = $3;`, r.Userid, r.Competitionid, r.Eventid)
+	rows, err := db.Query(
+		context.Background(),
+		`SELECT result_id FROM results WHERE user_id = $1 AND competition_id = $2 AND event_id = $3;`,
+		r.Userid,
+		r.Competitionid,
+		r.Eventid,
+	)
 	if err != nil {
 		return err
 	}
@@ -186,7 +207,20 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error 
 	}
 
 	if ok {
-		_, err := db.Exec(context.Background(), `UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP WHERE user_id = $8 AND competition_id = $9 AND event_id = $10;`, r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5, r.Comment, r.Status.Id, r.Userid, r.Competitionid, r.Eventid)
+		_, err := db.Exec(
+			context.Background(),
+			`UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP WHERE user_id = $8 AND competition_id = $9 AND event_id = $10;`,
+			r.Solve1,
+			r.Solve2,
+			r.Solve3,
+			r.Solve4,
+			r.Solve5,
+			r.Comment,
+			r.Status.Id,
+			r.Userid,
+			r.Competitionid,
+			r.Eventid,
+		)
 		if err != nil {
 			return err
 		}
@@ -232,7 +266,8 @@ func (r *ResultEntry) IsSuspicous(isfmc bool, scrambles []string) bool {
 		return curSingle < constants.VERY_SLOW && float64(recSingle-curSingle) > 1e-9
 	}
 
-	return float64(recSingle-curSingle) > 1e-9 || float64(recAverage-curAverage) > 1e-9
+	return (recSingle < constants.VERY_SLOW && float64(recSingle-curSingle) > 1e-9) ||
+		(recAverage < constants.VERY_SLOW && float64(recAverage-curAverage) > 1e-9)
 }
 
 func (r *ResultEntry) IsMBLD() bool {
@@ -294,11 +329,23 @@ func (r *ResultEntry) Average(noOfSolves int, isfmc bool, scrambles []string) in
 }
 
 func (r *ResultEntry) Competed() bool {
-	return r.Solve1 != "DNS" || r.Solve2 != "DNS" || r.Solve3 != "DNS" || r.Solve4 != "DNS" || r.Solve5 != "DNS"
+	return r.Solve1 != "DNS" || r.Solve2 != "DNS" || r.Solve3 != "DNS" || r.Solve4 != "DNS" ||
+		r.Solve5 != "DNS"
 }
 
-func GetResultEntry(db *pgxpool.Pool, competitorId int, competitionId string, eventId int) (ResultEntry, error) {
-	rows, err := db.Query(context.Background(), `SELECT re.result_id, re.competition_id, re.user_id, re.event_id, re.solve1, re.solve2, re.solve3, re.solve4, re.solve5, re.comment, re.status_id FROM results re WHERE re.user_id = $1 AND re.competition_id = $2 AND re.event_id = $3;`, competitorId, competitionId, eventId)
+func GetResultEntry(
+	db *pgxpool.Pool,
+	competitorId int,
+	competitionId string,
+	eventId int,
+) (ResultEntry, error) {
+	rows, err := db.Query(
+		context.Background(),
+		`SELECT re.result_id, re.competition_id, re.user_id, re.event_id, re.solve1, re.solve2, re.solve3, re.solve4, re.solve5, re.comment, re.status_id FROM results re WHERE re.user_id = $1 AND re.competition_id = $2 AND re.event_id = $3;`,
+		competitorId,
+		competitionId,
+		eventId,
+	)
 	if err != nil {
 		return ResultEntry{}, err
 	}
@@ -306,7 +353,19 @@ func GetResultEntry(db *pgxpool.Pool, competitorId int, competitionId string, ev
 	var resultEntry ResultEntry
 	found := false
 	for rows.Next() {
-		err = rows.Scan(&resultEntry.Id, &resultEntry.Competitionid, &resultEntry.Userid, &resultEntry.Eventid, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Comment, &resultEntry.Status.Id)
+		err = rows.Scan(
+			&resultEntry.Id,
+			&resultEntry.Competitionid,
+			&resultEntry.Userid,
+			&resultEntry.Eventid,
+			&resultEntry.Solve1,
+			&resultEntry.Solve2,
+			&resultEntry.Solve3,
+			&resultEntry.Solve4,
+			&resultEntry.Solve5,
+			&resultEntry.Comment,
+			&resultEntry.Status.Id,
+		)
 		if err != nil {
 			return ResultEntry{}, err
 		}
@@ -321,7 +380,11 @@ func GetResultEntry(db *pgxpool.Pool, competitorId int, competitionId string, ev
 }
 
 func GetResultEntryById(db *pgxpool.Pool, resultId int) (ResultEntry, error) {
-	rows, err := db.Query(context.Background(), `SELECT re.result_id, re.competition_id, re.user_id, re.event_id, re.solve1, re.solve2, re.solve3, re.solve4, re.solve5, re.comment, re.status_id, c.name, e.displayname, rs.approvalfinished, rs.approved, rs.visible, rs.displayname, u.name, e.format, e.iconcode FROM results re JOIN competitions c ON c.competition_id = re.competition_id JOIN events e ON e.event_id = re.event_id JOIN results_status rs ON results_status_id = re.status_id JOIN users u ON u.user_id = re.user_id WHERE re.result_id = $1;`, resultId)
+	rows, err := db.Query(
+		context.Background(),
+		`SELECT re.result_id, re.competition_id, re.user_id, re.event_id, re.solve1, re.solve2, re.solve3, re.solve4, re.solve5, re.comment, re.status_id, c.name, e.displayname, rs.approvalfinished, rs.approved, rs.visible, rs.displayname, u.name, e.format, e.iconcode FROM results re JOIN competitions c ON c.competition_id = re.competition_id JOIN events e ON e.event_id = re.event_id JOIN results_status rs ON results_status_id = re.status_id JOIN users u ON u.user_id = re.user_id WHERE re.result_id = $1;`,
+		resultId,
+	)
 	if err != nil {
 		return ResultEntry{}, err
 	}
@@ -329,7 +392,28 @@ func GetResultEntryById(db *pgxpool.Pool, resultId int) (ResultEntry, error) {
 	var resultEntry ResultEntry
 	found := false
 	for rows.Next() {
-		err = rows.Scan(&resultEntry.Id, &resultEntry.Competitionid, &resultEntry.Userid, &resultEntry.Eventid, &resultEntry.Solve1, &resultEntry.Solve2, &resultEntry.Solve3, &resultEntry.Solve4, &resultEntry.Solve5, &resultEntry.Comment, &resultEntry.Status.Id, &resultEntry.Competitionname, &resultEntry.Eventname, &resultEntry.Status.ApprovalFinished, &resultEntry.Status.Approved, &resultEntry.Status.Visible, &resultEntry.Status.Displayname, &resultEntry.Username, &resultEntry.Format, &resultEntry.Iconcode)
+		err = rows.Scan(
+			&resultEntry.Id,
+			&resultEntry.Competitionid,
+			&resultEntry.Userid,
+			&resultEntry.Eventid,
+			&resultEntry.Solve1,
+			&resultEntry.Solve2,
+			&resultEntry.Solve3,
+			&resultEntry.Solve4,
+			&resultEntry.Solve5,
+			&resultEntry.Comment,
+			&resultEntry.Status.Id,
+			&resultEntry.Competitionname,
+			&resultEntry.Eventname,
+			&resultEntry.Status.ApprovalFinished,
+			&resultEntry.Status.Approved,
+			&resultEntry.Status.Visible,
+			&resultEntry.Status.Displayname,
+			&resultEntry.Username,
+			&resultEntry.Format,
+			&resultEntry.Iconcode,
+		)
 		if err != nil {
 			return ResultEntry{}, err
 		}
@@ -409,10 +493,16 @@ func (r *ResultEntry) GetFormattedTimes(isfmc bool, scrambles []string) ([]strin
 	sortedSolves := make([]SolveTuple, 0)
 
 	for idx, val := range solves {
-		sortedSolves = append(sortedSolves, SolveTuple{val, utils.ParseSolveToMilliseconds(val, false, ""), idx})
+		sortedSolves = append(
+			sortedSolves,
+			SolveTuple{val, utils.ParseSolveToMilliseconds(val, false, ""), idx},
+		)
 	}
 
-	sort.Slice(sortedSolves, func(i int, j int) bool { return sortedSolves[i].TimeInMiliseconds < sortedSolves[j].TimeInMiliseconds })
+	sort.Slice(
+		sortedSolves,
+		func(i int, j int) bool { return sortedSolves[i].TimeInMiliseconds < sortedSolves[j].TimeInMiliseconds },
+	)
 	solves[sortedSolves[0].Index] = "(" + solves[sortedSolves[0].Index] + ")"
 	solves[sortedSolves[len(sortedSolves)-1].Index] = "(" + solves[sortedSolves[len(sortedSolves)-1].Index] + ")"
 
@@ -420,7 +510,14 @@ func (r *ResultEntry) GetFormattedTimes(isfmc bool, scrambles []string) ([]strin
 }
 
 func GetFormattedTimes(times []string, format string, scrambles []string) ([]string, error) {
-	resultEntry := ResultEntry{Format: format, Solve1: times[0], Solve2: times[1], Solve3: times[2], Solve4: times[3], Solve5: times[4]}
+	resultEntry := ResultEntry{
+		Format: format,
+		Solve1: times[0],
+		Solve2: times[1],
+		Solve3: times[2],
+		Solve4: times[3],
+		Solve5: times[4],
+	}
 	return resultEntry.GetFormattedTimes(resultEntry.IsFMC(), scrambles)
 }
 
@@ -599,7 +696,11 @@ func (r *ResultEntry) SuspicousChangeInResults(previouslySavedTimes []string, no
 	return false
 }
 
-func (r *ResultEntry) GetSuspicousChangeTimesHTML(previouslySavedTimes []string, noOfSolves int, oldTimesFormatted, newTimesFormatted []string) string {
+func (r *ResultEntry) GetSuspicousChangeTimesHTML(
+	previouslySavedTimes []string,
+	noOfSolves int,
+	oldTimesFormatted, newTimesFormatted []string,
+) string {
 	prevItems, currItems := make([]string, noOfSolves), make([]string, noOfSolves)
 
 	for idx, newTime := range []string{r.Solve1, r.Solve2, r.Solve3, r.Solve4, r.Solve5} {
@@ -617,15 +718,28 @@ func (r *ResultEntry) GetSuspicousChangeTimesHTML(previouslySavedTimes []string,
 		currItems[idx] = "<td style=\"text-align: center; border: 1px solid black; color:" + color + ";\">" + newTimesFormatted[idx] + "</td>"
 	}
 
-	return "<table style=\"border: 1px solid black;\"><tr><th style=\"border: 1px solid black;\">Previous times:</th>" + strings.Join(prevItems, "") + "</tr><tr><th style=\"border: 1px solid black;\">Current times:</th>" + strings.Join(currItems, "") + "</tr></table>"
+	return "<table style=\"border: 1px solid black;\"><tr><th style=\"border: 1px solid black;\">Previous times:</th>" + strings.Join(
+		prevItems,
+		"",
+	) + "</tr><tr><th style=\"border: 1px solid black;\">Current times:</th>" + strings.Join(
+		currItems,
+		"",
+	) + "</tr></table>"
 }
 
-func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap map[string]string, previouslySavedTimes []string) {
+func (r *ResultEntry) SendSuspicousMail(
+	c *gin.Context,
+	db *pgxpool.Pool,
+	envMap map[string]string,
+	previouslySavedTimes []string,
+) {
 	select {
 	case <-c.Request.Context().Done():
 		noOfSolves, err := utils.GetNoOfSolves(r.Format)
 		if err != nil {
-			log.Println("ERR utils.GetScramGetNoOfSolvesblesByResultEntryId in r.SendSuspicousMail: " + err.Error())
+			log.Println(
+				"ERR utils.GetScramGetNoOfSolvesblesByResultEntryId in r.SendSuspicousMail: " + err.Error(),
+			)
 			return
 		}
 
@@ -637,7 +751,9 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 
 			scrambles, err := utils.GetScramblesByResultEntryId(db, r.Eventid, r.Competitionid)
 			if err != nil {
-				log.Println("ERR utils.GetScramblesByResultEntryId in r.SendSuspicousMail: " + err.Error())
+				log.Println(
+					"ERR utils.GetScramblesByResultEntryId in r.SendSuspicousMail: " + err.Error(),
+				)
 				return
 			}
 
@@ -659,7 +775,11 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 				return
 			}
 
-			adminToken, err := utils.CreateToken(1, envMap["JWT_SECRET_KEY"], 60*24) // admin token for a day
+			adminToken, err := utils.CreateToken(
+				1,
+				envMap["JWT_SECRET_KEY"],
+				60*24,
+			) // admin token for a day
 			if err != nil {
 				log.Println("ERR utils.CreateToken in r.SendSuspicousMail: " + err.Error())
 				return
@@ -682,6 +802,12 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 				mailSubject = "DEVELOPMENT: " + mailSubject
 			}
 
+			r.Email, err = GetEmailByWCAID(db, r.WcaId)
+			if err != nil {
+				log.Println("ERR GetEmailByWCAID in r.SendSuspicousMail: " + err.Error())
+				return
+			}
+
 			content := "<html>" +
 				"<head>" +
 				"<style>" +
@@ -690,13 +816,19 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 					.mui-joy-btn-soft-danger { color: #7d1212; background-color: #fce4e4; }` +
 				"</style></head><body>" +
 				"<b>Username:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/profile/" + r.WcaId + "\">" + r.Username + "</a><br>" +
+				"<b>Email:</b> " + r.Email + "<br>" +
 				"<b>Competition:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/competition/" + r.Competitionid + "\">" + r.Competitionname + "</a><br>" +
 				"<b>Event:</b> " + r.Eventname + "<br>" +
 				"<b>Single:</b> " + r.SingleFormatted(r.IsFMC(), scrambles) + "<br>" +
 				"<b>Average:</b> " + average + "<br>"
 
 			if suspicousChangeInResults {
-				suspicousChangeTimesHTML := r.GetSuspicousChangeTimesHTML(previouslySavedTimes, noOfSolves, oldTimesFormatted, newTimesFormatted)
+				suspicousChangeTimesHTML := r.GetSuspicousChangeTimesHTML(
+					previouslySavedTimes,
+					noOfSolves,
+					oldTimesFormatted,
+					newTimesFormatted,
+				)
 				content += suspicousChangeTimesHTML
 			} else {
 				content += "<b>Times:</b> " + strings.Join(newTimesFormatted, ", ") + "<br>"
@@ -731,7 +863,8 @@ func (r *ResultEntry) SendSuspicousMail(c *gin.Context, db *pgxpool.Pool, envMap
 func (r *ResultEntry) GetPreviouslySavedTimes(db *pgxpool.Pool) ([]string, error) {
 	times := make([]string, 5)
 
-	err := db.QueryRow(context.Background(), `SELECT solve1, solve2, solve3, solve4, solve5 FROM results r WHERE r.result_id = $1;`, r.Id).Scan(&times[0], &times[1], &times[2], &times[3], &times[4])
+	err := db.QueryRow(context.Background(), `SELECT solve1, solve2, solve3, solve4, solve5 FROM results r WHERE r.result_id = $1;`, r.Id).
+		Scan(&times[0], &times[1], &times[2], &times[3], &times[4])
 	if err != nil {
 		return []string{}, err
 	}
