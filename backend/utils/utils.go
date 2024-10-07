@@ -17,9 +17,10 @@ import (
 	"github.com/gocolly/colly"
 	"github.com/golang-jwt/jwt"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
+
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/cube"
-	"github.com/joho/godotenv"
 )
 
 func Reverse[S ~[]E, E any](s S) {
@@ -163,9 +164,9 @@ func GetWorldRecords(eventName string) (int, int, error) {
 		err = er
 	})
 
-	err = c.Visit("https://www.worldcubeassociation.org/results/records")
+	c.Visit("https://www.worldcubeassociation.org/results/records")
 	if err != nil {
-		return 0, 0, err
+		return constants.VERY_SLOW, constants.VERY_SLOW, err
 	}
 
 	return single, average, nil
@@ -298,7 +299,9 @@ func RandSeq(n int) string {
 }
 
 func SaveScrambleImg(img_id string, svg_content string) error {
-	envMap, err := godotenv.Read(fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")))
+	envMap, err := godotenv.Read(
+		fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")),
+	)
 	if err != nil {
 		return err
 	}
@@ -318,8 +321,17 @@ func SaveScrambleImg(img_id string, svg_content string) error {
 	return nil
 }
 
-func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble string, scramblingcode string) (string, error) {
-	url := fmt.Sprintf("http://localhost:2014/api/v0/view/%s/svg?scramble=%s", scramblingcode, url.QueryEscape(scramble))
+func RegenerateImageForScramble(
+	db *pgxpool.Pool,
+	scrambleId int,
+	scramble string,
+	scramblingcode string,
+) (string, error) {
+	url := fmt.Sprintf(
+		"http://localhost:2014/api/v0/view/%s/svg?scramble=%s",
+		scramblingcode,
+		url.QueryEscape(scramble),
+	)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", err
@@ -342,13 +354,23 @@ func RegenerateImageForScramble(db *pgxpool.Pool, scrambleId int, scramble strin
 		return "", err
 	}
 
-	_, err = db.Exec(context.Background(), `UPDATE scrambles SET img = $1 WHERE scramble_id = $2;`, imgId, scrambleId)
+	_, err = db.Exec(
+		context.Background(),
+		`UPDATE scrambles SET img = $1 WHERE scramble_id = $2;`,
+		imgId,
+		scrambleId,
+	)
 	if err != nil {
 		return "", err
 	}
 
 	if scramblingcode == "sq1" {
-		_, err = db.Exec(context.Background(), `UPDATE scrambles SET scramble = $1 WHERE scramble_id = $2;`, imgId, scrambleId)
+		_, err = db.Exec(
+			context.Background(),
+			`UPDATE scrambles SET scramble = $1 WHERE scramble_id = $2;`,
+			imgId,
+			scrambleId,
+		)
 		if err != nil {
 			return "", err
 		}
@@ -420,7 +442,12 @@ func GetSolve(solve string, isfmc bool, scramble string) string {
 }
 
 func GetScramblesByResultEntryId(db *pgxpool.Pool, eid int, cid string) ([]string, error) {
-	rows, err := db.Query(context.Background(), `SELECT scramble FROM scrambles WHERE event_id = $1 AND competition_id = $2 ORDER BY "order";`, eid, cid)
+	rows, err := db.Query(
+		context.Background(),
+		`SELECT scramble FROM scrambles WHERE event_id = $1 AND competition_id = $2 ORDER BY "order";`,
+		eid,
+		cid,
+	)
 	if err != nil {
 		return []string{}, err
 	}

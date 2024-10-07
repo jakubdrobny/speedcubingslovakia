@@ -266,7 +266,8 @@ func (r *ResultEntry) IsSuspicous(isfmc bool, scrambles []string) bool {
 		return curSingle < constants.VERY_SLOW && float64(recSingle-curSingle) > 1e-9
 	}
 
-	return float64(recSingle-curSingle) > 1e-9 || float64(recAverage-curAverage) > 1e-9
+	return (recSingle < constants.VERY_SLOW && float64(recSingle-curSingle) > 1e-9) ||
+		(recAverage < constants.VERY_SLOW && float64(recAverage-curAverage) > 1e-9)
 }
 
 func (r *ResultEntry) IsMBLD() bool {
