@@ -190,6 +190,13 @@ func GetUserByName(db *pgxpool.Pool, name string) (int, error) {
 	return uid, nil
 }
 
+func GetEmailByWCAID(db *pgxpool.Pool, wcaid string) (string, error) {
+	var email string
+	err := db.QueryRow(context.Background(), `SELECT u.email FROM users u WHERE u.wcaid = $1;`, wcaid).
+		Scan(&email)
+	return email, err
+}
+
 func GetUserInfoFromWCA(authInfo *AuthorizationInfo, envMap map[string]string) (User, error) {
 	bearer := "Bearer " + authInfo.AccessToken
 	req, err := http.NewRequest("GET", envMap["WCA_API_ME_URL"], nil)
