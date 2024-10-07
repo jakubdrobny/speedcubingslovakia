@@ -32,7 +32,7 @@ jobs:
           script_stop: true
           script: |
             cd ${{ secrets.WORKDIR }}/database
-            make migrate_up
+            SPEEDCUBINGSLOVAKIA_BACKEND_ENV=${{ secrets.SPEEDCUBINGSLOVAKIA_BACKEND_ENV }} make migrate_up
 
             echo 'Backend rebuilt and deployment finished.'
       
