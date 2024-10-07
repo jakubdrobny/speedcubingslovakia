@@ -18,7 +18,8 @@ Clone this repository. `https://github.com/jakubdrobny/speedcubingslovakia.git`
 2. Create some user, or configure password default user `postgres`.
 3. Run `psql -U postgres` and then inside `psql` run `CREATE DATABASE <database_name>;` to create the database.
 4. Exit `psql` with CTRL+D and inside `/backend/.env.developement` change `speedcubingslovakiadb_local` to your `<database_name>`, similarly for `username` and `password`.
-5. Populate/initialize the database by running `psql -U <username> -d <database_name> -f initialize_db.sql` inside the `/database` directory.
+~~5. Populate/initialize the database by running `psql -U <username> -d <database_name> -f initialize_db.sql` inside the `/database` directory.~~
+5. Populate/initialize the database by running `make migrate_up` inside the `/database` directory.
 
 #### Backend
 
