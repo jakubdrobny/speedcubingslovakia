@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
@@ -18,7 +19,10 @@ func GetManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		manageRolesUsers := make([]models.ManageRolesUser, 0)
 
-		rows, err := db.Query(context.Background(), `SELECT u.user_id, u.name, u.isadmin FROM users u;`)
+		rows, err := db.Query(
+			context.Background(),
+			`SELECT u.user_id, u.name, u.isadmin FROM users u;`,
+		)
 		if err != nil {
 			log.Println("ERR db.Query SELECT from users in GetManageRolesUsers: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to query users from database.")
@@ -32,7 +36,10 @@ func GetManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
 			err = rows.Scan(&manageRolesUser.Id, &manageRolesUser.Name, &manageRolesUser.Isadmin)
 			if err != nil {
 				log.Println("ERR scanning ManageRolesUser in GetManageRolesUsers: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to query users from database.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to query users from database.",
+				)
 				return
 			}
 			if uid != manageRolesUser.Id {
@@ -63,10 +70,18 @@ func PutManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		for _, manageRolesUser := range manageRolesUsers {
-			_, err = tx.Exec(context.Background(), `UPDATE users SET isadmin = $1 WHERE user_id = $2;`, manageRolesUser.Isadmin, manageRolesUser.Id)
+			_, err = tx.Exec(
+				context.Background(),
+				`UPDATE users SET isadmin = $1 WHERE user_id = $2;`,
+				manageRolesUser.Isadmin,
+				manageRolesUser.Id,
+			)
 			if err != nil {
 				log.Println("ERR tx.Exec UPDATE users in GetManageRolesUsers: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to update user roles in database.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to update user roles in database.",
+				)
 				tx.Rollback(context.Background())
 				return
 			}
@@ -110,7 +125,10 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		exists, err := user.Exists(db)
 		if err != nil {
 			log.Println("ERR user.Exists in PostLogIn: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed getting user info from database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed getting user info from database.",
+			)
 			return
 		}
 
@@ -121,8 +139,17 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		}
 
 		if err != nil {
-			log.Println("ERR (", exists, ")user.Update or (", !exists, ")user.Insert in PostLogIn: "+err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed updating/insert user data into database.")
+			log.Println(
+				"ERR (",
+				exists,
+				")user.Update or (",
+				!exists,
+				")user.Insert in PostLogIn: "+err.Error(),
+			)
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed updating/insert user data into database.",
+			)
 			return
 		}
 
@@ -131,7 +158,11 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		if user.WcaId == "" {
 			authInfo.WcaId = user.Name
 		}
-		authInfo.AccessToken, err = utils.CreateToken(user.Id, envMap["JWT_SECRET_KEY"], authInfo.ExpiresIn)
+		authInfo.AccessToken, err = utils.CreateToken(
+			user.Id,
+			envMap["JWT_SECRET_KEY"],
+			authInfo.ExpiresIn,
+		)
 		authInfo.IsAdmin = user.IsAdmin
 		authInfo.Username = user.Name
 		if err != nil {

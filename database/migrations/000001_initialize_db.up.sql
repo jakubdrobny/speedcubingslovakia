@@ -1,3 +1,5 @@
+BEGIN;
+
 /* create tables if neccessary */
 
 CREATE TABLE IF NOT EXISTS continents (
@@ -1111,3 +1113,5 @@ ON CONFLICT (country_id, name, continent_id, iso2) DO NOTHING;
 INSERT INTO countries (country_id, name, continent_id, iso2)
 VALUES ('Zimbabwe','Zimbabwe','_Africa','ZW')
 ON CONFLICT (country_id, name, continent_id, iso2) DO NOTHING;
+
+COMMIT;
