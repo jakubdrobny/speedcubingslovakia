@@ -23,6 +23,19 @@ jobs:
 
             echo 'Latest code pulled from repository.'
 
+      - name: Apply database migrations
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script_stop: true
+          script: |
+            cd ${{ secrets.WORKDIR }}/database
+            make migrate_up
+
+            echo 'Backend rebuilt and deployment finished.'
+      
       - name: Rebuild and restart backend
         uses: appleboy/ssh-action@v1.0.3
         with:
