@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"fmt"
-	"log"
 	"sort"
 	"time"
 
@@ -449,7 +448,6 @@ func LoadEventRows(db *pgxpool.Pool, eid int) ([]EventResultsRow, error) {
 			&eventResultsRow.ResultEntry.Status.Visible,
 		)
 		if err != nil {
-			fmt.Println("died in LoadEventRows scan")
 			return []EventResultsRow{}, err
 		}
 
@@ -551,7 +549,6 @@ func GetPersonalResultEntriesInEvent(db *pgxpool.Pool, uid int, eid int) ([]Resu
 			&resultEntry.Competitionid,
 		)
 		if err != nil {
-			fmt.Println("died in GetPersonalResultEntriesInEvent")
 			return []ResultEntry{}, err
 		}
 
@@ -1253,36 +1250,30 @@ func (p *ProfileType) LoadRecordCollection(
 func (p *ProfileType) Load(db *pgxpool.Pool, uid int) error {
 	err := p.LoadBasics(db, uid)
 	if err != nil {
-		log.Println("basics error")
 		return err
 	}
 
 	user, err := GetUserById(db, uid)
 	if err != nil {
-		log.Println("userid error")
 		return err
 	}
 	err = user.LoadContinent(db)
 	if err != nil {
-		log.Println("continent error")
 		return err
 	}
 
 	rows, err := p.LoadPersonalBests(db, &user, 0)
 	if err != nil {
-		log.Println("pbs error")
 		return err
 	}
 
 	recorders, err := p.LoadRecordCollection(db, &user, rows)
 	if err != nil {
-		log.Println("recordcoll error")
 		return err
 	}
 
 	err = p.LoadHistory(db, &user, recorders, rows)
 	if err != nil {
-		log.Println("history error")
 		return err
 	}
 
