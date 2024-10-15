@@ -114,13 +114,14 @@ func (r *ResultEntry) Validate(db *pgxpool.Pool, isfmc bool, scrambles []string)
 	return nil
 }
 
-func IsValidTimePeriod(db *pgxpool.Pool, competitionId string) (bool, error) {
+func IsValidTimePeriod(db *pgxpool.Pool, competitionId string) (bool, CompetitionData, error) {
 	competition, err := GetCompetitionByIdObject(db, competitionId)
 	if err != nil {
-		return false, err
+		return false, CompetitionData{}, err
 	}
 
-	return competition.Startdate.Before(time.Now()) && time.Now().Before(competition.Enddate), nil
+	return competition.Startdate.Before(time.Now()) &&
+		time.Now().Before(competition.Enddate), competition, nil
 }
 
 func (r *ResultEntry) LoadId(db *pgxpool.Pool) error {
@@ -167,7 +168,7 @@ func (r *ResultEntry) ValidateMultiEntry(entry string) string {
 	return entry
 }
 
-func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error {
+func (r *ResultEntry) Update(db *pgxpool.Pool, isadmin bool, isfmc bool, valid ...bool) error {
 	var err error
 
 	if r.Id == 0 {
@@ -201,12 +202,12 @@ func (r *ResultEntry) Update(db *pgxpool.Pool, isfmc bool, valid ...bool) error 
 		}
 	}
 
-	ok, err := IsValidTimePeriod(db, r.Competitionid)
+	ok, competition, err := IsValidTimePeriod(db, r.Competitionid)
 	if err != nil {
 		return err
 	}
 
-	if ok {
+	if ok || (isadmin && competition.Startdate.Before(time.Now())) {
 		_, err := db.Exec(
 			context.Background(),
 			`UPDATE results SET solve1 = $1, solve2 = $2, solve3 = $3, solve4 = $4, solve5 = $5, comment = $6, status_id = $7, timestamp = CURRENT_TIMESTAMP WHERE user_id = $8 AND competition_id = $9 AND event_id = $10;`,
