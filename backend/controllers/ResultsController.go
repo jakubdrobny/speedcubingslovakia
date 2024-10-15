@@ -163,7 +163,7 @@ type ValidateResultsBody struct {
 	Verdict  bool `json:"verdict"`
 }
 
-func ValidateResults(db *pgxpool.Pool, body ValidateResultsBody) (string, string) {
+func ValidateResults(db *pgxpool.Pool, body ValidateResultsBody, isadmin bool) (string, string) {
 	resultEntry, err := models.GetResultEntryById(db, body.ResultId)
 	if err != nil {
 		return "ERR GetResultEntryById in PostResultsValidation: " + err.Error(), "Failed getting result entry from database."
@@ -179,7 +179,7 @@ func ValidateResults(db *pgxpool.Pool, body ValidateResultsBody) (string, string
 	}
 
 	resultEntry.Status = resultStatus
-	err = resultEntry.Update(db, resultEntry.IsFMC(), true)
+	err = resultEntry.Update(db, isadmin, resultEntry.IsFMC(), true)
 	if err != nil {
 		return "ERR resultEntry.Update in PostResultsValidation: " + err.Error(), "Failed updating result entry in database."
 	}
@@ -205,7 +205,8 @@ func GetResultsValidation(db *pgxpool.Pool) gin.HandlerFunc {
 
 		body := ValidateResultsBody{ResultId: resultId, Verdict: verdict}
 
-		logMsg, retMsg := ValidateResults(db, body)
+		isadmin := c.MustGet("isadmin").(bool)
+		logMsg, retMsg := ValidateResults(db, body, isadmin)
 		if logMsg != "" || retMsg != "" {
 			log.Println(logMsg)
 			c.IndentedJSON(http.StatusInternalServerError, retMsg)
@@ -231,7 +232,8 @@ func PostResultsValidation(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		logMsg, retMsg := ValidateResults(db, body)
+		isadmin := c.MustGet("isadmin").(bool)
+		logMsg, retMsg := ValidateResults(db, body, isadmin)
 		if logMsg != "" || retMsg != "" {
 			log.Println(logMsg)
 			c.IndentedJSON(http.StatusInternalServerError, retMsg)
@@ -344,7 +346,7 @@ func GetResultsByIdAndEvent(db *pgxpool.Pool) gin.HandlerFunc {
 			resultEntry.Iconcode = event.Iconcode
 			resultEntry.Format = event.Format
 
-			err = resultEntry.Update(db, resultEntry.IsFMC())
+			err = resultEntry.Update(db, false, resultEntry.IsFMC())
 			if err != nil {
 				log.Println("ERR resultEntry.Update in GetResultsByIdAndEvent: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed updating results in database.")
@@ -386,7 +388,7 @@ func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 			return
 		}
 
-		err = resultEntry.Update(db, resultEntry.IsFMC())
+		err = resultEntry.Update(db, false, resultEntry.IsFMC())
 		if err != nil {
 			log.Println("ERR resultEntry.Update in PostResults: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed updating results in database.")
