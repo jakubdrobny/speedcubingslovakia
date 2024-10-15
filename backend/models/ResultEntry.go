@@ -736,6 +736,11 @@ func (r *ResultEntry) SendSuspicousMail(
 ) {
 	select {
 	case <-c.Request.Context().Done():
+		if r.Iconcode == "333fm" {
+			log.Println("Change in FMC results. Not sending an email.")
+			return
+		}
+
 		noOfSolves, err := utils.GetNoOfSolves(r.Format)
 		if err != nil {
 			log.Println(
