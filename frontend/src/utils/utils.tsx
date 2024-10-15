@@ -174,7 +174,7 @@ export const updateCompetition = async (
     enddate: state.enddate.endsWith("Z")
       ? state.enddate
       : state.enddate + ":00Z",
-    events: state.events.toSorted(
+    events: state.events.sort(
       (e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id,
     ),
     scrambles: [],

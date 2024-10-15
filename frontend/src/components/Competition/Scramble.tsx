@@ -6,7 +6,8 @@ import {
   TimerInputCurrentState,
 } from "../../Types";
 import { East, West } from "@mui/icons-material";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
+import useState from 'react-usestateref';
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import DefaultScramble from "../../images/DefaultScramble";
@@ -14,7 +15,7 @@ import { Stack } from "@mui/system";
 import { TimerInputContext } from "../../context/TimerInputContext";
 
 const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
-  const [scrambleImg, setScrambleImg] = useState<string>();
+  const [scrambleImg, setScrambleImg, scrambleImgRef] = useState<string>();
   const { competitionState } = useContext(
     CompetitionContext
   ) as CompetitionContextType;
@@ -71,7 +72,7 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
         scrambleSet.scrambles[competitionState.currentSolveIdx].img
       );
     }
-  }, [competitionState.currentSolveIdx, competitionState.scrambles]);
+  }, [competitionState.currentSolveIdx, competitionState.scrambles, competitionState.currentEventIdx]);
 
   const [scramblePage, setScramblePage] = useState(0);
   const scrambles = scramble.split("\n").length;
@@ -149,11 +150,11 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
           marginBottom: "10px",
         }}
       >
-        {scrambleImg === undefined ? (
+        {scrambleImgRef === undefined || scrambleImgRef.current === undefined ? (
           <DefaultScramble />
         ) : (
           <img
-            src={`${process.env.REACT_APP_SCRAMBLE_IMAGES_PATH}/${scrambleImg}`}
+            src={`${process.env.REACT_APP_SCRAMBLE_IMAGES_PATH}/${scrambleImgRef.current}`}
             alt={`${competitionState?.id}/${
               competitionState?.events[competitionState?.currentEventIdx]
                 ?.displayname
