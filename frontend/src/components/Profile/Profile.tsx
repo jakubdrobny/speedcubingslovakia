@@ -23,7 +23,7 @@ import { useParams } from "react-router-dom";
 const Profile = () => {
   const { id = "trolko" } = useParams<{ id: string }>();
   const [loadingState, setLoadingState] = useState<LoadingState>({
-    isLoading: true,
+    isLoading: false,
     error: {},
   });
   const [profile, setProfile] = useState<ProfileType>(defaultProfile);
@@ -32,6 +32,8 @@ const Profile = () => {
   ) as WindowSizeContextType;
 
   useEffect(() => {
+    setLoadingState({ isLoading: true, error: {} })
+
     getProfile(id)
       .then((p: ProfileType) => {
         setProfile(p);
@@ -40,7 +42,7 @@ const Profile = () => {
       .catch((err) => {
         setLoadingState({ isLoading: false, error: getError(err) });
       });
-  }, []);
+  }, [id]);
 
   return (
     <div style={{ margin: "2em" }}>
