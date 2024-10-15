@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 const Dashboard = () => {
   return (
     <div style={{ margin: "1em" }}>
-      <ButtonGroup>
+      <ButtonGroup sx={{ flexWrap: "wrap" }}>
         <Button component={Link} to="/admin/manage-roles" color="primary">
           Manage roles
         </Button>
