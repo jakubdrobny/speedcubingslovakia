@@ -14,6 +14,8 @@ import { NavContext } from "../../context/NavContext";
 import ProfileListItem from "../Profile/ProfileListItem";
 import ResultsListItem from "./ResultsListItem";
 import WCALogoNoText from "../../images/WCALogoNoText";
+import Competition from "../Competition/Competition";
+import CompetitionsListItem from "./CompetitionsListItem";
 
 const NavItems: React.FC<{
   direction: "row" | "row-reverse" | "column" | "column-reverse";
@@ -38,17 +40,7 @@ const NavItems: React.FC<{
         justifyContent: "flex-end",
       }}
     >
-      <ListItemButton
-        component={Link}
-        to="/competitions"
-        onClick={closeNav}
-        sx={{ justifyContent: "flex-end" }}
-      >
-        <ListItemDecorator>
-          <LanguageIcon />
-        </ListItemDecorator>
-        Online Competitions
-      </ListItemButton>
+      <CompetitionsListItem />
       <ResultsListItem />
       <ListItemButton
         component={Link}

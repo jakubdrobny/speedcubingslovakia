@@ -389,3 +389,20 @@ export type AverageInfo = {
   averageRecord: string;
   averageRecordColor: string;
 };
+
+export type WCACompetitionType = {
+  name: string;
+  competitorLimit: number;
+  venueAddress: string;
+  latitudeDegrees: number;
+  longitudeDegress: number;
+  url: string;
+  events: CompetitionEvent[];
+  organizers: WCACompetitionOrganizer[];
+};
+
+export type WCACompetitionOrganizer = {
+  name: string;
+  wca_id: string;
+  url: string;
+};

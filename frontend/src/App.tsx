@@ -26,6 +26,7 @@ import Rankings from "./components/Rankings/Rankings";
 import Records from "./components/Records/Records";
 import ResultsEdit from "./components/Dashboard/ResultsEdit";
 import Users from "./components/Users/Users";
+import WCACompetitions from "./components/WCACompetitions/WCACompetitions";
 import { WindowSizeContext } from "./context/WindowSizeContext";
 import useState from "react-usestateref";
 
@@ -92,6 +93,7 @@ const App = () => {
           <Route path="/" Component={Home} />
           <Route path="/competitions" Component={Competitions} />
           <Route path="/competition/:id" Component={Competition} />
+          <Route path="/upcoming-wca-competitions" Component={WCACompetitions} />
           <Route path="/announcements" Component={Announcements} />
           <Route path="/announcement/:id" Component={Announcement} />
           <Route path="/not-found" Component={NotFound} />
