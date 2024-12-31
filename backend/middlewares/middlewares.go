@@ -22,7 +22,12 @@ func AdminMiddleWare() gin.HandlerFunc {
 	}
 }
 
-func MarkAuthorization(c *gin.Context, db *pgxpool.Pool, envMap map[string]string, markHeaders bool) bool {
+func MarkAuthorization(
+	c *gin.Context,
+	db *pgxpool.Pool,
+	envMap map[string]string,
+	markHeaders bool,
+) bool {
 	authDetails, err := models.GetAuthDetailsFromHeader(c, envMap["JWT_SECRET_KEY"])
 	if err != nil {
 		if markHeaders {

@@ -369,6 +369,14 @@ func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 			return
 		}
 
+		isadmin := c.MustGet("isadmin").(bool)
+		uid := c.MustGet("uid").(int)
+		fmt.Println(isadmin, uid, resultEntry.Userid)
+		if !isadmin && uid != resultEntry.Userid {
+			c.IndentedJSON(http.StatusCreated, "Nope")
+			return
+		}
+
 		if resultEntry.Id == 0 {
 			err = resultEntry.LoadId(db)
 			if err != nil {
@@ -388,7 +396,7 @@ func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 			return
 		}
 
-		err = resultEntry.Update(db, false, resultEntry.IsFMC())
+		err = resultEntry.Update(db, isadmin, resultEntry.IsFMC())
 		if err != nil {
 			log.Println("ERR resultEntry.Update in PostResults: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed updating results in database.")
@@ -398,7 +406,6 @@ func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		go resultEntry.SendSuspicousMail(c, db, envMap, previousTimes)
 
 		c.IndentedJSON(http.StatusCreated, resultEntry)
-		return
 	}
 }
 
