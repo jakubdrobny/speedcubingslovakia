@@ -27,6 +27,8 @@ import {
 } from "../../utils/utils";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import remarkEmoji from "remark-emoji";
+import remarkGemoji from "remark-gemoji";
 
 import MDEditor from "@uiw/react-md-editor";
 
@@ -35,7 +37,7 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
   const { id } = useParams<{ id: string }>();
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [announcementState, setAnnoucementState] = useState<AnnouncementState>(
-    initialAnnouncementState
+    initialAnnouncementState,
   );
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
@@ -71,7 +73,7 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
 
   const handleSelectedTagsChange = (selectedTagsLabels: string[]) => {
     const selectedTags = selectedTagsLabels.map(
-      (tagLabel) => availableTags.find((tag) => tag.label === tagLabel) as Tag
+      (tagLabel) => availableTags.find((tag) => tag.label === tagLabel) as Tag,
     );
     setAnnoucementState({ ...announcementState, tags: selectedTags });
   };
@@ -156,10 +158,10 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
                       variant="soft"
                       color={
                         selectedOption.label as
-                          | "danger"
-                          | "warning"
-                          | "success"
-                          | "primary"
+                        | "danger"
+                        | "warning"
+                        | "success"
+                        | "primary"
                       }
                     >
                       {selectedOption.value}
@@ -197,6 +199,9 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
                     content: newContent || "",
                   })
                 }
+                previewOptions={{
+                  remarkPlugins: [remarkGemoji],
+                }}
               />
             </div>
             <FormHelperText>This field is required.</FormHelperText>
