@@ -614,7 +614,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 		rankings := make([]RankingsEntry, 0)
 
 		if eid == -1 {
-			competitionResults, err := models.GetOverallResults(db, "")
+			competitionResults, err := models.GetOverallResults(db, "", regionType, regionPrecise)
 			if err != nil {
 				log.Println("ERR models.GetOverallResults in GetRankings: " + err.Error())
 				c.IndentedJSON(http.StatusInternalServerError, "Failed getting overall rankings.")
