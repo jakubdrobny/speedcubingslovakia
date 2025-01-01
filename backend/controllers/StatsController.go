@@ -92,10 +92,6 @@ func GetAdminStats(db *pgxpool.Pool) gin.HandlerFunc {
 			)
 		}
 
-		sort.Slice(competitorsPerComp, func(i, j int) bool {
-			return competitorsPerComp[i] < competitorsPerComp[j]
-		})
-
 		adminStatsCollection.Average = math.Round(
 			(adminStatsCollection.Average/float64(len(competitorsPerComp)))*100,
 		) / 100

@@ -94,7 +94,7 @@ const AdminStats = () => {
               }}
             >
               <Typography fontWeight="bold">Median competitors:</Typography>
-              <Typography>{overallStats.max}</Typography>
+              <Typography>{overallStats.median}</Typography>
             </Card>
             <Card
               sx={{
