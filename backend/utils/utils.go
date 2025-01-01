@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +23,18 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/cube"
 )
+
+func GetMedian(arr []float64) float64 {
+	sort.Slice(arr, func(i, j int) bool {
+		return arr[i] < arr[j]
+	})
+
+	if len(arr)%2 == 0 {
+		return (arr[len(arr)/2-1] + arr[len(arr)/2]) / 2.
+	}
+
+	return arr[len(arr)/2]
+}
 
 func Reverse[S ~[]E, E any](s S) {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {

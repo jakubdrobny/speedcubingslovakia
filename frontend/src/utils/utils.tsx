@@ -1,8 +1,10 @@
 import {
+  AdminStatsCollection,
   AnnouncementReactResponse,
   AnnouncementState,
   AuthState,
   AverageInfo,
+  BasicStatsCollection,
   CompetitionData,
   CompetitionEvent,
   CompetitionLoadingState,
@@ -678,5 +680,10 @@ export const isBrowser = typeof window !== "undefined";
 
 export const GetMapData = async (): Promise<FeatureCollection> => {
   const response = await axios.get(`/api/users/map`);
+  return response.data;
+};
+
+export const getAdminStats = async (): Promise<AdminStatsCollection> => {
+  const response = await axios.get(`/api/stats/dashboard`);
   return response.data;
 };

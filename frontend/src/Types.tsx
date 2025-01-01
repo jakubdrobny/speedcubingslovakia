@@ -151,7 +151,7 @@ export type TimerInputContextType = {
   handleTimerInputKeyDown: EventListener;
   handleTimerInputKeyUp: (
     e: Event,
-    handleSaveResults?: (moveIndex: boolean) => void
+    handleSaveResults?: (moveIndex: boolean) => void,
   ) => void;
   timerRef: { current: HTMLDivElement | null };
 };
@@ -388,4 +388,17 @@ export type AverageInfo = {
   singleRecordColor: string;
   averageRecord: string;
   averageRecordColor: string;
+};
+
+export type AdminStatsChartData = {
+  columnNames: string[];
+  data: string[][];
+};
+
+export type AdminStatsCollection = {
+  total: number;
+  max: number;
+  median: number;
+  average: number;
+  chartData: AdminStatsChartData;
 };

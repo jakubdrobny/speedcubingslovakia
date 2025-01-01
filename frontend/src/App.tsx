@@ -28,13 +28,14 @@ import ResultsEdit from "./components/Dashboard/ResultsEdit";
 import Users from "./components/Users/Users";
 import { WindowSizeContext } from "./context/WindowSizeContext";
 import useState from "react-usestateref";
+import AdminStats from "./components/Dashboard/AdminStats";
 
 const App = () => {
   const { authStateRef, setAuthState } = useContext(
-    AuthContext
+    AuthContext,
   ) as AuthContextType;
   const { windowSize, setWindowSize } = useContext(
-    WindowSizeContext
+    WindowSizeContext,
   ) as WindowSizeContextType;
   useEffect(() => {
     const handleResize = () => {
@@ -120,6 +121,7 @@ const App = () => {
               path="/announcement/create"
               element={<AnnouncementEdit edit={false} />}
             />
+            <Route path="/admin/stats" Component={AdminStats} />
           </Route>
           <Route path="/profile/:id" Component={Profile} />
           <Route path="/results/users" Component={Users} />

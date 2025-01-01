@@ -45,6 +45,16 @@ func main() {
 
 	api_v1 := router.Group("/api")
 
+	stats := api_v1.Group("/stats")
+	{
+		stats.GET(
+			"/dashboard",
+			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AdminMiddleWare(),
+			controllers.GetAdminStats(db),
+		)
+	}
+
 	results := api_v1.Group("/results")
 	{
 		results.GET(
