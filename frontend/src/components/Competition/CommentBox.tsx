@@ -6,7 +6,7 @@ import { useContext } from "react";
 
 const CommentBox: React.FC<{ disabled: boolean }> = ({ disabled }) => {
   const { setCurrentResults, currentResultsRef } = useContext(
-    CompetitionContext
+    CompetitionContext,
   ) as CompetitionContextType;
 
   const handleCommentChange = (newComment: string) => {

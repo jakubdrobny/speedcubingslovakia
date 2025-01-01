@@ -1,6 +1,5 @@
 import {
   CompetitionContextType,
-  InputMethod,
   TimerColors,
   TimerInputContextType,
   TimerInputCurrentState,

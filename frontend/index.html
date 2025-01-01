@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -27,7 +27,7 @@
       property="og:description"
       content="SpeedcubingSlovakia is a website holding weekly competitions in Speedcubing and will be serving as an announcement/discussion place for Slovak speedcubing community."
     />
-    <meta property="og:image" content="<%= require('./banner.png') %>" />
+    <meta property="og:image" content="/banner.png" />
 
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://speedcubingslovakia.sk" />
@@ -36,11 +36,11 @@
       property="twitter:description"
       content="SpeedcubingSlovakia is a website holding weekly competitions in Speedcubing and will be serving as an announcement/discussion place for Slovak speedcubing community."
     />
-    <meta property="twitter:image" content="<%= require('./banner.png') %>" />
+    <meta property="twitter:image" content="/banner.png" />
     <title>SpeedcubingSlovakia</title>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

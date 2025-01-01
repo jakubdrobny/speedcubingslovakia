@@ -1,5 +1,4 @@
 import {
-  Alert,
   Box,
   Card,
   CircularProgress,
@@ -177,13 +176,13 @@ const CompetitionResults = () => {
                 result.single = isfmc
                   ? result.single.split(".")[0]
                   : ismbld
-                  ? reformatMultiTime(result.single)
-                  : result.single;
+                    ? reformatMultiTime(result.single)
+                    : result.single;
                 result.times = isfmc
                   ? result.times?.map((res) => res.split(".")[0])
                   : ismbld
-                  ? result.times?.map((r) => reformatMultiTime(r))
-                  : result.times;
+                    ? result.times?.map((r) => reformatMultiTime(r))
+                    : result.times;
                 return (
                   <tr key={idx}>
                     <td style={{ height: "1em", textAlign: "right" }}>

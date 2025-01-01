@@ -1,7 +1,6 @@
 import "../../styles/cubing-icons.css";
 
 import {
-  Alert,
   CircularProgress,
   DialogContent,
   DialogTitle,
@@ -92,8 +91,8 @@ const Competition = () => {
             suspicousModalOpen
               ? "danger"
               : warningModalOpen
-              ? "warning"
-              : "neutral"
+                ? "warning"
+                : "neutral"
           }
           layout="center"
           size="lg"

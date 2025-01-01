@@ -1,10 +1,9 @@
-import { Alert, CircularProgress, Grid, Stack, Typography } from "@mui/joy";
+import { CircularProgress, Grid, Stack, Typography } from "@mui/joy";
 import { LoadingState, ProfileType } from "../../Types";
 import {
   defaultProfile,
   getError,
   getProfile,
-  initialLoadingState,
   isObjectEmpty,
   renderResponseError,
 } from "../../utils/utils";
@@ -27,7 +26,7 @@ const Profile = () => {
     error: {},
   });
   const [profile, setProfile] = useState<ProfileType>(defaultProfile);
-  const { windowSize, setWindowSize } = useContext(
+  const { windowSize } = useContext(
     WindowSizeContext
   ) as WindowSizeContextType;
 

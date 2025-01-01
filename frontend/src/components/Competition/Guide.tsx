@@ -7,7 +7,7 @@ import { useContext } from "react";
 
 const Guide = () => {
   const { competitionState } = useContext(
-    CompetitionContext
+    CompetitionContext,
   ) as CompetitionContextType;
 
   return (

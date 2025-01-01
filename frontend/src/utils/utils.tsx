@@ -4,7 +4,6 @@ import {
   AnnouncementState,
   AuthState,
   AverageInfo,
-  BasicStatsCollection,
   CompetitionData,
   CompetitionEvent,
   CompetitionLoadingState,
@@ -24,9 +23,8 @@ import {
   SearchUser,
   Tag,
 } from "../Types";
-import { FeatureCollection, GeoJsonObject } from "geojson";
+import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
-import { useEffect, useState } from "react";
 
 import { Alert } from "@mui/joy";
 import Cookies from "universal-cookie";
@@ -460,7 +458,7 @@ export const getError = (err: AxiosError): ResponseError => {
             Unauthorized/token expired. Try to{" "}
             <span style={{ padding: "0 2px" }}></span>
             <Link
-              to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+              to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
               onClick={() => saveCurrentLocation(window.location.pathname)}
             >
               re-login

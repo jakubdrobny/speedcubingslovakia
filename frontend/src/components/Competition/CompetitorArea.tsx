@@ -19,7 +19,7 @@ const CompetitorArea: React.FC<{ loading: boolean }> = ({ loading }) => {
             You are not authenticated! Please{" "}
             <span style={{ fontSize: "1em" }}>&nbsp;</span>
             <a
-              href={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+              href={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
               onClick={() => saveCurrentLocation(window.location.pathname)}
             >
               log in

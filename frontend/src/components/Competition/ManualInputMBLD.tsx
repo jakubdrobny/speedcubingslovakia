@@ -7,42 +7,41 @@ import { competitionOnGoing } from "../../utils/utils";
 import useState from "react-usestateref";
 
 const ManualInputMBLD = () => {
-  const [forceRerender, setForceRerender] = useState(false);
+  const [_, setForceRerender] = useState(false);
   const { competitionStateRef, updateSolve, currentResultsRef } = useContext(
-    CompetitionContext
+    CompetitionContext,
   ) as CompetitionContextType;
   const solveProp: keyof ResultEntry = `solve${
     competitionStateRef.current.currentSolveIdx + 1
   }` as keyof ResultEntry;
   const formattedTime = currentResultsRef.current[solveProp].toString();
 
-  const [solvedCubes, setSolvedCubes, solvedCubesRef] = useState(
-    formattedTime === "DNS" ? "0" : formattedTime?.split("/")[0]
+  const [__, setSolvedCubes, solvedCubesRef] = useState(
+    formattedTime === "DNS" ? "0" : formattedTime?.split("/")[0],
   );
 
-  const [attemptedCubes, setAttemptedCubes, attemptedCubesRef] =
-    useState<string>(
-      formattedTime === "DNS" ? "0" : formattedTime?.split(" ")[0].split("/")[1]
-    );
+  const [___, setAttemptedCubes, attemptedCubesRef] = useState<string>(
+    formattedTime === "DNS" ? "0" : formattedTime?.split(" ")[0].split("/")[1],
+  );
   const [hours, setHours, hoursRef] = useState(
     formattedTime === "DNS"
       ? "00"
-      : formattedTime?.split(" ")[1]?.split(":")[0].padStart(2, "0")
+      : formattedTime?.split(" ")[1]?.split(":")[0].padStart(2, "0"),
   );
   const [minutes, setMinutes, minutesRef] = useState<string>(
     formattedTime === "DNS"
       ? "00"
-      : formattedTime?.split(" ")[1]?.split(":")[1]?.padStart(2, "0")
+      : formattedTime?.split(" ")[1]?.split(":")[1]?.padStart(2, "0"),
   );
   const [seconds, setSeconds, secondsRef] = useState(
     formattedTime === "DNS"
       ? "00"
-      : formattedTime?.split(" ")[1]?.split(":")[2].padStart(2, "0")
+      : formattedTime?.split(" ")[1]?.split(":")[2].padStart(2, "0"),
   );
 
   const handleSomethingChanged = () => {
     updateSolve(
-      `${solvedCubesRef.current}/${attemptedCubesRef.current} ${hoursRef.current}:${minutesRef.current}:${secondsRef.current}`
+      `${solvedCubesRef.current}/${attemptedCubesRef.current} ${hoursRef.current}:${minutesRef.current}:${secondsRef.current}`,
     );
   };
 
@@ -55,25 +54,27 @@ const ManualInputMBLD = () => {
 
   useEffect(() => {
     setSolvedCubes(
-      formattedTime === "DNS" ? "0" : formattedTime?.split("/")[0]
+      formattedTime === "DNS" ? "0" : formattedTime?.split("/")[0],
     );
     setAttemptedCubes(
-      formattedTime === "DNS" ? "0" : formattedTime?.split(" ")[0].split("/")[1]
+      formattedTime === "DNS"
+        ? "0"
+        : formattedTime?.split(" ")[0].split("/")[1],
     );
     setHours(
       formattedTime === "DNS"
         ? "00"
-        : formattedTime?.split(" ")[1]?.split(":")[0].padStart(2, "0")
+        : formattedTime?.split(" ")[1]?.split(":")[0].padStart(2, "0"),
     );
     setMinutes(
       formattedTime === "DNS"
         ? "00"
-        : formattedTime?.split(" ")[1]?.split(":")[1].padStart(2, "0")
+        : formattedTime?.split(" ")[1]?.split(":")[1].padStart(2, "0"),
     );
     setSeconds(
       formattedTime === "DNS"
         ? "00"
-        : formattedTime?.split(" ")[1]?.split(":")[2].padStart(2, "0")
+        : formattedTime?.split(" ")[1]?.split(":")[2].padStart(2, "0"),
     );
   }, [formattedTime]);
 
@@ -122,7 +123,7 @@ const ManualInputMBLD = () => {
                 disabled={!competitionOnGoing(competitionStateRef.current)}
                 sx={{ width: "3em", padding: 0 }}
               />
-            )
+            ),
           )}
         </Stack>
         <Stack
@@ -160,7 +161,7 @@ const ManualInputMBLD = () => {
                 disabled={!competitionOnGoing(competitionStateRef.current)}
                 sx={{ width: "3em", padding: 0 }}
               />
-            )
+            ),
           )}
         </Stack>
       </Stack>

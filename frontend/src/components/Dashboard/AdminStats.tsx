@@ -1,4 +1,4 @@
-import { Alert, Card, Typography } from "@mui/joy";
+import { Card, Typography } from "@mui/joy";
 import { Stack } from "@mui/system";
 import { useEffect } from "react";
 import { Chart } from "react-google-charts";
@@ -12,10 +12,9 @@ import {
 } from "../../utils/utils";
 import LoadingComponent from "../Loading/LoadingComponent";
 import useState from "react-usestateref";
-import { StackedBarChart } from "@mui/icons-material";
 
 const AdminStats = () => {
-  const [chartData, setChartData, chartDataRef] = useState<any[]>([]);
+  const [_, setChartData, chartDataRef] = useState<any[]>([]);
   const [loadingState, setLoadingState] =
     useState<LoadingState>(initialLoadingState);
   const [overallStats, setOverallStats] = useState<{
