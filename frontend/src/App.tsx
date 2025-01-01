@@ -73,7 +73,11 @@ const App = () => {
 
   return (
     <Grid container>
-      <Suspense fallback={<LoadingComponent title="Loading..." />}>
+      <Suspense fallback={
+        <div style={{ width: "100%" }}>
+          <LoadingComponent title="Loading..." />
+        </div>
+      }>
         <Grid
           xs={0}
           lg={1}
