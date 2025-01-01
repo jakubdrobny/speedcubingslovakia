@@ -4,7 +4,6 @@ import {
   AnnouncementState,
   AuthState,
   AverageInfo,
-  BasicStatsCollection,
   CompetitionData,
   CompetitionEvent,
   CompetitionLoadingState,
@@ -24,9 +23,8 @@ import {
   SearchUser,
   Tag,
 } from "../Types";
-import { FeatureCollection, GeoJsonObject } from "geojson";
+import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
-import { useEffect, useState } from "react";
 
 import { Alert } from "@mui/joy";
 import Cookies from "universal-cookie";

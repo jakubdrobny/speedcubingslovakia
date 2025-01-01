@@ -27,7 +27,7 @@ const NavItems: React.FC<{
     if (authStateRef.current.token) {
       GetNoOfNewAnnouncements()
         .then((res) => setNewAnnouncements(res))
-        .catch((err) => {});
+        .catch((_) => {});
     }
   }, [location.pathname]);
 

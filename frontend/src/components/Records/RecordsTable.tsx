@@ -1,5 +1,5 @@
 import { Card, Stack, Table, Typography } from "@mui/joy";
-import { RankingsEntry, RecordsItem, RecordsItemEntry } from "../../Types";
+import { RecordsItem, RecordsItemEntry } from "../../Types";
 import { getCubingIconClassName, reformatMultiTime } from "../../utils/utils";
 
 import { Link } from "react-router-dom";

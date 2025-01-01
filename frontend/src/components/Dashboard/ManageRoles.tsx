@@ -1,5 +1,4 @@
 import {
-  Alert,
   Button,
   Card,
   CircularProgress,
@@ -41,8 +40,8 @@ const ManageRoles = () => {
       setUsers(
         users.map(
           (u: ManageRolesUser): ManageRolesUser =>
-            u.id === userid ? { ...u, isadmin: checked } : { ...u }
-        )
+            u.id === userid ? { ...u, isadmin: checked } : { ...u },
+        ),
       );
     };
 

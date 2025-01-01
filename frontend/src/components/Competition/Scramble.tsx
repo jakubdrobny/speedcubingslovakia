@@ -15,7 +15,7 @@ import { Stack } from "@mui/system";
 import { TimerInputContext } from "../../context/TimerInputContext";
 
 const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
-  const [scrambleImg, setScrambleImg, scrambleImgRef] = useState<string>();
+  const [_, setScrambleImg, scrambleImgRef] = useState<string>();
   const { competitionState } = useContext(
     CompetitionContext,
   ) as CompetitionContextType;
@@ -24,30 +24,30 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
   ) as TimerInputContextType;
   const scramble =
     competitionState &&
-      competitionState.scrambles &&
-      competitionState.events &&
-      competitionState.currentEventIdx < competitionState.events.length &&
-      competitionState.scrambles.find(
-        (s: ScrambleSet) =>
-          s.event.displayname ===
-          competitionState.events[competitionState.currentEventIdx].displayname,
-      ) !== undefined
+    competitionState.scrambles &&
+    competitionState.events &&
+    competitionState.currentEventIdx < competitionState.events.length &&
+    competitionState.scrambles.find(
+      (s: ScrambleSet) =>
+        s.event.displayname ===
+        competitionState.events[competitionState.currentEventIdx].displayname,
+    ) !== undefined
       ? (
-        competitionState.scrambles.find(
-          (s: ScrambleSet) =>
-            s.event.displayname ===
-            competitionState.events[competitionState.currentEventIdx]
-              .displayname,
-        ) as ScrambleSet
-      ).scrambles[competitionState.currentSolveIdx].scramble
+          competitionState.scrambles.find(
+            (s: ScrambleSet) =>
+              s.event.displayname ===
+              competitionState.events[competitionState.currentEventIdx]
+                .displayname,
+          ) as ScrambleSet
+        ).scrambles[competitionState.currentSolveIdx].scramble
       : "";
   const [showScrambleImage, setShowScrambleImage] = useState<boolean>(
     competitionState &&
       competitionState.events &&
       competitionState.currentEventIdx < competitionState.events.length
       ? !competitionState.events[
-        competitionState.currentEventIdx
-      ].iconcode.endsWith("bf")
+          competitionState.currentEventIdx
+        ].iconcode.endsWith("bf")
       : true,
   );
 
@@ -76,8 +76,8 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
           competitionState.events &&
           competitionState.currentEventIdx < competitionState.events.length
           ? !competitionState.events[
-            competitionState.currentEventIdx
-          ].iconcode.endsWith("bf")
+              competitionState.currentEventIdx
+            ].iconcode.endsWith("bf")
           : true,
       );
     }
@@ -164,14 +164,15 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
         }}
       >
         {scrambleImgRef === undefined ||
-          scrambleImgRef.current === undefined ? (
+        scrambleImgRef.current === undefined ? (
           <DefaultScramble />
         ) : (
           <img
             src={`${import.meta.env.VITE_SCRAMBLE_IMAGES_PATH}/${scrambleImgRef.current}`}
-            alt={`${competitionState?.id}/${competitionState?.events[competitionState?.currentEventIdx]
+            alt={`${competitionState?.id}/${
+              competitionState?.events[competitionState?.currentEventIdx]
                 ?.displayname
-              }/scramble${competitionState?.currentSolveIdx + 1}`}
+            }/scramble${competitionState?.currentSolveIdx + 1}`}
             style={{ maxWidth: "80%" }}
           />
         )}

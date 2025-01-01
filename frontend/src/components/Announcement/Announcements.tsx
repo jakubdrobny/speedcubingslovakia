@@ -26,9 +26,7 @@ import { useEffect } from "react";
 import useState from "react-usestateref";
 
 const Announcements = () => {
-  const [announcements, setAnnouncements, announcementsRef] = useState<
-    AnnouncementState[]
-  >([]);
+  const [announcements, setAnnouncements] = useState<AnnouncementState[]>([]);
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
     error: {},
@@ -51,7 +49,7 @@ const Announcements = () => {
         setLoadingState({ isLoading: false, error: {} });
       })
       .catch((err) =>
-        setLoadingState({ isLoading: false, error: getError(err) })
+        setLoadingState({ isLoading: false, error: getError(err) }),
       );
   }, []);
 
@@ -110,11 +108,11 @@ const Announcements = () => {
                           const newAnnouncements = announcements.slice();
                           newAnnouncements.splice(
                             deleteCandidateRef.current.idx,
-                            1
+                            1,
                           );
                           setAnnouncements(newAnnouncements);
                           DeleteAnnouncement(deleteCandidateRef.current.id)
-                            .then((res) => {
+                            .then((_) => {
                               setDeletingAnnouncement(false);
                               setDeleteModalOpen(false);
                             })

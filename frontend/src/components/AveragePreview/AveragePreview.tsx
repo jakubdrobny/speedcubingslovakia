@@ -13,7 +13,6 @@ import {
 import { useContext, useEffect, useState } from "react";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
-import LoadingComponent from "../Loading/LoadingComponent";
 import ResultsModal from "./ResultsModal";
 
 const AveragePreview: React.FC<{
@@ -29,7 +28,7 @@ const AveragePreview: React.FC<{
     error: {},
   });
   const { currentResults } = useContext(
-    CompetitionContext
+    CompetitionContext,
   ) as CompetitionContextType;
   const ismbld = currentResults.iconcode === "333mbf";
   const isfmc = currentResults.iconcode === "333fm";
@@ -118,8 +117,8 @@ const AveragePreview: React.FC<{
                   {ismbld
                     ? reformatMultiTime(averageInfo.single)
                     : isfmc
-                    ? reformatFMCSolve(averageInfo.single)
-                    : averageInfo.single}
+                      ? reformatFMCSolve(averageInfo.single)
+                      : averageInfo.single}
                 </Chip>
               </Typography>
             </div>
@@ -155,8 +154,8 @@ const AveragePreview: React.FC<{
                       {ismbld
                         ? reformatMultiTime(solveTime)
                         : isfmc
-                        ? reformatFMCSolve(solveTime)
-                        : solveTime}
+                          ? reformatFMCSolve(solveTime)
+                          : solveTime}
                     </div>
                   ))}
                 </Stack>

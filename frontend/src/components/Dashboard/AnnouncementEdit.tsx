@@ -27,7 +27,6 @@ import {
 } from "../../utils/utils";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import remarkEmoji from "remark-emoji";
 import remarkGemoji from "remark-gemoji";
 
 import MDEditor from "@uiw/react-md-editor";
@@ -148,7 +147,7 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
             <Select
               multiple
               value={announcementState.tags.map((tag) => tag.label)}
-              onChange={(e, val) => handleSelectedTagsChange(val)}
+              onChange={(_, val) => handleSelectedTagsChange(val)}
               disabled={loadingState.isLoading}
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", gap: "0.25rem" }}>
@@ -158,10 +157,10 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
                       variant="soft"
                       color={
                         selectedOption.label as
-                        | "danger"
-                        | "warning"
-                        | "success"
-                        | "primary"
+                          | "danger"
+                          | "warning"
+                          | "success"
+                          | "primary"
                       }
                     >
                       {selectedOption.value}

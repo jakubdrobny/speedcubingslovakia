@@ -8,7 +8,7 @@ const SizedConfetti = React.forwardRef<HTMLCanvasElement, any>(
     return (
       <ReactConfetti width={width} height={height} {...passedProps} ref={ref} />
     );
-  }
+  },
 );
 
 export default SizedConfetti;

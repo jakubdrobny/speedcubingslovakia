@@ -38,12 +38,12 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [availableEvents, setAvailableEvents] = useState<CompetitionEvent[]>(
-    []
+    [],
   );
   const [competitionState, setCompetitionState] = useState<CompetitionState>(
-    initialCompetitionState
+    initialCompetitionState,
   );
-  const [isLoading, setIsLoading, isLoadingRef] = useState<boolean>(false);
+  const [_, setIsLoading, isLoadingRef] = useState<boolean>(false);
   const [error, setError] = useState<ResponseError>();
 
   useEffect(() => {
@@ -82,7 +82,9 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   const handleSelectedEventsChange = (selectedEventsNames: string[]) => {
     const selectedEvents = selectedEventsNames.map(
       (eName) =>
-        availableEvents.find((e) => e.displayname === eName) as CompetitionEvent
+        availableEvents.find(
+          (e) => e.displayname === eName,
+        ) as CompetitionEvent,
     );
     setCompetitionState({ ...competitionState, events: selectedEvents });
   };
@@ -179,7 +181,7 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
             <Select
               multiple
               value={competitionState.events.map((e) => e.displayname)}
-              onChange={(e, val) => handleSelectedEventsChange(val)}
+              onChange={(_, val) => handleSelectedEventsChange(val)}
               disabled={isLoadingRef.current}
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", gap: "0.25rem" }}>
