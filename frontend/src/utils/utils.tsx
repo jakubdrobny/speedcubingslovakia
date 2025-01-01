@@ -4,6 +4,7 @@ import {
   AnnouncementState,
   AuthState,
   AverageInfo,
+  BasicStatsCollection,
   CompetitionData,
   CompetitionEvent,
   CompetitionLoadingState,

@@ -392,7 +392,7 @@ export type AverageInfo = {
 
 export type AdminStatsChartData = {
   columnNames: string[];
-  data: string[];
+  data: string[][];
 };
 
 export type AdminStatsCollection = {

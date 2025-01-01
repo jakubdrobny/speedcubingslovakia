@@ -288,8 +288,6 @@ func ConstructOverallResultsQuery(cid, regionGroup, region string) OverallQueryS
 
 	queryStruct.Query += toAppend + ";"
 
-	fmt.Println("Query: " + queryStruct.Query)
-
 	return queryStruct
 }
 

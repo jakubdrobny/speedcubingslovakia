@@ -371,7 +371,6 @@ func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 
 		isadmin := c.MustGet("isadmin").(bool)
 		uid := c.MustGet("uid").(int)
-		fmt.Println(isadmin, uid, resultEntry.Userid)
 		if !isadmin && uid != resultEntry.Userid {
 			c.IndentedJSON(http.StatusCreated, "Nope")
 			return
