@@ -460,7 +460,7 @@ export const getError = (err: AxiosError): ResponseError => {
             Unauthorized/token expired. Try to{" "}
             <span style={{ padding: "0 2px" }}></span>
             <Link
-              to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+              to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
               onClick={() => saveCurrentLocation(window.location.pathname)}
             >
               re-login

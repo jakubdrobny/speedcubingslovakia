@@ -89,7 +89,7 @@ const NavItems: React.FC<{
       ) : (
         <ListItemButton
           component={Link}
-          to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+          to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
           onClick={() => {
             saveCurrentLocation(window.location.pathname);
             closeNav();

@@ -60,7 +60,7 @@ const LogIn = () => {
           <>
             <Alert color="danger" sx={{ gap: 0 }}>
               Oops. Something went wrong. Please&nbsp;
-              <a href={process.env.REACT_APP_WCA_GET_CODE_URL || ""}>
+              <a href={import.meta.env.VITE_WCA_GET_CODE_URL || ""}>
                 try again
               </a>
               .

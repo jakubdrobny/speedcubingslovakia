@@ -168,7 +168,7 @@ const Scramble: React.FC<{ ismbld: boolean }> = ({ ismbld }) => {
           <DefaultScramble />
         ) : (
           <img
-            src={`${process.env.REACT_APP_SCRAMBLE_IMAGES_PATH}/${scrambleImgRef.current}`}
+            src={`${import.meta.env.VITE_SCRAMBLE_IMAGES_PATH}/${scrambleImgRef.current}`}
             alt={`${competitionState?.id}/${competitionState?.events[competitionState?.currentEventIdx]
                 ?.displayname
               }/scramble${competitionState?.currentSolveIdx + 1}`}
