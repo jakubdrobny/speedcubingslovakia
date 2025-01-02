@@ -64,6 +64,8 @@ const AdminStats = () => {
             spacing={1}
             direction={{ xs: "column", lg: "row" }}
             flexWrap="wrap"
+            display="flex"
+            justifyContent="center"
           >
             <Card
               sx={{
@@ -72,8 +74,7 @@ const AdminStats = () => {
                 flexDirection: "row",
               }}
             >
-              <Typography fontWeight="bold">Total competitors:</Typography>
-              <Typography>{overallStats.total}</Typography>
+              <Stack component={Typography} direction="row" spacing={1}><b>Total competitors:</b><span>{overallStats.total}</span></Stack>
             </Card>
             <Card
               sx={{
@@ -82,8 +83,7 @@ const AdminStats = () => {
                 flexDirection: "row",
               }}
             >
-              <Typography fontWeight="bold">Max. competitors:</Typography>
-              <Typography>{overallStats.max}</Typography>
+              <Stack component={Typography} direction="row" spacing={1}><b>Max. competitors:</b><span>{overallStats.max}</span></Stack>
             </Card>
             <Card
               sx={{
@@ -92,8 +92,7 @@ const AdminStats = () => {
                 flexDirection: "row",
               }}
             >
-              <Typography fontWeight="bold">Median competitors:</Typography>
-              <Typography>{overallStats.median}</Typography>
+              <Stack component={Typography} direction="row" spacing={1}><b>Median competitors:</b><span>{overallStats.median}</span></Stack>
             </Card>
             <Card
               sx={{
@@ -102,8 +101,7 @@ const AdminStats = () => {
                 flexDirection: "row",
               }}
             >
-              <Typography fontWeight="bold">Average competitors:</Typography>
-              <Typography>{overallStats.average}</Typography>
+              <Stack component={Typography} direction="row" spacing={1}><b>Average competitors:</b><span>{overallStats.average}</span></Stack>
             </Card>
           </Stack>
           <Card sx={{ backgroundColor: "white" }}>
