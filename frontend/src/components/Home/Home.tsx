@@ -32,6 +32,7 @@ const Home = () => {
           zIndex: -2,
           opacity: 0.5,
         }}
+        alt="SpeedcubingSlovakia Logo"
       />
     </div>
   );

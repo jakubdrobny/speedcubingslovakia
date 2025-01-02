@@ -45,7 +45,7 @@ const NavHorizontal = () => {
             onClick={closeNav}
             sx={WIN_SMALL ? { ml: -1 } : {}}
           >
-            <img src={mainLogo} height="48" width="48"></img>
+            <img src={mainLogo} height="48" width="48" alt="SpeedcubingSlovakia Logo"></img>
             <Typography level="h4">Speedcubing Slovakia</Typography>
           </ListItemButton>
         </Grid>
