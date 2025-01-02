@@ -1,8 +1,19 @@
 import "../../styles/Home.css";
 
 import { Typography } from "@mui/joy";
+import mainLogo from './speedcubingslovakialogo256.png'
+import { useEffect, useState } from "react";
+
 
 const Home = () => {
+  const [logoReady, setLogoReady] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setLogoReady(true);
+    img.src = mainLogo;
+  }, []);
+
   return (
     <div
       style={{
@@ -20,8 +31,8 @@ const Home = () => {
       >
         Welcome to Speedcubing Slovakia!
       </Typography>
-      <img
-        src="/speedcubingslovakialogo256.png"
+      {logoReady && <img
+        src={mainLogo}
         style={{
           position: "absolute",
           top: "50%",
@@ -31,7 +42,7 @@ const Home = () => {
           opacity: 0.5,
         }}
         alt="SpeedcubingSlovakia Logo"
-      />
+      />}
     </div>
   );
 };
