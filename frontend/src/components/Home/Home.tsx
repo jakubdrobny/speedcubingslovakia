@@ -20,7 +20,7 @@ const Home = () => {
       >
         Welcome to Speedcubing Slovakia!
       </Typography>
-      {/*<img
+      <img
         src="/speedcubingslovakialogo256.png"
         style={{
           position: "absolute",
@@ -31,7 +31,7 @@ const Home = () => {
           opacity: 0.5,
         }}
         alt="SpeedcubingSlovakia Logo"
-      />*/}
+      />
     </div>
   );
 };
