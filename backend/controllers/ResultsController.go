@@ -470,7 +470,7 @@ func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 		regionSelectGroups = append(regionSelectGroups, RegionSelectGroup{"Continent", continents})
 
-		countries, err := utils.GetCountries(db)
+		countries, err := models.GetCountries(db)
 		if err != nil {
 			log.Println("ERR GetCountries in GetRegionsGrouped: " + err.Error())
 			c.IndentedJSON(
@@ -479,7 +479,13 @@ func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 			)
 			return
 		}
-		regionSelectGroups = append(regionSelectGroups, RegionSelectGroup{"Country", countries})
+		regionSelectGroups = append(
+			regionSelectGroups,
+			RegionSelectGroup{
+				"Country",
+				utils.Map(countries, func(c models.Country) string { return c.Name }),
+			},
+		)
 
 		c.IndentedJSON(http.StatusOK, regionSelectGroups)
 	}

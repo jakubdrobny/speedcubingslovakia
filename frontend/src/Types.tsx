@@ -402,3 +402,16 @@ export type AdminStatsCollection = {
   average: number;
   chartData: AdminStatsChartData;
 };
+
+export type WCACompetitionType = {
+  name: string;
+  startdate: string;
+  enddate: string;
+  registered: number;
+  competitorLimit: number;
+  venueAddress: string;
+  url: string;
+  events: CompetitionEvent[];
+  delegates: string[];
+  organizers: string[];
+};

@@ -22,6 +22,7 @@ import {
   ResultsStatus,
   SearchUser,
   Tag,
+  WCACompetitionType
 } from "../Types";
 import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
@@ -680,6 +681,11 @@ export const GetMapData = async (): Promise<FeatureCollection> => {
   const response = await axios.get(`/api/users/map`);
   return response.data;
 };
+
+export const GetWCACompetitions = async (region: string): Promise<WCACompetitionType[]> => {
+  const response = await axios.get(`/api/competitions/wca?region=${region}`);
+  return response.data;
+} 
 
 export const getAdminStats = async (): Promise<AdminStatsCollection> => {
   const response = await axios.get(`/api/stats/dashboard`);
