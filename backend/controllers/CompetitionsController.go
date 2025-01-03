@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -368,7 +369,10 @@ func AddNewWeeklyCompetition(db *pgxpool.Pool, envMap map[string]string) {
 	log.Println(competition)
 }
 
-func GetUpcomingWCACompetitionEvents(db *pgxpool.Pool, cid int) ([]models.CompetitionEvent, error) {
+func GetUpcomingWCACompetitionEvents(
+	db *pgxpool.Pool,
+	cid string,
+) ([]models.CompetitionEvent, error) {
 	rows, err := db.Query(
 		context.Background(),
 		`SELECT e.iconcode FROM upcoming_wca_competition_events uwce JOIN events e ON uwce.event_id = e.event_id WHERE uwce.upcoming_wca_competition_id = $1;`,
@@ -451,7 +455,99 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 		return err
 	}
 
-	// TODO: load countries with iso2 set, go through them and for each request to the url and blablabla
+	saved_comps_ids := make(map[string]bool)
+	for _, comp := range saved_competitions {
+		saved_comps_ids[comp.Id] = true
+	}
+
+	countries, err := models.GetCountries(db)
+	if err != nil {
+		log.Println("ERR models.GetCountries in CheckUpcomingWCACompetitions: " + err.Error())
+		return err
+	}
+
+	tx, err := db.Begin(context.Background())
+	if err != nil {
+		log.Println("ERR db.Begin in CheckUpcomingWCACompetitions: " + err.Error())
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	for _, country := range countries {
+		if country.Name != "Slovakia" {
+			continue
+		}
+
+		page := 1
+		can := true
+		for can {
+			url := fmt.Sprintf(
+				"https://www.worldcubeassociation.org/api/v0/competitions?country_iso2=%s&page=%d&sort=-end_date",
+				country.Iso2,
+				page,
+			)
+			body, err := utils.GetRequest(url)
+			if err != nil {
+				log.Println(
+					"ERR utils.GetRequest(url=" + url + ") in CheckUpcomingWCACompetitions: " + err.Error(),
+				)
+				return err
+			}
+
+			var respComps []models.GetWCACompetitionsResponse
+			err = json.Unmarshal(body, &respComps)
+			if err != nil {
+				log.Println("ERR json.Unmarshal in CheckUpcomingWCACompetitions: " + err.Error())
+				return err
+			}
+
+			if len(respComps) == 0 {
+				can = false
+			} else {
+				for _, respComp := range respComps {
+					const layout = "2006-01-02"
+					enddate, _ := time.Parse(layout, respComp.Enddate)
+					if enddate.Before(time.Now().Round(0)) {
+						can = false
+						break
+					}
+
+					startdate, _ := time.Parse(layout, respComp.Startdate)
+					upcomingWCACompetition := models.UpcomingWCACompetition{
+						Id:              respComp.Id,
+						Name:            respComp.Name,
+						Startdate:       startdate,
+						Enddate:         enddate,
+						CompetitorLimit: respComp.CompetitorLimit,
+						VenueAddress:    respComp.VenueAddress + ", " + respComp.City + ", " + country.Name,
+						Url:             respComp.Url,
+						Events:          utils.Map(respComp.EventIds, func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} }),
+						Country:         country.Name,
+					}
+
+					err = upcomingWCACompetition.GetRegistered(tx)
+					if err != nil {
+						log.Println("ERR upcomingWCACompetition.GetRegistered in CheckUpcomingWCACompetitions: " + err.Error())
+						return err
+					}
+
+					err = upcomingWCACompetition.Save(tx)
+					if err != nil {
+						log.Println("ERR upcomingWCACompetition.Save in CheckUpcomingWCACompetitions: " + err.Error())
+						return err
+					}
+
+					log.Println("Competition " + upcomingWCACompetition.Name + " saved successfully.")
+				}
+			}
+		}
+	}
+
+	err = tx.Commit(context.Background())
+	if err != nil {
+		log.Println("ERR tx.Commit in CheckUpcomingWCACompetitions: " + err.Error())
+		return err
+	}
 
 	return nil
 }
