@@ -1,4 +1,4 @@
-import { Box, Button, Card, CircularProgress, Grid } from "@mui/joy";
+import { Box, Button, Card, Grid } from "@mui/joy";
 import {
   CompetitionContextType,
   InputMethod,
@@ -35,7 +35,7 @@ const Compete = () => {
     fetchCompeteResultEntry,
   } = useContext(CompetitionContext) as CompetitionContextType;
   const { timerInputState } = useContext(
-    TimerInputContext
+    TimerInputContext,
   ) as TimerInputContextType;
   const ismbld =
     competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
@@ -60,7 +60,8 @@ const Compete = () => {
         setLoadingState({ ...loadingState, results: false, error: {} });
         if (moveIndex)
           updateCurrentSolve(
-            (competitionState.currentSolveIdx + 1) % competitionState.noOfSolves
+            (competitionState.currentSolveIdx + 1) %
+              competitionState.noOfSolves,
           );
         setShowResultsModal(true);
         if (competeRef && competeRef.current) {
@@ -72,7 +73,7 @@ const Compete = () => {
           ...loadingState,
           results: false,
           error: getError(err),
-        })
+        }),
       );
   };
 
@@ -91,7 +92,7 @@ const Compete = () => {
                     (competitionState.currentSolveIdx -
                       1 +
                       competitionState.noOfSolves) %
-                      competitionState.noOfSolves
+                      competitionState.noOfSolves,
                   )
                 }
                 disabled={
@@ -123,7 +124,7 @@ const Compete = () => {
                 onClick={() =>
                   updateCurrentSolve(
                     (competitionState.currentSolveIdx + 1) %
-                      competitionState.noOfSolves
+                      competitionState.noOfSolves,
                   )
                 }
                 disabled={

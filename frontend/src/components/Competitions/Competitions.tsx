@@ -1,5 +1,4 @@
 import {
-  Alert,
   Button,
   ButtonGroup,
   Card,
@@ -22,7 +21,7 @@ import { getError } from "../../utils/utils";
 const Competitions = () => {
   const [competitionData, setCompetitionData] = useState<CompetitionData[]>([]);
   const [filterValue, setFilterValue] = useState<FilterValue>(
-    FilterValue.Current
+    FilterValue.Current,
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<ResponseError>();

@@ -6,7 +6,7 @@ import { ResultsCompeteChoiceEnum } from "../../Types";
 const ResultsCompeteChoice: React.FC<{
   resultsCompeteChoice: ResultsCompeteChoiceEnum;
   setResultsCompeteChoice: (
-    newResultsCompeteChoice: ResultsCompeteChoiceEnum
+    newResultsCompeteChoice: ResultsCompeteChoiceEnum,
   ) => void;
   loading: boolean;
 }> = ({ resultsCompeteChoice, setResultsCompeteChoice, loading }) => {

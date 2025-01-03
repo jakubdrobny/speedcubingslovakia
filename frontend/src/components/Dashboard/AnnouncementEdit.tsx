@@ -27,6 +27,7 @@ import {
 } from "../../utils/utils";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import remarkGemoji from "remark-gemoji";
 
 import MDEditor from "@uiw/react-md-editor";
 
@@ -35,7 +36,7 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
   const { id } = useParams<{ id: string }>();
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [announcementState, setAnnoucementState] = useState<AnnouncementState>(
-    initialAnnouncementState
+    initialAnnouncementState,
   );
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
@@ -71,7 +72,7 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
 
   const handleSelectedTagsChange = (selectedTagsLabels: string[]) => {
     const selectedTags = selectedTagsLabels.map(
-      (tagLabel) => availableTags.find((tag) => tag.label === tagLabel) as Tag
+      (tagLabel) => availableTags.find((tag) => tag.label === tagLabel) as Tag,
     );
     setAnnoucementState({ ...announcementState, tags: selectedTags });
   };
@@ -146,7 +147,7 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
             <Select
               multiple
               value={announcementState.tags.map((tag) => tag.label)}
-              onChange={(e, val) => handleSelectedTagsChange(val)}
+              onChange={(_, val) => handleSelectedTagsChange(val)}
               disabled={loadingState.isLoading}
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", gap: "0.25rem" }}>
@@ -197,6 +198,9 @@ const AnnouncementEdit: React.FC<{ edit: boolean }> = ({ edit }) => {
                     content: newContent || "",
                   })
                 }
+                previewOptions={{
+                  remarkPlugins: [remarkGemoji],
+                }}
               />
             </div>
             <FormHelperText>This field is required.</FormHelperText>

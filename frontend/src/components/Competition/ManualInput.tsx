@@ -1,5 +1,5 @@
 import { CompetitionContextType, ResultEntry } from "../../Types";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { competitionOnGoing, reformatTime } from "../../utils/utils";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
@@ -26,7 +26,7 @@ const ManualInput: React.FC<{
 
   useEffect(
     () => setForceRerender(!forceRerender),
-    [competitionState.currentEventIdx]
+    [competitionState.currentEventIdx],
   );
 
   const handleTimeInputChange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -91,7 +91,7 @@ const ManualInput: React.FC<{
           if (target.tagName === "INPUT" && !isfmc)
             target.setSelectionRange(
               target?.value?.length,
-              target?.value?.length
+              target?.value?.length,
             );
         }}
         disabled={!competitionOnGoing(competitionStateRef.current)}

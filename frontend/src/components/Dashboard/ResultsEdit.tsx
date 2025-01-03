@@ -39,7 +39,7 @@ import { MAX_MANUAL_INPUT_LENGTH } from "../../constants";
 
 const ResultsEdit = () => {
   const [availableEvents, setAvailableEvents] = useState<CompetitionEvent[]>(
-    []
+    [],
   );
   const [competitorName, setCompetitorName] = useState<string>("");
   const [competitionName, setCompetitionName] = useState<string>("");
@@ -87,7 +87,7 @@ const ResultsEdit = () => {
       competitorName,
       competitionName,
       availableEvents.find((e) => e.displayname === competitionEvent),
-      resultsStatus
+      resultsStatus,
     )
       .then((res) => {
         setResults(res);
@@ -112,10 +112,10 @@ const ResultsEdit = () => {
   const updateSolve = (
     newTime: string,
     resultsIdx: number,
-    solveProp: string
+    solveProp: string,
   ) => {
     const newResults = results.map((val, idx) =>
-      idx === resultsIdx ? { ...val, [solveProp]: newTime } : { ...val }
+      idx === resultsIdx ? { ...val, [solveProp]: newTime } : { ...val },
     );
     setResults(newResults);
   };
@@ -124,7 +124,7 @@ const ResultsEdit = () => {
     newValue: string,
     oldValue: string,
     resultsIdx: number,
-    solveProp: string
+    solveProp: string,
   ) => {
     if (results[resultsIdx].eventname === "FMC") {
       updateSolve(newValue, resultsIdx, solveProp);
@@ -159,7 +159,7 @@ const ResultsEdit = () => {
     const noOfSolves = match ? parseInt(match) : 1;
     return ["solve1", "solve2", "solve3", "solve4", "solve5"].slice(
       0,
-      noOfSolves
+      noOfSolves,
     );
   };
 
@@ -172,7 +172,7 @@ const ResultsEdit = () => {
   const validateResult = (resultsIdx: number, verdict: boolean) => {
     setIsLoading((ps) => ({ ...ps, results: true }));
     saveValidation(results[resultsIdx], verdict)
-      .then((res) => fetchResults())
+      .then((_) => fetchResults())
       .catch((err) => {
         setIsLoading((ps) => ({ ...ps, results: false }));
         setError(getError(err));
@@ -181,7 +181,7 @@ const ResultsEdit = () => {
 
   const handleCommentChange = (newComment: string, resultsIdx: number) => {
     const newResults = results.map((val, idx) =>
-      idx === resultsIdx ? { ...val, comment: newComment } : val
+      idx === resultsIdx ? { ...val, comment: newComment } : val,
     );
     setResults(newResults);
   };
@@ -222,7 +222,7 @@ const ResultsEdit = () => {
               <FormLabel>Event</FormLabel>
               <Select
                 value={competitionEvent}
-                onChange={(e, val) => {
+                onChange={(_, val) => {
                   setCompetitionEvent(val || "");
                   setEventSelectError(false);
                 }}
@@ -262,7 +262,7 @@ const ResultsEdit = () => {
               <FormLabel>Result status</FormLabel>
               <Select
                 value={resultsStatus}
-                onChange={(e, val) => {
+                onChange={(_, val) => {
                   setResultsStatus(val || "");
                   setResultsStatusSelectError(false);
                 }}
@@ -275,8 +275,8 @@ const ResultsEdit = () => {
                         status?.value === "Approved"
                           ? "success"
                           : status?.value === "Denied"
-                          ? "danger"
-                          : "warning"
+                            ? "danger"
+                            : "warning"
                       }
                     >
                       {status?.value}
@@ -298,8 +298,8 @@ const ResultsEdit = () => {
                         status.displayname === "Approved"
                           ? "success"
                           : status.displayname === "Denied"
-                          ? "danger"
-                          : "warning"
+                            ? "danger"
+                            : "warning"
                       }
                     >
                       {status.displayname}
@@ -360,7 +360,7 @@ const ResultsEdit = () => {
                               <Chip size="lg" color="primary">
                                 <span
                                   className={getCubingIconClassName(
-                                    result.iconcode
+                                    result.iconcode,
                                   )}
                                 >
                                   &nbsp;{result.eventname}
@@ -435,13 +435,13 @@ const ResultsEdit = () => {
                                           solveProp as keyof ResultEntry
                                         ].toString(),
                                         resultIdx,
-                                        solveProp
+                                        solveProp,
                                       )
                                     }
                                   />
                                 </FormControl>
                               );
-                            }
+                            },
                           )}
                           <FormControl>
                             <FormLabel>Comment:</FormLabel>

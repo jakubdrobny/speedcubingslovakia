@@ -36,10 +36,12 @@ type FeatureCollection struct {
 }
 
 // returns: map of OveralResults by country, logMsg, retMsg, error
-func GetUsersByCountryWithKinchScore(db *pgxpool.Pool) (map[string][]MapDataUser, string, string, error) {
+func GetUsersByCountryWithKinchScore(
+	db *pgxpool.Pool,
+) (map[string][]MapDataUser, string, string, error) {
 	usersByCountry := make(map[string][]MapDataUser)
 
-	overallResults, err := GetOverallResults(db, "")
+	overallResults, err := GetOverallResults(db, "", "World", "World")
 	if err != nil {
 		return map[string][]MapDataUser{}, "ERR GetOverallResults in GetUsersByCountryWithKinchScore: " + err.Error(), "Failed to get user scores.", err
 	}

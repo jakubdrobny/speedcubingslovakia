@@ -85,7 +85,7 @@ jobs:
             npm install
             npm run build
             rm -rf ${{ secrets.FRONTEND_DEPLOY_DIR }}/*
-            mv ./build/* ${{ secrets.FRONTEND_DEPLOY_DIR }}
+            mv ./dist/* ${{ secrets.FRONTEND_DEPLOY_DIR }}
             sudo service nginx reload
 
             echo 'Frontend rebuilt and deployment finished.'

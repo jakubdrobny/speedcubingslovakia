@@ -3,7 +3,6 @@ import {
   ReadAnnouncement,
   getAnnouncementById,
   getError,
-  initialLoadingState,
   isObjectEmpty,
   renderResponseError,
 } from "../../utils/utils";
@@ -12,10 +11,9 @@ import {
   AnnouncementState,
   AuthContextType,
   LoadingState,
-  ResponseError,
   initialAnnouncementState,
 } from "../../Types";
-import { Card, Chip, CircularProgress, Stack, Typography } from "@mui/joy";
+import { Card, Chip, Stack, Typography } from "@mui/joy";
 import { Delete, Edit } from "@mui/icons-material";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { SlackCounter, SlackSelector } from "@charkour/react-reactions";
@@ -25,7 +23,7 @@ import { AuthContext } from "../../context/AuthContext";
 import LoadingComponent from "../Loading/LoadingComponent";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import { Paper } from "@mui/material";
-import emoji from "remark-emoji";
+import remarkGemoji from "remark-gemoji";
 import useState from "react-usestateref";
 
 const Announcement: React.FC<{
@@ -34,13 +32,12 @@ const Announcement: React.FC<{
   idx?: number;
   givenLoadingStateAllAnnouncements?: LoadingState;
   setLoadingStateForAllAnnouncements?: (
-    newLoadingStateAllAnnouncements: LoadingState
+    newLoadingStateAllAnnouncements: LoadingState,
   ) => void;
 }> = ({
   givenAnnouncementState,
   onAnnouncementDelete,
   idx,
-  givenLoadingStateAllAnnouncements,
   setLoadingStateForAllAnnouncements,
 }) => {
   const given = !isObjectEmpty(givenAnnouncementState || {});
@@ -49,7 +46,7 @@ const Announcement: React.FC<{
     useState<AnnouncementState>(
       given
         ? (givenAnnouncementState as AnnouncementState)
-        : initialAnnouncementState
+        : initialAnnouncementState,
     );
   const [loadingState, setLoadingState] = useState<LoadingState>({
     isLoading: false,
@@ -70,9 +67,9 @@ const Announcement: React.FC<{
           setAnnouncementState(res);
           if (!res.read) return ReadAnnouncement(res);
         })
-        .then((res) => setLoadingState({ isLoading: false, error: {} }))
+        .then((_) => setLoadingState({ isLoading: false, error: {} }))
         .catch((err) =>
-          setLoadingState({ isLoading: false, error: getError(err) })
+          setLoadingState({ isLoading: false, error: getError(err) }),
         );
     }
 
@@ -84,14 +81,14 @@ const Announcement: React.FC<{
           !announcementState.read
         ) {
           ReadAnnouncement(announcementState)
-            .then((res) => {
+            .then((_) => {
               //   setAnnouncementState({ ...announcementState, read: true })
             })
             .catch((err) =>
               setLoadingState({
                 isLoading: loadingState.isLoading,
                 error: getError(err),
-              })
+              }),
             );
         }
       },
@@ -99,7 +96,7 @@ const Announcement: React.FC<{
         root: null,
         rootMargin: "0px",
         threshold: 0.5,
-      }
+      },
     );
 
     if (targetRef.current) {
@@ -124,7 +121,7 @@ const Announcement: React.FC<{
           emojiCounters: res.set
             ? [...announcementStateRef.current.emojiCounters, { emoji, by }]
             : [...announcementStateRef.current.emojiCounters].filter(
-                (entry) => !(entry.emoji === emoji && entry.by === by)
+                (entry) => !(entry.emoji === emoji && entry.by === by),
               ),
         });
       })
@@ -188,7 +185,7 @@ const Announcement: React.FC<{
                         onAnnouncementDelete(
                           idx || 0,
                           announcementState.title,
-                          parseInt(announcementState.id.toString() || "0")
+                          parseInt(announcementState.id.toString() || "0"),
                         );
                     }}
                   />
@@ -224,7 +221,7 @@ const Announcement: React.FC<{
                 <MarkdownPreview
                   source={announcementState.content}
                   style={{ padding: 16 }}
-                  remarkPlugins={[emoji]}
+                  remarkPlugins={[remarkGemoji]}
                 />
               </div>
             </Paper>

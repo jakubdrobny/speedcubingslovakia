@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import useState from "react-usestateref";
 
 export const useContainerDimensions = (myRef: any) => {
-  const [dimensions, setDimensions, dimensionsRef] = useState({
+  const [_, setDimensions, dimensionsRef] = useState({
     width: 0,
     height: 0,
   });

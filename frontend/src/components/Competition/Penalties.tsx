@@ -13,10 +13,10 @@ import { useContext } from "react";
 
 const Penalties = () => {
   const { timerInputState } = useContext(
-    TimerInputContext
+    TimerInputContext,
   ) as TimerInputContextType;
   const { competitionState, addPenalty } = useContext(
-    CompetitionContext
+    CompetitionContext,
   ) as CompetitionContextType;
 
   return (

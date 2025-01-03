@@ -52,7 +52,7 @@ const Rankings = () => {
   const isoverall = events[currentEventIdx]?.displayname === "Overall";
   const [queryTypeValue, setQueryTypeValue, queryTypeValueRef] =
     useState<string>(defaultQueryTypeValue);
-  const { windowSize, setWindowSize } = useContext(
+  const { windowSize } = useContext(
     WindowSizeContext
   ) as WindowSizeContextType;
 
@@ -201,7 +201,7 @@ const Rankings = () => {
           </ButtonGroup>
           <Select
             value={queryTypeValue}
-            onChange={(e, val) => {
+            onChange={(_, val) => {
               setQueryTypeValue(val || "");
               fetchRankings();
             }}
@@ -218,7 +218,7 @@ const Rankings = () => {
         <Typography level="h3">Region:</Typography>
         <Select
           value={regionValue}
-          onChange={(e, val) => {
+          onChange={(_, val) => {
             setRegionValue(val || "");
             fetchRankings();
           }}

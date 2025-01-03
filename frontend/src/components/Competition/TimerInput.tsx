@@ -4,7 +4,7 @@ import {
   TimerInputContextType,
   TimerInputCurrentState,
 } from "../../Types";
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect } from "react";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import { TimerInputContext } from "../../context/TimerInputContext";
@@ -18,7 +18,7 @@ const Timer: React.FC<{
   const { competitionState, currentResultsRef, competitionStateRef } =
     useContext(CompetitionContext) as CompetitionContextType;
   const { timerInputState, timerRef } = useContext(
-    TimerInputContext
+    TimerInputContext,
   ) as TimerInputContextType;
   const formattedTime =
     currentResultsRef.current[
@@ -28,7 +28,7 @@ const Timer: React.FC<{
     ].toString();
   const location = useLocation();
   const { handleTimerInputKeyDown, handleTimerInputKeyUp } = useContext(
-    TimerInputContext
+    TimerInputContext,
   ) as TimerInputContextType;
 
   const _handleTimerInputKeyUp = (e: Event) =>
@@ -40,7 +40,7 @@ const Timer: React.FC<{
     if (timerRef && timerRef.current) {
       timerRef.current.removeEventListener(
         "touchstart",
-        handleTimerInputKeyDown
+        handleTimerInputKeyDown,
       );
       timerRef.current.removeEventListener("touchend", _handleTimerInputKeyUp);
     }
@@ -54,7 +54,7 @@ const Timer: React.FC<{
       if (timerRef && timerRef.current) {
         timerRef.current.addEventListener(
           "touchstart",
-          handleTimerInputKeyDown
+          handleTimerInputKeyDown,
         );
         timerRef.current.addEventListener("touchend", _handleTimerInputKeyUp);
       }
@@ -88,11 +88,11 @@ const Timer: React.FC<{
         {timerInputState.currentState === TimerInputCurrentState.Ready
           ? "Ready"
           : timerInputState.currentState === TimerInputCurrentState.Solving
-          ? "Solving..."
-          : reformatWithPenalties(
-              formattedTime,
-              competitionState.penalties[competitionState.currentSolveIdx]
-            )}
+            ? "Solving..."
+            : reformatWithPenalties(
+                formattedTime,
+                competitionState.penalties[competitionState.currentSolveIdx],
+              )}
       </Typography>
     </div>
   );

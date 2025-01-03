@@ -1,4 +1,5 @@
 import {
+  AdminStatsCollection,
   AnnouncementReactResponse,
   AnnouncementState,
   AuthState,
@@ -23,9 +24,8 @@ import {
   Tag,
   WCACompetitionType
 } from "../Types";
-import { FeatureCollection, GeoJsonObject } from "geojson";
+import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
-import { useEffect, useState } from "react";
 
 import { Alert } from "@mui/joy";
 import Cookies from "universal-cookie";
@@ -459,7 +459,7 @@ export const getError = (err: AxiosError): ResponseError => {
             Unauthorized/token expired. Try to{" "}
             <span style={{ padding: "0 2px" }}></span>
             <Link
-              to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+              to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
               onClick={() => saveCurrentLocation(window.location.pathname)}
             >
               re-login
@@ -686,3 +686,8 @@ export const GetWCACompetitions = async (region: string): Promise<WCACompetition
   const response = await axios.get(`/api/competitions/wca?region=${region}`);
   return response.data;
 } 
+
+export const getAdminStats = async (): Promise<AdminStatsCollection> => {
+  const response = await axios.get(`/api/stats/dashboard`);
+  return response.data;
+};

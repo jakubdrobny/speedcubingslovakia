@@ -1,8 +1,5 @@
 import {
   Box,
-  Button,
-  Card,
-  Chip,
   CircularProgress,
   Divider,
   Option,
@@ -131,7 +128,7 @@ const Records = () => {
           value={regionValue}
           color="neutral"
           variant="outlined"
-          onChange={(e, val) => {
+          onChange={(_, val) => {
             setRegionValue(val || "");
             fetchRecords();
           }}

@@ -11,7 +11,6 @@ import { reformatFMCSolve, reformatMultiTime } from "../../utils/utils";
 import { AverageInfo } from "../../Types";
 import { EmojiEvents } from "@mui/icons-material";
 import SizedConfetti from "./SizedConfetti";
-import { useContainerDimensions } from "../../utils/useContainerDimensions";
 import { useRef } from "react";
 
 const ResultsModal: React.FC<{
@@ -36,15 +35,12 @@ const ResultsModal: React.FC<{
   const single = ismbld
     ? reformatMultiTime(averageInfo.single)
     : isfmc
-    ? reformatFMCSolve(averageInfo.single)
-    : averageInfo.single;
+      ? reformatFMCSolve(averageInfo.single)
+      : averageInfo.single;
   const average = ismbld
     ? reformatMultiTime(averageInfo.average)
-    : isfmc
-    ? reformatFMCSolve(averageInfo.average)
     : averageInfo.average;
   const modalRef = useRef<HTMLDivElement>(null);
-  const modalDimensionsRef = useContainerDimensions(modalRef);
 
   return (
     <div>

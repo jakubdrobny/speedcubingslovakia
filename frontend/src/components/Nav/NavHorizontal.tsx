@@ -9,8 +9,6 @@ import NavItems from "./NavItems";
 import { WindowSizeContext } from "../../context/WindowSizeContext";
 import { useContext } from "react";
 
-const mainLogo = require("../../images/speedcubingslovakialogo256.png");
-
 const NavHorizontal = () => {
   const { navOpen, closeNav, toggleNavOpen } = useContext(
     NavContext
@@ -45,7 +43,7 @@ const NavHorizontal = () => {
             onClick={closeNav}
             sx={WIN_SMALL ? { ml: -1 } : {}}
           >
-            <img src={mainLogo} height="48" width="48"></img>
+            <img src="/speedcubingslovakialogo256.png" height="48" width="48" alt="SpeedcubingSlovakia Logo"></img>
             <Typography level="h4">Speedcubing Slovakia</Typography>
           </ListItemButton>
         </Grid>

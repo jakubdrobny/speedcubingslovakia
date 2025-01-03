@@ -2,8 +2,6 @@ import "../../styles/Home.css";
 
 import { Typography } from "@mui/joy";
 
-const mainLogo = require("../../images/speedcubingslovakialogo256.png");
-
 const Home = () => {
   return (
     <div
@@ -23,7 +21,7 @@ const Home = () => {
         Welcome to Speedcubing Slovakia!
       </Typography>
       <img
-        src={mainLogo}
+        src="/speedcubingslovakialogo256.png"
         style={{
           position: "absolute",
           top: "50%",
@@ -32,6 +30,7 @@ const Home = () => {
           zIndex: -2,
           opacity: 0.5,
         }}
+        alt="SpeedcubingSlovakia Logo"
       />
     </div>
   );

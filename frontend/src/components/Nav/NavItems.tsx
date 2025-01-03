@@ -9,12 +9,10 @@ import { Link, useLocation } from "react-router-dom";
 import { useContext, useEffect, useState } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
-import LanguageIcon from "@mui/icons-material/Language";
 import { NavContext } from "../../context/NavContext";
 import ProfileListItem from "../Profile/ProfileListItem";
 import ResultsListItem from "./ResultsListItem";
 import WCALogoNoText from "../../images/WCALogoNoText";
-import Competition from "../Competition/Competition";
 import CompetitionsListItem from "./CompetitionsListItem";
 
 const NavItems: React.FC<{
@@ -29,7 +27,7 @@ const NavItems: React.FC<{
     if (authStateRef.current.token) {
       GetNoOfNewAnnouncements()
         .then((res) => setNewAnnouncements(res))
-        .catch((err) => {});
+        .catch((_) => {});
     }
   }, [location.pathname]);
 
@@ -81,7 +79,7 @@ const NavItems: React.FC<{
       ) : (
         <ListItemButton
           component={Link}
-          to={process.env.REACT_APP_WCA_GET_CODE_URL || ""}
+          to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
           onClick={() => {
             saveCurrentLocation(window.location.pathname);
             closeNav();
