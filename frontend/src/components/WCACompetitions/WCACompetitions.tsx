@@ -1,16 +1,38 @@
-import { Option, Select, Stack, Typography } from "@mui/joy"
+import {
+  Button,
+  Card,
+  Divider,
+  Option,
+  Select,
+  Stack,
+  Typography,
+} from "@mui/joy";
 import { Box } from "@mui/system";
-import axios from "axios";
-import { useEffect } from "react"
-import useState from 'react-usestateref'
-import { CompetitionData, CompetitionEvent, LoadingState, RegionSelectGroup, WCACompetitionType } from "../../Types";
-import { getCubingIconClassName, getError, getRegionGroups, GetWCACompetitions, renderResponseError } from "../../utils/utils";
+import { useEffect } from "react";
+import useState from "react-usestateref";
+import {
+  CompetitionEvent,
+  LoadingState,
+  RegionSelectGroup,
+  WCACompetitionType,
+} from "../../Types";
+import {
+  getCubingIconClassName,
+  getError,
+  getRegionGroups,
+  GetWCACompetitions,
+  renderResponseError,
+} from "../../utils/utils";
 import LoadingComponent from "../Loading/LoadingComponent";
+import { Link } from "react-router-dom";
 
 const defaultRegionGroup = "Country+Slovakia";
 
 const WCACompetitions = () => {
-  const [loadingState, setLoadingState] = useState<LoadingState>({ isLoading: false, error: {} });
+  const [loadingState, setLoadingState] = useState<LoadingState>({
+    isLoading: false,
+    error: {},
+  });
   const [competitions, setCompetitions] = useState<WCACompetitionType[]>([]);
   const [regionGroups, setRegionGroups] = useState<RegionSelectGroup[]>([]);
   const [regionValue, setRegionValue, regionValueRef] =
@@ -23,27 +45,25 @@ const WCACompetitions = () => {
         setRegionGroups(res);
         fetchWCACompetitions();
       })
-      .catch(err => {
+      .catch((err) => {
         setLoadingState({ isLoading: false, error: getError(err) });
-      })
+      });
   }, []);
 
   const fetchWCACompetitions = () => {
     setLoadingState({ isLoading: true, error: {} });
-   
+
     GetWCACompetitions(regionValueRef?.current)
       .then((res: WCACompetitionType[]) => {
         setCompetitions(res);
         setLoadingState({ isLoading: false, error: {} });
       })
-      .catch(err => {
+      .catch((err) => {
         setLoadingState({ isLoading: false, error: getError(err) });
       });
-  }
+  };
 
-  console.log(regionValueRef?.current)
-
-  return ( 
+  return (
     <Stack spacing={3} sx={{ mt: 3 }}>
       <Typography
         level="h2"
@@ -51,11 +71,17 @@ const WCACompetitions = () => {
       >
         Upcoming WCA Competitions
       </Typography>
-      <Stack direction="row" spacing={1} flexWrap="wrap" gap="10px" sx={{ pl: 2 }}>
+      <Stack
+        direction="row"
+        spacing={1}
+        flexWrap="wrap"
+        gap="10px"
+        sx={{ pl: 2 }}
+      >
         <Typography level="h3">Region:</Typography>
         <Select
           value={regionValue}
-          onChange={(e, val) => {
+          onChange={(_, val) => {
             setRegionValue(val || "");
             fetchWCACompetitions();
           }}
@@ -68,44 +94,78 @@ const WCACompetitions = () => {
               <Option value={regionGroup.groupName} disabled sx={{ pl: 2 }}>
                 <b style={{ color: "black" }}>{regionGroup.groupName}</b>
               </Option>
-              {regionGroup.groupMembers.map((groupMember: string, idx2: number) => (
-                <Option
-                  key={idx2}
-                  value={regionGroup.groupName + "+" + groupMember}
-                  label={groupMember}
-                  sx={{ pl: 4 }}
-                  color="neutral"
-                >
-                  {groupMember}
-                </Option>
-              ))}
+              {regionGroup.groupMembers.map(
+                (groupMember: string, idx2: number) => (
+                  <Option
+                    key={idx2}
+                    value={regionGroup.groupName + "+" + groupMember}
+                    label={groupMember}
+                    sx={{ pl: 4 }}
+                    color="neutral"
+                  >
+                    {groupMember}
+                  </Option>
+                ),
+              )}
             </div>
           ))}
         </Select>
       </Stack>
       {loadingState.error && renderResponseError(loadingState.error)}
-      {loadingState.isLoading ?
+      {loadingState.isLoading ? (
         <LoadingComponent title="Loading upcoming WCA competitions..." />
-      :
+      ) : (
         <Stack spacing={1}>
           {competitions.map((comp: WCACompetitionType, idx1: number) => (
-            <div style={{ border: "1px solid black" }} key={idx1} >
-              Name: {comp.name}
-              Place: {comp.venueAddress}
-              Competitor limit: {comp.competitorLimit}
-              Events: <Stack spacing={1} direction="row">{comp.events.map((event: CompetitionEvent, idx2: number) => (
-                <span key={idx2+100000}
-                  className={`${getCubingIconClassName(
-                    event.iconcode
-                  )} profile-cubing-icon-mock`}
-                />
-              ))}</Stack>
-            </div>
+            <Stack component={Card} key={idx1} spacing={1} direction="column">
+              <Typography level="h4">{comp.name}</Typography>
+              <Typography>
+                <b>Place:</b>&nbsp;{comp.venueAddress}
+              </Typography>
+              <Typography>
+                <b>Date:</b>&nbsp;
+                {new Date(comp.startdate).toLocaleDateString() +
+                  " - " +
+                  new Date(comp.enddate).toLocaleDateString()}
+              </Typography>
+              <Typography>
+                <b>Competitors:</b>&nbsp;
+                {comp.registered + "/" + comp.competitorLimit}
+              </Typography>
+              <Typography sx={{ display: "flex", alignItems: "center" }}>
+                <b>Events:</b>&nbsp;
+                <Stack spacing={1} direction="row">
+                  {comp.events.map((event: CompetitionEvent, idx2: number) => (
+                    <span
+                      key={idx2 + 100000}
+                      className={`${getCubingIconClassName(
+                        event.iconcode,
+                      )} profile-cubing-icon-mock`}
+                    />
+                  ))}
+                </Stack>
+              </Typography>
+              <Typography>
+                <b>Delegates:</b>&nbsp;{comp.delegates.join(", ")}
+              </Typography>
+              <Typography>
+                <b>Organizers:</b>&nbsp;{comp.organizers.join(", ")}
+              </Typography>
+              <Divider />
+              <Button
+                sx={{ float: "right" }}
+                variant="outlined"
+                component={Link}
+                to={comp.url}
+              >
+                More info!
+              </Button>
+            </Stack>
           ))}
         </Stack>
-      }
+      )}
     </Stack>
-  )
-}
+  );
+};
 
-export default WCACompetitions
+export default WCACompetitions;

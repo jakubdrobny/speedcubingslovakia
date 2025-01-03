@@ -405,17 +405,13 @@ export type AdminStatsCollection = {
 
 export type WCACompetitionType = {
   name: string;
+  startdate: string;
+  enddate: string;
+  registered: number;
   competitorLimit: number;
   venueAddress: string;
-  latitudeDegrees: number;
-  longitudeDegress: number;
   url: string;
   events: CompetitionEvent[];
-  organizers: WCACompetitionOrganizer[];
-};
-
-export type WCACompetitionOrganizer = {
-  name: string;
-  wca_id: string;
-  url: string;
+  delegates: string[];
+  organizers: string[];
 };
