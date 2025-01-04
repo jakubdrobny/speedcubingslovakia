@@ -598,5 +598,21 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 }
 
 func DeletePastWCACompetitions(db *pgxpool.Pool) error {
+	res, err := db.Exec(
+		context.Background(),
+		`DELETE FROM upcoming_wca_competitions WHERE date_trunc('day', now()) > enddate;`,
+	)
+	if err != nil {
+		log.Println(
+			"ERR db.Exec(delete upcoming_wca_comps) in DeletePastWCACompetitions: " + err.Error(),
+		)
+		return err
+	}
+
+	fmt.Printf(
+		"Successfully deleted %d upcoming WCA competitions from db, because they are not upcoming anymore :DD\n",
+		res.RowsAffected(),
+	)
+
 	return nil
 }
