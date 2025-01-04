@@ -508,11 +508,18 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 	}
 	defer tx.Rollback(context.Background())
 
-	for _, country := range countries {
-		//if country.Name != "Slovakia" {
-		//continue
-		//}
+	//upcomingCompsFromDB, err := GetSavedUpcomingWCACompetitions(db, "_")
+	//if err != nil {
+	//log.Println(
+	//"ERR GetSavedUpcomingWCACompetitions in CheckUpcomingWCACompetitions: " + err.Error(),
+	//)
+	//return err
+	//}
 
+	//notifySubscribers := len(upcomingCompsFromDB) > 0
+	//notifications := make(map[int]map[string][]models.UpcomingWCACompetition)
+
+	for _, country := range countries {
 		page := 1
 		can := true
 		for can {

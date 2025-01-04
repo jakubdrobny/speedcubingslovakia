@@ -4,6 +4,8 @@ import {
   AnnouncementState,
   AuthState,
   AverageInfo,
+  CompetitionAnnouncementSubcriptionUpdateResponse,
+  CompetitionAnnouncementSubscription,
   CompetitionData,
   CompetitionEvent,
   CompetitionLoadingState,
@@ -282,9 +284,8 @@ export const reformatTime = (
   let digits = !matchedDigits ? "" : matchedDigits.join("");
   if (digits.length < 3) digits = digits.padStart(3, "0");
 
-  let newFormattedTime = `${digits[digits.length - 1]}${
-    digits[digits.length - 2]
-  }.`;
+  let newFormattedTime = `${digits[digits.length - 1]}${digits[digits.length - 2]
+    }.`;
   let idx = digits.length - 3;
   while (idx >= 0) {
     newFormattedTime += digits[idx--];
@@ -492,10 +493,8 @@ export const getRankings = async (
   queryType: string,
 ): Promise<RankingsEntry[]> => {
   const response = await axios.get(
-    `/api/results/rankings?eid=${eid}&type=${
-      single ? "single" : "average"
-    }&regionGroup=${regionGroup}&region=${region}&queryType=${
-      queryType.split("+")[1]
+    `/api/results/rankings?eid=${eid}&type=${single ? "single" : "average"
+    }&regionGroup=${regionGroup}&region=${region}&queryType=${queryType.split("+")[1]
     }&numOfEntries=${queryType.split("+")[0]}`,
   );
   return response.data;
@@ -561,9 +560,8 @@ export const initialResultsStruct: CompetitionResultStruct = {
 };
 
 export const getCubingIconClassName = (iconcode: any): string => {
-  return `cubing-icon ${
-    iconcode.toString().startsWith("unofficial") ? "" : "event-"
-  }${iconcode.toString()}`;
+  return `cubing-icon ${iconcode.toString().startsWith("unofficial") ? "" : "event-"
+    }${iconcode.toString()}`;
 };
 
 export const getAnnouncementById = async (
@@ -708,4 +706,23 @@ export const renderUpcomingWCACompetitionDateRange = (
     d2 = new Date(enddate).toLocaleDateString();
   if (d1 === d2) return d1;
   return d1 + " - " + d2;
+};
+
+export const getAnnouncementSubscriptions = async (): Promise<
+  CompetitionAnnouncementSubscription[]
+> => {
+  const response = await axios.get(`/api/competitions/wca/subscriptions`);
+  return response.data;
+};
+
+export const updateCompetitionAnnouncementSubscription = async (
+  countryName: string,
+  subscribed: boolean,
+): Promise<CompetitionAnnouncementSubcriptionUpdateResponse> => {
+  const response = await axios({
+    method: "POST",
+    url: `/api/competitions/wca/subscribe`,
+    data: { countryName, subscribed },
+  });
+  return response.data;
 };

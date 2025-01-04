@@ -9,39 +9,57 @@ import {
   Typography,
 } from "@mui/joy";
 import { Box } from "@mui/system";
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
 import {
+  AuthContextType,
+  CompetitionAnnouncementSubcriptionUpdateResponse,
+  CompetitionAnnouncementSubscription,
   CompetitionEvent,
   LoadingState,
   RegionSelectGroup,
   WCACompetitionType,
 } from "../../Types";
 import {
+  getAnnouncementSubscriptions,
   getCubingIconClassName,
   getError,
   getRegionGroups,
   GetWCACompetitions,
   renderResponseError,
   renderUpcomingWCACompetitionDateRange,
+  updateCompetitionAnnouncementSubscription,
 } from "../../utils/utils";
 import LoadingComponent from "../Loading/LoadingComponent";
 import { Link } from "react-router-dom";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { AuthContext } from "../../context/AuthContext";
 dayjs.extend(relativeTime);
 
 const defaultRegionGroup = "Country+Slovakia";
 
 const WCACompetitions = () => {
-  const [loadingState, setLoadingState] = useState<LoadingState>({
+  const [loadingState, setLoadingState] = useState<
+    LoadingState & { isLoadingSubs: boolean }
+  >({
     isLoading: false,
     error: {},
+    isLoadingSubs: false,
   });
   const [competitions, setCompetitions] = useState<WCACompetitionType[]>([]);
   const [regionGroups, setRegionGroups] = useState<RegionSelectGroup[]>([]);
   const [regionValue, setRegionValue, regionValueRef] =
     useState<string>(defaultRegionGroup);
+  const [subscriptions, setSubscriptions] = useState<
+    Map<string, CompetitionAnnouncementSubscription>
+  >(new Map());
+  const { authStateRef } = useContext(AuthContext) as AuthContextType;
+  const loggedIn =
+    authStateRef.current.token !== undefined &&
+    authStateRef.current.token !== "";
+  const regionPrecise = regionValue.split("+")[1];
+  const currentlySubscribed = subscriptions.get(regionPrecise)?.subscribed;
 
   useEffect(() => {
     getRegionGroups()
@@ -51,22 +69,79 @@ const WCACompetitions = () => {
         fetchWCACompetitions();
       })
       .catch((err) => {
-        setLoadingState({ isLoading: false, error: getError(err) });
+        setLoadingState((p) => ({
+          ...p,
+          isLoading: false,
+          error: getError(err),
+        }));
       });
   }, []);
 
   const fetchWCACompetitions = () => {
-    setLoadingState({ isLoading: true, error: {} });
+    setLoadingState({ isLoading: true, error: {}, isLoadingSubs: false });
 
     const _regionValueSplit = regionValueRef.current.split("+");
     const regionPrecise = _regionValueSplit[_regionValueSplit.length - 1];
     GetWCACompetitions(regionPrecise)
       .then((res: WCACompetitionType[]) => {
         setCompetitions(res);
-        setLoadingState({ isLoading: false, error: {} });
+        setLoadingState({ isLoading: false, error: {}, isLoadingSubs: true });
+        fetchAnnouncementSubscriptions();
       })
       .catch((err) => {
-        setLoadingState({ isLoading: false, error: getError(err) });
+        setLoadingState({
+          isLoadingSubs: false,
+          isLoading: false,
+          error: getError(err),
+        });
+      });
+  };
+
+  const fetchAnnouncementSubscriptions = () => {
+    setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
+    getAnnouncementSubscriptions()
+      .then((res: CompetitionAnnouncementSubscription[]) => {
+        const newSubscriptions = new Map<
+          string,
+          CompetitionAnnouncementSubscription
+        >();
+        for (const entry of res) {
+          newSubscriptions.set(entry.countryName, entry);
+        }
+        setSubscriptions(new Map(newSubscriptions));
+        setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
+      })
+      .catch((err) => {
+        setLoadingState((p) => ({
+          ...p,
+          isLoadingSubs: false,
+          error: getError(err),
+        }));
+      });
+  };
+
+  const handleSubscribeChange = () => {
+    setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
+    updateCompetitionAnnouncementSubscription(
+      regionPrecise,
+      !subscriptions.get(regionPrecise)?.subscribed,
+    )
+      .then((res: CompetitionAnnouncementSubcriptionUpdateResponse) => {
+        const newSub = subscriptions.get(regionPrecise) || {
+          countryId: regionPrecise,
+          countryName: regionPrecise,
+          subscribed: false,
+        };
+        newSub.subscribed = res.subscribed;
+        setSubscriptions(new Map(subscriptions).set(regionPrecise, newSub));
+        setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
+      })
+      .catch((err) => {
+        setLoadingState((p) => ({
+          ...p,
+          isLoadingSubs: false,
+          error: getError(err),
+        }));
       });
   };
 
@@ -117,13 +192,23 @@ const WCACompetitions = () => {
             </div>
           ))}
         </Select>
+        {loggedIn && subscriptions && subscriptions.size > 0 && (
+          <Button
+            onClick={handleSubscribeChange}
+            variant="soft"
+            color={currentlySubscribed ? "success" : "danger"}
+            disabled={loadingState.isLoadingSubs}
+          >
+            {currentlySubscribed ? "Subscribed!" : "Not subscribed"}
+          </Button>
+        )}
       </Stack>
       <Divider />
       {loadingState.error && renderResponseError(loadingState.error)}
       {loadingState.isLoading ? (
         <LoadingComponent title="Loading upcoming WCA competitions..." />
       ) : (
-        <Stack spacing={1}>
+        <Stack spacing={2}>
           {competitions.map((comp: WCACompetitionType, idx1: number) => (
             <Stack component={Card} key={idx1} direction="column">
               <Typography level="h3">{comp.name}</Typography>
@@ -170,11 +255,11 @@ const WCACompetitions = () => {
                     {comp.registered === comp.competitorLimit
                       ? "Full"
                       : (comp.competitorLimit - comp.registered).toString() +
-                        " spot" +
-                        (comp.competitorLimit - comp.registered > 1
-                          ? "s"
-                          : "") +
-                        " remaining"}
+                      " spot" +
+                      (comp.competitorLimit - comp.registered > 1
+                        ? "s"
+                        : "") +
+                      " remaining"}
                   </Chip>
                 </Stack>
               )}
