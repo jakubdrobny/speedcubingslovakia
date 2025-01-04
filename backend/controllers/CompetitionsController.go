@@ -573,7 +573,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 					return err
 				}
 
-				err = upcomingWCACompetition.Save(tx)
+				res, err := upcomingWCACompetition.Save(tx)
 				if err != nil {
 					log.Println(
 						"ERR upcomingWCACompetition.Save in CheckUpcomingWCACompetitions: " + err.Error(),
@@ -581,7 +581,13 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 					return err
 				}
 
-				log.Println("Competition " + upcomingWCACompetition.Name + " saved successfully.")
+				if res.RowsAffected() == 0 {
+					log.Println(
+						"Competition " + upcomingWCACompetition.Name + " is already in the database.",
+					)
+				} else {
+					log.Println("Competition " + upcomingWCACompetition.Name + " saved successfully.")
+				}
 			}
 
 			page += 1

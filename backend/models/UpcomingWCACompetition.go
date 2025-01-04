@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
@@ -50,12 +52,20 @@ func (c *UpcomingWCACompetition) GetRegistered(db pgx.Tx) error {
 	)
 	body, err := utils.GetRequest(url)
 	if err != nil {
+		log.Println(
+			"ERR utils.GetRequest(" + url + ") in UpcomingWCACompetition.GetRegistered: " + err.Error(),
+		)
 		return err
 	}
 
 	var regs []UpcomingWCACompetitionRegistration
 	err = json.Unmarshal(body, &regs)
 	if err != nil {
+		log.Println(
+			"ERR json.Unmarshal(" + string(
+				body,
+			) + ") in UpcomingWCACompetition.GetRegistered: " + err.Error(),
+		)
 		return err
 	}
 
@@ -64,7 +74,7 @@ func (c *UpcomingWCACompetition) GetRegistered(db pgx.Tx) error {
 	return nil
 }
 
-func (c *UpcomingWCACompetition) Save(db pgx.Tx) error {
+func (c *UpcomingWCACompetition) Save(db pgx.Tx) (pgconn.CommandTag, error) {
 	res, err := db.Exec(
 		context.Background(),
 		`INSERT INTO upcoming_wca_competitions (upcoming_wca_competition_id, name, startdate, enddate, registered, competitor_limit, venue_address, url, country_id, registration_open) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT (upcoming_wca_competition_id) DO NOTHING;`,
@@ -80,7 +90,10 @@ func (c *UpcomingWCACompetition) Save(db pgx.Tx) error {
 		c.RegistrationOpen,
 	)
 	if err != nil {
-		return err
+		log.Println(
+			"ERR db.Exec(insert into upcoming_wca_competitions) in UpcomingWCACompetition.Save: " + err.Error(),
+		)
+		return pgconn.CommandTag{}, err
 	}
 
 	if res.RowsAffected() != 0 {
@@ -92,10 +105,20 @@ func (c *UpcomingWCACompetition) Save(db pgx.Tx) error {
 				event.Iconcode,
 			)
 			if err != nil {
-				return err
+				log.Println(
+					"ERR db.Exec(insert into upcoming_wca_competition_events) in UpcomingWCACompetition.Save: " + err.Error(),
+				)
+				return pgconn.CommandTag{}, err
 			}
 		}
+	} else {
+		_, err := db.Exec(context.Background(), `UPDATE upcoming_wca_competitions SET name = $1, startdate = $2, enddate = $3, registered = $4, competitor_limit = $5, venue_address = $6, url = $7, country_id = $8, registration_open = $9 WHERE upcoming_wca_competition_id = $10;`, c.Name, c.Startdate, c.Enddate, c.Registered, c.CompetitorLimit, c.VenueAddress, c.Url, c.CountryId, c.RegistrationOpen, c.Id)
+		if err != nil {
+			log.Println("ERR db.Exec(update upcoming_wca_competitions) in UpcomingWCACompetition.Save: " + err.Error())
+			return pgconn.CommandTag{}, err
+		}
+
 	}
 
-	return nil
+	return res, nil
 }
