@@ -30,8 +30,6 @@ import axios, { AxiosError } from "axios";
 import { Alert } from "@mui/joy";
 import Cookies from "universal-cookie";
 import { Link } from "react-router-dom";
-import { start } from "repl";
-import { debug } from "console";
 
 export const loadFilteredCompetitions = async (
   filterValue: FilterValue,

@@ -27,8 +27,8 @@ import {
 } from "../../utils/utils";
 import LoadingComponent from "../Loading/LoadingComponent";
 import { Link } from "react-router-dom";
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime';
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
 const defaultRegionGroup = "Country+Slovakia";
@@ -138,20 +138,27 @@ const WCACompetitions = () => {
                   comp.enddate,
                 )}
               </Typography>
-              {dayjs().isBefore(dayjs(comp.registrationOpen)) ?
+              {dayjs().isBefore(dayjs(comp.registrationOpen)) ? (
                 <Stack spacing={1} direction="row">
-                  <Typography><b>Registration opens:</b></Typography>
-                  <Typography>{new Date(comp.registrationOpen).toLocaleDateString() + " " + new Date(comp.registrationOpen).toLocaleTimeString()}</Typography>
-                  <Chip color="warning">{dayjs(comp.registrationOpen).fromNow()}</Chip>
-                </Stack> 
-              :
+                  <Typography>
+                    <b>Registration opens:</b>
+                  </Typography>
+                  <Typography>
+                    {new Date(comp.registrationOpen).toLocaleDateString() +
+                      " " +
+                      new Date(comp.registrationOpen).toLocaleTimeString()}
+                  </Typography>
+                  <Chip color="warning">
+                    {dayjs(comp.registrationOpen).fromNow()}
+                  </Chip>
+                </Stack>
+              ) : (
                 <Stack spacing={1} direction="row">
                   <Typography>
                     <b>Competitors:</b>
                   </Typography>
                   <Typography>
-                    {comp.registered !== 0 &&
-                      comp.registered + "/" + comp.competitorLimit}
+                    {comp.registered + "/" + comp.competitorLimit}
                   </Typography>
                   <Chip
                     color={
@@ -160,7 +167,7 @@ const WCACompetitions = () => {
                         : "success"
                     }
                   >
-                      {comp.registered === comp.competitorLimit
+                    {comp.registered === comp.competitorLimit
                       ? "Full"
                       : (comp.competitorLimit - comp.registered).toString() +
                         " spot" +
@@ -170,7 +177,7 @@ const WCACompetitions = () => {
                         " remaining"}
                   </Chip>
                 </Stack>
-              }
+              )}
               <Stack direction="row" alignItems="center" spacing={1}>
                 <Typography>
                   <b>Events:</b>
