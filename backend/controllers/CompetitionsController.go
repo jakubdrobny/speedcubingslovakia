@@ -369,6 +369,37 @@ func AddNewWeeklyCompetition(db *pgxpool.Pool, envMap map[string]string) {
 	log.Println(competition)
 }
 
+func GetUpcomingWCACompetitions(db *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		regionPrecise := c.Query("regionPrecise")
+		region, err := models.GetCountryByName(db, regionPrecise)
+		if err != nil {
+			log.Println("ERR models.GetCountryByName in GetUpcomingWCACompetitions: " + err.Error())
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to get country information from name.",
+			)
+			return
+		}
+
+		if region.Id == "" {
+			c.IndentedJSON(http.StatusInternalServerError, "Country does not exists.")
+			return
+		}
+
+		upcomingCompetitions, err := GetSavedUpcomingWCACompetitions(db, region.Id)
+		if err != nil {
+			log.Println(
+				"ERR GetSavedUpcomingWCACompetitions in GetUpcomingWCACompetitions: " + err.Error(),
+			)
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to load competitions.")
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, upcomingCompetitions)
+	}
+}
+
 func GetUpcomingWCACompetitionEvents(
 	db *pgxpool.Pool,
 	cid string,
@@ -402,10 +433,23 @@ func GetUpcomingWCACompetitionEvents(
 	return events, nil
 }
 
-func GetSavedUpcomingWCACompetitions(db *pgxpool.Pool) ([]models.UpcomingWCACompetition, error) {
+// set countryId = '_' to query for all competitions
+func GetSavedUpcomingWCACompetitions(
+	db *pgxpool.Pool,
+	countryId string,
+) ([]models.UpcomingWCACompetition, error) {
+	queryString := `SELECT upcoming_wca_competition_id as id, name, startdate, enddate, registered, competitor_limit, venue_address, url, registration_open FROM upcoming_wca_competitions`
+	args := make([]interface{}, 0)
+	if countryId != "_" {
+		queryString += " WHERE country_id = $1"
+		args = append(args, countryId)
+	}
+	queryString += " ORDER BY enddate;"
+
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT upcoming_wca_competition_id as id, name, startdate, enddate, registered, competitor_limit, venue_address, url FROM upcoming_wca_competitions;`,
+		queryString,
+		args...,
 	)
 	if err != nil {
 		log.Println(
@@ -426,6 +470,7 @@ func GetSavedUpcomingWCACompetitions(db *pgxpool.Pool) ([]models.UpcomingWCAComp
 			&upcoming_comp.CompetitorLimit,
 			&upcoming_comp.VenueAddress,
 			&upcoming_comp.Url,
+			&upcoming_comp.RegistrationOpen,
 		)
 		if err != nil {
 			log.Println(
@@ -450,16 +495,6 @@ func GetSavedUpcomingWCACompetitions(db *pgxpool.Pool) ([]models.UpcomingWCAComp
 }
 
 func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
-	saved_competitions, err := GetSavedUpcomingWCACompetitions(db)
-	if err != nil {
-		return err
-	}
-
-	saved_comps_ids := make(map[string]bool)
-	for _, comp := range saved_competitions {
-		saved_comps_ids[comp.Id] = true
-	}
-
 	countries, err := models.GetCountries(db)
 	if err != nil {
 		log.Println("ERR models.GetCountries in CheckUpcomingWCACompetitions: " + err.Error())
@@ -474,9 +509,9 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 	defer tx.Rollback(context.Background())
 
 	for _, country := range countries {
-		if country.Name != "Slovakia" {
-			continue
-		}
+		//if country.Name != "Slovakia" {
+		//continue
+		//}
 
 		page := 1
 		can := true
@@ -501,45 +536,55 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 				return err
 			}
 
-			if len(respComps) == 0 {
+			if len(respComps) < 25 {
 				can = false
-			} else {
-				for _, respComp := range respComps {
-					const layout = "2006-01-02"
-					enddate, _ := time.Parse(layout, respComp.Enddate)
-					if enddate.Before(time.Now().Round(0)) {
-						can = false
-						break
-					}
-
-					startdate, _ := time.Parse(layout, respComp.Startdate)
-					upcomingWCACompetition := models.UpcomingWCACompetition{
-						Id:              respComp.Id,
-						Name:            respComp.Name,
-						Startdate:       startdate,
-						Enddate:         enddate,
-						CompetitorLimit: respComp.CompetitorLimit,
-						VenueAddress:    respComp.VenueAddress + ", " + respComp.City + ", " + country.Name,
-						Url:             respComp.Url,
-						Events:          utils.Map(respComp.EventIds, func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} }),
-						Country:         country.Name,
-					}
-
-					err = upcomingWCACompetition.GetRegistered(tx)
-					if err != nil {
-						log.Println("ERR upcomingWCACompetition.GetRegistered in CheckUpcomingWCACompetitions: " + err.Error())
-						return err
-					}
-
-					err = upcomingWCACompetition.Save(tx)
-					if err != nil {
-						log.Println("ERR upcomingWCACompetition.Save in CheckUpcomingWCACompetitions: " + err.Error())
-						return err
-					}
-
-					log.Println("Competition " + upcomingWCACompetition.Name + " saved successfully.")
-				}
 			}
+
+			for _, respComp := range respComps {
+				const layout = "2006-01-02"
+				enddate, _ := time.Parse(layout, respComp.Enddate)
+				if enddate.Before(time.Now().Round(0)) {
+					can = false
+					break
+				}
+
+				startdate, _ := time.Parse(layout, respComp.Startdate)
+				upcomingWCACompetition := models.UpcomingWCACompetition{
+					Id:              respComp.Id,
+					Name:            respComp.Name,
+					Startdate:       startdate,
+					Enddate:         enddate,
+					CompetitorLimit: respComp.CompetitorLimit,
+					VenueAddress:    respComp.VenueAddress + ", " + respComp.City + ", " + country.Name,
+					Url:             respComp.Url,
+					Events: utils.Map(
+						respComp.EventIds,
+						func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} },
+					),
+					CountryId:        country.Id,
+					RegistrationOpen: respComp.RegistrationOpen,
+				}
+
+				err = upcomingWCACompetition.GetRegistered(tx)
+				if err != nil {
+					log.Println(
+						"ERR upcomingWCACompetition.GetRegistered in CheckUpcomingWCACompetitions: " + err.Error(),
+					)
+					return err
+				}
+
+				err = upcomingWCACompetition.Save(tx)
+				if err != nil {
+					log.Println(
+						"ERR upcomingWCACompetition.Save in CheckUpcomingWCACompetitions: " + err.Error(),
+					)
+					return err
+				}
+
+				log.Println("Competition " + upcomingWCACompetition.Name + " saved successfully.")
+			}
+
+			page += 1
 		}
 	}
 

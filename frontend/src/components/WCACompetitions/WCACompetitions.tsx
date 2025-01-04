@@ -1,6 +1,7 @@
 import {
   Button,
   Card,
+  Chip,
   Divider,
   Option,
   Select,
@@ -22,9 +23,13 @@ import {
   getRegionGroups,
   GetWCACompetitions,
   renderResponseError,
+  renderUpcomingWCACompetitionDateRange,
 } from "../../utils/utils";
 import LoadingComponent from "../Loading/LoadingComponent";
 import { Link } from "react-router-dom";
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime';
+dayjs.extend(relativeTime);
 
 const defaultRegionGroup = "Country+Slovakia";
 
@@ -53,7 +58,9 @@ const WCACompetitions = () => {
   const fetchWCACompetitions = () => {
     setLoadingState({ isLoading: true, error: {} });
 
-    GetWCACompetitions(regionValueRef?.current)
+    const _regionValueSplit = regionValueRef.current.split("+");
+    const regionPrecise = _regionValueSplit[_regionValueSplit.length - 1];
+    GetWCACompetitions(regionPrecise)
       .then((res: WCACompetitionType[]) => {
         setCompetitions(res);
         setLoadingState({ isLoading: false, error: {} });
@@ -111,29 +118,63 @@ const WCACompetitions = () => {
           ))}
         </Select>
       </Stack>
+      <Divider />
       {loadingState.error && renderResponseError(loadingState.error)}
       {loadingState.isLoading ? (
         <LoadingComponent title="Loading upcoming WCA competitions..." />
       ) : (
         <Stack spacing={1}>
           {competitions.map((comp: WCACompetitionType, idx1: number) => (
-            <Stack component={Card} key={idx1} spacing={1} direction="column">
-              <Typography level="h4">{comp.name}</Typography>
+            <Stack component={Card} key={idx1} direction="column">
+              <Typography level="h3">{comp.name}</Typography>
+              <Divider />
               <Typography>
                 <b>Place:</b>&nbsp;{comp.venueAddress}
               </Typography>
               <Typography>
                 <b>Date:</b>&nbsp;
-                {new Date(comp.startdate).toLocaleDateString() +
-                  " - " +
-                  new Date(comp.enddate).toLocaleDateString()}
+                {renderUpcomingWCACompetitionDateRange(
+                  comp.startdate,
+                  comp.enddate,
+                )}
               </Typography>
-              <Typography>
-                <b>Competitors:</b>&nbsp;
-                {comp.registered + "/" + comp.competitorLimit}
-              </Typography>
-              <Typography sx={{ display: "flex", alignItems: "center" }}>
-                <b>Events:</b>&nbsp;
+              {dayjs().isBefore(dayjs(comp.registrationOpen)) ?
+                <Stack spacing={1} direction="row">
+                  <Typography><b>Registration opens:</b></Typography>
+                  <Typography>{new Date(comp.registrationOpen).toLocaleDateString() + " " + new Date(comp.registrationOpen).toLocaleTimeString()}</Typography>
+                  <Chip color="warning">{dayjs(comp.registrationOpen).fromNow()}</Chip>
+                </Stack> 
+              :
+                <Stack spacing={1} direction="row">
+                  <Typography>
+                    <b>Competitors:</b>
+                  </Typography>
+                  <Typography>
+                    {comp.registered !== 0 &&
+                      comp.registered + "/" + comp.competitorLimit}
+                  </Typography>
+                  <Chip
+                    color={
+                      comp.registered === comp.competitorLimit
+                        ? "danger"
+                        : "success"
+                    }
+                  >
+                      {comp.registered === comp.competitorLimit
+                      ? "Full"
+                      : (comp.competitorLimit - comp.registered).toString() +
+                        " spot" +
+                        (comp.competitorLimit - comp.registered > 1
+                          ? "s"
+                          : "") +
+                        " remaining"}
+                  </Chip>
+                </Stack>
+              }
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography>
+                  <b>Events:</b>
+                </Typography>
                 <Stack spacing={1} direction="row">
                   {comp.events.map((event: CompetitionEvent, idx2: number) => (
                     <span
@@ -144,13 +185,7 @@ const WCACompetitions = () => {
                     />
                   ))}
                 </Stack>
-              </Typography>
-              <Typography>
-                <b>Delegates:</b>&nbsp;{comp.delegates.join(", ")}
-              </Typography>
-              <Typography>
-                <b>Organizers:</b>&nbsp;{comp.organizers.join(", ")}
-              </Typography>
+              </Stack>
               <Divider />
               <Button
                 sx={{ float: "right" }}

@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -18,6 +19,7 @@ func GetCountries(db *pgxpool.Pool) ([]Country, error) {
 		`SELECT c.country_id, c.name, c.iso2 FROM countries c;`,
 	)
 	if err != nil {
+		log.Println("ERR db.Query in GetCountries: " + err.Error())
 		return []Country{}, err
 	}
 
@@ -26,6 +28,7 @@ func GetCountries(db *pgxpool.Pool) ([]Country, error) {
 		var country Country
 		err = rows.Scan(&country.Id, &country.Name, &country.Iso2)
 		if err != nil {
+			log.Println("ERR rows.Scan(country) in GetCountries: " + err.Error())
 			return []Country{}, err
 		}
 
@@ -33,4 +36,27 @@ func GetCountries(db *pgxpool.Pool) ([]Country, error) {
 	}
 
 	return countries, nil
+}
+
+func GetCountryByName(db *pgxpool.Pool, name string) (Country, error) {
+	rows, err := db.Query(
+		context.Background(),
+		`SELECT c.country_id, c.name, c.iso2 FROM countries c WHERE c.name = $1;`,
+		name,
+	)
+	if err != nil {
+		log.Println("ERR db.Query(country) in GetCountryByName: " + err.Error())
+		return Country{}, err
+	}
+
+	var country Country
+	for rows.Next() {
+		err = rows.Scan(&country.Id, &country.Name, &country.Iso2)
+		if err != nil {
+			log.Println("ERR rows.Scan(country) in GetCountryByName: " + err.Error())
+			return Country{}, err
+		}
+	}
+
+	return country, nil
 }

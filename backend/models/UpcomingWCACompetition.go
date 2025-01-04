@@ -12,29 +12,31 @@ import (
 )
 
 type UpcomingWCACompetition struct {
-	Id              string             `json:"id"`
-	Name            string             `json:"name"`
-	Startdate       time.Time          `json:"startdate"`
-	Enddate         time.Time          `json:"enddate"`
-	Registered      int                `json:"registered"`
-	CompetitorLimit int                `json:"competitor_limit"`
-	VenueAddress    string             `json:"venue_address"`
-	Url             string             `json:"url"`
-	Events          []CompetitionEvent `json:"events"`
-	Country         string             `json:"-"`
+	Id               string             `json:"id"`
+	Name             string             `json:"name"`
+	Startdate        time.Time          `json:"startdate"`
+	Enddate          time.Time          `json:"enddate"`
+	Registered       int                `json:"registered"`
+	RegistrationOpen time.Time          `json:"registrationOpen"`
+	CompetitorLimit  int                `json:"competitorLimit"`
+	VenueAddress     string             `json:"venueAddress"`
+	Url              string             `json:"url"`
+	Events           []CompetitionEvent `json:"events"`
+	CountryId        string             `json:"-"`
 }
 
 type GetWCACompetitionsResponse struct {
-	Id              string   `json:"id"`
-	Name            string   `json:"name"`
-	Startdate       string   `json:"start_date"`
-	Enddate         string   `json:"end_date"`
-	CompetitorLimit int      `json:"competitor_limit"`
-	Url             string   `json:"url"`
-	CountryIso2     string   `json:"country_iso2"`
-	VenueAddress    string   `json:"venue_address"`
-	City            string   `json:"city"`
-	EventIds        []string `json:"event_ids"`
+	Id               string    `json:"id"`
+	Name             string    `json:"name"`
+	Startdate        string    `json:"start_date"`
+	Enddate          string    `json:"end_date"`
+	RegistrationOpen time.Time `json:"registration_open"`
+	CompetitorLimit  int       `json:"competitor_limit"`
+	Url              string    `json:"url"`
+	CountryIso2      string    `json:"country_iso2"`
+	VenueAddress     string    `json:"venue_address"`
+	City             string    `json:"city"`
+	EventIds         []string  `json:"event_ids"`
 }
 
 type UpcomingWCACompetitionRegistration struct {
@@ -65,7 +67,7 @@ func (c *UpcomingWCACompetition) GetRegistered(db pgx.Tx) error {
 func (c *UpcomingWCACompetition) Save(db pgx.Tx) error {
 	res, err := db.Exec(
 		context.Background(),
-		`INSERT INTO upcoming_wca_competitions (upcoming_wca_competition_id, name, startdate, enddate, registered, competitor_limit, venue_address, url, country) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (upcoming_wca_competition_id) DO NOTHING;`,
+		`INSERT INTO upcoming_wca_competitions (upcoming_wca_competition_id, name, startdate, enddate, registered, competitor_limit, venue_address, url, country_id, registration_open) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT (upcoming_wca_competition_id) DO NOTHING;`,
 		c.Id,
 		c.Name,
 		c.Startdate,
@@ -74,7 +76,8 @@ func (c *UpcomingWCACompetition) Save(db pgx.Tx) error {
 		c.CompetitorLimit,
 		c.VenueAddress,
 		c.Url,
-		c.Country,
+		c.CountryId,
+		c.RegistrationOpen,
 	)
 	if err != nil {
 		return err

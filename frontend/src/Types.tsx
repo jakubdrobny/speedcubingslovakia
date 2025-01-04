@@ -412,6 +412,5 @@ export type WCACompetitionType = {
   venueAddress: string;
   url: string;
   events: CompetitionEvent[];
-  delegates: string[];
-  organizers: string[];
+  registrationOpen: Date;
 };

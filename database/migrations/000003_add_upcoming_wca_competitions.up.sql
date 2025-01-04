@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS upcoming_wca_competitions(
   competitor_limit INTEGER NOT NULL,
   venue_address TEXT NOT NULL,
   url TEXT NOT NULL,
-  country TEXT NOT NULL,
+  country_id TEXT REFERENCES countries (country_id) NOT NULL,
+  registration_open TIMESTAMP NOT NULL,
   timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
