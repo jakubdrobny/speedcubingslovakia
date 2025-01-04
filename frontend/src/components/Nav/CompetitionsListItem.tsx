@@ -1,17 +1,11 @@
-import {
-  EmojiEvents,
-  FormatListNumbered,
-  Language,
-  Leaderboard,
-  Search,
-} from "@mui/icons-material";
+import { EmojiEvents, Language } from "@mui/icons-material";
 import { List, ListItemButton, ListItemDecorator, Tooltip } from "@mui/joy";
 
 import { Link } from "react-router-dom";
 import { NavContext } from "../../context/NavContext";
 import { NavContextType } from "../../Types";
 import { useContext } from "react";
-import WCALogoNoText from '../../images/WCALogoNoText'
+import WCALogoNoText from "../../images/WCALogoNoText";
 
 const CompetitionsListItem = () => {
   const { closeNav } = useContext(NavContext) as NavContextType;
@@ -50,7 +44,7 @@ const CompetitionsListItem = () => {
         <ListItemDecorator>
           <EmojiEvents />
         </ListItemDecorator>
-        Competitions 
+        Competitions
       </ListItemButton>
     </Tooltip>
   );
