@@ -596,3 +596,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 
 	return nil
 }
+
+func DeletePastWCACompetitions(db *pgxpool.Pool) error {
+	return nil
+}
