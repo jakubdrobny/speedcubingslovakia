@@ -24,6 +24,25 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/cube"
 )
 
+func GetRequest(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return []byte{}, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return body, nil
+}
+
 func GetMedian(arr []float64) float64 {
 	sort.Slice(arr, func(i, j int) bool {
 		return arr[i] < arr[j]
@@ -34,6 +53,14 @@ func GetMedian(arr []float64) float64 {
 	}
 
 	return arr[len(arr)/2]
+}
+
+func Map[T, V any](ts []T, fn func(T) V) []V {
+	result := make([]V, len(ts))
+	for i, t := range ts {
+		result[i] = fn(t)
+	}
+	return result
 }
 
 func Reverse[S ~[]E, E any](s S) {
@@ -493,26 +520,6 @@ func GetContinents(db *pgxpool.Pool) ([]string, error) {
 	}
 
 	return continents, nil
-}
-
-func GetCountries(db *pgxpool.Pool) ([]string, error) {
-	rows, err := db.Query(context.Background(), `SELECT c.name FROM countries c;`)
-	if err != nil {
-		return []string{}, err
-	}
-
-	countries := make([]string, 0)
-	for rows.Next() {
-		var countryName string
-		err = rows.Scan(&countryName)
-		if err != nil {
-			return []string{}, err
-		}
-
-		countries = append(countries, countryName)
-	}
-
-	return countries, nil
 }
 
 func NextMonday() time.Time {

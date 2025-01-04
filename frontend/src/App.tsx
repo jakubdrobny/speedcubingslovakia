@@ -10,12 +10,22 @@ import useState from "react-usestateref";
 import { Grid } from "@mui/joy";
 import LoadingComponent from "./components/Loading/LoadingComponent";
 
-const Announcement = lazy(() => import("./components/Announcement/Announcement"));
-const AnnouncementEdit = lazy(() => import("./components/Dashboard/AnnouncementEdit"));
-const Announcements = lazy(() => import("./components/Announcement/Announcements"));
+const Announcement = lazy(
+  () => import("./components/Announcement/Announcement"),
+);
+const AnnouncementEdit = lazy(
+  () => import("./components/Dashboard/AnnouncementEdit"),
+);
+const Announcements = lazy(
+  () => import("./components/Announcement/Announcements"),
+);
 const Competition = lazy(() => import("./components/Competition/Competition"));
-const CompetitionEdit = lazy(() => import("./components/Dashboard/CompetitionEdit"));
-const Competitions = lazy(() => import("./components/Competitions/Competitions"));
+const CompetitionEdit = lazy(
+  () => import("./components/Dashboard/CompetitionEdit"),
+);
+const Competitions = lazy(
+  () => import("./components/Competitions/Competitions"),
+);
 const Dashboard = lazy(() => import("./components/Dashboard/Dashboard"));
 const Footer = lazy(() => import("./components/Footer/Footer"));
 const Home = lazy(() => import("./components/Home/Home"));
@@ -31,9 +41,14 @@ const Records = lazy(() => import("./components/Records/Records"));
 const ResultsEdit = lazy(() => import("./components/Dashboard/ResultsEdit"));
 const Users = lazy(() => import("./components/Users/Users"));
 const AdminStats = lazy(() => import("./components/Dashboard/AdminStats"));
+const WCACompetitions = lazy(
+  () => import("./components/WCACompetitions/WCACompetitions"),
+);
 
 const App = () => {
-  const { authStateRef, setAuthState } = useContext(AuthContext) as AuthContextType;
+  const { authStateRef, setAuthState } = useContext(
+    AuthContext,
+  ) as AuthContextType;
   const { windowSize, setWindowSize } = useContext(
     WindowSizeContext,
   ) as WindowSizeContextType;
@@ -73,11 +88,13 @@ const App = () => {
 
   return (
     <Grid container>
-      <Suspense fallback={
-        <div style={{ width: "100%" }}>
-          <LoadingComponent title="Loading..." />
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div style={{ width: "100%" }}>
+            <LoadingComponent title="Loading..." />
+          </div>
+        }
+      >
         <Grid
           xs={0}
           lg={1}
@@ -100,6 +117,10 @@ const App = () => {
             <Route path="/" Component={Home} />
             <Route path="/competitions" Component={Competitions} />
             <Route path="/competition/:id" Component={Competition} />
+            <Route
+              path="/upcoming-wca-competitions"
+              Component={WCACompetitions}
+            />
             <Route path="/announcements" Component={Announcements} />
             <Route path="/announcement/:id" Component={Announcement} />
             <Route path="/not-found" Component={NotFound} />
