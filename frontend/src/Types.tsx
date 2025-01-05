@@ -414,3 +414,14 @@ export type WCACompetitionType = {
   events: CompetitionEvent[];
   registrationOpen: Date;
 };
+
+export type CompetitionAnnouncementSubscription = {
+  countryId: string;
+  countryName: string;
+  subscribed: boolean;
+};
+
+export type CompetitionAnnouncementSubcriptionUpdateResponse = {
+  countryName: string;
+  subscribed: boolean;
+};
