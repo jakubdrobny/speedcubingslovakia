@@ -116,6 +116,16 @@ func main() {
 		competitions.GET("/filter/:filter", controllers.GetFilteredCompetitions(db))
 		competitions.GET("/id/:id", controllers.GetCompetitionById(db))
 		competitions.GET("/wca", controllers.GetUpcomingWCACompetitions(db))
+		competitions.GET(
+			"/wca/subscriptions",
+			middlewares.AuthMiddleWare(db, envMap),
+			controllers.GetWCACompAnnouncementSubscriptions(db),
+		)
+		competitions.POST(
+			"/wca/subscribe",
+			middlewares.AuthMiddleWare(db, envMap),
+			controllers.UpdateWCAAnnouncementSubscriptions(db),
+		)
 		competitions.POST(
 			"/",
 			middlewares.AuthMiddleWare(db, envMap),
