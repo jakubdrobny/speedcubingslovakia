@@ -38,7 +38,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { AuthContext } from "../../context/AuthContext";
 import { AxiosError } from "axios";
-import { isFileLoadingAllowed } from "vite";
 dayjs.extend(relativeTime);
 
 const defaultRegionGroup = "Country+Slovakia";
