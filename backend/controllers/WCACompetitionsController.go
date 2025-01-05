@@ -594,7 +594,6 @@ func UpdateWCAAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 
 		uid := c.GetInt("uid")
 		queryString := ``
-		fmt.Println(uid, body.CountryName)
 		args := make([]interface{}, 0)
 		if !body.Subscribed {
 			queryString = `DELETE FROM wca_competitions_announcements_subscriptions WHERE user_id = $1 AND country_id = (SELECT c.country_id FROM countries c WHERE c.name = $2);`

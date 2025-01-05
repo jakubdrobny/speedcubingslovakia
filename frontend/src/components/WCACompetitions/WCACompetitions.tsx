@@ -3,12 +3,15 @@ import {
   Card,
   Chip,
   Divider,
+  IconButton,
   Option,
   Select,
   Stack,
+  ThemeProvider,
+  Tooltip,
   Typography,
 } from "@mui/joy";
-import { Box } from "@mui/system";
+import { Box, createTheme } from "@mui/system";
 import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
 import {
@@ -38,9 +41,22 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { AuthContext } from "../../context/AuthContext";
 import { AxiosError } from "axios";
+import { HelpOutline } from "@mui/icons-material";
 dayjs.extend(relativeTime);
 
 const defaultRegionGroup = "Country+Slovakia";
+
+const subscriptionTheme = createTheme({
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 500,
+      md: 750,
+      lg: 1200,
+      xl: 1536,
+    },
+  },
+});
 
 const WCACompetitions = () => {
   const [loadingState, setLoadingState] = useState<
@@ -63,6 +79,7 @@ const WCACompetitions = () => {
     authStateRef.current.token !== "";
   const regionPrecise = regionValue.split("+")[1];
   const currentlySubscribed = subscriptions.get(regionPrecise)?.subscribed;
+  const [subscriptionTooltipOpen, setSubscriptionTooltipOpen] = useState(false);
 
   useEffect(() => {
     getRegionGroups()
@@ -167,70 +184,123 @@ const WCACompetitions = () => {
       >
         Upcoming WCA Competitions
       </Typography>
-      <Stack
-        direction="row"
-        spacing={1}
-        flexWrap="wrap"
-        gap="10px"
-        sx={{ pl: 2 }}
-      >
-        <Typography level="h3">Region:</Typography>
-        <Select
-          value={regionValue}
-          onChange={(_, val) => {
-            setRegionValue(val || "");
-            fetchWCACompetitions();
-          }}
-          renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
-          sx={{ minWidth: "200px" }}
-          disabled={loadingState.isLoading}
+      <ThemeProvider theme={subscriptionTheme}>
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          sx={{ pl: 2 }}
         >
-          {regionGroups.map((regionGroup: RegionSelectGroup, idx: number) => (
-            <div key={idx}>
-              <Option value={regionGroup.groupName} disabled sx={{ pl: 2 }}>
-                <b style={{ color: "black" }}>{regionGroup.groupName}</b>
-              </Option>
-              {regionGroup.groupMembers.map(
-                (groupMember: string, idx2: number) => (
-                  <Option
-                    key={idx2}
-                    value={regionGroup.groupName + "+" + groupMember}
-                    label={groupMember}
-                    sx={{ pl: 4 }}
-                    color="neutral"
-                  >
-                    {groupMember}
-                  </Option>
+          <Stack spacing={2} direction="row">
+            <Typography level="h3">Region:</Typography>
+            <Select
+              value={regionValue}
+              onChange={(_, val) => {
+                setRegionValue(val || "");
+                fetchWCACompetitions();
+              }}
+              renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
+              sx={{ minWidth: "200px" }}
+              disabled={loadingState.isLoading}
+            >
+              {regionGroups.map(
+                (regionGroup: RegionSelectGroup, idx: number) => (
+                  <div key={idx}>
+                    <Option
+                      value={regionGroup.groupName}
+                      disabled
+                      sx={{ pl: 2 }}
+                    >
+                      <b style={{ color: "black" }}>{regionGroup.groupName}</b>
+                    </Option>
+                    {regionGroup.groupMembers.map(
+                      (groupMember: string, idx2: number) => (
+                        <Option
+                          key={idx2}
+                          value={regionGroup.groupName + "+" + groupMember}
+                          label={groupMember}
+                          sx={{ pl: 4 }}
+                          color="neutral"
+                        >
+                          {groupMember}
+                        </Option>
+                      ),
+                    )}
+                  </div>
                 ),
               )}
-            </div>
-          ))}
-        </Select>
-        {!loggedIn ? (
-          <Button
-            variant="soft"
-            component={Link}
-            color="warning"
-            sx={{ px: 2 }}
-            to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
-            onClick={() => saveCurrentLocation(window.location.pathname)}
+            </Select>
+          </Stack>
+          <Stack
+            spacing={1}
+            direction="row"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+            }}
           >
-            Login to subscribe
-          </Button>
-        ) : (
-          subscriptions &&
-          subscriptions.size > 0 && (
-            <Button
-              onClick={handleSubscribeChange}
+            {!loggedIn ? (
+              <Button
+                variant="soft"
+                component={Link}
+                color="warning"
+                sx={{ px: 2 }}
+                to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
+                onClick={() => saveCurrentLocation(window.location.pathname)}
+              >
+                Login to subscribe
+              </Button>
+            ) : (
+              subscriptions &&
+              subscriptions.size > 0 && (
+                <Button
+                  onClick={handleSubscribeChange}
+                  variant="soft"
+                  color={currentlySubscribed ? "success" : "danger"}
+                  disabled={loadingState.isLoadingSubs}
+                >
+                  {currentlySubscribed ? "Subscribed!" : "Not subscribed"}
+                </Button>
+              )
+            )}
+            <Tooltip
               variant="soft"
-              color={currentlySubscribed ? "success" : "danger"}
-              disabled={loadingState.isLoadingSubs}
+              color="primary"
+              title={
+                <Box>
+                  <Typography fontWeight="bold">
+                    Tired of checking the WCA website for new competitions?
+                  </Typography>
+                  <Typography fontSize="1em">
+                    Subscribe to our <b>newsletter</b> to receive emails when{" "}
+                    <b>new WCA competitions</b> are <b>announced</b> in any
+                    country of your choice.{" "}
+                  </Typography>
+                  <Typography fontSize="1em">
+                    You can choose one or <b>multiple countries</b> and
+                    unsubscribe from any of them at any time.
+                  </Typography>
+                  <Typography fontWeight="bold" fontSize="0.9em">
+                    Enjoy :)
+                  </Typography>
+                </Box>
+              }
+              open={subscriptionTooltipOpen}
+              disableInteractive={false}
+              enterTouchDelay={0}
+              enterDelay={0}
+              leaveDelay={0}
             >
-              {currentlySubscribed ? "Subscribed!" : "Not subscribed"}
-            </Button>
-          )
-        )}
-      </Stack>
+              <IconButton
+                onMouseEnter={() => setSubscriptionTooltipOpen(true)}
+                onMouseLeave={() => setSubscriptionTooltipOpen(false)}
+                onTouchStart={() => setSubscriptionTooltipOpen((p) => !p)}
+              >
+                <HelpOutline fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        </Stack>
+      </ThemeProvider>
       <Divider />
       {!isObjectEmpty(loadingState.error) &&
         renderResponseError(loadingState.error)}
@@ -284,11 +354,11 @@ const WCACompetitions = () => {
                     {comp.registered === comp.competitorLimit
                       ? "Full"
                       : (comp.competitorLimit - comp.registered).toString() +
-                      " spot" +
-                      (comp.competitorLimit - comp.registered > 1
-                        ? "s"
-                        : "") +
-                      " remaining"}
+                        " spot" +
+                        (comp.competitorLimit - comp.registered > 1
+                          ? "s"
+                          : "") +
+                        " remaining"}
                   </Chip>
                 </Stack>
               )}
