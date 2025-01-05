@@ -26,8 +26,10 @@ import {
   getError,
   getRegionGroups,
   GetWCACompetitions,
+  isObjectEmpty,
   renderResponseError,
   renderUpcomingWCACompetitionDateRange,
+  saveCurrentLocation,
   updateCompetitionAnnouncementSubscription,
 } from "../../utils/utils";
 import LoadingComponent from "../Loading/LoadingComponent";
@@ -35,6 +37,8 @@ import { Link } from "react-router-dom";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { AuthContext } from "../../context/AuthContext";
+import { AxiosError } from "axios";
+import { isFileLoadingAllowed } from "vite";
 dayjs.extend(relativeTime);
 
 const defaultRegionGroup = "Country+Slovakia";
@@ -78,22 +82,33 @@ const WCACompetitions = () => {
   }, []);
 
   const fetchWCACompetitions = () => {
-    setLoadingState({ isLoading: true, error: {}, isLoadingSubs: false });
+    setLoadingState((p) => ({
+      ...p,
+      isLoading: true,
+      error: {},
+      isLoadingSubs: false,
+    }));
 
     const _regionValueSplit = regionValueRef.current.split("+");
     const regionPrecise = _regionValueSplit[_regionValueSplit.length - 1];
     GetWCACompetitions(regionPrecise)
       .then((res: WCACompetitionType[]) => {
         setCompetitions(res);
-        setLoadingState({ isLoading: false, error: {}, isLoadingSubs: true });
+        setLoadingState((p) => ({
+          ...p,
+          isLoading: false,
+          error: {},
+          isLoadingSubs: true,
+        }));
         fetchAnnouncementSubscriptions();
       })
       .catch((err) => {
-        setLoadingState({
+        setLoadingState((p) => ({
+          ...p,
           isLoadingSubs: false,
           isLoading: false,
           error: getError(err),
-        });
+        }));
       });
   };
 
@@ -111,11 +126,11 @@ const WCACompetitions = () => {
         setSubscriptions(new Map(newSubscriptions));
         setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
       })
-      .catch((err) => {
+      .catch((err: AxiosError) => {
         setLoadingState((p) => ({
           ...p,
           isLoadingSubs: false,
-          error: getError(err),
+          error: err.status === 401 && !loggedIn ? {} : getError(err),
         }));
       });
   };
@@ -192,19 +207,34 @@ const WCACompetitions = () => {
             </div>
           ))}
         </Select>
-        {loggedIn && subscriptions && subscriptions.size > 0 && (
+        {!loggedIn ? (
           <Button
-            onClick={handleSubscribeChange}
             variant="soft"
-            color={currentlySubscribed ? "success" : "danger"}
-            disabled={loadingState.isLoadingSubs}
+            component={Link}
+            color="warning"
+            sx={{ px: 2 }}
+            to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
+            onClick={() => saveCurrentLocation(window.location.pathname)}
           >
-            {currentlySubscribed ? "Subscribed!" : "Not subscribed"}
+            Login to subscribe
           </Button>
+        ) : (
+          subscriptions &&
+          subscriptions.size > 0 && (
+            <Button
+              onClick={handleSubscribeChange}
+              variant="soft"
+              color={currentlySubscribed ? "success" : "danger"}
+              disabled={loadingState.isLoadingSubs}
+            >
+              {currentlySubscribed ? "Subscribed!" : "Not subscribed"}
+            </Button>
+          )
         )}
       </Stack>
       <Divider />
-      {loadingState.error && renderResponseError(loadingState.error)}
+      {!isObjectEmpty(loadingState.error) &&
+        renderResponseError(loadingState.error)}
       {loadingState.isLoading ? (
         <LoadingComponent title="Loading upcoming WCA competitions..." />
       ) : (
