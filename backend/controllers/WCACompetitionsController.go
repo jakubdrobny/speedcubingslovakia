@@ -542,7 +542,7 @@ func GetWCACompAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 
 		rows, err := db.Query(
 			context.Background(),
-			`SELECT c.country_id, c.name, CASE WHEN s.user_id IS NULL THEN false ELSE true END AS subscribed FROM countries c FULL JOIN wca_competitions_announcements_subscriptions s ON s.country_id = c.country_id AND user_id = $1;`,
+			`SELECT c.country_id, c.name, CASE WHEN s.user_id IS NULL THEN false ELSE true END AS subscribed FROM countries c LEFT JOIN wca_competitions_announcements_subscriptions s ON s.country_id = c.country_id AND user_id = $1;`,
 			uid,
 		)
 		if err != nil {
@@ -558,6 +558,8 @@ func GetWCACompAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 
 		subscriptions := make([]models.WCACompAnnouncementSubscriptions, 0)
 		for rows.Next() {
+			a, b := rows.Values()
+			log.Printf("values: %v, error; %v\n", a, b)
 			var sub models.WCACompAnnouncementSubscriptions
 			err = rows.Scan(&sub.CountryId, &sub.CountryName, &sub.Subscribed)
 			if err != nil {
