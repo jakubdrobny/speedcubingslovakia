@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/jakubdrobny/speedcubingslovakia/backend/middlewares"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 )
@@ -27,7 +28,11 @@ func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.Handler
 		var rows pgx.Rows
 		var err error
 		if !uidExists {
-			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id WHERE a.announcement_id = $1;`, id)
+			rows, err = db.Query(
+				context.Background(),
+				`SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id WHERE a.announcement_id = $1;`,
+				id,
+			)
 		} else {
 			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name, ar.read FROM announcements a JOIN users u ON u.user_id = a.author_id JOIN announcement_read ar ON ar.announcement_id = a.announcement_id WHERE a.announcement_id = $1 AND ar.user_id = $2;`, id, uid)
 		}
@@ -42,14 +47,23 @@ func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.Handler
 
 		for rows.Next() {
 			if !uidExists {
-				err = rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername)
+				err = rows.Scan(
+					&announcement.Id,
+					&announcement.Title,
+					&announcement.Content,
+					&announcement.AuthorWcaId,
+					&announcement.AuthorUsername,
+				)
 				announcement.Read = true
 			} else {
 				err = rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername, &announcement.Read)
 			}
 			if err != nil {
 				log.Println("ERR scanning announcement data in GetAnnouncementById: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed parsing announcement from database.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed parsing announcement from database.",
+				)
 				return
 			}
 
@@ -75,7 +89,10 @@ func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.Handler
 		err = announcement.GetEmojiCounters(db)
 		if err != nil {
 			log.Println("ERR GetEmojiCounters in GetAnnouncementById: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement emoji counters.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to get announcement emoji counters.",
+			)
 			return
 		}
 
@@ -95,7 +112,10 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 		var rows pgx.Rows
 		var err error
 		if !uidExists {
-			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id ORDER BY a.created_at DESC;`)
+			rows, err = db.Query(
+				context.Background(),
+				`SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name FROM announcements a JOIN users u ON u.user_id = a.author_id ORDER BY a.created_at DESC;`,
+			)
 		} else {
 			rows, err = db.Query(context.Background(), `SELECT a.announcement_id, a.title, a.content, u.wcaid, u.name, ar.read FROM announcements a JOIN users u ON u.user_id = a.author_id JOIN announcement_read ar ON ar.announcement_id = a.announcement_id WHERE ar.user_id = $1 ORDER BY created_at DESC;`, uid)
 		}
@@ -112,7 +132,13 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 			var announcement models.AnnouncementState
 
 			if !uidExists {
-				err = rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername)
+				err = rows.Scan(
+					&announcement.Id,
+					&announcement.Title,
+					&announcement.Content,
+					&announcement.AuthorWcaId,
+					&announcement.AuthorUsername,
+				)
 				announcement.Read = true
 			} else {
 				err = rows.Scan(&announcement.Id, &announcement.Title, &announcement.Content, &announcement.AuthorWcaId, &announcement.AuthorUsername, &announcement.Read)
@@ -120,7 +146,10 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 
 			if err != nil {
 				log.Println("ERR scanning announcement data in GetAnnouncements: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed parsing announcement from database.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed parsing announcement from database.",
+				)
 				return
 			}
 
@@ -134,7 +163,10 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 			err = announcement.GetEmojiCounters(db)
 			if err != nil {
 				log.Println("ERR GetEmojiCounters in GetAnnouncements: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to get announcement emoji counters.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to get announcement emoji counters.",
+				)
 				return
 			}
 
@@ -157,7 +189,11 @@ func GetNoOfNewAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.Han
 			return
 		}
 
-		rows, err := db.Query(context.Background(), `SELECT ar.read FROM announcement_read ar WHERE ar.user_id = $1;`, uid)
+		rows, err := db.Query(
+			context.Background(),
+			`SELECT ar.read FROM announcement_read ar WHERE ar.user_id = $1;`,
+			uid,
+		)
 		if err != nil {
 			log.Println("ERR db.Query in GetNoOfNewAnnouncements: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to query announcement reads.")
@@ -171,7 +207,10 @@ func GetNoOfNewAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.Han
 			err = rows.Scan(&read)
 			if err != nil {
 				log.Println("ERR rows.Scan in GetNoOfNewAnnouncements: " + err.Error())
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to scan announcement read data.")
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to scan announcement read data.",
+				)
 				return
 			}
 
@@ -203,10 +242,20 @@ func PutAnnouncement(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc
 			return
 		}
 
-		_, err = tx.Exec(context.Background(), `UPDATE announcements SET title = $1, content = $2, author_id = $3, timestamp = CURRENT_TIMESTAMP WHERE announcement_id = $4;`, announcement.Title, announcement.Content, uid, announcement.Id)
+		_, err = tx.Exec(
+			context.Background(),
+			`UPDATE announcements SET title = $1, content = $2, author_id = $3, timestamp = CURRENT_TIMESTAMP WHERE announcement_id = $4;`,
+			announcement.Title,
+			announcement.Content,
+			uid,
+			announcement.Id,
+		)
 		if err != nil {
 			log.Println("ERR tx.Exec UPDATE announcements in PutAnnouncement: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to update announcement info in database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to update announcement info in database.",
+			)
 			tx.Rollback(context.Background())
 			return
 		}
@@ -214,7 +263,10 @@ func PutAnnouncement(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc
 		err = models.UpdateAnnouncementTags(&announcement, db, tx, envMap)
 		if err != nil {
 			log.Println("ERR UpdateAnnouncementTags in PutAnnouncement: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to update announcement tag connections in database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to update announcement tag connections in database.",
+			)
 			tx.Rollback(context.Background())
 			return
 		}
@@ -249,21 +301,6 @@ func PostAnnouncement(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 			return
 		}
 
-		tx, err := db.Begin(context.Background())
-		if err != nil {
-			log.Println("ERR tx.Begin in PostAnnouncement: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to start transaction.")
-			tx.Rollback(context.Background())
-			return
-		}
-
-		logMessage, returnMessage := announcement.MakeAnnouncementUnreadForEveryone(tx)
-		if logMessage != "" {
-			log.Println(logMessage)
-			c.IndentedJSON(http.StatusInternalServerError, returnMessage)
-			tx.Rollback(context.Background())
-			return
-		}
 		announcement.Read = false
 
 		c.IndentedJSON(http.StatusCreated, announcement)
@@ -276,8 +313,15 @@ func ReadAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
 
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			log.Println("ERR strconv.Atoi in ReadAnnouncement of id (" + strconv.Itoa(id) + "): " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse announcement id to string.")
+			log.Println(
+				"ERR strconv.Atoi in ReadAnnouncement of id (" + strconv.Itoa(
+					id,
+				) + "): " + err.Error(),
+			)
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to parse announcement id to string.",
+			)
 			return
 		}
 
@@ -286,15 +330,26 @@ func ReadAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
 
 		err = announcement.IsRead(db)
 		if err != nil {
-			log.Println("ERR announcement.IsRead in ReadAnnouncement (" + strconv.Itoa(announcement.Id) + "): " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if announcement is read.")
+			log.Println(
+				"ERR announcement.IsRead in ReadAnnouncement (" + strconv.Itoa(
+					announcement.Id,
+				) + "): " + err.Error(),
+			)
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to check if announcement is read.",
+			)
 			return
 		}
 
 		if !announcement.Read {
 			err = announcement.MarkRead(db)
 			if err != nil {
-				log.Println("ERR announcement.MarkRead in ReadAnnouncement (" + strconv.Itoa(announcement.Id) + "): " + err.Error())
+				log.Println(
+					"ERR announcement.MarkRead in ReadAnnouncement (" + strconv.Itoa(
+						announcement.Id,
+					) + "): " + err.Error(),
+				)
 				c.IndentedJSON(http.StatusInternalServerError, "Failed to make announcement read.")
 			}
 			return
@@ -331,7 +386,10 @@ func ReactToAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
 		err = emojiCounter.Update(conn, uid)
 		if err != nil {
 			log.Println("ERR emojiCounter.Update in ReactToAnnouncement: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to check if reaction data exists in database.")
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to check if reaction data exists in database.",
+			)
 			return
 		}
 
@@ -343,8 +401,15 @@ func DeleteAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			log.Println("ERR strconv.Atoi in ReadAnnouncement of id (" + strconv.Itoa(id) + "): " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse announcement id to string.")
+			log.Println(
+				"ERR strconv.Atoi in ReadAnnouncement of id (" + strconv.Itoa(
+					id,
+				) + "): " + err.Error(),
+			)
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed to parse announcement id to string.",
+			)
 			return
 		}
 
@@ -356,23 +421,47 @@ func DeleteAnnouncement(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		_, err = tx.Exec(context.Background(), `DELETE FROM announcement_tags WHERE announcement_id = $1;`, id)
+		_, err = tx.Exec(
+			context.Background(),
+			`DELETE FROM announcement_tags WHERE announcement_id = $1;`,
+			id,
+		)
 		if err != nil {
-			log.Println("ERR db.Exec(DELETE annoucement_tags) in DeleteAnnouncement (" + strconv.Itoa(id) + "): " + err.Error())
+			log.Println(
+				"ERR db.Exec(DELETE annoucement_tags) in DeleteAnnouncement (" + strconv.Itoa(
+					id,
+				) + "): " + err.Error(),
+			)
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to delete announcement tags.")
 			return
 		}
 
-		_, err = tx.Exec(context.Background(), `DELETE FROM announcement_read WHERE announcement_id = $1;`, id)
+		_, err = tx.Exec(
+			context.Background(),
+			`DELETE FROM announcement_read WHERE announcement_id = $1;`,
+			id,
+		)
 		if err != nil {
-			log.Println("ERR db.Exec(DELETE annoucement_read) in DeleteAnnouncement (" + strconv.Itoa(id) + "): " + err.Error())
+			log.Println(
+				"ERR db.Exec(DELETE annoucement_read) in DeleteAnnouncement (" + strconv.Itoa(
+					id,
+				) + "): " + err.Error(),
+			)
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to delete announcement read.")
 			return
 		}
 
-		_, err = tx.Exec(context.Background(), `DELETE FROM announcements WHERE announcement_id = $1;`, id)
+		_, err = tx.Exec(
+			context.Background(),
+			`DELETE FROM announcements WHERE announcement_id = $1;`,
+			id,
+		)
 		if err != nil {
-			log.Println("ERR db.Exec(DELETE announcements) in DeleteAnnouncement (" + strconv.Itoa(id) + "): " + err.Error())
+			log.Println(
+				"ERR db.Exec(DELETE announcements) in DeleteAnnouncement (" + strconv.Itoa(
+					id,
+				) + "): " + err.Error(),
+			)
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to delete announcement.")
 			return
 		}

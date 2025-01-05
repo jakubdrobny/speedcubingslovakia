@@ -3,14 +3,19 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/jakubdrobny/speedcubingslovakia/backend/email"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
@@ -140,13 +145,222 @@ func GetSavedUpcomingWCACompetitions(
 	return upcoming_comps, nil
 }
 
-func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
+func constructContent(
+	notifEntry map[string][]models.UpcomingWCACompetition,
+	username string,
+	events []models.CompetitionEvent,
+) string {
+	content := "<!DOCTYPE html><html lang=\"en-US\"><head><title>New WCA competitions announced</title></head><body>"
+
+	country_ids := make([]string, len(notifEntry))
+	for country_id := range notifEntry {
+		country_ids = append(country_ids, country_id)
+	}
+	sort.Slice(country_ids, func(i, j int) bool {
+		return country_ids[i] < country_ids[j]
+	})
+
+	content += fmt.Sprintf("Hi %s!<br/><br/>", username)
+	content += "there have been new WCA competitions announced in regions you have subscribed to. Here :<br/><br/>"
+
+	content += "<table style=\"border-collapse: collapse;\">"
+	for _, country_id := range country_ids {
+		comps := notifEntry[country_id]
+		sort.Slice(comps, func(i, j int) bool {
+			return comps[i].Startdate.Before(comps[j].Startdate)
+		})
+
+		if len(comps) == 0 {
+			continue
+		}
+
+		borderBottomStyle := " style=\"border-bottom: 1px solid black;\""
+		content += fmt.Sprintf(
+			"<tr%s><td><h1 style=\"margin: 0;\">%s</h1></td></tr>",
+			borderBottomStyle,
+			comps[0].CountryName,
+		)
+
+		for _, comp := range comps {
+			content += fmt.Sprintf(
+				"<tr><td style=\"padding-left: 10px\"><h2 style=\"margin: 0\">%s</h2></td></tr>",
+				comp.Name,
+			)
+
+			content += fmt.Sprintf(
+				"<tr><td style=\"padding-left: 20px\"><b>Place:</b> <span style=\"font-weight: normal;\">%s</span></td></tr>",
+				comp.VenueAddress,
+			)
+			content += fmt.Sprintf(
+				"<tr><td style=\"padding-left: 20px\"><b>Date:</b> <span style=\"font-weight: normal;\">%s</span></td></tr>",
+				comp.DateFormatted(),
+			)
+			content += fmt.Sprintf(
+				"<tr><td style=\"padding-left: 20px\"><b>Competitor limit:</b> <span style=\"font-weight: normal;\">%d</span></td></tr>",
+				comp.CompetitorLimit,
+			)
+			content += fmt.Sprintf(
+				"<tr><td style=\"padding-left: 20px\"><b>Registration opens:</b> <span style=\"font-weight: normal;\">%s</span></td></tr>",
+				comp.RegistrationOpen.UTC().Format("02 Jan 2006 15:04:05 MST"),
+			)
+			content += fmt.Sprintf(
+				"<tr><td style=\"padding-left: 20px\"><b>Events:</b> <span style=\"font-weight: normal;\">%s</span></td></tr>",
+				strings.Join(comp.GetEventNamesFromCompetitionEvents(events), ", "),
+			)
+			content += fmt.Sprintf(
+				"<tr><td style=\"font-weight: normal; padding-left: 20px\">For more info click <a href=\"%s\"><b>here</b></a>.</td></tr>",
+				comp.Url,
+			)
+		}
+		content += "<tr><td>&nbsp;</td></tr>"
+	}
+	content += "</table><br/>"
+
+	content += fmt.Sprintf(
+		"Thank you for subscribing to our competition announcement newsletter.<br/><br/>If you want to prepare for WCA competitions and compete with your friends, don't forget to compete in Online Weekly Competitions at our <a href=\"https://speedcubingslovakia.sk/competitions\"><b>website</b></a>.<br/><br/>",
+	)
+	content += fmt.Sprintf("Have a great day.<br/><br/><i>Jakub</i></body></html>")
+
+	return content
+}
+
+// notifications if user_id -> country_id -> [] of comps
+func SendCompAnnouncementSubscriptions(
+	db *pgxpool.Pool,
+	envMap map[string]string,
+	notifications map[int]map[string][]models.UpcomingWCACompetition,
+) error {
+	log.Println("Sending email notifications to WCA competitions announcements subscribers...")
+
+	events, err := models.GetAvailableEvents(db)
+	if err != nil {
+		log.Println(
+			"ERR models.GetAvailableEvents in SendCompAnnouncementSubscriptions: " + err.Error(),
+		)
+		return err
+	}
+
+	for userId, notifEntry := range notifications {
+		user, err := models.GetUserById(db, userId)
+		if err != nil {
+			log.Println(
+				"ERR models.GetUserById in SendCompAnnouncementSubscriptions: " + err.Error(),
+			)
+			return err
+		}
+		log.Println("Sending email notification to user: " + user.Name)
+
+		from := envMap["MAIL_USERNAME"]
+		to := user.Email
+		subject := "New WCA competitions announced"
+		if os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV") == "development" {
+			subject = "DEVELOPMENT: " + subject
+		}
+		content := constructContent(notifEntry, user.Name, events)
+
+		err = email.SendMail(from, to, subject, content, envMap)
+		if err != nil {
+			log.Println("ERR email.SendMail in SendCompAnnouncementSubscriptions: " + err.Error())
+			return err
+		}
+
+		log.Println("Email sent successfully.")
+	}
+
+	log.Println("All emails sent successfully.")
+
+	return nil
+}
+
+func MakeCompAnnouncementContent(
+	comp models.UpcomingWCACompetition,
+	events []models.CompetitionEvent,
+) string {
+	timeLoc, _ := time.LoadLocation("Europe/Bratislava")
+	content := fmt.Sprintf(
+		"Hello everyone,\n\nnew WCA competition in Slovakia has just been announced:\n\n**Name:** %s<br>**Place:** %s<br>**Date:** %s<br>**Events:** %s\n\n**Registration** starts on **%s**. Mark it in your calendars so you don't miss it.\n\nFor more info check out the [competition website](%s).\n\nHope to see you there.\n\nSpeedcubing Slovakia",
+		comp.Name,
+		comp.DateFormatted(),
+		comp.VenueAddress,
+		strings.Join(comp.GetEventNamesFromCompetitionEvents(events), ", "),
+		comp.RegistrationOpen.UTC().
+			In(timeLoc).
+			Format("2 Jan 2006 15:04:05"),
+		comp.Url,
+	)
+
+	return content
+}
+
+// make announcements for newly announced WCA competitions in Slovakia
+func MakeCompAnnouncementAnnouncements(
+	db *pgxpool.Pool,
+	envMap map[string]string,
+	comps []models.UpcomingWCACompetition,
+) error {
+	competitions := "competition"
+	if len(comps) != 1 {
+		competitions += "s"
+	}
+	log.Printf(
+		"Creating announcements for %d newly announced %s in Slovakia\n",
+		len(comps),
+		competitions,
+	)
+
+	sort.Slice(comps, func(i, j int) bool {
+		return comps[i].Startdate.Before(comps[j].Startdate)
+	})
+
+	events, err := models.GetAvailableEvents(db)
+	if err != nil {
+		log.Println(
+			"ERR models.GetAvailableEvents in SendCompAnnouncementSubscriptions: " + err.Error(),
+		)
+		return err
+	}
+
+	compAnnouncementTag, err := models.GetCompetitionAnnouncementTag(db)
+	if err != nil {
+		log.Println(
+			"ERR models.GetCompetitionAnnouncementTag in MakeCompAnnouncementContent: " + err.Error(),
+		)
+		return err
+	}
+
+	for _, comp := range comps {
+		announcement := models.AnnouncementState{
+			Title:    comp.Name + " announced",
+			Content:  MakeCompAnnouncementContent(comp, events),
+			AuthorId: 1,
+			Tags:     []models.Tag{compAnnouncementTag},
+		}
+
+		logMsg, retMsg := announcement.Create(db, envMap)
+		if logMsg != "" || retMsg != "" {
+			log.Println("Failed to create announcement, checkout the error log below.")
+			log.Println(logMsg)
+			return errors.New(retMsg)
+		}
+
+		log.Printf("%s announcement was made successfully.\n", comp.Name)
+	}
+
+	log.Println("Competitions announced successfully.")
+
+	return nil
+}
+
+func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) error {
+	log.Println("Querying countries...")
+
 	countries, err := models.GetCountries(db)
 	if err != nil {
 		log.Println("ERR models.GetCountries in CheckUpcomingWCACompetitions: " + err.Error())
 		return err
 	}
 
+	log.Println("Starting db transaction...")
 	tx, err := db.Begin(context.Background())
 	if err != nil {
 		log.Println("ERR db.Begin in CheckUpcomingWCACompetitions: " + err.Error())
@@ -154,16 +368,18 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 	}
 	defer tx.Rollback(context.Background())
 
-	//upcomingCompsFromDB, err := GetSavedUpcomingWCACompetitions(db, "_")
-	//if err != nil {
-	//log.Println(
-	//"ERR GetSavedUpcomingWCACompetitions in CheckUpcomingWCACompetitions: " + err.Error(),
-	//)
-	//return err
-	//}
+	log.Println("Checking if already announced comps are loaded in db...")
+	upcomingCompsFromDB, err := GetSavedUpcomingWCACompetitions(db, "_")
+	if err != nil {
+		log.Println(
+			"ERR GetSavedUpcomingWCACompetitions in CheckUpcomingWCACompetitions: " + err.Error(),
+		)
+		return err
+	}
 
-	//notifySubscribers := len(upcomingCompsFromDB) > 0
-	//notifications := make(map[int]map[string][]models.UpcomingWCACompetition)
+	notifySubscribers := len(upcomingCompsFromDB) > 0
+	notifications := make(map[int]map[string][]models.UpcomingWCACompetition)
+	newlyAnnouncedSlovakComps := make([]models.UpcomingWCACompetition, 0)
 
 	for _, country := range countries {
 		page := 1
@@ -215,6 +431,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 						func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} },
 					),
 					CountryId:        country.Id,
+					CountryName:      country.Name,
 					RegistrationOpen: respComp.RegistrationOpen,
 				}
 
@@ -235,17 +452,60 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool) error {
 				}
 
 				if res.RowsAffected() == 0 {
-					log.Println(
-						"Competition " + upcomingWCACompetition.Name + " is already in the database.",
-					)
+					// for now don't log anything if competition exists so i can easily check which comps were not in the db after each run
+					//log.Println(
+					//"Competition " + upcomingWCACompetition.Name + " is already in the database.",
+					//)
 				} else {
 					log.Println("Competition " + upcomingWCACompetition.Name + " saved successfully.")
+
+					if !notifySubscribers {
+						continue
+					}
+
+					log.Println("Querying subscribers...")
+					rows, err := tx.Query(context.Background(), `SELECT user_id FROM wca_competitions_announcements_subscriptions WHERE country_id = $1;`, country.Id)
+					if err != nil {
+						log.Println("ERR tx.Query(subscriptions) for " + country.Id + " in CheckUpcomingWCACompetitions: " + err.Error())
+						return err
+					}
+
+					// find subscribers and add notification to them
+					for rows.Next() {
+						var currentUserId int
+						err = rows.Scan(&currentUserId)
+						if err != nil {
+							log.Println("ERR rows.Scan(user_id) in CheckUpcomingWCACompetitions: " + err.Error())
+							return err
+						}
+
+						if _, ok := notifications[currentUserId]; !ok {
+							notifications[currentUserId] = make(map[string][]models.UpcomingWCACompetition)
+						}
+						if _, ok := notifications[currentUserId][country.Id]; !ok {
+							notifications[currentUserId][country.Id] = make([]models.UpcomingWCACompetition, 0)
+						}
+
+						notifications[currentUserId][country.Id] = append(notifications[currentUserId][country.Id], upcomingWCACompetition)
+					}
+
+					// if comp added is slovak, add it to the list of comps need to make an announcement for
+					if country.Iso2 == "SK" {
+						newlyAnnouncedSlovakComps = append(newlyAnnouncedSlovakComps, upcomingWCACompetition)
+					}
 				}
 			}
 
 			page += 1
 		}
 	}
+
+	defer func() {
+		if notifySubscribers {
+			SendCompAnnouncementSubscriptions(db, envMap, notifications)
+			MakeCompAnnouncementAnnouncements(db, envMap, newlyAnnouncedSlovakComps)
+		}
+	}()
 
 	err = tx.Commit(context.Background())
 	if err != nil {

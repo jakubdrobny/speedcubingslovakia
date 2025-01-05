@@ -27,7 +27,7 @@ func main() {
 	}
 	defer db.Close()
 
-	err = controllers.CheckUpcomingWCACompetitions(db)
+	err = controllers.CheckUpcomingWCACompetitions(db, envMap)
 	if err != nil {
 		fmt.Fprintf(
 			os.Stderr,
