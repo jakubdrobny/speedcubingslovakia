@@ -176,8 +176,11 @@ func constructContent(
 
 		borderBottomStyle := " style=\"border-bottom: 1px solid black;\""
 		content += fmt.Sprintf(
-			"<tr%s><td><h1 style=\"margin: 0;\">%s</h1></td></tr>",
+			"<tr%s><td style=\"vertical-align:middle;\"><img style=\"vertical-align: middle;\" title=\"Flag of %s\" alt=\"flag of %s\" src=\"https://flagpedia.net/data/flags/h20/%s.png\"/><h1 style=\"vertical-align: middle; display: inline-block; margin: 0; padding-left: 10px;\">%s</h1></td></tr>",
 			borderBottomStyle,
+			comps[0].CountryName,
+			comps[0].CountryName,
+			strings.ToLower(comps[0].CountryIso2),
 			comps[0].CountryName,
 		)
 
@@ -382,6 +385,10 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 	newlyAnnouncedSlovakComps := make([]models.UpcomingWCACompetition, 0)
 
 	for _, country := range countries {
+		if country.Name != "Slovenia" && country.Name != "Romania" {
+			continue
+		}
+
 		page := 1
 		can := true
 		for can {
@@ -432,6 +439,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					),
 					CountryId:        country.Id,
 					CountryName:      country.Name,
+					CountryIso2:      country.Iso2,
 					RegistrationOpen: respComp.RegistrationOpen,
 				}
 
