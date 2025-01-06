@@ -362,11 +362,10 @@ const WCACompetitions = () => {
                   </Chip>
                 </Stack>
               )}
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={1}>
                 <Typography>
                   <b>Events:</b>
                 </Typography>
-                <Stack spacing={1} direction="row">
                   {comp.events.map((event: CompetitionEvent, idx2: number) => (
                     <span
                       key={idx2 + 100000}
@@ -375,7 +374,6 @@ const WCACompetitions = () => {
                       )} profile-cubing-icon-mock`}
                     />
                   ))}
-                </Stack>
               </Stack>
               <Divider />
               <Button
