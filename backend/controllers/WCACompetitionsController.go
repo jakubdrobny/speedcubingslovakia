@@ -385,10 +385,6 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 	newlyAnnouncedSlovakComps := make([]models.UpcomingWCACompetition, 0)
 
 	for _, country := range countries {
-		if country.Name != "Slovenia" && country.Name != "Romania" {
-			continue
-		}
-
 		page := 1
 		can := true
 		for can {
@@ -409,6 +405,10 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 			err = json.Unmarshal(body, &respComps)
 			if err != nil {
 				log.Println("ERR json.Unmarshal in CheckUpcomingWCACompetitions: " + err.Error())
+				log.Printf(
+					"==========\nFailed to unmarshal this body: %v\n==========\n",
+					string(body),
+				)
 				return err
 			}
 
