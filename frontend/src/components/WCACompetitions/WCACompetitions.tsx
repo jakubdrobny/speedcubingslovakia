@@ -1,7 +1,5 @@
 import {
   Button,
-  Card,
-  Chip,
   Divider,
   IconButton,
   Option,
@@ -18,31 +16,26 @@ import {
   AuthContextType,
   CompetitionAnnouncementSubcriptionUpdateResponse,
   CompetitionAnnouncementSubscription,
-  CompetitionEvent,
   LoadingState,
   RegionSelectGroup,
   WCACompetitionType,
 } from "../../Types";
 import {
   getAnnouncementSubscriptions,
-  getCubingIconClassName,
   getError,
   getRegionGroups,
   GetWCACompetitions,
   isObjectEmpty,
   renderResponseError,
-  renderUpcomingWCACompetitionDateRange,
   saveCurrentLocation,
   updateCompetitionAnnouncementSubscription,
 } from "../../utils/utils";
 import LoadingComponent from "../Loading/LoadingComponent";
 import { Link } from "react-router-dom";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import { AuthContext } from "../../context/AuthContext";
 import { AxiosError } from "axios";
 import { HelpOutline } from "@mui/icons-material";
-dayjs.extend(relativeTime);
+import WCACompetition from "./WCACompetition";
 
 const defaultRegionGroup = "Country+Slovakia";
 
@@ -84,7 +77,6 @@ const WCACompetitions = () => {
   useEffect(() => {
     getRegionGroups()
       .then((res: RegionSelectGroup[]) => {
-        res = res.filter((g: RegionSelectGroup) => g.groupName === "Country");
         setRegionGroups(res);
         fetchWCACompetitions();
       })
@@ -309,82 +301,7 @@ const WCACompetitions = () => {
       ) : (
         <Stack spacing={2}>
           {competitions.map((comp: WCACompetitionType, idx1: number) => (
-            <Stack component={Card} key={idx1} direction="column">
-              <Typography level="h3">{comp.name}</Typography>
-              <Divider />
-              <Typography>
-                <b>Place:</b>&nbsp;{comp.venueAddress}
-              </Typography>
-              <Typography>
-                <b>Date:</b>&nbsp;
-                {renderUpcomingWCACompetitionDateRange(
-                  comp.startdate,
-                  comp.enddate,
-                )}
-              </Typography>
-              {dayjs().isBefore(dayjs(comp.registrationOpen)) ? (
-                <Stack spacing={1} direction="row">
-                  <Typography>
-                    <b>Registration opens:</b>
-                  </Typography>
-                  <Typography>
-                    {new Date(comp.registrationOpen).toLocaleDateString() +
-                      " " +
-                      new Date(comp.registrationOpen).toLocaleTimeString()}
-                  </Typography>
-                  <Chip color="warning">
-                    {dayjs(comp.registrationOpen).fromNow()}
-                  </Chip>
-                </Stack>
-              ) : (
-                <Stack spacing={1} direction="row">
-                  <Typography>
-                    <b>Competitors:</b>
-                  </Typography>
-                  <Typography>
-                    {comp.registered + "/" + comp.competitorLimit}
-                  </Typography>
-                  <Chip
-                    color={
-                      comp.registered === comp.competitorLimit
-                        ? "danger"
-                        : "success"
-                    }
-                  >
-                    {comp.registered === comp.competitorLimit
-                      ? "Full"
-                      : (comp.competitorLimit - comp.registered).toString() +
-                        " spot" +
-                        (comp.competitorLimit - comp.registered > 1
-                          ? "s"
-                          : "") +
-                        " remaining"}
-                  </Chip>
-                </Stack>
-              )}
-              <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={1}>
-                <Typography>
-                  <b>Events:</b>
-                </Typography>
-                  {comp.events.map((event: CompetitionEvent, idx2: number) => (
-                    <span
-                      key={idx2 + 100000}
-                      className={`${getCubingIconClassName(
-                        event.iconcode,
-                      )} profile-cubing-icon-mock`}
-                    />
-                  ))}
-              </Stack>
-              <Divider />
-              <Button
-                sx={{ float: "right" }}
-                variant="outlined"
-                component={Link}
-                to={comp.url}
-              >
-                More info!
-              </Button>
-            </Stack>
+            <WCACompetition comp={comp} key={idx1} />
           ))}
         </Stack>
       )}

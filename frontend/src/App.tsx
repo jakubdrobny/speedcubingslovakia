@@ -119,8 +119,9 @@ const App = () => {
             <Route path="/competition/:id" Component={Competition} />
             <Route
               path="/upcoming-wca-competitions"
-              Component={WCACompetitions}
+              Component={() => <Navigate to="/competitions/wca" replace />}
             />
+            <Route path="/competitions/wca" Component={WCACompetitions} />
             <Route path="/announcements" Component={Announcements} />
             <Route path="/announcement/:id" Component={Announcement} />
             <Route path="/not-found" Component={NotFound} />

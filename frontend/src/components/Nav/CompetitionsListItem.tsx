@@ -27,7 +27,7 @@ const CompetitionsListItem = () => {
           </ListItemButton>
           <ListItemButton
             component={Link}
-            to="/upcoming-wca-competitions"
+            to="/competitions/wca"
             onClick={closeNav}
           >
             <ListItemDecorator>
