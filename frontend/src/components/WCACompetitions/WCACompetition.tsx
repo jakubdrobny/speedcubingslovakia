@@ -23,17 +23,24 @@ const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
         {renderUpcomingWCACompetitionDateRange(comp.startdate, comp.enddate)}
       </Typography>
       {dayjs().isBefore(dayjs(comp.registrationOpen)) ? (
-        <Stack spacing={1} direction="row">
+        <>
           <Typography>
-            <b>Registration opens:</b>
+            <b>Competitor limit:</b>&nbsp;{comp.competitorLimit}
           </Typography>
-          <Typography>
-            {new Date(comp.registrationOpen).toLocaleDateString() +
-              " " +
-              new Date(comp.registrationOpen).toLocaleTimeString()}
-          </Typography>
-          <Chip color="warning">{dayjs(comp.registrationOpen).fromNow()}</Chip>
-        </Stack>
+          <Stack spacing={1} direction="row">
+            <Typography>
+              <b>Registration opens:</b>
+            </Typography>
+            <Typography>
+              {new Date(comp.registrationOpen).toLocaleDateString() +
+                " " +
+                new Date(comp.registrationOpen).toLocaleTimeString()}
+            </Typography>
+            <Chip color="warning">
+              {dayjs(comp.registrationOpen).fromNow()}
+            </Chip>
+          </Stack>
+        </>
       ) : (
         <Stack spacing={1} direction="row">
           <Typography>
