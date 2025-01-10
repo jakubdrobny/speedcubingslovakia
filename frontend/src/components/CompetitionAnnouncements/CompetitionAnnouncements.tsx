@@ -1,7 +1,7 @@
 import {
   Button,
-  Divider,
-  IconButton,
+  List,
+  ListItem,
   Option,
   Select,
   Stack,
@@ -18,28 +18,18 @@ import {
   CompetitionAnnouncementSubscription,
   LoadingState,
   RegionSelectGroup,
-  WCACompetitionType,
 } from "../../Types";
 import {
   getAnnouncementSubscriptions,
   getError,
   getRegionGroups,
-  GetWCACompetitions,
-  isObjectEmpty,
-  renderResponseError,
   saveCurrentLocation,
   updateCompetitionAnnouncementSubscription,
 } from "../../utils/utils";
-import LoadingComponent from "../Loading/LoadingComponent";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { AxiosError } from "axios";
-import { ArrowForward, HelpOutline } from "@mui/icons-material";
-import WCACompetition from "./WCACompetition";
-import {
-  InfoTooltip,
-  InfoTooltipTitle,
-} from "../CompetitionAnnouncements/InfoTooltip";
+import { InfoTooltip, InfoTooltipTitle } from "./InfoTooltip";
 
 const defaultRegionGroup = "Country+Slovakia";
 
@@ -55,7 +45,7 @@ const subscriptionTheme = createTheme({
   },
 });
 
-const WCACompetitions = () => {
+const CompetitionAnnouncements = () => {
   const [loadingState, setLoadingState] = useState<
     LoadingState & { isLoadingSubs: boolean }
   >({
@@ -63,7 +53,6 @@ const WCACompetitions = () => {
     error: {},
     isLoadingSubs: false,
   });
-  const [competitions, setCompetitions] = useState<WCACompetitionType[]>([]);
   const [regionGroups, setRegionGroups] = useState<RegionSelectGroup[]>([]);
   const [regionValue, setRegionValue, regionValueRef] =
     useState<string>(defaultRegionGroup);
@@ -79,10 +68,33 @@ const WCACompetitions = () => {
   const [subscriptionTooltipOpen, setSubscriptionTooltipOpen] = useState(false);
 
   useEffect(() => {
+    const fetchAnnouncementSubscriptions = () => {
+      setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
+      getAnnouncementSubscriptions()
+        .then((res: CompetitionAnnouncementSubscription[]) => {
+          const newSubscriptions = new Map<
+            string,
+            CompetitionAnnouncementSubscription
+          >();
+          for (const entry of res) {
+            newSubscriptions.set(entry.countryName, entry);
+          }
+          setSubscriptions(new Map(newSubscriptions));
+          setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
+        })
+        .catch((err: AxiosError) => {
+          setLoadingState((p) => ({
+            ...p,
+            isLoadingSubs: false,
+            error: err.status === 401 && !loggedIn ? {} : getError(err),
+          }));
+        });
+    };
+
     getRegionGroups()
       .then((res: RegionSelectGroup[]) => {
         setRegionGroups(res);
-        fetchWCACompetitions();
+        fetchAnnouncementSubscriptions();
       })
       .catch((err) => {
         setLoadingState((p) => ({
@@ -92,60 +104,6 @@ const WCACompetitions = () => {
         }));
       });
   }, []);
-
-  const fetchWCACompetitions = () => {
-    setLoadingState((p) => ({
-      ...p,
-      isLoading: true,
-      error: {},
-      isLoadingSubs: false,
-    }));
-
-    const _regionValueSplit = regionValueRef.current.split("+");
-    const regionPrecise = _regionValueSplit[_regionValueSplit.length - 1];
-    GetWCACompetitions(regionPrecise)
-      .then((res: WCACompetitionType[]) => {
-        setCompetitions(res);
-        setLoadingState((p) => ({
-          ...p,
-          isLoading: false,
-          error: {},
-          isLoadingSubs: true,
-        }));
-        fetchAnnouncementSubscriptions();
-      })
-      .catch((err) => {
-        setLoadingState((p) => ({
-          ...p,
-          isLoadingSubs: false,
-          isLoading: false,
-          error: getError(err),
-        }));
-      });
-  };
-
-  const fetchAnnouncementSubscriptions = () => {
-    setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
-    getAnnouncementSubscriptions()
-      .then((res: CompetitionAnnouncementSubscription[]) => {
-        const newSubscriptions = new Map<
-          string,
-          CompetitionAnnouncementSubscription
-        >();
-        for (const entry of res) {
-          newSubscriptions.set(entry.countryName, entry);
-        }
-        setSubscriptions(new Map(newSubscriptions));
-        setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
-      })
-      .catch((err: AxiosError) => {
-        setLoadingState((p) => ({
-          ...p,
-          isLoadingSubs: false,
-          error: err.status === 401 && !loggedIn ? {} : getError(err),
-        }));
-      });
-  };
 
   const handleSubscribeChange = () => {
     setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
@@ -178,8 +136,9 @@ const WCACompetitions = () => {
         level="h2"
         sx={{ pl: 1, borderBottom: "1px solid #636d7433" }}
       >
-        Upcoming WCA Competitions
+        Competition Announcements Newsletter
       </Typography>
+      {!loggedIn && <InfoTooltipTitle notInsideTooltip={true} />}
       <ThemeProvider theme={subscriptionTheme}>
         <Stack
           direction={{ xs: "column", md: "row" }}
@@ -192,7 +151,6 @@ const WCACompetitions = () => {
               value={regionValue}
               onChange={(_, val) => {
                 setRegionValue(val || "");
-                fetchWCACompetitions();
               }}
               renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
               sx={{ minWidth: "200px" }}
@@ -226,44 +184,34 @@ const WCACompetitions = () => {
               )}
             </Select>
           </Stack>
-          <Stack
-            spacing={1}
-            direction="row"
-            sx={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
+          {!loggedIn ? (
             <Button
               variant="soft"
               component={Link}
               color="warning"
-              sx={{ px: 2 }}
-              to={"/competitions/announcements"}
+              sx={{ px: 2, width: "auto" }}
+              to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
+              onClick={() => saveCurrentLocation(window.location.pathname)}
             >
-              Subscribe
+              Login to subscribe
             </Button>
-            <InfoTooltip
-              open={subscriptionTooltipOpen}
-              setOpen={setSubscriptionTooltipOpen}
-            />
-          </Stack>
+          ) : (
+            subscriptions &&
+            subscriptions.size > 0 && (
+              <Button
+                onClick={handleSubscribeChange}
+                variant="soft"
+                color={currentlySubscribed ? "success" : "danger"}
+                disabled={loadingState.isLoadingSubs}
+              >
+                {currentlySubscribed ? "Subscribed!" : "Not subscribed"}
+              </Button>
+            )
+          )}
         </Stack>
       </ThemeProvider>
-      <Divider />
-      {!isObjectEmpty(loadingState.error) &&
-        renderResponseError(loadingState.error)}
-      {loadingState.isLoading ? (
-        <LoadingComponent title="Loading upcoming WCA competitions..." />
-      ) : (
-        <Stack spacing={2}>
-          {competitions.map((comp: WCACompetitionType, idx1: number) => (
-            <WCACompetition comp={comp} key={idx1} />
-          ))}
-        </Stack>
-      )}
     </Stack>
   );
 };
 
-export default WCACompetitions;
+export default CompetitionAnnouncements;

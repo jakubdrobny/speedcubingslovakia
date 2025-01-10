@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   margin: 0;
   padding: 0;
@@ -35,65 +39,46 @@ body {
   position: relative;
   -webkit-text-decoration: none;
   text-decoration: none;
-  font-family: var(
-    --joy-fontFamily-body,
-    "Inter",
-    var(
-      --joy-fontFamily-fallback,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      Roboto,
-      Helvetica,
-      Arial,
-      sans-serif,
-      "Apple Color Emoji",
-      "Segoe UI Emoji",
-      "Segoe UI Symbol"
-    )
-  );
+  font-family: var(--joy-fontFamily-body,
+      "Inter",
+      var(--joy-fontFamily-fallback,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif,
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol"
+      ));
   font-weight: var(--joy-fontWeight-lg, 600);
   line-height: var(--joy-lineHeight-md, 1.5);
   --variant-borderWidth: 0px;
 }
 
 .mui-joy-btn-soft-success {
-  color: var(
-    --variant-softColor,
-    var(
-      --joy-palette-success-softColor,
-      var(--joy-palette-success-700, #0a470a)
-    )
-  );
-  background-color: var(
-    --variant-softBg,
-    var(--joy-palette-success-softBg, var(--joy-palette-success-100, #e3fbe3))
-  );
+  color: var(--variant-softColor,
+      var(--joy-palette-success-softColor,
+        var(--joy-palette-success-700, #0a470a)));
+  background-color: var(--variant-softBg,
+      var(--joy-palette-success-softBg, var(--joy-palette-success-100, #e3fbe3)));
 }
 
 .mui-joy-btn-soft-danger {
-  color: var(
-    --variant-softColor,
-    var(--joy-palette-danger-softColor, var(--joy-danger-danger-700, #7d1212))
-  );
-  background-color: var(
-    --variant-softBg,
-    var(--joy-palette-danger-softBg, var(--joy-palette-danger-100, #fce4e4))
-  );
+  color: var(--variant-softColor,
+      var(--joy-palette-danger-softColor, var(--joy-danger-danger-700, #7d1212)));
+  background-color: var(--variant-softBg,
+      var(--joy-palette-danger-softBg, var(--joy-palette-danger-100, #fce4e4)));
 }
 
 .mui-joy-btn-soft-warning {
-  color: var(
-    --variant-softColor,
-    var(
-      --joy-palette-warning-softColor,
-      var(--joy-palette-warning-700, #492b08)
-    )
-  );
-  background-color: var(
-    --variant-softBg,
-    var(--joy-palette-warning-softBg, var(--joy-palette-warning-100, #fdf0e1))
-  );
+  color: var(--variant-softColor,
+      var(--joy-palette-warning-softColor,
+        var(--joy-palette-warning-700, #492b08)));
+  background-color: var(--variant-softBg,
+      var(--joy-palette-warning-softBg, var(--joy-palette-warning-100, #fdf0e1)));
 }
 
 .bottom-divider {

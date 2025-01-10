@@ -1,4 +1,4 @@
-import { EmojiEvents, Language } from "@mui/icons-material";
+import { Email, EmojiEvents, Language, MailOutline } from "@mui/icons-material";
 import { List, ListItemButton, ListItemDecorator, Tooltip } from "@mui/joy";
 
 import { Link } from "react-router-dom";
@@ -34,6 +34,16 @@ const CompetitionsListItem = () => {
               <WCALogoNoText />
             </ListItemDecorator>
             WCA Competitions
+          </ListItemButton>
+          <ListItemButton
+            component={Link}
+            to="/competitions/announcements"
+            onClick={closeNav}
+          >
+            <ListItemDecorator>
+              <Email />
+            </ListItemDecorator>
+            Announcements
           </ListItemButton>
         </List>
       }
