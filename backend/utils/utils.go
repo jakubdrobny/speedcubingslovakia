@@ -24,6 +24,13 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/cube"
 )
 
+// order might not be preserved
+// WILL CRASH WHEN idx < 0 or idx >= len(slice)
+func RemoveFromSliceBad[T any](slice []T, idx int) []T {
+	slice[idx] = slice[len(slice)-1]
+	return slice[:len(slice)-1]
+}
+
 func GetRequest(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {

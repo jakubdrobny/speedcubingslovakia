@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -15,10 +16,46 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/email"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
+
+func GetWCACompetitionRegions(db *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		countries, err := models.GetCountries(db)
+		if err != nil {
+			log.Println("ERR GetCountries in GetRegionsGrouped: " + err.Error())
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Failed querying countries from database.",
+			)
+			return
+		}
+		countryGroup :=
+			RegionSelectGroup{
+				"Country",
+				utils.Map(countries, func(c models.Country) string { return c.Name }),
+			}
+
+		if usIdx := slices.Index(countryGroup.GroupMembers, "United States"); usIdx != -1 {
+			countryGroup.GroupMembers = utils.RemoveFromSliceBad(
+				countryGroup.GroupMembers,
+				usIdx,
+			)
+			for _, stateName := range constants.US_STATE_NAMES {
+				countryGroup.GroupMembers = append(
+					countryGroup.GroupMembers,
+					fmt.Sprintf("United States, %v", stateName),
+				)
+			}
+			slices.Sort(countryGroup.GroupMembers)
+		}
+
+		c.IndentedJSON(http.StatusOK, []RegionSelectGroup{countryGroup})
+	}
+}
 
 func GetUpcomingWCACompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
