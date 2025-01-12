@@ -1,45 +1,29 @@
-import {
-  Button,
-  Divider,
-  IconButton,
-  Option,
-  Select,
-  Stack,
-  ThemeProvider,
-  Tooltip,
-  Typography,
-} from "@mui/joy";
-import { Box, createTheme } from "@mui/system";
+import { Button, Divider, Stack, ThemeProvider, Typography } from "@mui/joy";
+import { createTheme } from "@mui/system";
 import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
 import {
   AuthContextType,
-  CompetitionAnnouncementSubcriptionUpdateResponse,
   CompetitionAnnouncementSubscription,
   LoadingState,
   RegionSelectGroup,
   WCACompetitionType,
 } from "../../Types";
 import {
-  getAnnouncementSubscriptions,
+  GetAnnouncementSubscriptions,
   getError,
-  getRegionGroups,
   GetWCACompetitions,
+  GetWCARegionGroups,
   isObjectEmpty,
   renderResponseError,
-  saveCurrentLocation,
-  updateCompetitionAnnouncementSubscription,
 } from "../../utils/utils";
 import LoadingComponent from "../Loading/LoadingComponent";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { AxiosError } from "axios";
-import { ArrowForward, HelpOutline } from "@mui/icons-material";
 import WCACompetition from "./WCACompetition";
-import {
-  InfoTooltip,
-  InfoTooltipTitle,
-} from "../CompetitionAnnouncements/InfoTooltip";
+import { InfoTooltip } from "../CompetitionAnnouncements/InfoTooltip";
+import RegionGroupSelect from "../RegionGroupSelect";
 
 const defaultRegionGroup = "Country+Slovakia";
 
@@ -67,19 +51,14 @@ const WCACompetitions = () => {
   const [regionGroups, setRegionGroups] = useState<RegionSelectGroup[]>([]);
   const [regionValue, setRegionValue, regionValueRef] =
     useState<string>(defaultRegionGroup);
-  const [subscriptions, setSubscriptions] = useState<
-    Map<string, CompetitionAnnouncementSubscription>
-  >(new Map());
   const { authStateRef } = useContext(AuthContext) as AuthContextType;
   const loggedIn =
     authStateRef.current.token !== undefined &&
     authStateRef.current.token !== "";
-  const regionPrecise = regionValue.split("+")[1];
-  const currentlySubscribed = subscriptions.get(regionPrecise)?.subscribed;
   const [subscriptionTooltipOpen, setSubscriptionTooltipOpen] = useState(false);
 
   useEffect(() => {
-    getRegionGroups()
+    GetWCARegionGroups()
       .then((res: RegionSelectGroup[]) => {
         setRegionGroups(res);
         fetchWCACompetitions();
@@ -126,7 +105,7 @@ const WCACompetitions = () => {
 
   const fetchAnnouncementSubscriptions = () => {
     setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
-    getAnnouncementSubscriptions()
+    GetAnnouncementSubscriptions()
       .then((res: CompetitionAnnouncementSubscription[]) => {
         const newSubscriptions = new Map<
           string,
@@ -135,7 +114,6 @@ const WCACompetitions = () => {
         for (const entry of res) {
           newSubscriptions.set(entry.countryName, entry);
         }
-        setSubscriptions(new Map(newSubscriptions));
         setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
       })
       .catch((err: AxiosError) => {
@@ -143,31 +121,6 @@ const WCACompetitions = () => {
           ...p,
           isLoadingSubs: false,
           error: err.status === 401 && !loggedIn ? {} : getError(err),
-        }));
-      });
-  };
-
-  const handleSubscribeChange = () => {
-    setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
-    updateCompetitionAnnouncementSubscription(
-      regionPrecise,
-      !subscriptions.get(regionPrecise)?.subscribed,
-    )
-      .then((res: CompetitionAnnouncementSubcriptionUpdateResponse) => {
-        const newSub = subscriptions.get(regionPrecise) || {
-          countryId: regionPrecise,
-          countryName: regionPrecise,
-          subscribed: false,
-        };
-        newSub.subscribed = res.subscribed;
-        setSubscriptions(new Map(subscriptions).set(regionPrecise, newSub));
-        setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
-      })
-      .catch((err) => {
-        setLoadingState((p) => ({
-          ...p,
-          isLoadingSubs: false,
-          error: getError(err),
         }));
       });
   };
@@ -188,43 +141,12 @@ const WCACompetitions = () => {
         >
           <Stack spacing={2} direction="row">
             <Typography level="h3">Region:</Typography>
-            <Select
-              value={regionValue}
-              onChange={(_, val) => {
-                setRegionValue(val || "");
-                fetchWCACompetitions();
-              }}
-              renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
-              sx={{ minWidth: "200px" }}
+            <RegionGroupSelect
+              regionGroups={regionGroups}
+              setRegionValue={setRegionValue}
+              regionValue={regionValue}
               disabled={loadingState.isLoading}
-            >
-              {regionGroups.map(
-                (regionGroup: RegionSelectGroup, idx: number) => (
-                  <div key={idx}>
-                    <Option
-                      value={regionGroup.groupName}
-                      disabled
-                      sx={{ pl: 2 }}
-                    >
-                      <b style={{ color: "black" }}>{regionGroup.groupName}</b>
-                    </Option>
-                    {regionGroup.groupMembers.map(
-                      (groupMember: string, idx2: number) => (
-                        <Option
-                          key={idx2}
-                          value={regionGroup.groupName + "+" + groupMember}
-                          label={groupMember}
-                          sx={{ pl: 4 }}
-                          color="neutral"
-                        >
-                          {groupMember}
-                        </Option>
-                      ),
-                    )}
-                  </div>
-                ),
-              )}
-            </Select>
+            />
           </Stack>
           <Stack
             spacing={1}

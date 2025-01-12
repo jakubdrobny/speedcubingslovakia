@@ -22,7 +22,7 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
-func GetWCACompetitionRegions(db *pgxpool.Pool) gin.HandlerFunc {
+func GetWCARegionGroups(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		countries, err := models.GetCountries(db)
 		if err != nil {
@@ -33,27 +33,23 @@ func GetWCACompetitionRegions(db *pgxpool.Pool) gin.HandlerFunc {
 			)
 			return
 		}
+
 		countryGroup :=
 			RegionSelectGroup{
 				"Country",
 				utils.Map(countries, func(c models.Country) string { return c.Name }),
 			}
 
+		regionSelectGroups := []RegionSelectGroup{countryGroup}
 		if usIdx := slices.Index(countryGroup.GroupMembers, "United States"); usIdx != -1 {
-			countryGroup.GroupMembers = utils.RemoveFromSliceBad(
-				countryGroup.GroupMembers,
-				usIdx,
-			)
-			for _, stateName := range constants.US_STATE_NAMES {
-				countryGroup.GroupMembers = append(
-					countryGroup.GroupMembers,
-					fmt.Sprintf("United States, %v", stateName),
-				)
+			usStatesGroup := RegionSelectGroup{
+				"US State",
+				constants.US_STATE_NAMES[:],
 			}
-			slices.Sort(countryGroup.GroupMembers)
+			regionSelectGroups = append(regionSelectGroups, usStatesGroup)
 		}
 
-		c.IndentedJSON(http.StatusOK, []RegionSelectGroup{countryGroup})
+		c.IndentedJSON(http.StatusOK, regionSelectGroups)
 	}
 }
 

@@ -135,7 +135,7 @@ export const reformatWithPenalties = (
     miliseconds += parseInt(penalty) * 1000;
   }
 
-  let newFormattedTime = milisecondsToFormattedTime(miliseconds);
+  const newFormattedTime = milisecondsToFormattedTime(miliseconds);
 
   return newFormattedTime;
 };
@@ -229,7 +229,7 @@ export const initialCompetitionState: CompetitionState = {
   penalties: Array(5).fill("0"),
 };
 
-export const isObjectEmpty = (obj: Object) => {
+export const isObjectEmpty = (obj: object) => {
   return Object.keys(obj).length === 0;
 };
 
@@ -323,7 +323,7 @@ export const competitionOnGoing = (state: CompetitionState): boolean => {
   return startdate < now && now < enddate;
 };
 
-export const formatDate = (dateString: string): String => {
+export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString() + " " + date.toLocaleTimeString();
 };
@@ -684,6 +684,11 @@ export const GetMapData = async (): Promise<FeatureCollection> => {
   return response.data;
 };
 
+export const GetWCARegionGroups = async (): Promise<RegionSelectGroup[]> => {
+  const response = await axios.get(`/api/competitions/wca/regions/grouped`);
+  return response.data;
+};
+
 export const GetWCACompetitions = async (
   regionPrecise: string,
 ): Promise<WCACompetitionType[]> => {
@@ -693,12 +698,12 @@ export const GetWCACompetitions = async (
   return response.data;
 };
 
-export const getAdminStats = async (): Promise<AdminStatsCollection> => {
+export const GetAdminStats = async (): Promise<AdminStatsCollection> => {
   const response = await axios.get(`/api/stats/dashboard`);
   return response.data;
 };
 
-export const renderUpcomingWCACompetitionDateRange = (
+export const RenderUpcomingWCACompetitionDateRange = (
   startdate: string,
   enddate: string,
 ): string => {
@@ -708,14 +713,14 @@ export const renderUpcomingWCACompetitionDateRange = (
   return d1 + " - " + d2;
 };
 
-export const getAnnouncementSubscriptions = async (): Promise<
+export const GetAnnouncementSubscriptions = async (): Promise<
   CompetitionAnnouncementSubscription[]
 > => {
   const response = await axios.get(`/api/competitions/wca/subscriptions`);
   return response.data;
 };
 
-export const updateCompetitionAnnouncementSubscription = async (
+export const UpdateCompetitionAnnouncementSubscription = async (
   countryName: string,
   subscribed: boolean,
 ): Promise<CompetitionAnnouncementSubcriptionUpdateResponse> => {

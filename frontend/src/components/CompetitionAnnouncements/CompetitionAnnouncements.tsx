@@ -1,15 +1,5 @@
-import {
-  Button,
-  List,
-  ListItem,
-  Option,
-  Select,
-  Stack,
-  ThemeProvider,
-  Tooltip,
-  Typography,
-} from "@mui/joy";
-import { Box, createTheme } from "@mui/system";
+import { Button, Stack, ThemeProvider, Typography } from "@mui/joy";
+import { createTheme } from "@mui/system";
 import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
 import {
@@ -20,16 +10,17 @@ import {
   RegionSelectGroup,
 } from "../../Types";
 import {
-  getAnnouncementSubscriptions,
+  GetAnnouncementSubscriptions,
   getError,
-  getRegionGroups,
+  GetWCARegionGroups,
   saveCurrentLocation,
-  updateCompetitionAnnouncementSubscription,
+  UpdateCompetitionAnnouncementSubscription,
 } from "../../utils/utils";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 import { AxiosError } from "axios";
-import { InfoTooltip, InfoTooltipTitle } from "./InfoTooltip";
+import { InfoTooltipTitle } from "./InfoTooltip";
+import RegionGroupSelect from "../RegionGroupSelect";
 
 const defaultRegionGroup = "Country+Slovakia";
 
@@ -65,12 +56,11 @@ const CompetitionAnnouncements = () => {
     authStateRef.current.token !== "";
   const regionPrecise = regionValue.split("+")[1];
   const currentlySubscribed = subscriptions.get(regionPrecise)?.subscribed;
-  const [subscriptionTooltipOpen, setSubscriptionTooltipOpen] = useState(false);
 
   useEffect(() => {
     const fetchAnnouncementSubscriptions = () => {
       setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
-      getAnnouncementSubscriptions()
+      GetAnnouncementSubscriptions()
         .then((res: CompetitionAnnouncementSubscription[]) => {
           const newSubscriptions = new Map<
             string,
@@ -91,7 +81,7 @@ const CompetitionAnnouncements = () => {
         });
     };
 
-    getRegionGroups()
+    GetWCARegionGroups()
       .then((res: RegionSelectGroup[]) => {
         setRegionGroups(res);
         fetchAnnouncementSubscriptions();
@@ -107,7 +97,7 @@ const CompetitionAnnouncements = () => {
 
   const handleSubscribeChange = () => {
     setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
-    updateCompetitionAnnouncementSubscription(
+    UpdateCompetitionAnnouncementSubscription(
       regionPrecise,
       !subscriptions.get(regionPrecise)?.subscribed,
     )
@@ -147,42 +137,12 @@ const CompetitionAnnouncements = () => {
         >
           <Stack spacing={2} direction="row">
             <Typography level="h3">Region:</Typography>
-            <Select
-              value={regionValue}
-              onChange={(_, val) => {
-                setRegionValue(val || "");
-              }}
-              renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
-              sx={{ minWidth: "200px" }}
+            <RegionGroupSelect
+              regionValue={regionValue}
+              setRegionValue={setRegionValue}
+              regionGroups={regionGroups}
               disabled={loadingState.isLoading}
-            >
-              {regionGroups.map(
-                (regionGroup: RegionSelectGroup, idx: number) => (
-                  <div key={idx}>
-                    <Option
-                      value={regionGroup.groupName}
-                      disabled
-                      sx={{ pl: 2 }}
-                    >
-                      <b style={{ color: "black" }}>{regionGroup.groupName}</b>
-                    </Option>
-                    {regionGroup.groupMembers.map(
-                      (groupMember: string, idx2: number) => (
-                        <Option
-                          key={idx2}
-                          value={regionGroup.groupName + "+" + groupMember}
-                          label={groupMember}
-                          sx={{ pl: 4 }}
-                          color="neutral"
-                        >
-                          {groupMember}
-                        </Option>
-                      ),
-                    )}
-                  </div>
-                ),
-              )}
-            </Select>
+            />
           </Stack>
           {!loggedIn ? (
             <Button

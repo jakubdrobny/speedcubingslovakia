@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { CompetitionEvent, WCACompetitionType } from "../../Types";
 import {
   getCubingIconClassName,
-  renderUpcomingWCACompetitionDateRange,
+  RenderUpcomingWCACompetitionDateRange,
 } from "../../utils/utils";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -20,7 +20,7 @@ const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
       </Typography>
       <Typography>
         <b>Date:</b>&nbsp;
-        {renderUpcomingWCACompetitionDateRange(comp.startdate, comp.enddate)}
+        {RenderUpcomingWCACompetitionDateRange(comp.startdate, comp.enddate)}
       </Typography>
       {dayjs().isBefore(dayjs(comp.registrationOpen)) ? (
         <>
