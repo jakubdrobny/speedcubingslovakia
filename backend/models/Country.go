@@ -60,3 +60,13 @@ func GetCountryByName(db *pgxpool.Pool, name string) (Country, error) {
 
 	return country, nil
 }
+
+func CountriesArrayToMap(countriesArr []Country) map[string]Country {
+	countriesMap := make(map[string]Country)
+
+	for _, country := range countriesArr {
+		countriesMap[country.Iso2] = country
+	}
+
+	return countriesMap
+}

@@ -28,6 +28,7 @@ type UpcomingWCACompetition struct {
 	CountryId        string             `json:"-"`
 	CountryName      string             `json:"-"`
 	CountryIso2      string             `json:"-"`
+	State            string             `json:"-"`
 }
 
 type GetWCACompetitionsResponse struct {
