@@ -24,6 +24,9 @@ import { AxiosError } from "axios";
 import WCACompetition from "./WCACompetition";
 import { InfoTooltip } from "../CompetitionAnnouncements/InfoTooltip";
 import RegionGroupSelect from "../RegionGroupSelect";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 const defaultRegionGroup = "Country+Slovakia";
 
@@ -179,9 +182,12 @@ const WCACompetitions = () => {
         <LoadingComponent title="Loading upcoming WCA competitions..." />
       ) : (
         <Stack spacing={2}>
-          {competitions.map((comp: WCACompetitionType, idx1: number) => (
-            <WCACompetition comp={comp} key={idx1} />
-          ))}
+          {competitions.map(
+            (comp: WCACompetitionType, idx1: number) =>
+              dayjs().isBefore(dayjs(comp.enddate).add(2, "day")) && (
+                <WCACompetition comp={comp} key={idx1} />
+              ),
+          )}
         </Stack>
       )}
     </Stack>

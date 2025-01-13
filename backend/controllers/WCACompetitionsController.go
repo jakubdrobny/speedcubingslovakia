@@ -44,7 +44,10 @@ func GetWCARegionGroups(db *pgxpool.Pool) gin.HandlerFunc {
 		if usIdx := slices.Index(countryGroup.GroupMembers, "United States"); usIdx != -1 {
 			usStatesGroup := RegionSelectGroup{
 				"US State",
-				constants.US_STATE_NAMES[:],
+				utils.Map(
+					constants.US_STATE_NAMES,
+					func(stateName string) string { return "United States, " + stateName },
+				),
 			}
 			regionSelectGroups = append(regionSelectGroups, usStatesGroup)
 		}
@@ -53,11 +56,11 @@ func GetWCARegionGroups(db *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-// region is in format {country_name} or {country_name}+{state_name}
+// region is in format {country_name} or {country_name}, {state_name}
 func GetUpcomingWCACompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		regionQuery := c.Query("region")
-		regionQuerySplit := strings.Split(regionQuery, "+")
+		regionQuerySplit := strings.Split(regionQuery, ", ")
 		regionCountryName := regionQuerySplit[0]
 
 		countryId, stateId := "", ""
@@ -281,7 +284,7 @@ func constructContent(
 	return content
 }
 
-// notifications if user_id -> country_id -> [] of comps
+// notifications if user_id -> location (country_id, state_name (if present))-> [] of comps
 func SendCompAnnouncementSubscriptions(
 	db *pgxpool.Pool,
 	envMap map[string]string,
@@ -497,6 +500,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 				CompetitorLimit: respComp.CompetitorLimit,
 				VenueAddress:    respComp.VenueAddress + ", " + respComp.City + ", " + country.Name,
 				Url:             respComp.Url,
+				City:            respComp.City,
 				Events: utils.Map(
 					respComp.EventIds,
 					func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} },
@@ -562,11 +566,16 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					if _, ok := notifications[currentUserId]; !ok {
 						notifications[currentUserId] = make(map[string][]models.UpcomingWCACompetition)
 					}
-					if _, ok := notifications[currentUserId][country.Id]; !ok {
-						notifications[currentUserId][country.Id] = make([]models.UpcomingWCACompetition, 0)
+
+					location := country.Id
+					if upcomingWCACompetition.State != "" {
+						location += ", " + upcomingWCACompetition.State
+					}
+					if _, ok := notifications[currentUserId][location]; !ok {
+						notifications[currentUserId][location] = make([]models.UpcomingWCACompetition, 0)
 					}
 
-					notifications[currentUserId][country.Id] = append(notifications[currentUserId][country.Id], upcomingWCACompetition)
+					notifications[currentUserId][location] = append(notifications[currentUserId][location], upcomingWCACompetition)
 				}
 
 				// if comp added is slovak, add it to the list of comps need to make an announcement for
@@ -598,7 +607,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 func DeletePastWCACompetitions(db *pgxpool.Pool) error {
 	res, err := db.Exec(
 		context.Background(),
-		`DELETE FROM upcoming_wca_competitions WHERE date_trunc('day', now()) > enddate;`,
+		`DELETE FROM upcoming_wca_competitions WHERE date_trunc('day', now()) + interval '1 day' > enddate;`,
 	)
 	if err != nil {
 		log.Println(
@@ -619,9 +628,10 @@ func GetWCACompAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		uid := c.GetInt("uid")
 
+		queryString := `SELECT c.country_id, c.name, COALESCE(s.state, ''), CASE WHEN s.user_id IS NULL THEN false ELSE true END AS subscribed FROM countries c LEFT JOIN wca_competitions_announcements_subscriptions s ON s.country_id = c.country_id AND user_id = $1;`
 		rows, err := db.Query(
 			context.Background(),
-			`SELECT c.country_id, c.name, CASE WHEN s.user_id IS NULL THEN false ELSE true END AS subscribed FROM countries c LEFT JOIN wca_competitions_announcements_subscriptions s ON s.country_id = c.country_id AND user_id = $1;`,
+			queryString,
 			uid,
 		)
 		if err != nil {
@@ -637,10 +647,10 @@ func GetWCACompAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 
 		subscriptions := make([]models.WCACompAnnouncementSubscriptions, 0)
 		for rows.Next() {
-			a, b := rows.Values()
-			log.Printf("values: %v, error; %v\n", a, b)
+			//a, b := rows.Values()
+			//log.Printf("values: %v, error; %v\n", a, b)
 			var sub models.WCACompAnnouncementSubscriptions
-			err = rows.Scan(&sub.CountryId, &sub.CountryName, &sub.Subscribed)
+			err = rows.Scan(&sub.CountryId, &sub.CountryName, &sub.State, &sub.Subscribed)
 			if err != nil {
 				log.Println(
 					"ERR rows.Scan(subscription=countryId,countryName,subscribed) in GetWCACompAnnouncementSubscriptions: " + err.Error(),
@@ -673,13 +683,14 @@ func UpdateWCAAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 
 		uid := c.GetInt("uid")
 		queryString := ``
-		args := make([]interface{}, 0)
+		args := []any{}
 		if !body.Subscribed {
-			queryString = `DELETE FROM wca_competitions_announcements_subscriptions WHERE user_id = $1 AND country_id = (SELECT c.country_id FROM countries c WHERE c.name = $2);`
+			queryString = `DELETE FROM wca_competitions_announcements_subscriptions WHERE user_id = $1 AND country_id = (SELECT c.country_id FROM countries c WHERE c.name = $2) AND state = $3;`
+			args = []any{uid, body.CountryName, body.State}
 		} else {
-			queryString = `INSERT INTO wca_competitions_announcements_subscriptions (user_id, country_id) SELECT $1 as user_id, c.country_id as country_id FROM countries c WHERE c.name = $2 ON CONFLICT (country_id, user_id) DO NOTHING;`
+			queryString = `INSERT INTO wca_competitions_announcements_subscriptions (user_id, country_id, state) SELECT $1 as user_id, c.country_id as country_id, $2 as state FROM countries c WHERE c.name = $3 ON CONFLICT (country_id, user_id) DO NOTHING;`
+			args = []any{uid, body.State, body.CountryName}
 		}
-		args = append(args, uid, body.CountryName)
 
 		_, err := db.Exec(context.Background(), queryString, args...)
 		if err != nil {

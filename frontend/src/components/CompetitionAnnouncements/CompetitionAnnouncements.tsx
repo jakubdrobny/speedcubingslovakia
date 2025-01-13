@@ -12,7 +12,10 @@ import {
 import {
   GetAnnouncementSubscriptions,
   getError,
+  GetStateFromRegionPrecise,
   GetWCARegionGroups,
+  isObjectEmpty,
+  renderResponseError,
   saveCurrentLocation,
   UpdateCompetitionAnnouncementSubscription,
 } from "../../utils/utils";
@@ -67,7 +70,9 @@ const CompetitionAnnouncements = () => {
             CompetitionAnnouncementSubscription
           >();
           for (const entry of res) {
-            newSubscriptions.set(entry.countryName, entry);
+            const location =
+              entry.countryName + (entry.state ? ", " + entry.state : "");
+            newSubscriptions.set(location, entry);
           }
           setSubscriptions(new Map(newSubscriptions));
           setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
@@ -106,6 +111,7 @@ const CompetitionAnnouncements = () => {
           countryId: regionPrecise,
           countryName: regionPrecise,
           subscribed: false,
+          state: GetStateFromRegionPrecise(regionPrecise),
         };
         newSub.subscribed = res.subscribed;
         setSubscriptions(new Map(subscriptions).set(regionPrecise, newSub));
@@ -170,6 +176,8 @@ const CompetitionAnnouncements = () => {
           )}
         </Stack>
       </ThemeProvider>
+      {!isObjectEmpty(loadingState.error) &&
+        renderResponseError(loadingState.error)}
     </Stack>
   );
 };

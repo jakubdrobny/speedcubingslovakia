@@ -24,6 +24,15 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/cube"
 )
 
+// assumes region format of {country}{separator}{state} or {country}
+func GetStateFromRegion(region, separator string) string {
+	split := strings.Split(region, separator)
+	if len(split) != 2 {
+		return ""
+	}
+	return split[1]
+}
+
 // order might not be preserved
 // WILL CRASH WHEN idx < 0 or idx >= len(slice)
 func RemoveFromSliceBad[T any](slice []T, idx int) []T {

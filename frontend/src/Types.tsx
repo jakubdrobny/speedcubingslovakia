@@ -419,6 +419,7 @@ export type CompetitionAnnouncementSubscription = {
   countryId: string;
   countryName: string;
   subscribed: boolean;
+  state: string;
 };
 
 export type CompetitionAnnouncementSubcriptionUpdateResponse = {

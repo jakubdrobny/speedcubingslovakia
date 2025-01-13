@@ -690,11 +690,9 @@ export const GetWCARegionGroups = async (): Promise<RegionSelectGroup[]> => {
 };
 
 export const GetWCACompetitions = async (
-  regionPrecise: string,
+  region: string,
 ): Promise<WCACompetitionType[]> => {
-  const response = await axios.get(
-    `/api/competitions/wca?regionPrecise=${regionPrecise}`,
-  );
+  const response = await axios.get(`/api/competitions/wca?region=${region}`);
   return response.data;
 };
 
@@ -730,4 +728,12 @@ export const UpdateCompetitionAnnouncementSubscription = async (
     data: { countryName, subscribed },
   });
   return response.data;
+};
+
+export const GetStateFromRegionPrecise = (regionPrecise: string): string => {
+  const regionPreciseSplitByCommaAndSpace = regionPrecise.split(", ");
+  if (regionPreciseSplitByCommaAndSpace.length != 2) {
+    return "";
+  }
+  return regionPreciseSplitByCommaAndSpace[1];
 };

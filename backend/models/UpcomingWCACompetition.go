@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -29,6 +30,7 @@ type UpcomingWCACompetition struct {
 	CountryName      string             `json:"-"`
 	CountryIso2      string             `json:"-"`
 	State            string             `json:"-"`
+	City             string             `json:"-"`
 }
 
 type GetWCACompetitionsResponse struct {
@@ -208,4 +210,21 @@ func (c *UpcomingWCACompetition) GetEventNamesFromCompetitionEvents(
 
 		return events[idx].Displayname
 	})
+}
+
+// if city is in format {city_name}, {state_name} works
+// otherwise puts ""
+// ONLY LOAD US STATES
+func (c *UpcomingWCACompetition) LoadState() {
+	if c.CountryIso2 != "US" {
+		c.State = ""
+		return
+	}
+
+	citySplitByCommaAndSpace := strings.Split(c.City, ", ")
+	if len(citySplitByCommaAndSpace) != 2 {
+		c.State = ""
+	} else {
+		c.State = citySplitByCommaAndSpace[1]
+	}
 }

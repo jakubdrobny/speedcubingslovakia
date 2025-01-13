@@ -13,7 +13,7 @@ const (
 	WR_COLOR                   = "#0B6BCB"
 )
 
-var US_STATE_NAMES = [...]string{
+var US_STATE_NAMES = []string{
 	"Alabama",
 	"Alaska",
 	"Arizona",
