@@ -64,9 +64,9 @@ func (c *UpcomingWCACompetition) GetRegistered(db pgx.Tx) error {
 		return err
 	}
 
-	var regs []UpcomingWCACompetitionRegistration
+	regs := []UpcomingWCACompetitionRegistration{}
 	err = json.Unmarshal(body, &regs)
-	if err != nil {
+	if err != nil && string(body) != "" {
 		log.Println(
 			"ERR json.Unmarshal(" + string(
 				body,

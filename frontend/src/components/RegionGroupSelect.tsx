@@ -1,18 +1,17 @@
 import { Box, Option, Select } from "@mui/joy";
-import { Dispatch, SetStateAction } from "react";
 import { RegionSelectGroup } from "../Types";
 
 const RegionGroupSelect: React.FC<{
   regionValue: string;
-  setRegionValue: Dispatch<SetStateAction<string>>;
+  handleRegionChange: (newRegionValue: string) => void;
   regionGroups: RegionSelectGroup[];
   disabled: boolean;
-}> = ({ regionValue, setRegionValue, regionGroups, disabled }) => {
+}> = ({ regionValue, handleRegionChange, regionGroups, disabled }) => {
   return (
     <Select
       value={regionValue}
       onChange={(_, val) => {
-        setRegionValue(val || "");
+        handleRegionChange(val || "");
       }}
       renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
       sx={{ minWidth: "200px" }}

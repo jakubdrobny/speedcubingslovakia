@@ -106,6 +106,11 @@ const WCACompetitions = () => {
       });
   };
 
+  const handleRegionChange = (newRegionValue: string) => {
+    setRegionValue(newRegionValue);
+    fetchWCACompetitions();
+  };
+
   const fetchAnnouncementSubscriptions = () => {
     setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
     GetAnnouncementSubscriptions()
@@ -146,7 +151,7 @@ const WCACompetitions = () => {
             <Typography level="h3">Region:</Typography>
             <RegionGroupSelect
               regionGroups={regionGroups}
-              setRegionValue={setRegionValue}
+              handleRegionChange={handleRegionChange}
               regionValue={regionValue}
               disabled={loadingState.isLoading}
             />
