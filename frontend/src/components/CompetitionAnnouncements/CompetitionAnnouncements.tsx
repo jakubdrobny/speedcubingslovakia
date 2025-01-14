@@ -48,8 +48,7 @@ const CompetitionAnnouncements = () => {
     isLoadingSubs: false,
   });
   const [regionGroups, setRegionGroups] = useState<RegionSelectGroup[]>([]);
-  const [regionValue, setRegionValue, regionValueRef] =
-    useState<string>(defaultRegionGroup);
+  const [regionValue, setRegionValue] = useState<string>(defaultRegionGroup);
   const [subscriptions, setSubscriptions] = useState<
     Map<string, CompetitionAnnouncementSubscription>
   >(new Map());

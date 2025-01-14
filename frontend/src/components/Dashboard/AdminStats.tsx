@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Chart } from "react-google-charts";
 import { LoadingState } from "../../Types";
 import {
-  getAdminStats,
+  GetAdminStats,
   getError,
   initialLoadingState,
   isObjectEmpty,
@@ -26,7 +26,7 @@ const AdminStats = () => {
 
   useEffect(() => {
     setLoadingState((p) => ({ ...p, isLoading: true }));
-    getAdminStats()
+    GetAdminStats()
       .then((res) => {
         setChartData([
           res.chartData.columnNames,
@@ -74,7 +74,10 @@ const AdminStats = () => {
                 flexDirection: "row",
               }}
             >
-              <Stack component={Typography} direction="row" spacing={1}><b>Total competitors:</b><span>{overallStats.total}</span></Stack>
+              <Stack component={Typography} direction="row" spacing={1}>
+                <b>Total competitors:</b>
+                <span>{overallStats.total}</span>
+              </Stack>
             </Card>
             <Card
               sx={{
@@ -83,7 +86,10 @@ const AdminStats = () => {
                 flexDirection: "row",
               }}
             >
-              <Stack component={Typography} direction="row" spacing={1}><b>Max. competitors:</b><span>{overallStats.max}</span></Stack>
+              <Stack component={Typography} direction="row" spacing={1}>
+                <b>Max. competitors:</b>
+                <span>{overallStats.max}</span>
+              </Stack>
             </Card>
             <Card
               sx={{
@@ -92,7 +98,10 @@ const AdminStats = () => {
                 flexDirection: "row",
               }}
             >
-              <Stack component={Typography} direction="row" spacing={1}><b>Median competitors:</b><span>{overallStats.median}</span></Stack>
+              <Stack component={Typography} direction="row" spacing={1}>
+                <b>Median competitors:</b>
+                <span>{overallStats.median}</span>
+              </Stack>
             </Card>
             <Card
               sx={{
@@ -101,7 +110,10 @@ const AdminStats = () => {
                 flexDirection: "row",
               }}
             >
-              <Stack component={Typography} direction="row" spacing={1}><b>Average competitors:</b><span>{overallStats.average}</span></Stack>
+              <Stack component={Typography} direction="row" spacing={1}>
+                <b>Average competitors:</b>
+                <span>{overallStats.average}</span>
+              </Stack>
             </Card>
           </Stack>
           <Card sx={{ backgroundColor: "white" }}>

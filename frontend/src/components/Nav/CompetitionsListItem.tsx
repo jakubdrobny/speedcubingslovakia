@@ -1,4 +1,4 @@
-import { Email, EmojiEvents, Language, MailOutline } from "@mui/icons-material";
+import { Email, EmojiEvents, Language } from "@mui/icons-material";
 import { List, ListItemButton, ListItemDecorator, Tooltip } from "@mui/joy";
 
 import { Link } from "react-router-dom";

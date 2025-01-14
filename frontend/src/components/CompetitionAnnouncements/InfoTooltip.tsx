@@ -50,7 +50,7 @@ const InfoTooltip: React.FC<{
     <Tooltip
       variant="soft"
       color="primary"
-      title={<InfoTooltipTitle />}
+      title={<InfoTooltipTitle notInsideTooltip={false} />}
       open={open}
       disableInteractive={false}
       enterTouchDelay={0}
