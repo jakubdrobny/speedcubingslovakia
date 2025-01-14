@@ -719,13 +719,18 @@ export const GetAnnouncementSubscriptions = async (): Promise<
 };
 
 export const UpdateCompetitionAnnouncementSubscription = async (
-  countryName: string,
+  regionPrecise: string,
   subscribed: boolean,
 ): Promise<CompetitionAnnouncementSubcriptionUpdateResponse> => {
+  const regionSplit = regionPrecise.split(", ");
+
+  const countryId = regionSplit.length === 0 ? "" : regionSplit[0];
+  const state = regionSplit.length != 2 ? "" : regionSplit[1];
+
   const response = await axios({
     method: "POST",
     url: `/api/competitions/wca/subscribe`,
-    data: { countryName, subscribed },
+    data: { countryId, state, subscribed },
   });
   return response.data;
 };

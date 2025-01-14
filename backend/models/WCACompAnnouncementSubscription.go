@@ -9,7 +9,7 @@ type WCACompAnnouncementSubscriptions struct {
 }
 
 type UpdateWCAAnnouncementSubscriptionsRequestBody struct {
-	CountryName string `json:"countryName"`
-	State       string `json:"state"`
-	Subscribed  bool   `json:"subscribed"`
+	CountryId  string `json:"countryId"`
+	State      string `json:"state"`
+	Subscribed bool   `json:"subscribed"`
 }

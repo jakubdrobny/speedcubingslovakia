@@ -102,12 +102,13 @@ func GetUpcomingWCACompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 
 func GetUpcomingWCACompetitionEvents(
 	db *pgxpool.Pool,
-	cid string,
+	comp models.UpcomingWCACompetition,
 ) ([]models.CompetitionEvent, error) {
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT e.iconcode FROM upcoming_wca_competition_events uwce JOIN events e ON uwce.event_id = e.event_id WHERE uwce.upcoming_wca_competition_id = $1;`,
-		cid,
+		`SELECT e.iconcode FROM upcoming_wca_competition_events uwce JOIN events e ON uwce.event_id = e.event_id AND uwce.upcoming_wca_competition_id = $1 AND uwce.country_id = $2;`,
+		comp.Id,
+		comp.CountryId,
 	)
 	if err != nil {
 		log.Println(
@@ -139,7 +140,7 @@ func GetSavedUpcomingWCACompetitions(
 	countryId,
 	stateId string,
 ) ([]models.UpcomingWCACompetition, error) {
-	queryString := `SELECT upcoming_wca_competition_id as id, name, startdate, enddate, registered, competitor_limit, venue_address, url, registration_open, state FROM upcoming_wca_competitions`
+	queryString := `SELECT upcoming_wca_competition_id as id, name, startdate, enddate, registered, competitor_limit, venue_address, url, registration_open, state, registration_close, latitude_degrees, longitude_degrees FROM upcoming_wca_competitions`
 	args := make([]interface{}, 0)
 	if countryId != "_" {
 		queryString += " WHERE country_id = $1"
@@ -151,6 +152,7 @@ func GetSavedUpcomingWCACompetitions(
 		} else {
 			queryString += " WHERE state = $1"
 		}
+		args = append(args, stateId)
 	}
 	queryString += " ORDER BY enddate;"
 
@@ -180,6 +182,9 @@ func GetSavedUpcomingWCACompetitions(
 			&upcoming_comp.Url,
 			&upcoming_comp.RegistrationOpen,
 			&upcoming_comp.State,
+			&upcoming_comp.RegistrationClose,
+			&upcoming_comp.LatitudeDegrees,
+			&upcoming_comp.LongitudeDegrees,
 		)
 		if err != nil {
 			log.Println(
@@ -188,7 +193,9 @@ func GetSavedUpcomingWCACompetitions(
 			return []models.UpcomingWCACompetition{}, err
 		}
 
-		events, err := GetUpcomingWCACompetitionEvents(db, upcoming_comp.Id)
+		upcoming_comp.CountryId = countryId
+
+		events, err := GetUpcomingWCACompetitionEvents(db, upcoming_comp)
 		if err != nil {
 			log.Println(
 				"ERR GetUpcomingWCACompetitionEvents in GetSavedUpcomingWCACompetitions: " + err.Error(),
@@ -239,7 +246,7 @@ func constructContent(
 			comps[0].CountryName,
 			comps[0].CountryName,
 			strings.ToLower(comps[0].CountryIso2),
-			comps[0].CountryName,
+			country_id,
 		)
 
 		for _, comp := range comps {
@@ -256,10 +263,12 @@ func constructContent(
 				"<tr><td style=\"padding-left: 20px\"><b>Date:</b> <span style=\"font-weight: normal;\">%s</span></td></tr>",
 				comp.DateFormatted(),
 			)
-			content += fmt.Sprintf(
-				"<tr><td style=\"padding-left: 20px\"><b>Competitor limit:</b> <span style=\"font-weight: normal;\">%d</span></td></tr>",
-				comp.CompetitorLimit,
-			)
+			if comp.CompetitorLimit != 0 {
+				content += fmt.Sprintf(
+					"<tr><td style=\"padding-left: 20px\"><b>Competitor limit:</b> <span style=\"font-weight: normal;\">%d</span></td></tr>",
+					comp.CompetitorLimit,
+				)
+			}
 			content += fmt.Sprintf(
 				"<tr><td style=\"padding-left: 20px\"><b>Registration opens:</b> <span style=\"font-weight: normal;\">%s</span></td></tr>",
 				comp.RegistrationOpen.UTC().Format("02 Jan 2006 15:04:05 MST"),
@@ -549,11 +558,11 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					}
 
 					log.Println("Querying subscribers...")
-					queryString := `SELECT user_id FROM wca_competitions_announcements_subscriptions WHERE country_id = $1`
+					queryString := `SELECT user_id, state FROM wca_competitions_announcements_subscriptions WHERE (country_id = $1 AND state = '')`
 					args := []any{country.Id}
 					if upcomingWCACompetition.State != "" {
-						queryString += " AND state = $2"
-						args = append(args, upcomingWCACompetition.State)
+						queryString += " OR (country_id = $2 AND state = $3)"
+						args = append(args, upcomingWCACompetition.CountryId, upcomingWCACompetition.State)
 					}
 					queryString += ";"
 					rows, err := tx.Query(context.Background(), queryString, args...)
@@ -565,7 +574,8 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					// find subscribers and add notification to them
 					for rows.Next() {
 						var currentUserId int
-						err = rows.Scan(&currentUserId)
+						var state string
+						err = rows.Scan(&currentUserId, &state)
 						if err != nil {
 							log.Println("ERR rows.Scan(user_id) in CheckUpcomingWCACompetitions: " + err.Error())
 							return err
@@ -575,9 +585,9 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 							notifications[currentUserId] = make(map[string][]models.UpcomingWCACompetition)
 						}
 
-						location := country.Id
-						if upcomingWCACompetition.State != "" {
-							location += ", " + upcomingWCACompetition.State
+						location := country.Name
+						if state != "" {
+							location += ", " + state
 						}
 						if _, ok := notifications[currentUserId][location]; !ok {
 							notifications[currentUserId][location] = make([]models.UpcomingWCACompetition, 0)
@@ -695,10 +705,10 @@ func UpdateWCAAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 		args := []any{}
 		if !body.Subscribed {
 			queryString = `DELETE FROM wca_competitions_announcements_subscriptions WHERE user_id = $1 AND country_id = (SELECT c.country_id FROM countries c WHERE c.name = $2) AND state = $3;`
-			args = []any{uid, body.CountryName, body.State}
+			args = []any{uid, body.CountryId, body.State}
 		} else {
-			queryString = `INSERT INTO wca_competitions_announcements_subscriptions (user_id, country_id, state) SELECT $1 as user_id, c.country_id as country_id, $2 as state FROM countries c WHERE c.name = $3 ON CONFLICT (country_id, user_id) DO NOTHING;`
-			args = []any{uid, body.State, body.CountryName}
+			queryString = `INSERT INTO wca_competitions_announcements_subscriptions (user_id, country_id, state) SELECT $1 as user_id, c.country_id as country_id, $2 as state FROM countries c WHERE c.name = $3 ON CONFLICT (country_id, state, user_id) DO NOTHING;`
+			args = []any{uid, body.State, body.CountryId}
 		}
 
 		_, err := db.Exec(context.Background(), queryString, args...)

@@ -179,7 +179,7 @@ func (c *UpcomingWCACompetition) Save(db pgx.Tx) (pgconn.CommandTag, error) {
 			return pgconn.CommandTag{}, err
 		}
 	} else {
-		_, err := db.Exec(context.Background(), `UPDATE upcoming_wca_competitions SET name = $1, startdate = $2, enddate = $3, registered = $4, competitor_limit = $5, venue_address = $6, url = $7, country_id = $8, registration_open = $9, registration_close = $10, latitude_degrees = $11, longitude_degrees = $12, state = $13 WHERE upcoming_wca_competition_id = $14;`, c.Name, c.Startdate, c.Enddate, c.Registered, c.CompetitorLimit, c.VenueAddress, c.Url, c.CountryId, c.RegistrationOpen, c.RegistrationClose, c.LatitudeDegrees, c.LongitudeDegrees, c.State, c.Id)
+		_, err := db.Exec(context.Background(), `UPDATE upcoming_wca_competitions SET name = $1, startdate = $2, enddate = $3, registered = $4, competitor_limit = $5, venue_address = $6, url = $7, registration_open = $8, registration_close = $9, latitude_degrees = $10, longitude_degrees = $11, state = $12 WHERE upcoming_wca_competition_id = $13 AND country_id = $14;`, c.Name, c.Startdate, c.Enddate, c.Registered, c.CompetitorLimit, c.VenueAddress, c.Url, c.RegistrationOpen, c.RegistrationClose, c.LatitudeDegrees, c.LongitudeDegrees, c.State, c.Id, c.CountryId)
 		if err != nil {
 			log.Println("ERR db.Exec(update upcoming_wca_competitions) in UpcomingWCACompetition.Save: " + err.Error())
 			return pgconn.CommandTag{}, err

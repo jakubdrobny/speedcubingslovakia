@@ -13,7 +13,12 @@ dayjs.extend(relativeTime);
 const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
   return (
     <Stack component={Card} direction="column">
-      <Typography level="h3">{comp.name}</Typography>
+      <Stack spacing={1} direction="row">
+        {dayjs(comp.startdate).isBefore(dayjs(comp.startdate)) && (
+          <Chip color="success">Live!</Chip>
+        )}
+        <Typography level="h3">{comp.name}</Typography>
+      </Stack>
       <Divider />
       <Typography>
         <b>Place:</b>&nbsp;{comp.venueAddress}
@@ -42,26 +47,46 @@ const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
           </Stack>
         </>
       ) : (
-        <Stack spacing={1} direction="row">
-          <Typography>
-            <b>Competitors:</b>
-          </Typography>
-          <Typography>
-            {comp.registered + "/" + comp.competitorLimit}
-          </Typography>
-          <Chip
-            color={
-              comp.registered === comp.competitorLimit ? "danger" : "success"
-            }
-          >
-            {comp.registered === comp.competitorLimit
-              ? "Full"
-              : (comp.competitorLimit - comp.registered).toString() +
-              " spot" +
-              (comp.competitorLimit - comp.registered > 1 ? "s" : "") +
-              " remaining"}
-          </Chip>
-        </Stack>
+        <>
+          {comp.competitorLimit !== 0 && (
+            <Stack spacing={1} direction="row">
+              <Typography>
+                <b>Competitors:</b>
+              </Typography>
+              <Typography>
+                {comp.registered + "/" + comp.competitorLimit}
+              </Typography>
+              {dayjs().isBefore(dayjs(comp.registrationClose)) && (
+                <Chip
+                  color={
+                    comp.registered === comp.competitorLimit
+                      ? "danger"
+                      : "success"
+                  }
+                >
+                  {comp.registered === comp.competitorLimit
+                    ? "Full"
+                    : (comp.competitorLimit - comp.registered).toString() +
+                    " spot" +
+                    (comp.competitorLimit - comp.registered > 1 ? "s" : "") +
+                    " remaining"}
+                </Chip>
+              )}
+            </Stack>
+          )}
+          <Stack spacing={1} direction="row">
+            <Typography>
+              <b>Registration: </b>
+            </Typography>
+            {dayjs().isBefore(dayjs(comp.registrationClose)) ? (
+              <Chip color="warning">
+                {"Closes " + dayjs(comp.registrationClose).fromNow()}
+              </Chip>
+            ) : (
+              <Chip color="danger">Closed</Chip>
+            )}
+          </Stack>
+        </>
       )}
       <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={1}>
         <Typography>
@@ -76,6 +101,19 @@ const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
           />
         ))}
       </Stack>
+      {dayjs(comp.startdate).isBefore(dayjs()) && (
+        <Typography>
+          <b>Group assignments:</b>&nbsp;
+          {
+            <Link
+              to={"https://competitiongroups.com/competitions/" + comp.id}
+              style={{ color: "#0B6BCB", textDecoration: "none" }}
+            >
+              Link
+            </Link>
+          }
+        </Typography>
+      )}
       <Divider />
       <Button
         sx={{ float: "right" }}
