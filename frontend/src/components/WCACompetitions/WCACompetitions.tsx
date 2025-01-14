@@ -1,47 +1,31 @@
-import {
-  Button,
-  Card,
-  Chip,
-  Divider,
-  IconButton,
-  Option,
-  Select,
-  Stack,
-  ThemeProvider,
-  Tooltip,
-  Typography,
-} from "@mui/joy";
-import { Box, createTheme } from "@mui/system";
+import { Button, Divider, Stack, ThemeProvider, Typography } from "@mui/joy";
+import { createTheme } from "@mui/system";
 import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
 import {
   AuthContextType,
-  CompetitionAnnouncementSubcriptionUpdateResponse,
   CompetitionAnnouncementSubscription,
-  CompetitionEvent,
   LoadingState,
   RegionSelectGroup,
   WCACompetitionType,
 } from "../../Types";
 import {
-  getAnnouncementSubscriptions,
-  getCubingIconClassName,
+  GetAnnouncementSubscriptions,
   getError,
-  getRegionGroups,
   GetWCACompetitions,
+  GetWCARegionGroups,
   isObjectEmpty,
   renderResponseError,
-  renderUpcomingWCACompetitionDateRange,
-  saveCurrentLocation,
-  updateCompetitionAnnouncementSubscription,
 } from "../../utils/utils";
 import LoadingComponent from "../Loading/LoadingComponent";
 import { Link } from "react-router-dom";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import { AuthContext } from "../../context/AuthContext";
 import { AxiosError } from "axios";
-import { HelpOutline } from "@mui/icons-material";
+import WCACompetition from "./WCACompetition";
+import { InfoTooltip } from "../CompetitionAnnouncements/InfoTooltip";
+import RegionGroupSelect from "../RegionGroupSelect";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(relativeTime);
 
 const defaultRegionGroup = "Country+Slovakia";
@@ -70,21 +54,15 @@ const WCACompetitions = () => {
   const [regionGroups, setRegionGroups] = useState<RegionSelectGroup[]>([]);
   const [regionValue, setRegionValue, regionValueRef] =
     useState<string>(defaultRegionGroup);
-  const [subscriptions, setSubscriptions] = useState<
-    Map<string, CompetitionAnnouncementSubscription>
-  >(new Map());
   const { authStateRef } = useContext(AuthContext) as AuthContextType;
   const loggedIn =
     authStateRef.current.token !== undefined &&
     authStateRef.current.token !== "";
-  const regionPrecise = regionValue.split("+")[1];
-  const currentlySubscribed = subscriptions.get(regionPrecise)?.subscribed;
   const [subscriptionTooltipOpen, setSubscriptionTooltipOpen] = useState(false);
 
   useEffect(() => {
-    getRegionGroups()
+    GetWCARegionGroups()
       .then((res: RegionSelectGroup[]) => {
-        res = res.filter((g: RegionSelectGroup) => g.groupName === "Country");
         setRegionGroups(res);
         fetchWCACompetitions();
       })
@@ -128,9 +106,14 @@ const WCACompetitions = () => {
       });
   };
 
+  const handleRegionChange = (newRegionValue: string) => {
+    setRegionValue(newRegionValue);
+    fetchWCACompetitions();
+  };
+
   const fetchAnnouncementSubscriptions = () => {
     setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
-    getAnnouncementSubscriptions()
+    GetAnnouncementSubscriptions()
       .then((res: CompetitionAnnouncementSubscription[]) => {
         const newSubscriptions = new Map<
           string,
@@ -139,7 +122,6 @@ const WCACompetitions = () => {
         for (const entry of res) {
           newSubscriptions.set(entry.countryName, entry);
         }
-        setSubscriptions(new Map(newSubscriptions));
         setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
       })
       .catch((err: AxiosError) => {
@@ -147,31 +129,6 @@ const WCACompetitions = () => {
           ...p,
           isLoadingSubs: false,
           error: err.status === 401 && !loggedIn ? {} : getError(err),
-        }));
-      });
-  };
-
-  const handleSubscribeChange = () => {
-    setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
-    updateCompetitionAnnouncementSubscription(
-      regionPrecise,
-      !subscriptions.get(regionPrecise)?.subscribed,
-    )
-      .then((res: CompetitionAnnouncementSubcriptionUpdateResponse) => {
-        const newSub = subscriptions.get(regionPrecise) || {
-          countryId: regionPrecise,
-          countryName: regionPrecise,
-          subscribed: false,
-        };
-        newSub.subscribed = res.subscribed;
-        setSubscriptions(new Map(subscriptions).set(regionPrecise, newSub));
-        setLoadingState((p) => ({ ...p, isLoadingSubs: false }));
-      })
-      .catch((err) => {
-        setLoadingState((p) => ({
-          ...p,
-          isLoadingSubs: false,
-          error: getError(err),
         }));
       });
   };
@@ -192,43 +149,12 @@ const WCACompetitions = () => {
         >
           <Stack spacing={2} direction="row">
             <Typography level="h3">Region:</Typography>
-            <Select
-              value={regionValue}
-              onChange={(_, val) => {
-                setRegionValue(val || "");
-                fetchWCACompetitions();
-              }}
-              renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
-              sx={{ minWidth: "200px" }}
+            <RegionGroupSelect
+              regionGroups={regionGroups}
+              handleRegionChange={handleRegionChange}
+              regionValue={regionValue}
               disabled={loadingState.isLoading}
-            >
-              {regionGroups.map(
-                (regionGroup: RegionSelectGroup, idx: number) => (
-                  <div key={idx}>
-                    <Option
-                      value={regionGroup.groupName}
-                      disabled
-                      sx={{ pl: 2 }}
-                    >
-                      <b style={{ color: "black" }}>{regionGroup.groupName}</b>
-                    </Option>
-                    {regionGroup.groupMembers.map(
-                      (groupMember: string, idx2: number) => (
-                        <Option
-                          key={idx2}
-                          value={regionGroup.groupName + "+" + groupMember}
-                          label={groupMember}
-                          sx={{ pl: 4 }}
-                          color="neutral"
-                        >
-                          {groupMember}
-                        </Option>
-                      ),
-                    )}
-                  </div>
-                ),
-              )}
-            </Select>
+            />
           </Stack>
           <Stack
             spacing={1}
@@ -238,66 +164,19 @@ const WCACompetitions = () => {
               alignItems: "center",
             }}
           >
-            {!loggedIn ? (
-              <Button
-                variant="soft"
-                component={Link}
-                color="warning"
-                sx={{ px: 2 }}
-                to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
-                onClick={() => saveCurrentLocation(window.location.pathname)}
-              >
-                Login to subscribe
-              </Button>
-            ) : (
-              subscriptions &&
-              subscriptions.size > 0 && (
-                <Button
-                  onClick={handleSubscribeChange}
-                  variant="soft"
-                  color={currentlySubscribed ? "success" : "danger"}
-                  disabled={loadingState.isLoadingSubs}
-                >
-                  {currentlySubscribed ? "Subscribed!" : "Not subscribed"}
-                </Button>
-              )
-            )}
-            <Tooltip
+            <Button
               variant="soft"
-              color="primary"
-              title={
-                <Box>
-                  <Typography fontWeight="bold">
-                    Tired of checking the WCA website for new competitions?
-                  </Typography>
-                  <Typography fontSize="1em">
-                    Subscribe to our <b>newsletter</b> to receive emails when{" "}
-                    <b>new WCA competitions</b> are <b>announced</b> in any
-                    country of your choice.{" "}
-                  </Typography>
-                  <Typography fontSize="1em">
-                    You can choose one or <b>multiple countries</b> and
-                    unsubscribe from any of them at any time.
-                  </Typography>
-                  <Typography fontWeight="bold" fontSize="0.9em">
-                    Enjoy :)
-                  </Typography>
-                </Box>
-              }
-              open={subscriptionTooltipOpen}
-              disableInteractive={false}
-              enterTouchDelay={0}
-              enterDelay={0}
-              leaveDelay={0}
+              component={Link}
+              color="warning"
+              sx={{ px: 2 }}
+              to={"/competitions/announcements"}
             >
-              <IconButton
-                onMouseEnter={() => setSubscriptionTooltipOpen(true)}
-                onMouseLeave={() => setSubscriptionTooltipOpen(false)}
-                onTouchStart={() => setSubscriptionTooltipOpen((p) => !p)}
-              >
-                <HelpOutline fontSize="small" />
-              </IconButton>
-            </Tooltip>
+              Subscribe
+            </Button>
+            <InfoTooltip
+              open={subscriptionTooltipOpen}
+              setOpen={setSubscriptionTooltipOpen}
+            />
           </Stack>
         </Stack>
       </ThemeProvider>
@@ -308,84 +187,12 @@ const WCACompetitions = () => {
         <LoadingComponent title="Loading upcoming WCA competitions..." />
       ) : (
         <Stack spacing={2}>
-          {competitions.map((comp: WCACompetitionType, idx1: number) => (
-            <Stack component={Card} key={idx1} direction="column">
-              <Typography level="h3">{comp.name}</Typography>
-              <Divider />
-              <Typography>
-                <b>Place:</b>&nbsp;{comp.venueAddress}
-              </Typography>
-              <Typography>
-                <b>Date:</b>&nbsp;
-                {renderUpcomingWCACompetitionDateRange(
-                  comp.startdate,
-                  comp.enddate,
-                )}
-              </Typography>
-              {dayjs().isBefore(dayjs(comp.registrationOpen)) ? (
-                <Stack spacing={1} direction="row">
-                  <Typography>
-                    <b>Registration opens:</b>
-                  </Typography>
-                  <Typography>
-                    {new Date(comp.registrationOpen).toLocaleDateString() +
-                      " " +
-                      new Date(comp.registrationOpen).toLocaleTimeString()}
-                  </Typography>
-                  <Chip color="warning">
-                    {dayjs(comp.registrationOpen).fromNow()}
-                  </Chip>
-                </Stack>
-              ) : (
-                <Stack spacing={1} direction="row">
-                  <Typography>
-                    <b>Competitors:</b>
-                  </Typography>
-                  <Typography>
-                    {comp.registered + "/" + comp.competitorLimit}
-                  </Typography>
-                  <Chip
-                    color={
-                      comp.registered === comp.competitorLimit
-                        ? "danger"
-                        : "success"
-                    }
-                  >
-                    {comp.registered === comp.competitorLimit
-                      ? "Full"
-                      : (comp.competitorLimit - comp.registered).toString() +
-                        " spot" +
-                        (comp.competitorLimit - comp.registered > 1
-                          ? "s"
-                          : "") +
-                        " remaining"}
-                  </Chip>
-                </Stack>
-              )}
-              <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={1}>
-                <Typography>
-                  <b>Events:</b>
-                </Typography>
-                  {comp.events.map((event: CompetitionEvent, idx2: number) => (
-                    <span
-                      key={idx2 + 100000}
-                      className={`${getCubingIconClassName(
-                        event.iconcode,
-                      )} profile-cubing-icon-mock`}
-                    />
-                  ))}
-              </Stack>
-              <Divider />
-              <Button
-                sx={{ float: "right" }}
-                variant="outlined"
-                component={Link}
-                to={comp.url}
-              >
-                More info!
-              </Button>
-            </Stack>
-          ))}
+          {competitions.map(
+            (comp: WCACompetitionType, idx1: number) =>
+              dayjs().isBefore(dayjs(comp.enddate).add(2, "day")) && (
+                <WCACompetition comp={comp} key={idx1} />
+              ),
+          )}
         </Stack>
       )}
     </Stack>

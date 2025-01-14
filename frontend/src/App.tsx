@@ -10,6 +10,10 @@ import useState from "react-usestateref";
 import { Grid } from "@mui/joy";
 import LoadingComponent from "./components/Loading/LoadingComponent";
 
+const CompetitionAnnouncements = lazy(
+  () =>
+    import("./components/CompetitionAnnouncements/CompetitionAnnouncements"),
+);
 const Announcement = lazy(
   () => import("./components/Announcement/Announcement"),
 );
@@ -119,7 +123,12 @@ const App = () => {
             <Route path="/competition/:id" Component={Competition} />
             <Route
               path="/upcoming-wca-competitions"
-              Component={WCACompetitions}
+              Component={() => <Navigate to="/competitions/wca" replace />}
+            />
+            <Route path="/competitions/wca" Component={WCACompetitions} />
+            <Route
+              path="/competitions/announcements"
+              Component={CompetitionAnnouncements}
             />
             <Route path="/announcements" Component={Announcements} />
             <Route path="/announcement/:id" Component={Announcement} />

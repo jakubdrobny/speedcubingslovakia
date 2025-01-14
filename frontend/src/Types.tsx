@@ -404,6 +404,7 @@ export type AdminStatsCollection = {
 };
 
 export type WCACompetitionType = {
+  id: string;
   name: string;
   startdate: string;
   enddate: string;
@@ -413,12 +414,16 @@ export type WCACompetitionType = {
   url: string;
   events: CompetitionEvent[];
   registrationOpen: Date;
+  registrationClose: Date;
+  latitudeDegrees: number;
+  longitudeDegrees: number;
 };
 
 export type CompetitionAnnouncementSubscription = {
   countryId: string;
   countryName: string;
   subscribed: boolean;
+  state: string;
 };
 
 export type CompetitionAnnouncementSubcriptionUpdateResponse = {

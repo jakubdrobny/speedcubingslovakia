@@ -6,42 +6,52 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
 type UpcomingWCACompetition struct {
-	Id               string             `json:"id"`
-	Name             string             `json:"name"`
-	Startdate        time.Time          `json:"startdate"`
-	Enddate          time.Time          `json:"enddate"`
-	Registered       int                `json:"registered"`
-	RegistrationOpen time.Time          `json:"registrationOpen"`
-	CompetitorLimit  int                `json:"competitorLimit"`
-	VenueAddress     string             `json:"venueAddress"`
-	Url              string             `json:"url"`
-	Events           []CompetitionEvent `json:"events"`
-	CountryId        string             `json:"-"`
-	CountryName      string             `json:"-"`
-	CountryIso2      string             `json:"-"`
+	Id                string             `json:"id"`
+	Name              string             `json:"name"`
+	Startdate         time.Time          `json:"startdate"`
+	Enddate           time.Time          `json:"enddate"`
+	Registered        int                `json:"registered"`
+	RegistrationOpen  time.Time          `json:"registrationOpen"`
+	RegistrationClose time.Time          `json:"registrationClose"`
+	LatitudeDegrees   float64            `json:"latitudeDegrees"`
+	LongitudeDegrees  float64            `json:"longitudeDegrees"`
+	CompetitorLimit   int                `json:"competitorLimit"`
+	VenueAddress      string             `json:"venueAddress"`
+	Url               string             `json:"url"`
+	Events            []CompetitionEvent `json:"events"`
+	CountryId         string             `json:"-"`
+	CountryName       string             `json:"-"`
+	CountryIso2       string             `json:"-"`
+	State             string             `json:"-"`
+	City              string             `json:"-"`
 }
 
 type GetWCACompetitionsResponse struct {
-	Id               string    `json:"id"`
-	Name             string    `json:"name"`
-	Startdate        string    `json:"start_date"`
-	Enddate          string    `json:"end_date"`
-	RegistrationOpen time.Time `json:"registration_open"`
-	CompetitorLimit  int       `json:"competitor_limit"`
-	Url              string    `json:"url"`
-	CountryIso2      string    `json:"country_iso2"`
-	VenueAddress     string    `json:"venue_address"`
-	City             string    `json:"city"`
-	EventIds         []string  `json:"event_ids"`
+	Id                string    `json:"id"`
+	Name              string    `json:"name"`
+	Startdate         string    `json:"start_date"`
+	Enddate           string    `json:"end_date"`
+	RegistrationOpen  time.Time `json:"registration_open"`
+	RegistrationClose time.Time `json:"registration_close"`
+	LatitudeDegrees   float64   `json:"latitude_degrees"`
+	LongitudeDegrees  float64   `json:"longitude_degrees"`
+	CompetitorLimit   int       `json:"competitor_limit"`
+	Url               string    `json:"url"`
+	CountryIso2       string    `json:"country_iso2"`
+	VenueAddress      string    `json:"venue_address"`
+	City              string    `json:"city"`
+	EventIds          []string  `json:"event_ids"`
 }
 
 type UpcomingWCACompetitionRegistration struct {
@@ -61,9 +71,9 @@ func (c *UpcomingWCACompetition) GetRegistered(db pgx.Tx) error {
 		return err
 	}
 
-	var regs []UpcomingWCACompetitionRegistration
+	regs := []UpcomingWCACompetitionRegistration{}
 	err = json.Unmarshal(body, &regs)
-	if err != nil {
+	if err != nil && string(body) != "" {
 		log.Println(
 			"ERR json.Unmarshal(" + string(
 				body,
@@ -81,8 +91,9 @@ func (c *UpcomingWCACompetition) SaveEvents(db pgx.Tx) error {
 	for _, event := range c.Events {
 		_, err := db.Exec(
 			context.Background(),
-			`INSERT INTO upcoming_wca_competition_events (upcoming_wca_competition_id, event_id) SELECT $1 as upcoming_wca_competition_id, event_id FROM events e WHERE e.iconcode = $2 ON CONFLICT (upcoming_wca_competition_id, event_id) DO NOTHING;`,
+			`INSERT INTO upcoming_wca_competition_events (upcoming_wca_competition_id, country_id, event_id) SELECT $1 as upcoming_wca_competition_id, $2 as country_id, event_id FROM events e WHERE e.iconcode = $3 ON CONFLICT (upcoming_wca_competition_id, country_id, event_id) DO NOTHING;`,
 			c.Id,
+			c.CountryId,
 			event.Iconcode,
 		)
 		if err != nil {
@@ -99,8 +110,9 @@ func (c *UpcomingWCACompetition) SaveEvents(db pgx.Tx) error {
 func (c *UpcomingWCACompetition) DeleteEvents(db pgx.Tx) error {
 	_, err := db.Exec(
 		context.Background(),
-		`DELETE FROM upcoming_wca_competition_events WHERE upcoming_wca_competition_id = $1;`,
+		`DELETE FROM upcoming_wca_competition_events WHERE upcoming_wca_competition_id = $1 AND country_id = $2;`,
 		c.Id,
+		c.CountryId,
 	)
 	if err != nil {
 		log.Println(
@@ -135,7 +147,7 @@ func (c *UpcomingWCACompetition) UpdateEvents(db pgx.Tx) error {
 func (c *UpcomingWCACompetition) Save(db pgx.Tx) (pgconn.CommandTag, error) {
 	res, err := db.Exec(
 		context.Background(),
-		`INSERT INTO upcoming_wca_competitions (upcoming_wca_competition_id, name, startdate, enddate, registered, competitor_limit, venue_address, url, country_id, registration_open) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT (upcoming_wca_competition_id) DO NOTHING;`,
+		`INSERT INTO upcoming_wca_competitions (upcoming_wca_competition_id, name, startdate, enddate, registered, competitor_limit, venue_address, url, country_id, registration_open, registration_close, latitude_degrees, longitude_degrees, state) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT (upcoming_wca_competition_id, country_id) DO NOTHING;`,
 		c.Id,
 		c.Name,
 		c.Startdate,
@@ -146,6 +158,10 @@ func (c *UpcomingWCACompetition) Save(db pgx.Tx) (pgconn.CommandTag, error) {
 		c.Url,
 		c.CountryId,
 		c.RegistrationOpen,
+		c.RegistrationClose,
+		c.LatitudeDegrees,
+		c.LongitudeDegrees,
+		c.State,
 	)
 	if err != nil {
 		log.Println(
@@ -163,7 +179,7 @@ func (c *UpcomingWCACompetition) Save(db pgx.Tx) (pgconn.CommandTag, error) {
 			return pgconn.CommandTag{}, err
 		}
 	} else {
-		_, err := db.Exec(context.Background(), `UPDATE upcoming_wca_competitions SET name = $1, startdate = $2, enddate = $3, registered = $4, competitor_limit = $5, venue_address = $6, url = $7, country_id = $8, registration_open = $9 WHERE upcoming_wca_competition_id = $10;`, c.Name, c.Startdate, c.Enddate, c.Registered, c.CompetitorLimit, c.VenueAddress, c.Url, c.CountryId, c.RegistrationOpen, c.Id)
+		_, err := db.Exec(context.Background(), `UPDATE upcoming_wca_competitions SET name = $1, startdate = $2, enddate = $3, registered = $4, competitor_limit = $5, venue_address = $6, url = $7, registration_open = $8, registration_close = $9, latitude_degrees = $10, longitude_degrees = $11, state = $12 WHERE upcoming_wca_competition_id = $13 AND country_id = $14;`, c.Name, c.Startdate, c.Enddate, c.Registered, c.CompetitorLimit, c.VenueAddress, c.Url, c.RegistrationOpen, c.RegistrationClose, c.LatitudeDegrees, c.LongitudeDegrees, c.State, c.Id, c.CountryId)
 		if err != nil {
 			log.Println("ERR db.Exec(update upcoming_wca_competitions) in UpcomingWCACompetition.Save: " + err.Error())
 			return pgconn.CommandTag{}, err
@@ -207,4 +223,26 @@ func (c *UpcomingWCACompetition) GetEventNamesFromCompetitionEvents(
 
 		return events[idx].Displayname
 	})
+}
+
+// if city is in format {city_name}, {state_name} works
+// otherwise puts ""
+// ONLY LOAD US STATES
+func (c *UpcomingWCACompetition) LoadState() {
+	if c.CountryIso2 != "US" {
+		c.State = ""
+		return
+	}
+
+	citySplitByCommaAndSpace := strings.Split(c.City, ", ")
+	if len(citySplitByCommaAndSpace) != 2 {
+		c.State = ""
+	} else {
+		state := citySplitByCommaAndSpace[1]
+		if idx := slices.Index(constants.US_STATE_NAMES, state); idx != -1 {
+			c.State = state
+		} else {
+			c.State = "Territories"
+		}
+	}
 }

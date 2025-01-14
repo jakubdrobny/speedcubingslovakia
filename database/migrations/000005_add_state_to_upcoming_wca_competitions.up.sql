@@ -1,0 +1,5 @@
+BEGIN;
+
+ALTER TABLE upcoming_wca_competitions ADD COLUMN IF NOT EXISTS state TEXT DEFAULT '' NOT NULL;
+
+COMMIT;
