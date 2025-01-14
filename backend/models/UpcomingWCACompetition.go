@@ -12,39 +12,46 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
 type UpcomingWCACompetition struct {
-	Id               string             `json:"id"`
-	Name             string             `json:"name"`
-	Startdate        time.Time          `json:"startdate"`
-	Enddate          time.Time          `json:"enddate"`
-	Registered       int                `json:"registered"`
-	RegistrationOpen time.Time          `json:"registrationOpen"`
-	CompetitorLimit  int                `json:"competitorLimit"`
-	VenueAddress     string             `json:"venueAddress"`
-	Url              string             `json:"url"`
-	Events           []CompetitionEvent `json:"events"`
-	CountryId        string             `json:"-"`
-	CountryName      string             `json:"-"`
-	CountryIso2      string             `json:"-"`
-	State            string             `json:"-"`
-	City             string             `json:"-"`
+	Id                string             `json:"id"`
+	Name              string             `json:"name"`
+	Startdate         time.Time          `json:"startdate"`
+	Enddate           time.Time          `json:"enddate"`
+	Registered        int                `json:"registered"`
+	RegistrationOpen  time.Time          `json:"registrationOpen"`
+	RegistrationClose time.Time          `json:"registrationClose"`
+	LatitudeDegrees   float64            `json:"latitudeDegrees"`
+	LongitudeDegrees  float64            `json:"longitudeDegrees"`
+	CompetitorLimit   int                `json:"competitorLimit"`
+	VenueAddress      string             `json:"venueAddress"`
+	Url               string             `json:"url"`
+	Events            []CompetitionEvent `json:"events"`
+	CountryId         string             `json:"-"`
+	CountryName       string             `json:"-"`
+	CountryIso2       string             `json:"-"`
+	State             string             `json:"-"`
+	City              string             `json:"-"`
 }
 
 type GetWCACompetitionsResponse struct {
-	Id               string    `json:"id"`
-	Name             string    `json:"name"`
-	Startdate        string    `json:"start_date"`
-	Enddate          string    `json:"end_date"`
-	RegistrationOpen time.Time `json:"registration_open"`
-	CompetitorLimit  int       `json:"competitor_limit"`
-	Url              string    `json:"url"`
-	CountryIso2      string    `json:"country_iso2"`
-	VenueAddress     string    `json:"venue_address"`
-	City             string    `json:"city"`
-	EventIds         []string  `json:"event_ids"`
+	Id                string    `json:"id"`
+	Name              string    `json:"name"`
+	Startdate         string    `json:"start_date"`
+	Enddate           string    `json:"end_date"`
+	RegistrationOpen  time.Time `json:"registration_open"`
+	RegistrationClose time.Time `json:"registration_close"`
+	LatitudeDegrees   float64   `json:"latitude_degrees"`
+	LongitudeDegrees  float64   `json:"longitude_degrees"`
+	CompetitorLimit   int       `json:"competitor_limit"`
+	Url               string    `json:"url"`
+	CountryIso2       string    `json:"country_iso2"`
+	VenueAddress      string    `json:"venue_address"`
+	City              string    `json:"city"`
+	EventIds          []string  `json:"event_ids"`
 }
 
 type UpcomingWCACompetitionRegistration struct {
@@ -138,7 +145,7 @@ func (c *UpcomingWCACompetition) UpdateEvents(db pgx.Tx) error {
 func (c *UpcomingWCACompetition) Save(db pgx.Tx) (pgconn.CommandTag, error) {
 	res, err := db.Exec(
 		context.Background(),
-		`INSERT INTO upcoming_wca_competitions (upcoming_wca_competition_id, name, startdate, enddate, registered, competitor_limit, venue_address, url, country_id, registration_open) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ON CONFLICT (upcoming_wca_competition_id) DO NOTHING;`,
+		`INSERT INTO upcoming_wca_competitions (upcoming_wca_competition_id, name, startdate, enddate, registered, competitor_limit, venue_address, url, country_id, registration_open, registration_close, latitude_degrees, longitude_degrees, state) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT (upcoming_wca_competition_id) DO NOTHING;`,
 		c.Id,
 		c.Name,
 		c.Startdate,
@@ -149,6 +156,10 @@ func (c *UpcomingWCACompetition) Save(db pgx.Tx) (pgconn.CommandTag, error) {
 		c.Url,
 		c.CountryId,
 		c.RegistrationOpen,
+		c.RegistrationClose,
+		c.LatitudeDegrees,
+		c.LongitudeDegrees,
+		c.State,
 	)
 	if err != nil {
 		log.Println(
@@ -166,7 +177,7 @@ func (c *UpcomingWCACompetition) Save(db pgx.Tx) (pgconn.CommandTag, error) {
 			return pgconn.CommandTag{}, err
 		}
 	} else {
-		_, err := db.Exec(context.Background(), `UPDATE upcoming_wca_competitions SET name = $1, startdate = $2, enddate = $3, registered = $4, competitor_limit = $5, venue_address = $6, url = $7, country_id = $8, registration_open = $9 WHERE upcoming_wca_competition_id = $10;`, c.Name, c.Startdate, c.Enddate, c.Registered, c.CompetitorLimit, c.VenueAddress, c.Url, c.CountryId, c.RegistrationOpen, c.Id)
+		_, err := db.Exec(context.Background(), `UPDATE upcoming_wca_competitions SET name = $1, startdate = $2, enddate = $3, registered = $4, competitor_limit = $5, venue_address = $6, url = $7, country_id = $8, registration_open = $9, registration_close = $10, latitude_degrees = $11, longitude_degrees = $12, state = $13 WHERE upcoming_wca_competition_id = $14;`, c.Name, c.Startdate, c.Enddate, c.Registered, c.CompetitorLimit, c.VenueAddress, c.Url, c.CountryId, c.RegistrationOpen, c.RegistrationClose, c.LatitudeDegrees, c.LongitudeDegrees, c.State, c.Id)
 		if err != nil {
 			log.Println("ERR db.Exec(update upcoming_wca_competitions) in UpcomingWCACompetition.Save: " + err.Error())
 			return pgconn.CommandTag{}, err
@@ -225,6 +236,11 @@ func (c *UpcomingWCACompetition) LoadState() {
 	if len(citySplitByCommaAndSpace) != 2 {
 		c.State = ""
 	} else {
-		c.State = citySplitByCommaAndSpace[1]
+		state := citySplitByCommaAndSpace[1]
+		if idx := slices.Index(constants.US_STATE_NAMES, state); idx != -1 {
+			c.State = state
+		} else {
+			c.State = "Territories"
+		}
 	}
 }

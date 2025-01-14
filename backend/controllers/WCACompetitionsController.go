@@ -44,11 +44,12 @@ func GetWCARegionGroups(db *pgxpool.Pool) gin.HandlerFunc {
 		if usIdx := slices.Index(countryGroup.GroupMembers, "United States"); usIdx != -1 {
 			usStatesGroup := RegionSelectGroup{
 				"US State",
-				utils.Map(
-					constants.US_STATE_NAMES,
-					func(stateName string) string { return "United States, " + stateName },
-				),
+				[]string{"United States, Territories"},
 			}
+			usStatesGroup.GroupMembers = append(usStatesGroup.GroupMembers, utils.Map(
+				constants.US_STATE_NAMES,
+				func(stateName string) string { return "United States, " + stateName },
+			)...)
 			regionSelectGroups = append(regionSelectGroups, usStatesGroup)
 		}
 
@@ -505,10 +506,13 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					respComp.EventIds,
 					func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} },
 				),
-				CountryId:        country.Id,
-				CountryName:      country.Name,
-				CountryIso2:      country.Iso2,
-				RegistrationOpen: respComp.RegistrationOpen,
+				CountryId:         country.Id,
+				CountryName:       country.Name,
+				CountryIso2:       country.Iso2,
+				RegistrationOpen:  respComp.RegistrationOpen,
+				RegistrationClose: respComp.RegistrationClose,
+				LatitudeDegrees:   respComp.LatitudeDegrees,
+				LongitudeDegrees:  respComp.LongitudeDegrees,
 			}
 			upcomingWCACompetition.LoadState()
 
@@ -544,11 +548,11 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 				queryString := `SELECT user_id FROM wca_competitions_announcements_subscriptions WHERE country_id = $1`
 				args := []any{country.Id}
 				if upcomingWCACompetition.State != "" {
-					queryString += " state = $2"
+					queryString += " AND state = $2"
 					args = append(args, upcomingWCACompetition.State)
 				}
 				queryString += ";"
-				rows, err := tx.Query(context.Background(), queryString, args)
+				rows, err := tx.Query(context.Background(), queryString, args...)
 				if err != nil {
 					log.Println("ERR tx.Query(subscriptions) for " + country.Id + " in CheckUpcomingWCACompetitions: " + err.Error())
 					return err
