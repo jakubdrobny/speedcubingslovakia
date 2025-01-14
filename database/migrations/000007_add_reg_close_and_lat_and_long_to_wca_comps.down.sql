@@ -1,5 +1,5 @@
 BEGIN;
 
-ALTER TABLE upcoming_wca_competitions DROP COLUMN registration_close, DROP COLUMN latitude_degrees, DROP COLUMN longitude_degrees;
+ALTER TABLE upcoming_wca_competitions DROP COLUMN IF EXISTS registration_close, DROP COLUMN IF EXISTS latitude_degrees, DROP COLUMN IF EXISTS longitude_degrees;
 
 COMMIT;

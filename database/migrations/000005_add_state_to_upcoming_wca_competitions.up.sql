@@ -1,5 +1,5 @@
 BEGIN;
 
-ALTER TABLE upcoming_wca_competitions ADD COLUMN state TEXT DEFAULT '' NOT NULL;
+ALTER TABLE upcoming_wca_competitions ADD COLUMN IF NOT EXISTS state TEXT DEFAULT '' NOT NULL;
 
 COMMIT;

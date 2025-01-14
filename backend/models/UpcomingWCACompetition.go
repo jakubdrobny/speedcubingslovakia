@@ -91,8 +91,9 @@ func (c *UpcomingWCACompetition) SaveEvents(db pgx.Tx) error {
 	for _, event := range c.Events {
 		_, err := db.Exec(
 			context.Background(),
-			`INSERT INTO upcoming_wca_competition_events (upcoming_wca_competition_id, event_id) SELECT $1 as upcoming_wca_competition_id, event_id FROM events e WHERE e.iconcode = $2 ON CONFLICT (upcoming_wca_competition_id, event_id) DO NOTHING;`,
+			`INSERT INTO upcoming_wca_competition_events (upcoming_wca_competition_id, country_id, event_id) SELECT $1 as upcoming_wca_competition_id, $2 as country_id, event_id FROM events e WHERE e.iconcode = $3 ON CONFLICT (upcoming_wca_competition_id, country_id, event_id) DO NOTHING;`,
 			c.Id,
+			c.CountryId,
 			event.Iconcode,
 		)
 		if err != nil {
@@ -109,8 +110,9 @@ func (c *UpcomingWCACompetition) SaveEvents(db pgx.Tx) error {
 func (c *UpcomingWCACompetition) DeleteEvents(db pgx.Tx) error {
 	_, err := db.Exec(
 		context.Background(),
-		`DELETE FROM upcoming_wca_competition_events WHERE upcoming_wca_competition_id = $1;`,
+		`DELETE FROM upcoming_wca_competition_events WHERE upcoming_wca_competition_id = $1 AND country_id = $2;`,
 		c.Id,
+		c.CountryId,
 	)
 	if err != nil {
 		log.Println(
@@ -145,7 +147,7 @@ func (c *UpcomingWCACompetition) UpdateEvents(db pgx.Tx) error {
 func (c *UpcomingWCACompetition) Save(db pgx.Tx) (pgconn.CommandTag, error) {
 	res, err := db.Exec(
 		context.Background(),
-		`INSERT INTO upcoming_wca_competitions (upcoming_wca_competition_id, name, startdate, enddate, registered, competitor_limit, venue_address, url, country_id, registration_open, registration_close, latitude_degrees, longitude_degrees, state) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT (upcoming_wca_competition_id) DO NOTHING;`,
+		`INSERT INTO upcoming_wca_competitions (upcoming_wca_competition_id, name, startdate, enddate, registered, competitor_limit, venue_address, url, country_id, registration_open, registration_close, latitude_degrees, longitude_degrees, state) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT (upcoming_wca_competition_id, country_id) DO NOTHING;`,
 		c.Id,
 		c.Name,
 		c.Startdate,

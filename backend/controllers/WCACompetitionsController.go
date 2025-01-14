@@ -481,7 +481,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 				break
 			}
 
-			country, ok := countriesMap[respComp.CountryIso2]
+			countries, ok := countriesMap[respComp.CountryIso2]
 			if !ok {
 				errMsg := fmt.Sprintf(
 					"ERR find country with iso2(%v) in map: %v\n",
@@ -489,102 +489,107 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					countriesMap,
 				)
 				log.Println(errMsg)
-				return errors.New(errMsg)
+				continue
 			}
 
-			startdate, _ := time.Parse(layout, respComp.Startdate)
-			upcomingWCACompetition := models.UpcomingWCACompetition{
-				Id:              respComp.Id,
-				Name:            respComp.Name,
-				Startdate:       startdate,
-				Enddate:         enddate,
-				CompetitorLimit: respComp.CompetitorLimit,
-				VenueAddress:    respComp.VenueAddress + ", " + respComp.City + ", " + country.Name,
-				Url:             respComp.Url,
-				City:            respComp.City,
-				Events: utils.Map(
-					respComp.EventIds,
-					func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} },
-				),
-				CountryId:         country.Id,
-				CountryName:       country.Name,
-				CountryIso2:       country.Iso2,
-				RegistrationOpen:  respComp.RegistrationOpen,
-				RegistrationClose: respComp.RegistrationClose,
-				LatitudeDegrees:   respComp.LatitudeDegrees,
-				LongitudeDegrees:  respComp.LongitudeDegrees,
-			}
-			upcomingWCACompetition.LoadState()
-
-			err = upcomingWCACompetition.GetRegistered(tx)
-			if err != nil {
-				log.Println(
-					"ERR upcomingWCACompetition.GetRegistered in CheckUpcomingWCACompetitions: " + err.Error(),
-				)
-				return err
-			}
-
-			res, err := upcomingWCACompetition.Save(tx)
-			if err != nil {
-				log.Println(
-					"ERR upcomingWCACompetition.Save in CheckUpcomingWCACompetitions: " + err.Error(),
-				)
-				return err
-			}
-
-			if res.RowsAffected() == 0 {
-				// for now don't log anything if competition exists so i can easily check which comps were not in the db after each run
-				//log.Println(
-				//"Competition " + upcomingWCACompetition.Name + " is already in the database.",
-				//)
-			} else {
-				log.Println("Competition " + upcomingWCACompetition.Name + " saved successfully.")
-
-				if !notifySubscribers {
-					continue
+			for _, country := range countries {
+				//if respComp.CountryIso2 == "XE" {
+				//fmt.Println(respComp.Name, country.Id)
+				//}
+				startdate, _ := time.Parse(layout, respComp.Startdate)
+				upcomingWCACompetition := models.UpcomingWCACompetition{
+					Id:              respComp.Id,
+					Name:            respComp.Name,
+					Startdate:       startdate,
+					Enddate:         enddate,
+					CompetitorLimit: respComp.CompetitorLimit,
+					VenueAddress:    respComp.VenueAddress + ", " + respComp.City + ", " + country.Name,
+					Url:             respComp.Url,
+					City:            respComp.City,
+					Events: utils.Map(
+						respComp.EventIds,
+						func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} },
+					),
+					CountryId:         country.Id,
+					CountryName:       country.Name,
+					CountryIso2:       country.Iso2,
+					RegistrationOpen:  respComp.RegistrationOpen,
+					RegistrationClose: respComp.RegistrationClose,
+					LatitudeDegrees:   respComp.LatitudeDegrees,
+					LongitudeDegrees:  respComp.LongitudeDegrees,
 				}
+				upcomingWCACompetition.LoadState()
 
-				log.Println("Querying subscribers...")
-				queryString := `SELECT user_id FROM wca_competitions_announcements_subscriptions WHERE country_id = $1`
-				args := []any{country.Id}
-				if upcomingWCACompetition.State != "" {
-					queryString += " AND state = $2"
-					args = append(args, upcomingWCACompetition.State)
-				}
-				queryString += ";"
-				rows, err := tx.Query(context.Background(), queryString, args...)
+				err = upcomingWCACompetition.GetRegistered(tx)
 				if err != nil {
-					log.Println("ERR tx.Query(subscriptions) for " + country.Id + " in CheckUpcomingWCACompetitions: " + err.Error())
+					log.Println(
+						"ERR upcomingWCACompetition.GetRegistered in CheckUpcomingWCACompetitions: " + err.Error(),
+					)
 					return err
 				}
 
-				// find subscribers and add notification to them
-				for rows.Next() {
-					var currentUserId int
-					err = rows.Scan(&currentUserId)
+				res, err := upcomingWCACompetition.Save(tx)
+				if err != nil {
+					log.Println(
+						"ERR upcomingWCACompetition.Save in CheckUpcomingWCACompetitions: " + err.Error(),
+					)
+					return err
+				}
+
+				if res.RowsAffected() == 0 {
+					// for now don't log anything if competition exists so i can easily check which comps were not in the db after each run
+					//log.Println(
+					//"Competition " + upcomingWCACompetition.Name + " is already in the database.",
+					//)
+				} else {
+					log.Println("Competition " + upcomingWCACompetition.Name + " saved successfully.")
+
+					if !notifySubscribers {
+						continue
+					}
+
+					log.Println("Querying subscribers...")
+					queryString := `SELECT user_id FROM wca_competitions_announcements_subscriptions WHERE country_id = $1`
+					args := []any{country.Id}
+					if upcomingWCACompetition.State != "" {
+						queryString += " AND state = $2"
+						args = append(args, upcomingWCACompetition.State)
+					}
+					queryString += ";"
+					rows, err := tx.Query(context.Background(), queryString, args...)
 					if err != nil {
-						log.Println("ERR rows.Scan(user_id) in CheckUpcomingWCACompetitions: " + err.Error())
+						log.Println("ERR tx.Query(subscriptions) for " + country.Id + " in CheckUpcomingWCACompetitions: " + err.Error())
 						return err
 					}
 
-					if _, ok := notifications[currentUserId]; !ok {
-						notifications[currentUserId] = make(map[string][]models.UpcomingWCACompetition)
+					// find subscribers and add notification to them
+					for rows.Next() {
+						var currentUserId int
+						err = rows.Scan(&currentUserId)
+						if err != nil {
+							log.Println("ERR rows.Scan(user_id) in CheckUpcomingWCACompetitions: " + err.Error())
+							return err
+						}
+
+						if _, ok := notifications[currentUserId]; !ok {
+							notifications[currentUserId] = make(map[string][]models.UpcomingWCACompetition)
+						}
+
+						location := country.Id
+						if upcomingWCACompetition.State != "" {
+							location += ", " + upcomingWCACompetition.State
+						}
+						if _, ok := notifications[currentUserId][location]; !ok {
+							notifications[currentUserId][location] = make([]models.UpcomingWCACompetition, 0)
+						}
+
+						notifications[currentUserId][location] = append(notifications[currentUserId][location], upcomingWCACompetition)
 					}
 
-					location := country.Id
-					if upcomingWCACompetition.State != "" {
-						location += ", " + upcomingWCACompetition.State
+					// if comp added is slovak, add it to the list of comps need to make an announcement for
+					if country.Iso2 == "SK" {
+						newlyAnnouncedSlovakComps = append(newlyAnnouncedSlovakComps, upcomingWCACompetition)
 					}
-					if _, ok := notifications[currentUserId][location]; !ok {
-						notifications[currentUserId][location] = make([]models.UpcomingWCACompetition, 0)
-					}
-
-					notifications[currentUserId][location] = append(notifications[currentUserId][location], upcomingWCACompetition)
-				}
-
-				// if comp added is slovak, add it to the list of comps need to make an announcement for
-				if country.Iso2 == "SK" {
-					newlyAnnouncedSlovakComps = append(newlyAnnouncedSlovakComps, upcomingWCACompetition)
 				}
 			}
 		}

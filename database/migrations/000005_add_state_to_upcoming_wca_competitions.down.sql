@@ -1,5 +1,5 @@
 BEGIN;
 
-ALTER TABLE upcoming_wca_competitions DROP COLUMN state;
+ALTER TABLE upcoming_wca_competitions DROP COLUMN IF EXISTS state;
 
 COMMIT;

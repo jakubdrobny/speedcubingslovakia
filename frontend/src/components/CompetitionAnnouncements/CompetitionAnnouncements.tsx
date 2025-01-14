@@ -145,7 +145,9 @@ const CompetitionAnnouncements = () => {
             <Typography level="h3">Region:</Typography>
             <RegionGroupSelect
               regionValue={regionValue}
-              setRegionValue={setRegionValue}
+              handleRegionChange={(newRegionValue: string) =>
+                setRegionValue(newRegionValue)
+              }
               regionGroups={regionGroups}
               disabled={loadingState.isLoading}
             />

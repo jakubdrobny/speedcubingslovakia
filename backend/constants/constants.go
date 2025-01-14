@@ -65,3 +65,14 @@ var US_STATE_NAMES = []string{
 	"Wisconsin",
 	"Wyoming",
 }
+
+var COUNTRY_GROUPS_ISO2 = []string{"XA", "XE", "XF", "XM", "XN", "XO", "XS", "XW"}
+
+var CONTINENT_ID_TO_COUNTRY_GROUP_ISO2 = map[string]string{
+	"_Asia":          "XA",
+	"_Europe":        "XE",
+	"_Africa":        "XF",
+	"_North America": "XN",
+	"_Oceania":       "XO",
+	"_South America": "XS",
+}
