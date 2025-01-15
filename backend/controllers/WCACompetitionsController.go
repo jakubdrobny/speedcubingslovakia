@@ -350,8 +350,8 @@ func MakeCompAnnouncementContent(
 	content := fmt.Sprintf(
 		"Hello everyone,\n\nnew WCA competition in Slovakia has just been announced:\n\n**Name:** %s<br>**Place:** %s<br>**Date:** %s<br>**Events:** %s\n\n**Registration** starts on **%s**. Mark it in your calendars so you don't miss it.\n\nFor more info check out the [competition website](%s).\n\nHope to see you there.\n\nSpeedcubing Slovakia",
 		comp.Name,
-		comp.DateFormatted(),
 		comp.VenueAddress,
+		comp.DateFormatted(),
 		strings.Join(comp.GetEventNamesFromCompetitionEvents(events), ", "),
 		comp.RegistrationOpen.UTC().
 			In(timeLoc).
@@ -400,7 +400,7 @@ func MakeCompAnnouncementAnnouncements(
 
 	for _, comp := range comps {
 		announcement := models.AnnouncementState{
-			Title:    comp.Name + " announced",
+			Title:    "Official WCA competition: " + comp.Name,
 			Content:  MakeCompAnnouncementContent(comp, events),
 			AuthorId: 1,
 			Tags:     []models.Tag{compAnnouncementTag},
