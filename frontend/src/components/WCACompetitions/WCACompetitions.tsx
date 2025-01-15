@@ -1,5 +1,5 @@
-import { Button, Divider, Stack, ThemeProvider, Typography } from "@mui/joy";
-import { createTheme } from "@mui/system";
+import { Button, Divider, Stack, Typography } from "@mui/joy";
+import { extendTheme, CssVarsProvider } from "@mui/joy/styles";
 import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
 import {
@@ -30,7 +30,7 @@ dayjs.extend(relativeTime);
 
 const defaultRegionGroup = "Country+Slovakia";
 
-const subscriptionTheme = createTheme({
+const subscriptionTheme = extendTheme({
   breakpoints: {
     values: {
       xs: 0,
@@ -141,7 +141,7 @@ const WCACompetitions = () => {
       >
         Upcoming WCA Competitions
       </Typography>
-      <ThemeProvider theme={subscriptionTheme}>
+      <CssVarsProvider theme={subscriptionTheme}>
         <Stack
           direction={{ xs: "column", md: "row" }}
           spacing={2}
@@ -179,7 +179,7 @@ const WCACompetitions = () => {
             />
           </Stack>
         </Stack>
-      </ThemeProvider>
+      </CssVarsProvider>
       <Divider />
       {!isObjectEmpty(loadingState.error) &&
         renderResponseError(loadingState.error)}
