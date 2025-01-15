@@ -133,7 +133,7 @@ const CompetitionAnnouncements = () => {
       >
         Competition Announcements Newsletter
       </Typography>
-      {!loggedIn && <InfoTooltipTitle notInsideTooltip={true} />}
+      <InfoTooltipTitle notInsideTooltip={true} />
       <ThemeProvider theme={subscriptionTheme}>
         <Stack
           direction={{ xs: "column", md: "row" }}
