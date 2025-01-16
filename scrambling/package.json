@@ -16,6 +16,7 @@
   "name": "index",
   "scripts": {
     "start": "NODE_ENV=development npx nodemon index.js",
-    "start_prod": "NODE_ENV=production npx nodemon index.js"
+    "start_prod": "NODE_ENV=production npx nodemon index.js",
+    "start_service": "pm2 start index.js --name scrambling.service"
   }
 }
