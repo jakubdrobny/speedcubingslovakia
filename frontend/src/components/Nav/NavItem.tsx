@@ -11,11 +11,11 @@ const NavItem: React.FC<{
   const navigate = useNavigate();
 
   return (
-    <div className="relative group h-full flex items-center">
+    <div className="relative group w-full h-full flex items-center justify-end">
       <Link
         to={to ? to : {}}
         onClick={to ? onClick : () => { }}
-        className="flex items-center gap-2 no-underline text-black hover:bg-gray-100 mx-4"
+        className="flex items-center gap-2 w-full no-underline text-black hover:bg-gray-100 mx-4 justify-end"
       >
         {TitleIcon}
         {Title}

@@ -17,7 +17,7 @@ import ResultsNavItem from "./ResultsNavItem";
 import AnnouncementsNavItem from "./AnnouncementsNavItem";
 
 const NavItems: React.FC<{
-  direction: "row" | "row-reverse" | "column" | "column-reverse";
+  direction: "row" | "col";
 }> = ({ direction }) => {
   const { authStateRef } = useContext(AuthContext) as AuthContextType;
   const { closeNav } = useContext(NavContext) as NavContextType;
@@ -33,7 +33,9 @@ const NavItems: React.FC<{
   }, [location.pathname]);
 
   return (
-    <div className={`flex flex-${direction} h-full`}>
+    <div
+      className={`flex flex-${direction} h-full ${direction === "col" ? "gap-2" : ""}`}
+    >
       <CompetitionsNavItem />
       <ResultsNavItem />
       <AnnouncementsNavItem
