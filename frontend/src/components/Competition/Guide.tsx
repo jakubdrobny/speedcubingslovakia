@@ -16,7 +16,7 @@ const Guide = () => {
         How to submit results?
       </h3>
       {competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
-      "333fm" ? (
+        "333fm" ? (
         <div>
           <Typography sx={{ paddingBottom: "1em" }}>
             For FMC enter your solutions instead of times. They will be
@@ -34,7 +34,7 @@ const Guide = () => {
           </Typography>
         </div>
       ) : competitionState?.events[competitionState?.currentEventIdx]
-          ?.iconcode === "333mbf" ? (
+        ?.iconcode === "333mbf" ? (
         <Stack spacing={2}>
           <Typography>
             For Multi-Blind enter the number of solved cubes in the 1st input

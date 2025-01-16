@@ -1,22 +1,24 @@
 import { AuthContextType, NavContextType } from "../../Types";
-import { Badge, List, ListItemButton, ListItemDecorator } from "@mui/joy";
-import { Campaign, ListAlt } from "@mui/icons-material";
 import {
   GetNoOfNewAnnouncements,
   saveCurrentLocation,
 } from "../../utils/utils";
-import { Link, useLocation } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import { useContext, useEffect } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 import { NavContext } from "../../context/NavContext";
-import ProfileListItem from "../Profile/ProfileListItem";
-import ResultsListItem from "./ResultsListItem";
+import ProfileListItem from "./ProfileListItem";
 import WCALogoNoText from "../../images/WCALogoNoText";
-import CompetitionsListItem from "./CompetitionsListItem";
+import NavItem from "./NavItem";
+import { IconList } from "@tabler/icons-react";
+import CompetitionsNavItem from "./CompetitionsNavItem";
+import ResultsNavItem from "./ResultsNavItem";
+import AnnouncementsNavItem from "./AnnouncementsNavItem";
+import useState from "react-usestateref";
 
 const NavItems: React.FC<{
-  direction: "row" | "row-reverse" | "column" | "column-reverse";
+  direction: "row" | "col";
 }> = ({ direction }) => {
   const { authStateRef } = useContext(AuthContext) as AuthContextType;
   const { closeNav } = useContext(NavContext) as NavContextType;
@@ -27,72 +29,47 @@ const NavItems: React.FC<{
     if (authStateRef.current.token) {
       GetNoOfNewAnnouncements()
         .then((res) => setNewAnnouncements(res))
-        .catch((_) => {});
+        .catch((_) => { });
     }
   }, [location.pathname]);
 
   return (
-    <List
-      sx={{
-        flexDirection: direction,
-        justifyContent: "flex-end",
-      }}
+    <div
+      className={`flex flex-${direction} h-full ${direction === "col" ? "gap-2 my-2" : ""}`}
     >
-      <CompetitionsListItem />
-      <ResultsListItem />
-      <ListItemButton
-        component={Link}
-        to="/announcements"
-        onClick={closeNav}
-        sx={{ justifyContent: "flex-end" }}
-      >
-        <ListItemDecorator>
-          <Campaign />
-        </ListItemDecorator>
-        {authStateRef.current.token && newAnnouncements > 0 ? (
-          <Badge
-            badgeContent={newAnnouncements.toString()}
-            color="danger"
-            variant="soft"
-          >
-            Announcements
-          </Badge>
-        ) : (
-          <>Announcements</>
-        )}
-      </ListItemButton>
+      <CompetitionsNavItem />
+      <ResultsNavItem />
+      <AnnouncementsNavItem
+        isAuthenticated={
+          authStateRef.current.token !== undefined &&
+          authStateRef.current.token !== ""
+        }
+        newAnnouncements={newAnnouncements}
+      />
       {authStateRef.current.isadmin && (
-        <ListItemButton
-          component={Link}
+        <NavItem
+          Title={<div>Dashboard</div>}
           to="/admin/dashboard"
+          TitleIcon={<IconList />}
           onClick={closeNav}
-          sx={{ justifyContent: "flex-end" }}
-        >
-          <ListItemDecorator>
-            <ListAlt />
-          </ListItemDecorator>
-          Dashboard
-        </ListItemButton>
+          sublistItems={[]}
+        />
       )}
       {authStateRef.current.token ? (
         <ProfileListItem />
       ) : (
-        <ListItemButton
-          component={Link}
+        <NavItem
+          Title={<div>Log In</div>}
+          TitleIcon={<WCALogoNoText />}
           to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
           onClick={() => {
             saveCurrentLocation(window.location.pathname);
             closeNav();
           }}
-          sx={{ justifyContent: "flex-end" }}
-        >
-          <ListItemDecorator>
-            <WCALogoNoText />
-          </ListItemDecorator>
-          Log In
-        </ListItemButton>
+          sublistItems={[]}
+        />
       )}
-    </List>
+    </div>
   );
 };
 

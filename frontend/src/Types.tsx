@@ -230,11 +230,20 @@ export type CompetitionResultStruct = {
   anyComment: boolean;
 };
 
+export type NavListItemType =
+  | "competitions"
+  | "results"
+  | "profile"
+  | undefined;
+
 export type NavContextType = {
   navOpen: boolean;
   openNav: () => void;
   closeNav: () => void;
   toggleNavOpen: () => void;
+  toggleSublistOpen: (listItemType: NavListItemType) => void;
+  sublistOpen: (listItemType: NavListItemType) => boolean;
+  closeSublists: () => void;
 };
 
 export type LoadingState = {
@@ -429,4 +438,11 @@ export type CompetitionAnnouncementSubscription = {
 export type CompetitionAnnouncementSubcriptionUpdateResponse = {
   countryName: string;
   subscribed: boolean;
+};
+
+export type NavItemSublistItem = {
+  title: string;
+  to: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
 };

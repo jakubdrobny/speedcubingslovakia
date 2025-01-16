@@ -26,12 +26,10 @@ const Profile = () => {
     error: {},
   });
   const [profile, setProfile] = useState<ProfileType>(defaultProfile);
-  const { windowSize } = useContext(
-    WindowSizeContext
-  ) as WindowSizeContextType;
+  const { windowSize } = useContext(WindowSizeContext) as WindowSizeContextType;
 
   useEffect(() => {
-    setLoadingState({ isLoading: true, error: {} })
+    setLoadingState({ isLoading: true, error: {} });
 
     getProfile(id)
       .then((p: ProfileType) => {

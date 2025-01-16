@@ -1,5 +1,5 @@
-import { Button, Stack, ThemeProvider, Typography } from "@mui/joy";
-import { createTheme } from "@mui/system";
+import { Button, Stack, Typography } from "@mui/joy";
+import { extendTheme, CssVarsProvider } from "@mui/joy/styles";
 import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
 import {
@@ -27,7 +27,7 @@ import RegionGroupSelect from "../RegionGroupSelect";
 
 const defaultRegionGroup = "Country+Slovakia";
 
-const subscriptionTheme = createTheme({
+const subscriptionTheme = extendTheme({
   breakpoints: {
     values: {
       xs: 0,
@@ -134,7 +134,7 @@ const CompetitionAnnouncements = () => {
         Competition Announcements Newsletter
       </Typography>
       <InfoTooltipTitle notInsideTooltip={true} />
-      <ThemeProvider theme={subscriptionTheme}>
+      <CssVarsProvider theme={subscriptionTheme}>
         <Stack
           direction={{ xs: "column", md: "row" }}
           spacing={2}
@@ -176,7 +176,7 @@ const CompetitionAnnouncements = () => {
             )
           )}
         </Stack>
-      </ThemeProvider>
+      </CssVarsProvider>
       {!isObjectEmpty(loadingState.error) &&
         renderResponseError(loadingState.error)}
     </Stack>
