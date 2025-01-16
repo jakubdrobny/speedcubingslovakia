@@ -1,13 +1,11 @@
 import { AuthContextType, WindowSizeContextType } from "./Types";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { WIN_LG } from "./constants";
 import { authorizeAdmin, setBearerIfPresent } from "./utils/utils";
 import { useContext, useEffect, Suspense, lazy } from "react";
 
 import { AuthContext } from "./context/AuthContext";
 import { WindowSizeContext } from "./context/WindowSizeContext";
 import useState from "react-usestateref";
-import { Grid } from "@mui/joy";
 import LoadingComponent from "./components/Loading/LoadingComponent";
 
 const CompetitionAnnouncements = lazy(
@@ -53,7 +51,7 @@ const App = () => {
   const { authStateRef, setAuthState } = useContext(
     AuthContext,
   ) as AuthContextType;
-  const { windowSize, setWindowSize } = useContext(
+  const { setWindowSize } = useContext(
     WindowSizeContext,
   ) as WindowSizeContextType;
 
@@ -91,32 +89,21 @@ const App = () => {
   }, []);
 
   return (
-    <Grid container>
+    <div className="grid grid-cols-12 items-center">
       <Suspense
         fallback={
-          <div style={{ width: "100%", padding: "1em" }}>
+          <div className="col-span-12 p-4 flex items-center justify-center">
             <LoadingComponent title="Loading..." />
           </div>
         }
       >
-        <Grid
-          xs={0}
-          lg={1}
-          xl={2}
-          borderBottom={windowSize.width < WIN_LG ? "" : "2px solid lightgrey"}
-          width={"100%"}
-        />
+        <div className="col-span-0 lg:col-span-1 xl:col-span-2 border-0 border-solid lg:border-b-2 border-gray-200 w-full h-full" />
         <NavHorizontal />
-        <Grid
-          xs={0}
-          lg={1}
-          xl={2}
-          borderBottom={windowSize.width < WIN_LG ? "" : "2px solid lightgrey"}
-          width={"100%"}
-        />
+        <div className="col-span-0 lg:col-span-1 xl:col-span-2 border-0 border-solid lg:border-b-2 border-gray-200 w-full h-full" />
         <NavVertical />
-        <Grid xs={0} lg={1} xl={2} />
-        <Grid xs={12} lg={10} xl={8}>
+
+        <div className="col-span-0 lg:col-span-1 xl:col-span-2 border-0 border-b-2 lg:border-b-2 border-gray-200 w-full h-full" />
+        <div className="col-span-12 lg:col-span-10 xl:col-span-8">
           <Routes>
             <Route path="/" Component={Home} />
             <Route path="/competitions" Component={Competitions} />
@@ -166,11 +153,11 @@ const App = () => {
             <Route path="/results/rankings" Component={Rankings} />
             <Route path="*" element={<Navigate to="/not-found" replace />} />
           </Routes>
-        </Grid>
-        <Grid xs={0} lg={1} xl={2} />
-        <Grid xs={12} sx={{ height: "8em" }} /> <Footer />
+        </div>
+        <div className="col-span-0 lg:col-span-1 xl:col-span-2" />
+        <Footer />
       </Suspense>
-    </Grid>
+    </div>
   );
 };
 

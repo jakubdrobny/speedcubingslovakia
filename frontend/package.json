@@ -18,6 +18,7 @@
     "@mui/icons-material": "^6.3.0",
     "@mui/joy": "^5.0.0-beta.51",
     "@mui/material": "^6.3.0",
+    "@tabler/icons-react": "^3.28.1",
     "@types/d3-scale": "^4.0.8",
     "@types/geojson": "^7946.0.15",
     "@types/react-simple-maps": "^3.0.6",
@@ -73,7 +74,7 @@
     "d3-transition": {
       "d3-color": "^3.1.0"
     },
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0"
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0"
   }
 }

@@ -430,3 +430,10 @@ export type CompetitionAnnouncementSubcriptionUpdateResponse = {
   countryName: string;
   subscribed: boolean;
 };
+
+export type NavItemSublistItem = {
+  title: string;
+  to: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+};

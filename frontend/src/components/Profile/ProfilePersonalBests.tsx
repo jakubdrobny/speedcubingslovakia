@@ -76,9 +76,9 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                       style={
                         val !== ""
                           ? {
-                              ...right,
-                              whiteSpace: "nowrap",
-                            }
+                            ...right,
+                            whiteSpace: "nowrap",
+                          }
                           : { ...goodHeight, whiteSpace: "nowrap" }
                       }
                     >
@@ -87,8 +87,8 @@ const ProfilePersonalBests: React.FC<{ pbs: ProfileTypePersonalBests[] }> = ({
                           {idx === 3 && entry.eventIconcode === "333fm"
                             ? val.split(".")[0]
                             : entry.eventIconcode === "333mbf"
-                            ? reformatMultiTime(val)
-                            : val}
+                              ? reformatMultiTime(val)
+                              : val}
                         </b>
                       ) : (
                         val
