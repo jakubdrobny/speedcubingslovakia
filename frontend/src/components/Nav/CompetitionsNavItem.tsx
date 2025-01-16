@@ -10,6 +10,7 @@ const CompetitionsNavItem = () => {
 
   return (
     <NavItem
+      listItemType="competitions"
       Title={<div>Competitions</div>}
       TitleIcon={<IconTrophy />}
       sublistItems={[

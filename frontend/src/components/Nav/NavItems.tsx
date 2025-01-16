@@ -4,7 +4,7 @@ import {
   saveCurrentLocation,
 } from "../../utils/utils";
 import { useLocation } from "react-router-dom";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 
 import { AuthContext } from "../../context/AuthContext";
 import { NavContext } from "../../context/NavContext";
@@ -15,6 +15,7 @@ import { IconList } from "@tabler/icons-react";
 import CompetitionsNavItem from "./CompetitionsNavItem";
 import ResultsNavItem from "./ResultsNavItem";
 import AnnouncementsNavItem from "./AnnouncementsNavItem";
+import useState from "react-usestateref";
 
 const NavItems: React.FC<{
   direction: "row" | "col";
@@ -34,7 +35,7 @@ const NavItems: React.FC<{
 
   return (
     <div
-      className={`flex flex-${direction} h-full ${direction === "col" ? "gap-2" : ""}`}
+      className={`flex flex-${direction} h-full ${direction === "col" ? "gap-2 my-2" : ""}`}
     >
       <CompetitionsNavItem />
       <ResultsNavItem />

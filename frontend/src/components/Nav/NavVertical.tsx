@@ -12,15 +12,18 @@ const NavVertical = () => {
 
   return [
     <div
-      className={`col-span-0 lg:col-span-1 xl:col-span-2 border-solid border-0 border-b-2 border-b-gray-100 ${navReallyOpen ? "flex" : "hidden"} bg-white h-full`}
+      key="navVertigridleft"
+      className={`col-span-0 lg:col-span-1 xl:col-span-2 border-solid border-0 border-b-2 border-b-gray-100 ${navReallyOpen ? "flex" : "hidden"} bg-white h-full mt-1`}
     />,
     <div
-      className={`col-span-12 lg:col-span-10 xl:col-span-8 border-solid border-0 border-b-2 border-b-gray-100 ${navReallyOpen ? "flex flex-col" : "hidden"} p-2 bg-white h-full`}
+      key="navVertigridcenter"
+      className={`col-span-12 lg:col-span-10 xl:col-span-8 border-solid border-0 border-b-2 border-b-gray-100 ${navReallyOpen ? "flex flex-col" : "hidden"} bg-white h-full mt-1`}
     >
       <NavItems direction="col" />
     </div>,
     <div
-      className={`col-span-0 lg:col-span-1 xl:col-span-2 border-solid border-0 border-b-2 border-b-gray-100 ${navReallyOpen ? "flex" : "hidden"} bg-white h-full`}
+      key="navVertigridright"
+      className={`col-span-0 lg:col-span-1 xl:col-span-2 border-solid border-0 border-b-2 border-b-gray-100 ${navReallyOpen ? "flex" : "hidden"} bg-white h-full mt-1`}
     />,
   ];
 };

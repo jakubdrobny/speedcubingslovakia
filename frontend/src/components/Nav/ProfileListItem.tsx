@@ -30,6 +30,7 @@ const ProfileListItem = () => {
 
   return (
     <NavItem
+      listItemType="profile"
       Title={<div>{authState.wcaid}</div>}
       TitleIcon={
         <img

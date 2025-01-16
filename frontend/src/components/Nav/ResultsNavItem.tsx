@@ -14,6 +14,7 @@ const ResultsNavItem = () => {
 
   return (
     <NavItem
+      listItemType="results"
       Title={<div>Results</div>}
       onClick={closeNav}
       TitleIcon={<IconListNumbers />}

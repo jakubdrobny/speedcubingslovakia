@@ -1,8 +1,8 @@
-import React, { ReactNode, createContext, useState } from "react";
+import React, { ReactNode, createContext, useContext, useState } from "react";
 import { WindowSize, WindowSizeContextType } from "../Types";
 
 export const WindowSizeContext = createContext<WindowSizeContextType | null>(
-  null
+  null,
 );
 
 export const WindowSizeProvider: React.FC<{ children?: ReactNode }> = ({
