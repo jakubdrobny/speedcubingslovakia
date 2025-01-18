@@ -19,7 +19,7 @@ import { milisecondsToFormattedTime } from "../utils/utils";
 import useState from "react-usestateref";
 
 export const TimerInputContext = createContext<TimerInputContextType | null>(
-  null
+  null,
 );
 
 export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
@@ -28,16 +28,16 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
   const [timerInputState, setTimerInputState, timerInputStateRef] =
     useState<TimerInputState>(initialState);
   const { updateSolve } = useContext(
-    CompetitionContext
+    CompetitionContext,
   ) as CompetitionContextType;
-  let holdingTimeout: {
+  const holdingTimeout: {
     current: ReturnType<typeof setTimeout> | undefined | 1;
   } = useRef(undefined);
-  let timingInterval: { current: ReturnType<typeof setInterval> | undefined } =
+  const timingInterval: { current: ReturnType<typeof setInterval> | undefined } =
     useRef(undefined);
   const elapsedTime = useRef(0);
   const timerRef = useRef<HTMLDivElement | null>(null);
-  const timerRefStyle = useRef<any>();
+  const timerRefStyle = useRef<any>(null);
   const allNodesStyles = useRef<string[]>([]);
 
   const hideAllElementsExceptTimer = () => {
@@ -48,7 +48,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
           allNodesStyles.current.push(el.style.pointerEvents);
           el.style.pointerEvents = "none";
         }
-      }
+      },
     );
 
     if (timerRef && timerRef.current) {
@@ -73,7 +73,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
         if (el.tagName === "A") {
           el.style.pointerEvents = allNodesStyles.current[idx];
         }
-      }
+      },
     );
   };
 
@@ -86,7 +86,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
           !holdingTimeout.current &&
           !timingInterval.current &&
           timerInputStateRef.current.currentState ===
-            TimerInputCurrentState.NotSolving
+          TimerInputCurrentState.NotSolving
         ) {
           setTimerInputState((ps) => ({
             ...ps,
@@ -106,7 +106,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
         if (
           timingInterval.current &&
           timerInputStateRef.current.currentState ===
-            TimerInputCurrentState.Solving
+          TimerInputCurrentState.Solving
         ) {
           clearInterval(timingInterval.current);
           timingInterval.current = undefined;
@@ -120,7 +120,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
         }
       }
     },
-    [timerInputState.currentState, holdingTimeout, elapsedTime]
+    [timerInputState.currentState, holdingTimeout, elapsedTime],
   );
 
   const handleTimerInputKeyUp = useCallback(
@@ -144,13 +144,13 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
             const start = Date.now();
             timingInterval.current = setInterval(
               () => (elapsedTime.current = Date.now() - start),
-              10
+              10,
             );
           } else {
             if (
               handleSaveResults !== undefined &&
               timerInputStateRef.current.currentState ===
-                TimerInputCurrentState.Finishing
+              TimerInputCurrentState.Finishing
             )
               handleSaveResults(true);
             setTimerInputState((ps) => ({
@@ -175,7 +175,7 @@ export const TimerInputProvider: React.FC<{ children?: ReactNode }> = ({
         }
       }
     },
-    [timerInputState.currentState, holdingTimeout, elapsedTime]
+    [timerInputState.currentState, holdingTimeout, elapsedTime],
   );
 
   useEffect(() => {
