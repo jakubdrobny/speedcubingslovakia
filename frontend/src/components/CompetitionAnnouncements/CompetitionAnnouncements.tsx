@@ -29,6 +29,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { AxiosError } from "axios";
 import { InfoTooltipTitle } from "./InfoTooltip";
 import RegionGroupSelect from "../RegionGroupSelect";
+import SubscriptionMap from "./SubscriptionMap";
 
 const defaultRegionGroup = "Country+Slovakia";
 
@@ -143,7 +144,7 @@ const CompetitionAnnouncements = () => {
         <Stack
           direction={{ xs: "column", md: "row" }}
           spacing={2}
-          sx={{ pl: 2 }}
+          sx={{ px: 2 }}
         >
           <Stack spacing={2} direction="row">
             <Typography level="h3">Region:</Typography>
@@ -161,7 +162,7 @@ const CompetitionAnnouncements = () => {
               variant="soft"
               component={Link}
               color="warning"
-              sx={{ px: 2, width: "auto" }}
+              sx={{ px: { xs: 0, md: 2 }, width: "auto" }}
               to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
               onClick={() => saveCurrentLocation(window.location.pathname)}
             >
