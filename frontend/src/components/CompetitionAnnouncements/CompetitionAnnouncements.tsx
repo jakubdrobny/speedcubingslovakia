@@ -184,6 +184,7 @@ const CompetitionAnnouncements = () => {
       </CssVarsProvider>
       {!isObjectEmpty(loadingState.error) &&
         renderResponseError(loadingState.error)}
+      <SubscriptionMap />
     </Stack>
   );
 };
