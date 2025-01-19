@@ -78,12 +78,7 @@ const SubscriptionMap = () => {
         {markers.map((marker, markerIdx) => (
           <div key={markerIdx}>
             <Marker position={[marker.lat, marker.long]}>
-              <Tooltip
-                className="m-0 p-0"
-                direction="top"
-                offset={[0, -10]}
-                permanent
-              >
+              <Tooltip className="m-0 p-0" direction="top" permanent>
                 <div
                   onClick={stopPropagation}
                   onMouseDown={stopPropagation}
