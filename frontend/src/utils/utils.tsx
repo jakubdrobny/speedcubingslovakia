@@ -744,28 +744,26 @@ export const GetStateFromRegionPrecise = (regionPrecise: string): string => {
   return regionPreciseSplitByCommaAndSpace[1];
 };
 
-const markers: MarkerType[] = [
-  {
-    id: Math.random(),
-    lat: 20,
-    long: 20,
-    radius: 200,
-    new: false,
-    open: false,
-  },
-];
-
 export const GetMarkers = async (): Promise<MarkerType[]> => {
-  // todo: request from frontend
-  return Promise.resolve(markers);
+  const response = await axios.get(`/api/competitions/wca/subscriptions`);
+  return response.data;
 };
 
 export const SaveMarker = async (marker: MarkerType): Promise<void> => {
-  // todo request to backend
-  return Promise.resolve();
+  const response = await axios({
+    method: "POST",
+    url: `/api/competitions/wca/subscribe/marker/upsert`,
+    data: { marker },
+  });
+  return response.data;
 };
 
 export const DeleteMarker = async (marker: MarkerType): Promise<void> => {
-  // todo request to backend
-  return Promise.resolve();
+  const response = await axios({
+    method: "DELETE",
+    url: `/api/competitions/wca/subscribe/marker/delete`,
+    data: { marker },
+  });
+
+  return response.data;
 };
