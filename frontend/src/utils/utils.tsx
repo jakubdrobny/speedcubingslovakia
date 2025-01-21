@@ -25,6 +25,7 @@ import {
   SearchUser,
   Tag,
   WCACompetitionType,
+  MarkerType,
 } from "../Types";
 import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
@@ -741,4 +742,18 @@ export const GetStateFromRegionPrecise = (regionPrecise: string): string => {
     return "";
   }
   return regionPreciseSplitByCommaAndSpace[1];
+};
+
+const markers: MarkerType[] = [
+  { lat: 20, long: 20, radius: 200, new: false, open: false },
+];
+
+export const GetMarkers = async (): Promise<MarkerType[]> => {
+  // todo: request from frontend
+  return Promise.resolve(markers);
+};
+
+export const SaveMarker = async (marker: MarkerType): Promise<void> => {
+  // todo request to backend
+  return Promise.resolve();
 };

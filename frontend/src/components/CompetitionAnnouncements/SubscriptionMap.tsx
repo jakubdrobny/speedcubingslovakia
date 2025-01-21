@@ -7,19 +7,46 @@ import {
   Circle,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useState } from "react";
-import { Stack, Button, ButtonGroup, Chip, Input, Typography } from "@mui/joy";
+import { useEffect, useState } from "react";
+import { Stack, Button, Chip, Input, Typography } from "@mui/joy";
 import { MAX_RADIUS, MIN_RADIUS } from "../../constants";
-
-type Marker = {
-  lat: number;
-  long: number;
-  radius: number;
-  new: boolean;
-};
+import { LoadingState, MarkerType } from "../../Types";
+import { AxiosError } from "axios";
+import {
+  getError,
+  GetMarkers,
+  initialLoadingState,
+  isObjectEmpty,
+  renderResponseError,
+  SaveMarker,
+} from "../../utils/utils";
 
 const SubscriptionMap = () => {
-  const [markers, setMarkers] = useState<Marker[]>([]);
+  const [loadingState, setLoadingState] =
+    useState<LoadingState>(initialLoadingState);
+  const [markers, setMarkers] = useState<MarkerType[]>([]);
+
+  useEffect(() => {
+    setLoadingState({
+      isLoading: true,
+      error: {},
+    });
+
+    GetMarkers()
+      .then((res: MarkerType[]) => {
+        setMarkers(res);
+        setLoadingState({
+          isLoading: false,
+          error: {},
+        });
+      })
+      .catch((err: AxiosError) => {
+        setLoadingState({
+          isLoading: false,
+          error: getError(err),
+        });
+      });
+  }, []);
 
   const MapClickHandler = () => {
     useMapEvents({
@@ -29,6 +56,7 @@ const SubscriptionMap = () => {
           long: e.latlng.lng,
           radius: 50,
           new: true,
+          open: true,
         };
         if (markers.length > 0 && markers[markers.length - 1].new) {
           newMarker.radius = markers[markers.length - 1].radius;
@@ -41,11 +69,14 @@ const SubscriptionMap = () => {
     return null;
   };
 
-  const stopPropagation = (e) => {
+  const stopPropagation = (e: React.SyntheticEvent) => {
     e.stopPropagation();
   };
 
-  const handleRadiusChange = (e, idx: number) => {
+  const handleRadiusChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    idx: number,
+  ) => {
     let newRadius = parseInt(e.target.value || "1");
     if (newRadius < MIN_RADIUS) newRadius = MIN_RADIUS;
     if (newRadius > MAX_RADIUS) newRadius = MAX_RADIUS;
@@ -56,11 +87,30 @@ const SubscriptionMap = () => {
   };
 
   const handleMarkerSave = (idx: number) => {
-    console.log("saved " + idx);
+    setLoadingState({
+      isLoading: true,
+      error: {},
+    });
+
+    SaveMarker(markers[idx])
+      .then(() => {
+        setMarkers((p: MarkerType[]) =>
+          p.map((m, i) => (i !== idx ? m : { ...m, new: false, open: false })),
+        );
+        setLoadingState({
+          isLoading: false,
+          error: {},
+        });
+      })
+      .catch((err: AxiosError) => {
+        setLoadingState({ isLoading: false, error: getError(err) });
+      });
   };
 
   return (
     <Stack sx={{ height: "512px" }} spacing={1}>
+      {!isObjectEmpty(loadingState.error) &&
+        renderResponseError(loadingState.error)}
       <Chip sx={{ fontSize: 12, fontStyle: "italic" }}>
         Note: the circles displayed might not look accurate for large radiuses,
         but the calculations when sending announcements will be done correctly.
@@ -78,7 +128,11 @@ const SubscriptionMap = () => {
         {markers.map((marker, markerIdx) => (
           <div key={markerIdx}>
             <Marker position={[marker.lat, marker.long]}>
-              <Tooltip className="m-0 p-0" direction="top" permanent>
+              <Tooltip
+                className="m-0 p-0"
+                direction="top"
+                permanent={marker.open}
+              >
                 <div
                   onClick={stopPropagation}
                   onMouseDown={stopPropagation}

@@ -9,9 +9,9 @@ import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
 import {
   AuthContextType,
+  CompetitionAnnouncementsLoadingState,
   CompetitionAnnouncementSubcriptionUpdateResponse,
   CompetitionAnnouncementSubscription,
-  LoadingState,
   RegionSelectGroup,
 } from "../../Types";
 import {
@@ -46,13 +46,12 @@ const subscriptionTheme = extendTheme({
 });
 
 const CompetitionAnnouncements = () => {
-  const [loadingState, setLoadingState] = useState<
-    LoadingState & { isLoadingSubs: boolean }
-  >({
-    isLoading: false,
-    error: {},
-    isLoadingSubs: false,
-  });
+  const [loadingState, setLoadingState] =
+    useState<CompetitionAnnouncementsLoadingState>({
+      isLoading: false,
+      error: {},
+      isLoadingSubs: false,
+    });
   const [regionGroups, setRegionGroups] = useState<RegionSelectGroup[]>([]);
   const [regionValue, setRegionValue] = useState<string>(defaultRegionGroup);
   const [subscriptions, setSubscriptions] = useState<
@@ -67,7 +66,10 @@ const CompetitionAnnouncements = () => {
 
   useEffect(() => {
     const fetchAnnouncementSubscriptions = () => {
-      setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
+      setLoadingState((p: CompetitionAnnouncementsLoadingState) => ({
+        ...p,
+        isLoadingSubs: true,
+      }));
       GetAnnouncementSubscriptions()
         .then((res: CompetitionAnnouncementSubscription[]) => {
           const newSubscriptions = new Map<
