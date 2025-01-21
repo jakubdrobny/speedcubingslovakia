@@ -745,7 +745,14 @@ export const GetStateFromRegionPrecise = (regionPrecise: string): string => {
 };
 
 const markers: MarkerType[] = [
-  { lat: 20, long: 20, radius: 200, new: false, open: false },
+  {
+    id: Math.random(),
+    lat: 20,
+    long: 20,
+    radius: 200,
+    new: false,
+    open: false,
+  },
 ];
 
 export const GetMarkers = async (): Promise<MarkerType[]> => {
@@ -754,6 +761,11 @@ export const GetMarkers = async (): Promise<MarkerType[]> => {
 };
 
 export const SaveMarker = async (marker: MarkerType): Promise<void> => {
+  // todo request to backend
+  return Promise.resolve();
+};
+
+export const DeleteMarker = async (marker: MarkerType): Promise<void> => {
   // todo request to backend
   return Promise.resolve();
 };

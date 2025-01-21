@@ -13,6 +13,7 @@ import { MAX_RADIUS, MIN_RADIUS } from "../../constants";
 import { LoadingState, MarkerType } from "../../Types";
 import { AxiosError } from "axios";
 import {
+  DeleteMarker,
   getError,
   GetMarkers,
   initialLoadingState,
@@ -53,6 +54,7 @@ const SubscriptionMap = () => {
     useMapEvents({
       click: (e) => {
         const newMarker = {
+          id: Math.random(),
           lat: e.latlng.lat,
           long: e.latlng.lng,
           radius: 50,
@@ -108,9 +110,31 @@ const SubscriptionMap = () => {
       });
   };
 
+  const handleMarkerDelete = (idx: number) => {
+    if (markers[idx].new) {
+      handleMarkerClose(idx);
+      return;
+    }
+
+    setLoadingState({
+      isLoading: true,
+      error: {},
+    });
+
+    DeleteMarker(markers[idx])
+      .then(() => {
+        setMarkers((p: MarkerType[]) => p.filter((_, i) => i !== idx));
+        setLoadingState({
+          isLoading: false,
+          error: {},
+        });
+      })
+      .catch((err: AxiosError) => {
+        setLoadingState({ isLoading: false, error: getError(err) });
+      });
+  };
+
   const handleMarkerOpenToggle = (idx: number) => {
-    console.log(markers);
-    console.log(markers[idx]);
     if (markers[idx].new) return;
     setMarkers((p: MarkerType[]) =>
       p.map((m, i) => ({
@@ -189,6 +213,14 @@ const SubscriptionMap = () => {
                       >
                         Save!
                       </Button>
+                      {!marker.new && (
+                        <Button
+                          color="danger"
+                          onClick={() => handleMarkerDelete(markerIdx)}
+                        >
+                          Delete!
+                        </Button>
+                      )}
                     </Stack>
                   </div>
                 </Tooltip>

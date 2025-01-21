@@ -436,6 +436,7 @@ export type CompetitionAnnouncementsLoadingState = LoadingState & {
 };
 
 export type MarkerType = {
+  id: number;
   lat: number;
   long: number;
   radius: number;
