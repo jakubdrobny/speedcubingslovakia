@@ -2,13 +2,13 @@ import {
   MapContainer,
   TileLayer,
   Tooltip,
-  Marker,
   useMapEvents,
+  Marker,
   Circle,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEffect, useState } from "react";
-import { Stack, Button, Chip, Input, Typography } from "@mui/joy";
+import { Stack, Button, Chip, Input, Typography, IconButton } from "@mui/joy";
 import { MAX_RADIUS, MIN_RADIUS } from "../../constants";
 import { LoadingState, MarkerType } from "../../Types";
 import { AxiosError } from "axios";
@@ -20,6 +20,7 @@ import {
   renderResponseError,
   SaveMarker,
 } from "../../utils/utils";
+import { Close } from "@mui/icons-material";
 
 const SubscriptionMap = () => {
   const [loadingState, setLoadingState] =
@@ -108,10 +109,25 @@ const SubscriptionMap = () => {
   };
 
   const handleMarkerOpenToggle = (idx: number) => {
+    console.log(markers);
+    console.log(markers[idx]);
     if (markers[idx].new) return;
     setMarkers((p: MarkerType[]) =>
-      p.map((m, i) => (i !== idx ? m : { ...m, open: !m.open })),
+      p.map((m, i) => ({
+        ...m,
+        open: i !== idx ? m.new : !m.open,
+      })),
     );
+  };
+
+  const handleMarkerClose = (idx: number) => {
+    if (markers[idx].new) {
+      setMarkers((p: MarkerType[]) => p.filter((_, i) => i !== idx));
+    } else {
+      setMarkers((p: MarkerType[]) =>
+        p.map((m, i) => (i !== idx ? m : { ...m, open: false })),
+      );
+    }
   };
 
   return (
@@ -146,7 +162,19 @@ const SubscriptionMap = () => {
                     onTouchStart={stopPropagation}
                     style={{ pointerEvents: "auto", padding: 5 }}
                   >
-                    <Typography level="h4">Radius (km):</Typography>
+                    <Stack
+                      direction="row"
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Typography level="h4">Radius (km):</Typography>
+                      <IconButton onClick={() => handleMarkerClose(markerIdx)}>
+                        <Close fontSize="small" />
+                      </IconButton>
+                    </Stack>
                     <Stack direction="row" spacing={1}>
                       <Input
                         size="sm"
