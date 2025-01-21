@@ -107,6 +107,13 @@ const SubscriptionMap = () => {
       });
   };
 
+  const handleMarkerOpenToggle = (idx: number) => {
+    if (markers[idx].new) return;
+    setMarkers((p: MarkerType[]) =>
+      p.map((m, i) => (i !== idx ? m : { ...m, open: !m.open })),
+    );
+  };
+
   return (
     <Stack sx={{ height: "512px" }} spacing={1}>
       {!isObjectEmpty(loadingState.error) &&
@@ -127,36 +134,37 @@ const SubscriptionMap = () => {
         <MapClickHandler />
         {markers.map((marker, markerIdx) => (
           <div key={markerIdx}>
-            <Marker position={[marker.lat, marker.long]}>
-              <Tooltip
-                className="m-0 p-0"
-                direction="top"
-                permanent={marker.open}
-              >
-                <div
-                  onClick={stopPropagation}
-                  onMouseDown={stopPropagation}
-                  onTouchStart={stopPropagation}
-                  style={{ pointerEvents: "auto", padding: 5 }}
-                >
-                  <Typography level="h4">Radius (km):</Typography>
-                  <Stack direction="row" spacing={1}>
-                    <Input
-                      size="sm"
-                      type="number"
-                      sx={{ width: 100 }}
-                      value={marker.radius}
-                      onChange={(e) => handleRadiusChange(e, markerIdx)}
-                    />
-                    <Button
-                      color="primary"
-                      onClick={() => handleMarkerSave(markerIdx)}
-                    >
-                      Save!
-                    </Button>
-                  </Stack>
-                </div>
-              </Tooltip>
+            <Marker
+              position={[marker.lat, marker.long]}
+              eventHandlers={{ click: () => handleMarkerOpenToggle(markerIdx) }}
+            >
+              {marker.open && (
+                <Tooltip className="m-0 p-0" direction="top" permanent>
+                  <div
+                    onClick={stopPropagation}
+                    onMouseDown={stopPropagation}
+                    onTouchStart={stopPropagation}
+                    style={{ pointerEvents: "auto", padding: 5 }}
+                  >
+                    <Typography level="h4">Radius (km):</Typography>
+                    <Stack direction="row" spacing={1}>
+                      <Input
+                        size="sm"
+                        type="number"
+                        sx={{ width: 100 }}
+                        value={marker.radius}
+                        onChange={(e) => handleRadiusChange(e, markerIdx)}
+                      />
+                      <Button
+                        color="primary"
+                        onClick={() => handleMarkerSave(markerIdx)}
+                      >
+                        Save!
+                      </Button>
+                    </Stack>
+                  </div>
+                </Tooltip>
+              )}
             </Marker>
             <Circle
               center={[marker.lat, marker.long]}
