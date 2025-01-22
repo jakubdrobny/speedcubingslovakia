@@ -1,0 +1,13 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Development.Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env.development
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    command: ["sh", "-c", "npm install && npm run dev -- --host --port 3000"]
