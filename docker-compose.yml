@@ -1,17 +1,4 @@
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Development.Dockerfile
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./frontend/.env.development
-    volumes:
-      - ./frontend:/app/frontend
-      - /app/frontend/node_modules
-    command: ["sh", "-c", "npm install && npm run dev -- --host --port 3000"]
-
   database:
     image: postgres:16-alpine
     restart: always
@@ -21,6 +8,8 @@ services:
       - ./database/.env.development
     ports:
       - "5432:5432"
+    networks:
+      - speedcubingslovakia-network
 
   migrations:
     build:
@@ -28,12 +17,53 @@ services:
       dockerfile: Migrations.Dockerfile
     depends_on:
       - database
+    networks:
+      - speedcubingslovakia-network
     environment:
       SPEEDCUBINGSLOVAKIA_BACKEND_ENV: "development"
     volumes:
       - ./database:/app/database
     working_dir: /app/database
-    command: ["sh", "-c", "sleep 5 && make migrate_up"]
+    command: ["sh", "-c", "make migrate_up"]
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Development.Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - speedcubingslovakia-network
+    depends_on:
+      - migrations
+    env_file:
+      - ./backend/.env.development
+    environment:
+      SPEEDCUBINGSLOVAKIA_BACKEND_ENV: "development"
+    volumes:
+      - ./backend:/app/backend
+    command: ["sh", "-c", "go mod tidy && wgo run main/main.go"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Development.Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - speedcubingslovakia-network
+    depends_on:
+      - backend
+    env_file:
+      - ./frontend/.env.development
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    command: ["sh", "-c", "npm install && npm run dev -- --host --port 3000"]
 
 volumes:
   postgres-data:
+
+networks:
+  speedcubingslovakia-network:
+    driver: bridge

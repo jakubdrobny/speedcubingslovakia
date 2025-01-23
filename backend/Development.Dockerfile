@@ -1,7 +1,7 @@
 FROM golang:1.23-alpine
 
 RUN apk add --no-cache git && \
-    go install github.com/xyproto/wgo@latest
+ go install github.com/bokwoon95/wgo@latest
 
 WORKDIR /app/backend
 
