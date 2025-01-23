@@ -465,12 +465,9 @@ func RegenerateImageForScramble(
 	scrambleId int,
 	scramble string,
 	scramblingcode string,
+	envMap map[string]string,
 ) (string, error) {
-	url := fmt.Sprintf(
-		"http://localhost:2014/api/v0/view/%s/svg?scramble=%s",
-		scramblingcode,
-		url.QueryEscape(scramble),
-	)
+	url := fmt.Sprintf("%s/api/v0/view/%s/svg?scramble=%s", envMap["SCRAMBLING_SERVICE_URL"], scramblingcode, url.QueryEscape(scramble))
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", err

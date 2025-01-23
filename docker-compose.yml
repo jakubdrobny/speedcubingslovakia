@@ -42,6 +42,7 @@ services:
       SPEEDCUBINGSLOVAKIA_BACKEND_ENV: "development"
     volumes:
       - ./backend:/app/backend
+      - ./scramble_images:/app/backend/scramble_images
     command: ["sh", "-c", "go mod tidy && wgo run main/main.go"]
 
   frontend:
@@ -76,8 +77,28 @@ services:
       - /app/scrambling/node_modules
     command: ["sh", "-c", "npm install && npm start"]
 
+  scramble-image-server:
+    image: python:3.11-alpine
+    working_dir: /app
+    volumes:
+      - ./scramble_images:/app/scramble_images
+    ports:
+      - "3333:3333"
+    command:
+      [
+        "python",
+        "-m",
+        "http.server",
+        "3333",
+        "--directory",
+        "/app/scramble_images",
+      ]
+    networks:
+      - speedcubingslovakia-network
+
 volumes:
   postgres-data:
+  scramble_images:
 
 networks:
   speedcubingslovakia-network:
