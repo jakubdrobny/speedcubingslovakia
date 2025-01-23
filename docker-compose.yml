@@ -11,3 +11,29 @@ services:
       - ./frontend:/app/frontend
       - /app/frontend/node_modules
     command: ["sh", "-c", "npm install && npm run dev -- --host --port 3000"]
+
+  database:
+    image: postgres:16-alpine
+    restart: always
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    env_file:
+      - ./database/.env.development
+    ports:
+      - "5432:5432"
+
+  migrations:
+    build:
+      context: ./database
+      dockerfile: Migrations.Dockerfile
+    depends_on:
+      - database
+    environment:
+      SPEEDCUBINGSLOVAKIA_BACKEND_ENV: "development"
+    volumes:
+      - ./database:/app/database
+    working_dir: /app/database
+    command: ["sh", "-c", "sleep 5 && make migrate_up"]
+
+volumes:
+  postgres-data:

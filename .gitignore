@@ -4,6 +4,9 @@ backend/.env.production
 frontend/.env.development
 frontend/.env.production
 
+database/.env.development
+database/.env.production
+
 backend/scrambler/tnoodle.log
 
 scrambling/node_modules

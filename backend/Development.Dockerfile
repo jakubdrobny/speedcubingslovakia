@@ -1,4 +1,4 @@
-FROM golang:lts-alpine
+FROM golang:1.23-alpine
 
 RUN apk add --no-cache git && \
     go install github.com/xyproto/wgo@latest
