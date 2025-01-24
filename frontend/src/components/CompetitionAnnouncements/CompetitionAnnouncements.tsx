@@ -4,6 +4,7 @@ import {
   CssVarsProvider,
   Stack,
   Typography,
+  Divider,
 } from "@mui/joy";
 import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
@@ -187,6 +188,7 @@ const CompetitionAnnouncements = () => {
       </CssVarsProvider>
       {!isObjectEmpty(loadingState.error) &&
         renderResponseError(loadingState.error)}
+      <Divider />
       <SubscriptionMap />
     </Stack>
   );

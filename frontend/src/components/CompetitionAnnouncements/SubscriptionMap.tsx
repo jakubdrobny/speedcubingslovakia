@@ -45,7 +45,7 @@ const SubscriptionMap = () => {
       .catch((err: AxiosError) => {
         setLoadingState({
           isLoading: false,
-          error: getError(err),
+          error: getError(err, true),
         });
       });
   }, []);
