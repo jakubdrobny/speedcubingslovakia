@@ -1,0 +1,15 @@
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS users (
+  user_id BIGSERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  country_id TEXT REFERENCES countries (country_id) NOT NULL,
+  sex TEXT NOT NULL,
+  wcaid TEXT NOT NULL,
+  timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  isadmin BOOLEAN NOT NULL,
+  url TEXT NOT NULL,
+  avatarurl TEXT NOT NULL
+);
+
+COMMIT;

@@ -745,7 +745,7 @@ export const GetStateFromRegionPrecise = (regionPrecise: string): string => {
 };
 
 export const GetMarkers = async (): Promise<MarkerType[]> => {
-  const response = await axios.get(`/api/competitions/wca/subscriptions`);
+  const response = await axios.get(`/api/competitions/wca/subscriptions/map`);
   return response.data;
 };
 
