@@ -745,14 +745,16 @@ export const GetStateFromRegionPrecise = (regionPrecise: string): string => {
 };
 
 export const GetMarkers = async (): Promise<MarkerType[]> => {
-  const response = await axios.get(`/api/competitions/wca/subscriptions/map`);
+  const response = await axios.get(
+    `/api/competitions/wca/subscriptions/positions`,
+  );
   return response.data;
 };
 
 export const SaveMarker = async (marker: MarkerType): Promise<void> => {
   const response = await axios({
     method: "POST",
-    url: `/api/competitions/wca/subscribe/marker/upsert`,
+    url: `/api/competitions/wca/subscribe/position/upsert`,
     data: { marker },
   });
   return response.data;
@@ -761,7 +763,7 @@ export const SaveMarker = async (marker: MarkerType): Promise<void> => {
 export const DeleteMarker = async (marker: MarkerType): Promise<void> => {
   const response = await axios({
     method: "DELETE",
-    url: `/api/competitions/wca/subscribe/marker/delete`,
+    url: `/api/competitions/wca/subscribe/position/delete`,
     data: { marker },
   });
 

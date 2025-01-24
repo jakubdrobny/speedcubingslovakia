@@ -118,6 +118,11 @@ func main() {
 		competitions.GET("/wca", controllers.GetUpcomingWCACompetitions(db))
 		competitions.GET("/wca/regions/grouped", controllers.GetWCARegionGroups(db))
 		competitions.GET(
+			"/wca/subscriptions/positions",
+			middlewares.AuthMiddleWare(db, envMap),
+			controllers.GetWCACompAnnouncementPositionSubscriptions(db),
+		)
+		competitions.GET(
 			"/wca/subscriptions",
 			middlewares.AuthMiddleWare(db, envMap),
 			controllers.GetWCACompAnnouncementSubscriptions(db),
