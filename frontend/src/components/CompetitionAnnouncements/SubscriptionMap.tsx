@@ -155,84 +155,101 @@ const SubscriptionMap = () => {
   };
 
   return (
-    <Stack sx={{ height: "512px" }} spacing={1}>
+    <Stack spacing={2}>
       {!isObjectEmpty(loadingState.error) &&
         renderResponseError(loadingState.error)}
-      <Chip sx={{ fontSize: 12, fontStyle: "italic" }}>
-        Note: the circles displayed might not look accurate for large radiuses,
-        but the calculations when sending announcements will be done correctly.
-      </Chip>
-      <MapContainer
-        center={[0, 0]}
-        zoom={2}
-        style={{ height: "100%", minHeight: "100%" }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
-        />
-        <MapClickHandler />
-        {markers.map((marker, markerIdx) => (
-          <div key={markerIdx}>
-            <Marker
-              position={[marker.lat, marker.long]}
-              eventHandlers={{ click: () => handleMarkerOpenToggle(markerIdx) }}
-            >
-              {marker.open && (
-                <Tooltip className="m-0 p-0" direction="top" permanent>
-                  <div
-                    onClick={stopPropagation}
-                    onMouseDown={stopPropagation}
-                    onTouchStart={stopPropagation}
-                    style={{ pointerEvents: "auto", padding: 5 }}
-                  >
-                    <Stack
-                      direction="row"
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography level="h4">Radius (km):</Typography>
-                      <IconButton onClick={() => handleMarkerClose(markerIdx)}>
-                        <Close fontSize="small" />
-                      </IconButton>
-                    </Stack>
-                    <Stack direction="row" spacing={1}>
-                      <Input
-                        size="sm"
-                        type="number"
-                        sx={{ width: 100 }}
-                        value={marker.radius}
-                        onChange={(e) => handleRadiusChange(e, markerIdx)}
-                      />
-                      <Button
-                        color="primary"
-                        onClick={() => handleMarkerSave(markerIdx)}
-                      >
-                        Save!
-                      </Button>
-                      {!marker.new && (
-                        <Button
-                          color="danger"
-                          onClick={() => handleMarkerDelete(markerIdx)}
-                        >
-                          Delete!
-                        </Button>
-                      )}
-                    </Stack>
-                  </div>
-                </Tooltip>
-              )}
-            </Marker>
-            <Circle
-              center={[marker.lat, marker.long]}
-              radius={marker.radius * 1000}
+      <Stack spacing={0}>
+        <Chip
+          sx={{
+            fontSize: 12,
+            maxWidth: "100%",
+            fontStyle: "italic",
+            borderRadius: "16px 16px 0 0",
+            px: 2,
+          }}
+        >
+          <b>Note:</b> the circles displayed might not look accurate for *VERY*
+          large radiuses, but the calculations when sending announcements will
+          be done correctly.
+        </Chip>
+        <div style={{ height: "512px" }}>
+          <MapContainer
+            center={[0, 0]}
+            zoom={2}
+            style={{ height: "100%", minHeight: "100%" }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
             />
-          </div>
-        ))}
-      </MapContainer>
+            <MapClickHandler />
+            {markers.map((marker, markerIdx) => (
+              <div key={markerIdx}>
+                <Marker
+                  position={[marker.lat, marker.long]}
+                  eventHandlers={{
+                    click: () => handleMarkerOpenToggle(markerIdx),
+                  }}
+                >
+                  {marker.open && (
+                    <Tooltip className="m-0 p-0" direction="top" permanent>
+                      <div
+                        onClick={stopPropagation}
+                        onMouseDown={stopPropagation}
+                        onTouchStart={stopPropagation}
+                        style={{ pointerEvents: "auto", padding: 5 }}
+                      >
+                        <Stack
+                          direction="row"
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography level="h4">Radius (km):</Typography>
+                          <IconButton
+                            onClick={() => handleMarkerClose(markerIdx)}
+                          >
+                            <Close fontSize="small" />
+                          </IconButton>
+                        </Stack>
+                        <Stack direction="row" spacing={1}>
+                          <Input
+                            size="sm"
+                            type="number"
+                            sx={{ width: 100 }}
+                            value={marker.radius}
+                            onChange={(e) => handleRadiusChange(e, markerIdx)}
+                          />
+                          <Button
+                            color="primary"
+                            onClick={() => handleMarkerSave(markerIdx)}
+                          >
+                            Save!
+                          </Button>
+                          {!marker.new && (
+                            <Button
+                              color="danger"
+                              onClick={() => handleMarkerDelete(markerIdx)}
+                            >
+                              Delete!
+                            </Button>
+                          )}
+                        </Stack>
+                      </div>
+                    </Tooltip>
+                  )}
+                </Marker>
+                <Circle
+                  center={[marker.lat, marker.long]}
+                  radius={marker.radius * 1000}
+                />
+              </div>
+            ))}
+          </MapContainer>
+        </div>
+      </Stack>
     </Stack>
   );
 };

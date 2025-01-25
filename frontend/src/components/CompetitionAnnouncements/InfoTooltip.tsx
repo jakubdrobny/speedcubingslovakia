@@ -28,14 +28,9 @@ const InfoTooltipTitle: React.FC<{ notInsideTooltip: boolean }> = ({
       <Typography fontSize="1em">You can subscribe to:</Typography>
       <Typography fontSize="1em" sx={{ pl: 2 }}>
         - any <b>country</b> (or <b>multiple countries</b>) of your choice
-        <br />
-        {/*<span style={{ textDecoration: "line-through" }}>
-          - any <b>location with radius around it</b> (or multiple such
-          locations)
-        </span>
-        <i>&nbsp;&nbsp;coming in next 2-3 days!!!</i>
-        <br />*/}
-        - any (or multiple) <b>US states</b>
+        <br />- any <b>position with radius around it</b> (or multiple such
+        positions)
+        <br />- any (or multiple) <b>US states</b>
       </Typography>
       <Typography fontSize="1em">
         You can unsubscribe from any of the mentioned above at any time.
