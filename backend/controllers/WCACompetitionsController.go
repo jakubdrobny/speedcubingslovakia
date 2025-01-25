@@ -685,57 +685,11 @@ func GetWCACompAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
-func GetWCACompAnnouncementPositionSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		uid := c.GetInt("uid")
-
-		queryString := `SELECT wca_competitions_announcements_subscription_id as id, latitude_degrees, longitude_degrees, radius FROM wca_competitions_announcements_subscriptions WHERE user_id = $1;`
-		rows, err := db.Query(
-			context.Background(),
-			queryString,
-			uid,
-		)
-		if err != nil {
-			log.Println(
-				"ERR db.Query(wca_competitions_announcements_subscriptions) in GetWCACompAnnouncementPositionSubscriptions: " + err.Error(),
-			)
-			c.IndentedJSON(
-				http.StatusInternalServerError,
-				"Failed to query positional subscriptions data from db.",
-			)
-			return
-		}
-
-		subscriptions := make([]models.WCACompAnnouncementsPositionSubscriptions, 0)
-		for rows.Next() {
-			sub := models.WCACompAnnouncementsPositionSubscriptions{
-				New:  false,
-				Open: false,
-			}
-			err = rows.Scan(&sub.Id, &sub.LatitudeDegrees, &sub.LongitudeDegrees, &sub.Radius)
-			if err != nil {
-				log.Println(
-					"ERR rows.Scan(position_subscription=id,lat_deg,long_deg,radius) in GetWCACompAnnouncementPositionSubscriptions: " + err.Error(),
-				)
-				c.IndentedJSON(
-					http.StatusInternalServerError,
-					"Failed to parse positional subscriptions data.",
-				)
-				return
-			}
-
-			subscriptions = append(subscriptions, sub)
-		}
-
-		c.IndentedJSON(http.StatusOK, subscriptions)
-	}
-}
-
 func UpdateWCAAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body models.UpdateWCAAnnouncementSubscriptionsRequestBody
 
-		if err := c.BindJSON(&body); err != nil {
+		if err := c.ShouldBindJSON(&body); err != nil {
 			log.Println(
 				"ERR c.BindJson(Update wca comp sub) in UpdateWCAAnnouncementSubscriptionsRequestBody: " + err.Error(),
 			)

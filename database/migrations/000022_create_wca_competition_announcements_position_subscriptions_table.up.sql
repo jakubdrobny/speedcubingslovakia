@@ -1,7 +1,7 @@
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS wca_competition_announcements_position_subscriptions (
-  wca_competition_announcements_position_subscription_id BIGSERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS wca_competitions_announcements_position_subscriptions(
+  wca_competitions_announcements_position_subscription_id BIGSERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users (user_id) NOT NULL,
   latitude_degrees NUMERIC DEFAULT 0.0 NOT NULL,
   longitude_degrees NUMERIC DEFAULT 0.0 NOT NULL,

@@ -764,11 +764,11 @@ export const GetMarkers = async (): Promise<MarkerType[]> => {
   return response.data;
 };
 
-export const SaveMarker = async (marker: MarkerType): Promise<void> => {
+export const SaveMarker = async (marker: MarkerType): Promise<MarkerType> => {
   const response = await axios({
     method: "POST",
     url: `/api/competitions/wca/subscribe/position/upsert`,
-    data: { marker },
+    data: { ...marker },
   });
   return response.data;
 };
@@ -777,7 +777,7 @@ export const DeleteMarker = async (marker: MarkerType): Promise<void> => {
   const response = await axios({
     method: "DELETE",
     url: `/api/competitions/wca/subscribe/position/delete`,
-    data: { marker },
+    data: { ...marker },
   });
 
   return response.data;

@@ -54,7 +54,7 @@ const SubscriptionMap = () => {
     useMapEvents({
       click: (e) => {
         const newMarker = {
-          id: Math.random(),
+          id: 0,
           lat: e.latlng.lat,
           long: e.latlng.lng,
           radius: 50,

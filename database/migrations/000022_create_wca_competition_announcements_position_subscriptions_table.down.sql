@@ -1,5 +1,5 @@
 BEGIN;
 
-DROP TABLE IF EXISTS wca_competition_announcements_position_subscriptions;
+DROP TABLE IF EXISTS wca_competitions_announcements_position_subscriptions;
 
 COMMIT;
