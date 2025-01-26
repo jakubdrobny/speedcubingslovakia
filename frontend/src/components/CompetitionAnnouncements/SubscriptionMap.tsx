@@ -22,6 +22,19 @@ import {
   SaveMarker,
 } from "../../utils/utils";
 import { Close } from "@mui/icons-material";
+import L from "leaflet";
+
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+
+const DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconAnchor: [12.5, 41],
+  tooltipAnchor: [0, -41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const SubscriptionMap = () => {
   const [loadingState, setLoadingState] =
@@ -166,6 +179,7 @@ const SubscriptionMap = () => {
             fontStyle: "italic",
             borderRadius: "16px 16px 0 0",
             px: 2,
+            "& .MuiChip-label": { overflow: "auto" },
           }}
         >
           <b>Note:</b> the circles displayed might not look accurate for *VERY*
