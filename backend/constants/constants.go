@@ -3,6 +3,7 @@ package constants
 import "math"
 
 const (
+	EPS                        = 1e-9
 	DNF                        = math.MaxInt - 5
 	DNS                        = math.MaxInt - 4
 	VERY_SLOW                  = math.MaxInt - 20

@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/interfaces"
 )
 
@@ -89,4 +90,10 @@ func (s *WCACompAnnouncementsPositionSubscriptions) Delete(
 	}
 
 	return tag, err
+}
+
+func (s *WCACompAnnouncementsPositionSubscriptions) HasOutOfRangeCoords() bool {
+	return s.LatitudeDegrees+180 < -constants.EPS || s.LatitudeDegrees-180 > constants.EPS ||
+		s.LongitudeDegrees+180 < -constants.EPS ||
+		s.LongitudeDegrees-180 > constants.EPS
 }

@@ -88,6 +88,19 @@ func UpdateWCAAnnouncementsPositionSubscriptions(db *pgxpool.Pool) gin.HandlerFu
 			return
 		}
 
+		if subscription.HasOutOfRangeCoords() {
+			slog.Error(
+				"Someone is trying to put a marker outside the earth :DD",
+				"subscription",
+				subscription,
+			)
+			c.IndentedJSON(
+				http.StatusInternalServerError,
+				"Invalid marker position. Please be in the central earth on the map :D",
+			)
+			return
+		}
+
 		subscription.UserId = uid
 
 		tx, err := db.Begin(context.Background())
