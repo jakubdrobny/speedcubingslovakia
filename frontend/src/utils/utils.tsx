@@ -25,11 +25,12 @@ import {
   SearchUser,
   Tag,
   WCACompetitionType,
+  MarkerType,
 } from "../Types";
 import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
 
-import { Alert } from "@mui/joy";
+import { Alert, Button } from "@mui/joy";
 import Cookies from "universal-cookie";
 import { Link } from "react-router-dom";
 
@@ -447,7 +448,10 @@ export const defaultProfile: ProfileType = {
   resultsHistory: [],
 };
 
-export const getError = (err: AxiosError): ResponseError => {
+export const getError = (
+  err: AxiosError,
+  subscriptions?: boolean,
+): ResponseError => {
   const status = err.response?.status;
   if (status === 401 || status === 200) {
     return {
@@ -456,7 +460,7 @@ export const getError = (err: AxiosError): ResponseError => {
           <Alert color="success">
             <>{err.response?.data}</>
           </Alert>
-        ) : (
+        ) : !subscriptions ? (
           <Alert color="danger" sx={{ gap: 0 }}>
             Unauthorized/token expired. Try to{" "}
             <span style={{ padding: "0 2px" }}></span>
@@ -468,6 +472,16 @@ export const getError = (err: AxiosError): ResponseError => {
             </Link>
             .
           </Alert>
+        ) : (
+          <Button
+            variant="soft"
+            color="warning"
+            component={Link}
+            to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
+            onClick={() => saveCurrentLocation(window.location.pathname)}
+          >
+            Login to subscribe to positions on map
+          </Button>
         ),
     };
   }
@@ -741,4 +755,30 @@ export const GetStateFromRegionPrecise = (regionPrecise: string): string => {
     return "";
   }
   return regionPreciseSplitByCommaAndSpace[1];
+};
+
+export const GetMarkers = async (): Promise<MarkerType[]> => {
+  const response = await axios.get(
+    `/api/competitions/wca/subscriptions/positions`,
+  );
+  return response.data;
+};
+
+export const SaveMarker = async (marker: MarkerType): Promise<MarkerType> => {
+  const response = await axios({
+    method: "POST",
+    url: `/api/competitions/wca/subscribe/position/upsert`,
+    data: { ...marker },
+  });
+  return response.data;
+};
+
+export const DeleteMarker = async (marker: MarkerType): Promise<void> => {
+  const response = await axios({
+    method: "DELETE",
+    url: `/api/competitions/wca/subscribe/position/delete`,
+    data: { ...marker },
+  });
+
+  return response.data;
 };

@@ -430,3 +430,16 @@ export type CompetitionAnnouncementSubcriptionUpdateResponse = {
   countryName: string;
   subscribed: boolean;
 };
+
+export type CompetitionAnnouncementsLoadingState = LoadingState & {
+  isLoadingSubs: boolean;
+};
+
+export type MarkerType = {
+  id: number;
+  lat: number;
+  long: number;
+  radius: number;
+  new: boolean;
+  open: boolean;
+};

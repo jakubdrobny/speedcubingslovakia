@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -13,26 +14,33 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/jakubdrobny/speedcubingslovakia/backend/controllers"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/logging"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/middlewares"
 )
 
 func main() {
+	logger := logging.CustomLogger()
+
+	slog.SetDefault(logger)
+
 	envMap, err := godotenv.Read(
 		fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")),
 	)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to load environmental variables from file: %v\n", err)
+		slog.Error("unable to load environmental variables from file", "error", err)
 		os.Exit(1)
 	}
 
 	db, err := pgxpool.New(context.Background(), envMap["DB_URL"])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		slog.Error("unable to connect to database", "error", err)
 		os.Exit(1)
 	}
 	defer db.Close()
 
-	router := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+
+	router := gin.New()
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://127.0.0.1:3000", "http://localhost:3000"},
@@ -42,6 +50,8 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	router.Use(logging.GinLoggerMiddleware(logger), logging.GinRecoveryMiddleware(logger))
 
 	api_v1 := router.Group("/api")
 
@@ -118,6 +128,11 @@ func main() {
 		competitions.GET("/wca", controllers.GetUpcomingWCACompetitions(db))
 		competitions.GET("/wca/regions/grouped", controllers.GetWCARegionGroups(db))
 		competitions.GET(
+			"/wca/subscriptions/positions",
+			middlewares.AuthMiddleWare(db, envMap),
+			controllers.GetWCACompAnnouncementsPositionSubscriptions(db),
+		)
+		competitions.GET(
 			"/wca/subscriptions",
 			middlewares.AuthMiddleWare(db, envMap),
 			controllers.GetWCACompAnnouncementSubscriptions(db),
@@ -126,6 +141,16 @@ func main() {
 			"/wca/subscribe",
 			middlewares.AuthMiddleWare(db, envMap),
 			controllers.UpdateWCAAnnouncementSubscriptions(db),
+		)
+		competitions.POST(
+			"/wca/subscribe/position/upsert",
+			middlewares.AuthMiddleWare(db, envMap),
+			controllers.UpdateWCAAnnouncementsPositionSubscriptions(db),
+		)
+		competitions.DELETE(
+			"/wca/subscribe/position/delete",
+			middlewares.AuthMiddleWare(db, envMap),
+			controllers.DeleteWCAAnnouncementsPositionSubscriptions(db),
 		)
 		competitions.POST(
 			"/",
@@ -207,5 +232,7 @@ func main() {
 		announcements.GET("/noOfNew", controllers.GetNoOfNewAnnouncements(db, envMap))
 	}
 
-	router.Run("localhost:8000")
+	if err := router.Run("localhost:8000"); err != nil {
+		slog.Error("failed to start server", "error", err)
+	}
 }

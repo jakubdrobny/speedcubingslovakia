@@ -4,14 +4,15 @@ import {
   CssVarsProvider,
   Stack,
   Typography,
+  Divider,
 } from "@mui/joy";
 import { useContext, useEffect } from "react";
 import useState from "react-usestateref";
 import {
   AuthContextType,
+  CompetitionAnnouncementsLoadingState,
   CompetitionAnnouncementSubcriptionUpdateResponse,
   CompetitionAnnouncementSubscription,
-  LoadingState,
   RegionSelectGroup,
 } from "../../Types";
 import {
@@ -29,6 +30,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { AxiosError } from "axios";
 import { InfoTooltipTitle } from "./InfoTooltip";
 import RegionGroupSelect from "../RegionGroupSelect";
+import SubscriptionMap from "./SubscriptionMap";
 
 const defaultRegionGroup = "Country+Slovakia";
 
@@ -45,13 +47,12 @@ const subscriptionTheme = extendTheme({
 });
 
 const CompetitionAnnouncements = () => {
-  const [loadingState, setLoadingState] = useState<
-    LoadingState & { isLoadingSubs: boolean }
-  >({
-    isLoading: false,
-    error: {},
-    isLoadingSubs: false,
-  });
+  const [loadingState, setLoadingState] =
+    useState<CompetitionAnnouncementsLoadingState>({
+      isLoading: false,
+      error: {},
+      isLoadingSubs: false,
+    });
   const [regionGroups, setRegionGroups] = useState<RegionSelectGroup[]>([]);
   const [regionValue, setRegionValue] = useState<string>(defaultRegionGroup);
   const [subscriptions, setSubscriptions] = useState<
@@ -66,7 +67,10 @@ const CompetitionAnnouncements = () => {
 
   useEffect(() => {
     const fetchAnnouncementSubscriptions = () => {
-      setLoadingState((p) => ({ ...p, isLoadingSubs: true }));
+      setLoadingState((p: CompetitionAnnouncementsLoadingState) => ({
+        ...p,
+        isLoadingSubs: true,
+      }));
       GetAnnouncementSubscriptions()
         .then((res: CompetitionAnnouncementSubscription[]) => {
           const newSubscriptions = new Map<
@@ -131,59 +135,63 @@ const CompetitionAnnouncements = () => {
   };
 
   return (
-    <Stack spacing={3} sx={{ mt: 3 }}>
-      <Typography
-        level="h2"
-        sx={{ pl: 1, borderBottom: "1px solid #636d7433" }}
-      >
-        Competition Announcements Newsletter
-      </Typography>
-      <InfoTooltipTitle notInsideTooltip={true} />
-      <CssVarsProvider theme={subscriptionTheme}>
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={2}
-          sx={{ pl: 2 }}
+    <Stack spacing={2} sx={{ mt: 3 }}>
+      <Stack spacing={3}>
+        <Typography
+          level="h2"
+          sx={{ pl: 1, borderBottom: "1px solid #636d7433" }}
         >
-          <Stack spacing={2} direction="row">
-            <Typography level="h3">Region:</Typography>
-            <RegionGroupSelect
-              regionValue={regionValue}
-              handleRegionChange={(newRegionValue: string) =>
-                setRegionValue(newRegionValue)
-              }
-              regionGroups={regionGroups}
-              disabled={loadingState.isLoading}
-            />
-          </Stack>
-          {!loggedIn ? (
-            <Button
-              variant="soft"
-              component={Link}
-              color="warning"
-              sx={{ px: 2, width: "auto" }}
-              to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
-              onClick={() => saveCurrentLocation(window.location.pathname)}
-            >
-              Login to subscribe
-            </Button>
-          ) : (
-            subscriptions &&
-            subscriptions.size > 0 && (
+          Competition Announcements Newsletter
+        </Typography>
+        <InfoTooltipTitle notInsideTooltip={true} />
+        <CssVarsProvider theme={subscriptionTheme}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={2}
+            sx={{ px: 2 }}
+          >
+            <Stack spacing={2} direction="row">
+              <Typography level="h3">Region:</Typography>
+              <RegionGroupSelect
+                regionValue={regionValue}
+                handleRegionChange={(newRegionValue: string) =>
+                  setRegionValue(newRegionValue)
+                }
+                regionGroups={regionGroups}
+                disabled={loadingState.isLoading}
+              />
+            </Stack>
+            {!loggedIn ? (
               <Button
-                onClick={handleSubscribeChange}
                 variant="soft"
-                color={currentlySubscribed ? "success" : "danger"}
-                disabled={loadingState.isLoadingSubs}
+                component={Link}
+                color="warning"
+                sx={{ px: { xs: 0, md: 2 }, width: "auto" }}
+                to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
+                onClick={() => saveCurrentLocation(window.location.pathname)}
               >
-                {currentlySubscribed ? "Subscribed!" : "Not subscribed"}
+                Login to subscribe
               </Button>
-            )
-          )}
-        </Stack>
-      </CssVarsProvider>
-      {!isObjectEmpty(loadingState.error) &&
-        renderResponseError(loadingState.error)}
+            ) : (
+              subscriptions &&
+              subscriptions.size > 0 && (
+                <Button
+                  onClick={handleSubscribeChange}
+                  variant="soft"
+                  color={currentlySubscribed ? "success" : "danger"}
+                  disabled={loadingState.isLoadingSubs}
+                >
+                  {currentlySubscribed ? "Subscribed!" : "Not subscribed"}
+                </Button>
+              )
+            )}
+          </Stack>
+        </CssVarsProvider>
+        {!isObjectEmpty(loadingState.error) &&
+          renderResponseError(loadingState.error)}
+        <Divider />
+      </Stack>
+      <SubscriptionMap />
     </Stack>
   );
 };
