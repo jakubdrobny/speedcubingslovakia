@@ -8,24 +8,77 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/jakubdrobny/speedcubingslovakia/backend/interfaces"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 )
 
-func GetWCACompAnnouncementsPositionSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
+// if userId = 0, returns subscriptions for all users
+func PositionSubscriptionFromDB(
+	db interfaces.DB,
+	userId int,
+) ([]models.WCACompAnnouncementsPositionSubscriptions, error) {
+	queryString := `SELECT wca_competitions_announcements_position_subscription_id as id, latitude_degrees, longitude_degrees, radius, user_id FROM wca_competitions_announcements_position_subscriptions`
+	args := []any{}
+	if userId != 0 {
+		queryString += " WHERE user_id = $1"
+		args = append(args, userId)
+	}
+	queryString += ";"
+
+	rows, err := db.Query(
+		context.Background(),
+		queryString,
+		args...,
+	)
+	if err != nil {
+		slog.Error(
+			"ERR db.Query(wca_competitions_announcements_position_subscriptions) in PositionSubscriptionFromDB.",
+			"error",
+			err,
+			"user_id",
+			userId,
+		)
+		return []models.WCACompAnnouncementsPositionSubscriptions{}, err
+	}
+
+	subscriptions := make([]models.WCACompAnnouncementsPositionSubscriptions, 0)
+	for rows.Next() {
+		sub := models.WCACompAnnouncementsPositionSubscriptions{
+			New:  false,
+			Open: false,
+		}
+		err = rows.Scan(
+			&sub.Id,
+			&sub.LatitudeDegrees,
+			&sub.LongitudeDegrees,
+			&sub.Radius,
+			&sub.UserId,
+		)
+		if err != nil {
+			slog.Error(
+				"ERR rows.Scan(position_subscription=id,lat_deg,long_deg,radius) in GetWCACompAnnouncementsPositionSubscriptions",
+				"error",
+				err,
+			)
+			return []models.WCACompAnnouncementsPositionSubscriptions{}, err
+		}
+
+		subscriptions = append(subscriptions, sub)
+	}
+
+	return subscriptions, nil
+}
+
+func GetWCACompAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		uid := c.GetInt("uid")
 
 		slog.Info("Querying position subscription data...", "user_id", uid)
 
-		queryString := `SELECT wca_competitions_announcements_position_subscription_id as id, latitude_degrees, longitude_degrees, radius FROM wca_competitions_announcements_position_subscriptions WHERE user_id = $1;`
-		rows, err := db.Query(
-			context.Background(),
-			queryString,
-			uid,
-		)
+		subscriptions, err := PositionSubscriptionFromDB(db, uid)
 		if err != nil {
 			slog.Error(
-				"ERR db.Query(wca_competitions_announcements_position_subscriptions) in GetWCACompAnnouncementPositionSubscriptions.",
+				"ERR PositionSubscriptionFromDB in GetWCACompAnnouncementsPositionSubscriptions.",
 				"error",
 				err,
 				"user_id",
@@ -33,32 +86,9 @@ func GetWCACompAnnouncementsPositionSubscriptions(db *pgxpool.Pool) gin.HandlerF
 			)
 			c.IndentedJSON(
 				http.StatusInternalServerError,
-				"Failed to query positional subscriptions data from db.",
+				"Failed to query position subscriptions from db.",
 			)
 			return
-		}
-
-		subscriptions := make([]models.WCACompAnnouncementsPositionSubscriptions, 0)
-		for rows.Next() {
-			sub := models.WCACompAnnouncementsPositionSubscriptions{
-				New:  false,
-				Open: false,
-			}
-			err = rows.Scan(&sub.Id, &sub.LatitudeDegrees, &sub.LongitudeDegrees, &sub.Radius)
-			if err != nil {
-				slog.Error(
-					"ERR rows.Scan(position_subscription=id,lat_deg,long_deg,radius) in GetWCACompAnnouncementsPositionSubscriptions",
-					"error",
-					err,
-				)
-				c.IndentedJSON(
-					http.StatusInternalServerError,
-					"Failed to parse positional subscriptions data.",
-				)
-				return
-			}
-
-			subscriptions = append(subscriptions, sub)
 		}
 
 		slog.Info("Successfully queried position subscription data.", "user_id", uid)

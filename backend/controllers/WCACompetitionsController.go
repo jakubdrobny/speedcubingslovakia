@@ -211,7 +211,7 @@ func GetSavedUpcomingWCACompetitions(
 }
 
 func constructContent(
-	notifEntry map[string][]models.UpcomingWCACompetition,
+	notifEntry map[string]map[string]models.UpcomingWCACompetition,
 	username string,
 	events []models.CompetitionEvent,
 ) string {
@@ -230,7 +230,10 @@ func constructContent(
 
 	content += "<table style=\"border-collapse: collapse;\">"
 	for _, country_id := range country_ids {
-		comps := notifEntry[country_id]
+		comps := []models.UpcomingWCACompetition{}
+		for _, comp := range notifEntry[country_id] {
+			comps = append(comps, comp)
+		}
 		sort.Slice(comps, func(i, j int) bool {
 			return comps[i].Startdate.Before(comps[j].Startdate)
 		})
@@ -294,11 +297,11 @@ func constructContent(
 	return content
 }
 
-// notifications if user_id -> location (country_id, state_name (if present))-> [] of comps
+// notifications if user_id -> location (country_id, state_name (if present))-> comp_id -> comp
 func SendCompAnnouncementSubscriptions(
 	db *pgxpool.Pool,
 	envMap map[string]string,
-	notifications map[int]map[string][]models.UpcomingWCACompetition,
+	notifications map[int]map[string]map[string]models.UpcomingWCACompetition,
 ) error {
 	log.Println("Sending email notifications to WCA competitions announcements subscribers...")
 
@@ -449,8 +452,19 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 	}
 
 	notifySubscribers := len(upcomingCompsFromDB) > 0
-	notifications := make(map[int]map[string][]models.UpcomingWCACompetition)
+	notifications := make(map[int]map[string]map[string]models.UpcomingWCACompetition)
 	newlyAnnouncedSlovakComps := make([]models.UpcomingWCACompetition, 0)
+
+	var positionSubscriptions []models.WCACompAnnouncementsPositionSubscriptions
+	if notifySubscribers {
+		positionSubscriptions, err = PositionSubscriptionFromDB(tx, 0)
+		if err != nil {
+			log.Println(
+				"ERR PositionSubscriptionFromDB in CheckUpcomingWCACompetitions: " + err.Error(),
+			)
+			return err
+		}
+	}
 
 	page := 1
 	can := true
@@ -582,7 +596,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 						}
 
 						if _, ok := notifications[currentUserId]; !ok {
-							notifications[currentUserId] = make(map[string][]models.UpcomingWCACompetition)
+							notifications[currentUserId] = make(map[string]map[string]models.UpcomingWCACompetition)
 						}
 
 						location := country.Name
@@ -590,10 +604,29 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 							location += ", " + state
 						}
 						if _, ok := notifications[currentUserId][location]; !ok {
-							notifications[currentUserId][location] = make([]models.UpcomingWCACompetition, 0)
+							notifications[currentUserId][location] = make(map[string]models.UpcomingWCACompetition)
 						}
 
-						notifications[currentUserId][location] = append(notifications[currentUserId][location], upcomingWCACompetition)
+						notifications[currentUserId][location][upcomingWCACompetition.Id] = upcomingWCACompetition
+					}
+
+					for _, positionSupscription := range positionSubscriptions {
+						if utils.PointInsideCircle(upcomingWCACompetition.LatitudeDegrees, upcomingWCACompetition.LongitudeDegrees, positionSupscription.Radius, positionSupscription.LatitudeDegrees, positionSupscription.LongitudeDegrees) {
+							currentUserId := positionSupscription.UserId
+							if _, ok := notifications[currentUserId]; !ok {
+								notifications[currentUserId] = make(map[string]map[string]models.UpcomingWCACompetition)
+							}
+
+							location := country.Name
+							if upcomingWCACompetition.State != "" {
+								location += ", " + upcomingWCACompetition.State
+							}
+							if _, ok := notifications[currentUserId][location]; !ok {
+								notifications[currentUserId][location] = make(map[string]models.UpcomingWCACompetition)
+							}
+
+							notifications[currentUserId][location][upcomingWCACompetition.Id] = upcomingWCACompetition
+						}
 					}
 
 					// if comp added is slovak, add it to the list of comps need to make an announcement for
