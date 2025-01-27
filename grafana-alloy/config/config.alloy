@@ -1,0 +1,17 @@
+logging {
+  level = "debug"
+}
+
+loki.write "backend_logs" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+loki.source.docker "backend_logs" {
+  host = "unix:///var/run/docker.sock"
+  forward_to = [loki.write.backend_logs.receiver]
+  targets = [
+    { __address__ = "backend:8000" },
+  ]
+}

@@ -16,3 +16,11 @@ scrambling/index
 
 postgres-data/
 scramble_images/
+grafana-data/
+
+loki-data/**
+!loki-data/local-config.yml
+!loki-data/rules/
+loki-data/rules/**
+!loki-data/chunks/
+loki-data/chunks/**
