@@ -30,7 +30,7 @@ import {
 import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
 
-import { Alert, Button } from "@mui/joy";
+import { Alert } from "@mui/joy";
 import Cookies from "universal-cookie";
 import { Link } from "react-router-dom";
 

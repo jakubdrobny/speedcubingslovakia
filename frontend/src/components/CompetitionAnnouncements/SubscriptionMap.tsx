@@ -20,7 +20,6 @@ import {
   initialLoadingState,
   isObjectEmpty,
   renderResponseError,
-  saveCurrentLocation,
   SaveMarker,
 } from "../../utils/utils";
 import { Close } from "@mui/icons-material";
