@@ -35,7 +35,7 @@ jobs:
             SPEEDCUBINGSLOVAKIA_BACKEND_ENV=${{ secrets.SPEEDCUBINGSLOVAKIA_BACKEND_ENV }} make migrate_up
 
             echo 'Backend rebuilt and deployment finished.'
-      
+
       - name: Rebuild and restart backend
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -45,7 +45,7 @@ jobs:
           script_stop: true
           script: |
             cd ${{ secrets.WORKDIR }}/backend
-            go get ./constants ./controllers ./main ./middlewares ./models ./utils
+            go mod tidy
             cd main
             go build main.go
             systemctl daemon-reload && systemctl restart ${{ secrets.BACKEND_SERVICE_NAME }}
