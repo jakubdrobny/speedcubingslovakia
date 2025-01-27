@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -611,4 +612,40 @@ func PlaceFromDotToEnglish(from string) string {
 	}
 
 	return from + "th"
+}
+
+// given point and circle defined by center and radius, check if it is inside
+// returned distance is in kilometers
+// source: https://gist.github.com/hotdang-ca/6c1ee75c48e515aec5bc6db6e3265e49
+func DistanceTwoPointsInKm(lat1, long1, lat2, long2 float64) float64 {
+	radlat1 := float64(math.Pi * lat1 / 180)
+	radlat2 := float64(math.Pi * lat2 / 180)
+
+	theta := float64(long1 - long2)
+	radtheta := float64(math.Pi * theta / 180)
+
+	dist := math.Sin(
+		radlat1,
+	)*math.Sin(
+		radlat2,
+	) + math.Cos(
+		radlat1,
+	)*math.Cos(
+		radlat2,
+	)*math.Cos(
+		radtheta,
+	)
+	if dist > 1 {
+		dist = 1
+	}
+
+	dist = math.Acos(dist)
+	dist = dist * 180 / math.Pi
+	dist = dist * 60 * 1.1515
+
+	return dist * 1.609344
+}
+
+func PointInsideCircle(lat1, long1, radiusInKm, lat2, long2 float64) bool {
+	return radiusInKm-DistanceTwoPointsInKm(lat1, long1, lat2, long2) > constants.EPS
 }

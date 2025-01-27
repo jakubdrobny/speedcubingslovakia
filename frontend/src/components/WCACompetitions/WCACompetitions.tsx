@@ -195,7 +195,7 @@ const WCACompetitions = () => {
         <Stack spacing={2}>
           {competitions.map(
             (comp: WCACompetitionType, idx1: number) =>
-              dayjs().isBefore(dayjs(comp.enddate).add(2, "day")) && (
+              dayjs().isBefore(dayjs(comp.enddate).add(1, "day")) && (
                 <WCACompetition comp={comp} key={idx1} />
               ),
           )}

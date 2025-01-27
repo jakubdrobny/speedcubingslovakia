@@ -1,5 +1,9 @@
 BEGIN;
 
+<<<<<<< HEAD
 ALTER TABLE users DROP COLUMN email;
+=======
+ALTER TABLE users DROP COLUMN IF EXISTS email;
+>>>>>>> bab71b57ef779e4057970b18be60486507c86f3c
 
 COMMIT;
