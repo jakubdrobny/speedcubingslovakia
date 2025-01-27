@@ -7,10 +7,11 @@ import {
   Circle,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import useState from "react-usestateref";
 import { Stack, Button, Chip, Input, Typography, IconButton } from "@mui/joy";
 import { MAX_RADIUS, MIN_RADIUS } from "../../constants";
-import { LoadingState, MarkerType } from "../../Types";
+import { LoadingState, MarkerType, ResponseError } from "../../Types";
 import { AxiosError } from "axios";
 import {
   DeleteMarker,
@@ -19,6 +20,7 @@ import {
   initialLoadingState,
   isObjectEmpty,
   renderResponseError,
+  saveCurrentLocation,
   SaveMarker,
 } from "../../utils/utils";
 import { Close } from "@mui/icons-material";
@@ -26,6 +28,7 @@ import L from "leaflet";
 
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
+import PleaseLoginButton from "./PleaseLoginButton";
 
 const DefaultIcon = L.icon({
   iconUrl: icon,
@@ -58,10 +61,19 @@ const SubscriptionMap = () => {
       .catch((err: AxiosError) => {
         setLoadingState({
           isLoading: false,
-          error: getError(err, true),
+          error: customGetError(err),
         });
       });
   }, []);
+
+  const customGetError = (err: AxiosError): ResponseError => {
+    if (err.response?.status === 401) {
+      return {
+        element: <PleaseLoginButton />,
+      };
+    }
+    return getError(err);
+  };
 
   const MapClickHandler = () => {
     useMapEvents({
@@ -93,7 +105,7 @@ const SubscriptionMap = () => {
     e: React.ChangeEvent<HTMLInputElement>,
     idx: number,
   ) => {
-    let newRadius = parseInt(e.target.value || "1");
+    let newRadius = parseInt(e.target.value || "0");
     if (newRadius < MIN_RADIUS) newRadius = MIN_RADIUS;
     if (newRadius > MAX_RADIUS) newRadius = MAX_RADIUS;
 
@@ -119,7 +131,7 @@ const SubscriptionMap = () => {
         });
       })
       .catch((err: AxiosError) => {
-        setLoadingState({ isLoading: false, error: getError(err) });
+        setLoadingState({ isLoading: false, error: customGetError(err) });
       });
   };
 
@@ -143,7 +155,7 @@ const SubscriptionMap = () => {
         });
       })
       .catch((err: AxiosError) => {
-        setLoadingState({ isLoading: false, error: getError(err) });
+        setLoadingState({ isLoading: false, error: customGetError(err) });
       });
   };
 
@@ -165,6 +177,13 @@ const SubscriptionMap = () => {
         p.map((m, i) => (i !== idx ? m : { ...m, open: false })),
       );
     }
+  };
+
+  const formatRadius = (radius: number): string => {
+    let newRadius: string = radius.toString();
+    while (newRadius.length > 1 && newRadius[0] === "0")
+      newRadius = newRadius.substring(1);
+    return newRadius;
   };
 
   return (
@@ -198,7 +217,7 @@ const SubscriptionMap = () => {
             />
             <MapClickHandler />
             {markers.map((marker, markerIdx) => (
-              <div key={markerIdx}>
+              <div key={markerIdx + "" + marker.id}>
                 <Marker
                   position={[marker.lat, marker.long]}
                   eventHandlers={{
@@ -233,7 +252,7 @@ const SubscriptionMap = () => {
                             size="sm"
                             type="number"
                             sx={{ width: 100 }}
-                            value={marker.radius}
+                            value={formatRadius(marker.radius)}
                             onChange={(e) => handleRadiusChange(e, markerIdx)}
                           />
                           <Button
