@@ -448,10 +448,7 @@ export const defaultProfile: ProfileType = {
   resultsHistory: [],
 };
 
-export const getError = (
-  err: AxiosError,
-  subscriptions?: boolean,
-): ResponseError => {
+export const getError = (err: AxiosError): ResponseError => {
   const status = err.response?.status;
   if (status === 401 || status === 200) {
     return {
@@ -460,7 +457,7 @@ export const getError = (
           <Alert color="success">
             <>{err.response?.data}</>
           </Alert>
-        ) : !subscriptions ? (
+        ) : (
           <Alert color="danger" sx={{ gap: 0 }}>
             Unauthorized/token expired. Try to{" "}
             <span style={{ padding: "0 2px" }}></span>
@@ -472,16 +469,6 @@ export const getError = (
             </Link>
             .
           </Alert>
-        ) : (
-          <Button
-            variant="soft"
-            color="warning"
-            component={Link}
-            to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
-            onClick={() => saveCurrentLocation(window.location.pathname)}
-          >
-            Login to subscribe to positions on map
-          </Button>
         ),
     };
   }
