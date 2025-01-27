@@ -18,6 +18,7 @@ import { useContext, useEffect } from "react";
 import { CompetitionContext } from "../../context/CompetitionContext";
 import { CompetitionContextType } from "../../Types";
 import { Link } from "react-router-dom";
+import { emojify } from "node-emoji";
 
 const CompetitionResults = () => {
   const {
@@ -78,7 +79,7 @@ const CompetitionResults = () => {
       fetchCompetitionResults();
   }, []);
 
-  const getColumnAlignment = (idx: Number) => {
+  const getColumnAlignment = (idx: number) => {
     switch (idx) {
       case 0:
         return "right";
@@ -247,7 +248,7 @@ const CompetitionResults = () => {
                                     whiteSpace: "pre-line",
                                   }}
                                 >
-                                  {result.comment}
+                                  {emojify(result.comment)}
                                 </Box>
                               }
                               variant="outlined"

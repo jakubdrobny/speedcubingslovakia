@@ -30,6 +30,7 @@
     "d3-scale": "^4.0.2",
     "dayjs": "^1.11.13",
     "leaflet": "^1.9.4",
+    "node-emoji": "^2.2.0",
     "postcss": "^8.4.49",
     "react": "^19.0.0",
     "react-confetti": "^6.2.2",
