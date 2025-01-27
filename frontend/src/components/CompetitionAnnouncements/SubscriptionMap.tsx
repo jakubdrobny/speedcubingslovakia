@@ -28,7 +28,6 @@ import L from "leaflet";
 
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
-import { Link } from "react-router-dom";
 import PleaseLoginButton from "./PleaseLoginButton";
 
 const DefaultIcon = L.icon({
