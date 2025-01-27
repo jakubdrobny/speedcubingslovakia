@@ -19,7 +19,7 @@ scramble_images/
 grafana-data/
 
 loki-data/**
-!loki-data/local-config.yml
+!loki-data/local-config.yaml
 !loki-data/rules/
 loki-data/rules/**
 !loki-data/chunks/
