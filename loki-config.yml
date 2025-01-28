@@ -1,0 +1,40 @@
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  storage:
+    filesystem:
+      chunks_directory: /tmp/loki/chunks
+      rules_directory: /tmp/loki/rules
+  replication_factor: 1
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+
+schema_config:
+  configs:
+    - from: 2023-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  tsdb:
+    active_index_directory: /tmp/loki/tsdb-active
+    cache_location: /tmp/loki/tsdb-cache
+    cache_ttl: 24h
+    shared_store: filesystem
+
+limits_config:
+  retention_period: 6mo
+  retention_stream:
+    - selector: '{job="backend"}'
+      priority: 1
+      period: 6mo
+      max_size: 2GiB
