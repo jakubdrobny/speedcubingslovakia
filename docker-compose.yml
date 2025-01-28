@@ -27,5 +27,5 @@ services:
     env_file:
       - .env.production
     volumes:
-      - ../grafana-data:/grafana
+      - ../grafana-data:/var/lib/grafana
     restart: unless-stopped
