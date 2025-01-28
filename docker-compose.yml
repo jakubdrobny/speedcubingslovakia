@@ -1,0 +1,35 @@
+services:
+  promtail:
+    image: grafana/promtail:latest
+    container_name: speedcubingslovakia-promtail
+    volumes:
+      - /var/log/journal/:/var/log/journal:ro
+      - ./promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:latest
+    container_name: speedcubingslovakia-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-storate:/var/lib/loki
+      - ./loki-config.yml:/etc/loki/local-config.yml
+    command: -config.file=/etc/loki/local-config.yml
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  grafana-storage:
+  loki-storage:
