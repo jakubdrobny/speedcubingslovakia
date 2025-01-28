@@ -4,10 +4,11 @@ server:
   http_listen_port: 3100
 
 common:
+  path_prefix: /loki
   storage:
     filesystem:
-      chunks_directory: /tmp/loki/chunks
-      rules_directory: /tmp/loki/rules
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
   replication_factor: 1
   ring:
     instance_addr: 127.0.0.1
@@ -24,17 +25,9 @@ schema_config:
         prefix: index_
         period: 24h
 
-storage_config:
-  tsdb:
-    active_index_directory: /tmp/loki/tsdb-active
-    cache_location: /tmp/loki/tsdb-cache
-    cache_ttl: 24h
-    shared_store: filesystem
-
 limits_config:
-  retention_period: 6mo
+  retention_period: 4320h
   retention_stream:
     - selector: '{job="backend"}'
       priority: 1
-      period: 6mo
-      max_size: 2GiB
+      period: 4320h

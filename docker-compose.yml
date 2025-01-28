@@ -14,7 +14,7 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - loki-storate:/var/lib/loki
+      - ../loki-data:/loki
       - ./loki-config.yml:/etc/loki/local-config.yml
     command: -config.file=/etc/loki/local-config.yml
     restart: unless-stopped
@@ -24,12 +24,8 @@ services:
     container_name: grafana
     ports:
       - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+    env-file:
+      - .env.production
     volumes:
-      - grafana-storage:/var/lib/grafana
+      - ../grafana-data:/grafana
     restart: unless-stopped
-
-volumes:
-  grafana-storage:
-  loki-storage:

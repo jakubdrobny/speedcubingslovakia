@@ -35,7 +35,7 @@ jobs:
             SPEEDCUBINGSLOVAKIA_BACKEND_ENV=${{ secrets.SPEEDCUBINGSLOVAKIA_BACKEND_ENV }} make migrate_up
 
             echo 'Backend rebuilt and deployment finished.'
-      
+
       - name: Rebuild and restart backend
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -69,6 +69,19 @@ jobs:
             systemctl daemon-reload && systemctl restart scrambling.service
 
             echo 'Scrambling rebuilt and deployment finished.'
+
+      - name: Rebuild and restart monitoring
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script_stop: true
+          script: |
+            cd ${{ secrets.WORKDIR }}
+            docker compose down && docker compose up -d
+
+            echo 'Monitoring rebuilt and deployment finished.'
 
       - name: Rebuild and restart frontend
         uses: appleboy/ssh-action@v1.0.3

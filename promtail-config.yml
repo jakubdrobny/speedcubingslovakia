@@ -10,7 +10,7 @@ clients:
 
 scrape_configs:
   - job_name: backend
-    backend:
+    journal:
       path: /var/log/journal
       labels:
         job: backend
