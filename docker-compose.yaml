@@ -26,6 +26,29 @@ services:
     working_dir: /app/database
     command: ["sh", "-c", "make migrate_up"]
 
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-data:/loki
+    networks:
+      - speedcubingslovakia-network
+    command: ["--config.file=/etc/loki/local-config.yaml"]
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SERVER_HTTP_PORT=3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    networks:
+      - speedcubingslovakia-network
+    depends_on:
+      - loki
+
   backend:
     build:
       context: ./backend
@@ -36,19 +59,28 @@ services:
       - speedcubingslovakia-network
     depends_on:
       - migrations
+      - grafana
     env_file:
       - ./backend/.env.development
     environment:
       SPEEDCUBINGSLOVAKIA_BACKEND_ENV: "development"
     volumes:
       - ./backend:/app/backend
-      - ./scramble_images:/app/backend/scramble_images
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
     command: ["sh", "-c", "go mod tidy && wgo run main/main.go"]
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/var/log:ro
+    networks:
+      - speedcubingslovakia-network
+    depends_on:
+      - loki
+    command:
+      - -config.file=/etc/promtail/config.yaml
 
   frontend:
     build:
@@ -101,42 +133,6 @@ services:
     networks:
       - speedcubingslovakia-network
 
-  grafana-alloy:
-    image: grafana/alloy:latest
-    ports:
-      - "12345:12345"
-    volumes:
-      - ./grafana-alloy/config:/etc/alloy
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - speedcubingslovakia-network
-    depends_on:
-      - backend
-      - loki
-
-  loki:
-    image: grafana/loki:latest
-    ports:
-      - "3100:3100"
-    volumes:
-      - ./loki-data:/loki
-    networks:
-      - speedcubingslovakia-network
-    command: ["--config.file=/etc/loki/local-config.yaml"]
-
-  grafana:
-    image: grafana/grafana:latest
-    environment:
-      - GF_SERVER_HTTP_PORT=3001
-    ports:
-      - "3001:3001"
-    volumes:
-      - ./grafana-data:/var/lib/grafana
-    networks:
-      - speedcubingslovakia-network
-    depends_on:
-      - loki
-
   prometheus:
     image: prom/prometheus:latest
     container_name: speedcubingslovakia-prometheus
@@ -149,9 +145,8 @@ services:
     networks:
       - speedcubingslovakia-network
     depends_on:
-      - grafana-alloy
       - backend
-      - loki
+      - grafana
 
 volumes:
   postgres-data:

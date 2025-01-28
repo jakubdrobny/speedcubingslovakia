@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	logger := logging.CustomLogger()
+	logger := logging.CustomLogger().With("service", "backend")
 
 	slog.SetDefault(logger)
 
