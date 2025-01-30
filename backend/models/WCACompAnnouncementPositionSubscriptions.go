@@ -49,8 +49,8 @@ func (s *WCACompAnnouncementsPositionSubscriptions) Insert(
 
 func (s *WCACompAnnouncementsPositionSubscriptions) Update(
 	db interfaces.DB,
-) (pgconn.CommandTag, error) {
-	tag, err := db.Exec(
+) error {
+	_, err := db.Exec(
 		context.Background(),
 		`UPDATE wca_competitions_announcements_position_subscriptions SET radius = $1 WHERE wca_competitions_announcements_position_subscription_id = $2 AND user_id = $3;`,
 		s.Radius,
@@ -67,7 +67,31 @@ func (s *WCACompAnnouncementsPositionSubscriptions) Update(
 		)
 	}
 
-	return tag, err
+	return err
+}
+
+func (s *WCACompAnnouncementsPositionSubscriptions) Exists(db interfaces.DB) (bool, error) {
+	var exists bool
+	err := db.QueryRow(
+		context.Background(),
+		`SELECT EXISTS (SELECT 1 FROM wca_competitions_announcements_position_subscriptions WHERE latitude_degrees = $1 AND longitude_degrees = $2 AND radius = $3 AND user_id = $4);`,
+		s.LatitudeDegrees,
+		s.LongitudeDegrees,
+		s.Radius,
+		s.UserId,
+	).Scan(&exists)
+	if err != nil {
+		slog.Error(
+			"ERR db.QueryRow(EXISTS wca_competitions_announcements_position_subscriptions) in WCACompAnnouncementsPositionSubscriptions.Exists.",
+			"error",
+			err,
+			"subscription",
+			s,
+		)
+		return false, err
+	}
+
+	return exists, err
 }
 
 func (s *WCACompAnnouncementsPositionSubscriptions) Delete(

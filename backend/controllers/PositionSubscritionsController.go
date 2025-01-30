@@ -96,7 +96,7 @@ func GetWCACompAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerF
 	}
 }
 
-func UpdateWCAAnnouncementsPositionSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
+func UpdateWCAAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		uid := c.GetInt("uid")
 
@@ -145,11 +145,12 @@ func UpdateWCAAnnouncementsPositionSubscriptions(db *pgxpool.Pool) gin.HandlerFu
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to start db transaction.")
 			return
 		}
+		defer tx.Rollback(context.Background())
 
-		res, err := subscription.Update(tx)
+		exists, err := subscription.Exists(tx)
 		if err != nil {
 			slog.Error(
-				"ERR subscription.Update in UpdateWCAAnnouncementsPositionSubscriptions.",
+				"ERR subscription.Exists in UpdateWCAAnnouncementsPositionSubscriptions.",
 				"error",
 				err,
 				"subscription",
@@ -157,15 +158,29 @@ func UpdateWCAAnnouncementsPositionSubscriptions(db *pgxpool.Pool) gin.HandlerFu
 			)
 			c.IndentedJSON(
 				http.StatusInternalServerError,
-				"Failed to update position subscription into db.",
+				"Failed to check if subscription already exists.",
 			)
 			return
 		}
 
-		slog.Debug("tag", "tag", res)
-
-		// no update happened => we need to insert
-		if res.RowsAffected() == 0 {
+		if exists {
+			err := subscription.Update(tx)
+			if err != nil {
+				slog.Error(
+					"ERR subscription.Update in UpdateWCAAnnouncementsPositionSubscriptions.",
+					"error",
+					err,
+					"subscription",
+					subscription,
+				)
+				c.IndentedJSON(
+					http.StatusInternalServerError,
+					"Failed to update position subscription into db.",
+				)
+				return
+			}
+		} else {
+			// no update happened => we need to insert
 			subscriptionId, err := subscription.Insert(tx)
 			if err != nil {
 				slog.Error(

@@ -15,4 +15,5 @@ type DB interface {
 		queryString string,
 		arguments ...interface{},
 	) (pgconn.CommandTag, error)
+	Begin(ctx context.Context) (pgx.Tx, error)
 }
