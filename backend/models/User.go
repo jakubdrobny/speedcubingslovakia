@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/jakubdrobny/speedcubingslovakia/backend/interfaces"
 )
 
 type User struct {
@@ -111,7 +113,7 @@ func (u *User) Insert(db *pgxpool.Pool) error {
 	return nil
 }
 
-func GetUserById(db *pgxpool.Pool, uid int) (User, error) {
+func GetUserById(db interfaces.DB, uid int) (User, error) {
 	rows, err := db.Query(
 		context.Background(),
 		`SELECT u.user_id, u.name, u.country_id, u.sex, u.wcaid, u.isadmin, u.url, u.avatarurl, u.email FROM users u WHERE u.user_id = $1;`,

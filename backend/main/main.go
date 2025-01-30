@@ -52,6 +52,7 @@ func main() {
 	}))
 
 	router.Use(logging.GinLoggerMiddleware(logger), logging.GinRecoveryMiddleware(logger))
+	router.Use(middlewares.Authorization(db, envMap))
 
 	api_v1 := router.Group("/api")
 
@@ -59,7 +60,7 @@ func main() {
 	{
 		stats.GET(
 			"/dashboard",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.GetAdminStats(db),
 		)
@@ -69,29 +70,29 @@ func main() {
 	{
 		results.GET(
 			"/edit/:uname/:cname/:eid/:rsname",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.GetResultsQuery(db),
 		)
 		results.GET(
 			"/compete/:cid/:eid",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.GetResultsByIdAndEvent(db),
 		)
 		results.POST(
 			"/save",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.PostResults(db, envMap),
 		)
 		results.POST(
 			"/save-validation",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.PostResultsValidation(db),
 		)
 		results.GET(
 			"/save-validation",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.GetResultsValidation(db),
 		)
@@ -101,12 +102,12 @@ func main() {
 		results.GET("/profile/:id", controllers.GetProfileResults(db))
 		results.POST(
 			"/averageinfo",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.GetAverageInfo(db),
 		)
 		results.POST(
 			"/averageinfo/records",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.GetAverageInfoRecords(db),
 		)
 	}
@@ -129,38 +130,38 @@ func main() {
 		competitions.GET("/wca/regions/grouped", controllers.GetWCARegionGroups(db))
 		competitions.GET(
 			"/wca/subscriptions/positions",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.GetWCACompAnnouncementsPositionSubscriptions(db),
 		)
 		competitions.GET(
 			"/wca/subscriptions",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.GetWCACompAnnouncementSubscriptions(db),
 		)
 		competitions.POST(
 			"/wca/subscribe",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.UpdateWCAAnnouncementSubscriptions(db),
 		)
 		competitions.POST(
 			"/wca/subscribe/position/upsert",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.UpdateWCAAnnouncementsPositionSubscriptions(db),
 		)
 		competitions.DELETE(
 			"/wca/subscribe/position/delete",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.DeleteWCAAnnouncementsPositionSubscriptions(db),
 		)
 		competitions.POST(
 			"/",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.PostCompetition(db, envMap),
 		)
 		competitions.PUT(
 			"/",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.PutCompetition(db, envMap),
 		)
@@ -171,13 +172,13 @@ func main() {
 	{
 		users.GET(
 			"/manage-roles",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.GetManageRolesUsers(db),
 		)
 		users.PUT(
 			"/manage-roles",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.PutManageRolesUsers(db),
 		)
@@ -186,7 +187,7 @@ func main() {
 		users.GET("/map", controllers.GetUserMapData(db))
 		users.GET(
 			"/auth/admin",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			func(c *gin.Context) { c.IndentedJSON(http.StatusAccepted, "authorized") },
 		)
@@ -202,30 +203,30 @@ func main() {
 		announcements.GET("/id/:id", controllers.GetAnnouncementById(db, envMap))
 		announcements.GET(
 			"/read/:id",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.ReadAnnouncement(db),
 		)
 		announcements.POST(
 			"/react/:id",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			controllers.ReactToAnnouncement(db),
 		)
 		announcements.DELETE(
 			"/delete/:id",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.DeleteAnnouncement(db),
 		)
 		announcements.GET("/", controllers.GetAnnouncements(db, envMap))
 		announcements.POST(
 			"/",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.PostAnnouncement(db, envMap),
 		)
 		announcements.PUT(
 			"/",
-			middlewares.AuthMiddleWare(db, envMap),
+			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.PutAnnouncement(db, envMap),
 		)

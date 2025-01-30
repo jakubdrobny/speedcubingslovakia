@@ -10,15 +10,12 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/jakubdrobny/speedcubingslovakia/backend/middlewares"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 )
 
 func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uidExists := middlewares.MarkAuthorization(c, db, envMap, false)
-
-		uid, _ := c.Get("uid")
+		uid, uidExists := c.Get("uid")
 		if uidExists {
 			uid = uid.(int)
 		}
@@ -102,9 +99,7 @@ func GetAnnouncementById(db *pgxpool.Pool, envMap map[string]string) gin.Handler
 
 func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uidExists := middlewares.MarkAuthorization(c, db, envMap, false)
-
-		uid, _ := c.Get("uid")
+		uid, uidExists := c.Get("uid")
 		if uidExists {
 			uid = uid.(int)
 		}
@@ -179,9 +174,7 @@ func GetAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFun
 
 func GetNoOfNewAnnouncements(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		uidExists := middlewares.MarkAuthorization(c, db, envMap, false)
-
-		uid, _ := c.Get("uid")
+		uid, uidExists := c.Get("uid")
 		if uidExists {
 			uid = uid.(int)
 		} else {
