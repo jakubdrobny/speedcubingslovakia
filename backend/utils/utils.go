@@ -124,6 +124,10 @@ func ParseMultiToMilliseconds(s string) int {
 	res -= minutes * 60 * 1000
 	res -= seconds * 1000
 
+	if seconds+60*minutes+3600*hours > attempted*600 {
+		return constants.DNF
+	}
+
 	return -res
 }
 
