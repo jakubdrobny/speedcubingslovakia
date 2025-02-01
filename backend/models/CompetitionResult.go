@@ -398,6 +398,13 @@ func CompareCompetitionResults(res1 CompetitionResult, res2 CompetitionResult, f
 		val1, val2 = tmp1, tmp2
 	}
 
+	if (val1 < 0) != (val2 < 0) {
+		if val1 < 0 {
+			return 1
+		}
+		return -1
+	}
+
 	return val2 - val1
 }
 
