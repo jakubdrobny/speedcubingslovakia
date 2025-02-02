@@ -35,7 +35,7 @@ Clone this repository. `https://github.com/jakubdrobny/speedcubingslovakia.git`
 #### Scrambling
 
 1. Run `npm install` inside the `scrambling` directory to install dependencies.
-2. Run `npm run start_service` inside the `scrambling` directory.
+2. Run `pm2 start index.js --name scrambling.service` inside the `scrambling` directory.
 
 #### Frontend
 
