@@ -15,11 +15,14 @@ import (
 
 	"github.com/jakubdrobny/speedcubingslovakia/backend/controllers"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/logging"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/metrics"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/middlewares"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
-	logger := logging.CustomLogger()
+	logger := logging.CustomLogger().With("service", "backend")
 
 	slog.SetDefault(logger)
 
@@ -43,7 +46,7 @@ func main() {
 	router := gin.New()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://127.0.0.1:3000", "http://localhost:3000"},
+		AllowOrigins:     []string{"http://127.0.0.1:3000", "http://localhost:3000", "http://frontend:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -53,6 +56,18 @@ func main() {
 
 	router.Use(logging.GinLoggerMiddleware(logger), logging.GinRecoveryMiddleware(logger))
 	router.Use(middlewares.Authorization(db, envMap))
+
+	prometheus.MustRegister(metrics.HttpRequestsTotal)
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	router.Use(func(c *gin.Context) {
+		c.Next()
+
+		statusCode := c.Writer.Status()
+		method := c.Request.Method
+		handler := c.FullPath()
+
+		metrics.HttpRequestsTotal.WithLabelValues(method, handler, fmt.Sprint(statusCode)).Inc()
+	})
 
 	api_v1 := router.Group("/api")
 
@@ -233,7 +248,7 @@ func main() {
 		announcements.GET("/noOfNew", controllers.GetNoOfNewAnnouncements(db, envMap))
 	}
 
-	if err := router.Run("localhost:8000"); err != nil {
+	if err := router.Run("0.0.0.0:8000"); err != nil {
 		slog.Error("failed to start server", "error", err)
 	}
 }

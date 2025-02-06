@@ -1,0 +1,157 @@
+services:
+  database:
+    image: postgres:16-alpine
+    restart: always
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    env_file:
+      - ./database/.env.development
+    ports:
+      - "5432:5432"
+    networks:
+      - speedcubingslovakia-network
+
+  migrations:
+    build:
+      context: ./database
+      dockerfile: Migrations.Dockerfile
+    depends_on:
+      - database
+    networks:
+      - speedcubingslovakia-network
+    environment:
+      SPEEDCUBINGSLOVAKIA_BACKEND_ENV: "development"
+    volumes:
+      - ./database:/app/database
+    working_dir: /app/database
+    command: ["sh", "-c", "make migrate_up"]
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki-data:/loki
+    networks:
+      - speedcubingslovakia-network
+    command: ["--config.file=/etc/loki/local-config.yaml"]
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SERVER_HTTP_PORT=3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    networks:
+      - speedcubingslovakia-network
+    depends_on:
+      - loki
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Development.Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - speedcubingslovakia-network
+    depends_on:
+      - migrations
+      - grafana
+    env_file:
+      - ./backend/.env.development
+    environment:
+      SPEEDCUBINGSLOVAKIA_BACKEND_ENV: "development"
+    volumes:
+      - ./backend:/app/backend
+    command: ["sh", "-c", "go mod tidy && wgo run main/main.go"]
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/log:/var/log:ro
+    networks:
+      - speedcubingslovakia-network
+    depends_on:
+      - loki
+    command:
+      - -config.file=/etc/promtail/config.yaml
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Development.Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - speedcubingslovakia-network
+    depends_on:
+      - backend
+    env_file:
+      - ./frontend/.env.development
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    command: ["sh", "-c", "npm install && npm run dev -- --host --port 3000"]
+
+  scrambling:
+    build:
+      context: ./scrambling
+      dockerfile: Development.Dockerfile
+    ports:
+      - "3999:3999"
+    networks:
+      - speedcubingslovakia-network
+    env_file:
+      - ./scrambling/.env.development
+    volumes:
+      - ./scrambling:/app/scrambling
+      - /app/scrambling/node_modules
+    command: ["sh", "-c", "npm install && npm start"]
+
+  scramble-image-server:
+    image: python:3.11-alpine
+    working_dir: /app
+    volumes:
+      - ./scramble_images:/app/scramble_images
+    ports:
+      - "3333:3333"
+    command:
+      [
+        "python",
+        "-m",
+        "http.server",
+        "3333",
+        "--directory",
+        "/app/scramble_images",
+      ]
+    networks:
+      - speedcubingslovakia-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: speedcubingslovakia-prometheus
+    volumes:
+      - ./prometheus/config:/etc/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    networks:
+      - speedcubingslovakia-network
+    depends_on:
+      - backend
+      - grafana
+
+volumes:
+  postgres-data:
+  scramble_images:
+
+networks:
+  speedcubingslovakia-network:
+    driver: bridge

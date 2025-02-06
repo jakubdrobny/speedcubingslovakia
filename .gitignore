@@ -4,9 +4,23 @@ backend/.env.production
 frontend/.env.development
 frontend/.env.production
 
+database/.env.development
+database/.env.production
+
 backend/scrambler/tnoodle.log
 
 scrambling/node_modules
 scrambling/.env.development
 scrambling/.env.production
 scrambling/index
+
+postgres-data/
+scramble_images/
+grafana-data/
+
+loki-data/**
+!loki-data/local-config.yaml
+!loki-data/rules/
+loki-data/rules/**
+!loki-data/chunks/
+loki-data/chunks/**
