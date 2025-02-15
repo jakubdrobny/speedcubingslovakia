@@ -45,7 +45,7 @@ jobs:
           script_stop: true
           script: |
             cd ${{ secrets.WORKDIR }}/backend
-            go get ./constants ./controllers ./main ./middlewares ./models ./utils
+            go mod tidy 
             cd main
             go build main.go
             systemctl daemon-reload && systemctl restart ${{ secrets.BACKEND_SERVICE_NAME }}
