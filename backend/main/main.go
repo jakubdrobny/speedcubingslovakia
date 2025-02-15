@@ -12,9 +12,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/jakubdrobny/speedcubingslovakia/backend/controllers"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/logging"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/metrics"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/middlewares"
 )
 
@@ -39,6 +41,7 @@ func main() {
 	defer db.Close()
 
 	gin.SetMode(gin.ReleaseMode)
+	metrics.Register()
 
 	router := gin.New()
 
@@ -53,6 +56,7 @@ func main() {
 
 	router.Use(logging.GinLoggerMiddleware(logger), logging.GinRecoveryMiddleware(logger))
 	router.Use(middlewares.Authorization(db, envMap))
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	api_v1 := router.Group("/api")
 

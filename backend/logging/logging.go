@@ -5,9 +5,13 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/jakubdrobny/speedcubingslovakia/backend/metrics"
 )
 
 func CustomLogger() *slog.Logger {
@@ -23,6 +27,15 @@ func GinLoggerMiddleware(logger *slog.Logger) gin.HandlerFunc {
 		c.Next()
 
 		latency := time.Since(startTime)
+
+		labels := prometheus.Labels{
+			"code":   strconv.Itoa(c.Writer.Status()),
+			"method": c.Request.Method,
+			"url":    c.Request.URL.Path,
+		}
+		metrics.RequestsTotal.With(labels).
+			Inc()
+		metrics.RequestDuration.With(labels).Observe(latency.Seconds())
 
 		logger.LogAttrs(context.Background(), slog.LevelInfo, "HTTP request",
 			slog.String("method", c.Request.Method),
