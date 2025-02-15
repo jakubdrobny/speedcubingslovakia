@@ -11,7 +11,7 @@ clients:
 scrape_configs:
   - job_name: speedcubingslovakia-backend
     journal:
-      path: /var/log/journal/speedcubingslovakia-backend.log
+      path: /var/log/journal/backend
       labels:
         job: backend
         service: backend
