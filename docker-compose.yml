@@ -1,6 +1,6 @@
 services:
   prometheus:
-    image: prom/prometheus:3.1.0
+    image: prom/prometheus:v3.1.0
     ports:
       - "9090:9090"
     volumes:
@@ -27,7 +27,7 @@ services:
       - monitoring
 
   promtail:
-    image: grafana/promtail:latest
+    image: grafana/promtail:3.4
     volumes:
       - /var/log/journal/backend:/var/log/journal/backend:ro
       - promtail-positions:/tmp
@@ -38,7 +38,7 @@ services:
       - monitoring
 
   loki:
-    image: grafana/loki:latest
+    image: grafana/loki:3.4
     ports:
       - "3100:3100"
     volumes:
@@ -50,7 +50,7 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.5.1
     ports:
       - "3001:3000"
     env_file:
