@@ -11,6 +11,8 @@ services:
     restart: always
     networks:
       - monitoring
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   mimir:
     image: grafana/mimir:2.14.3
