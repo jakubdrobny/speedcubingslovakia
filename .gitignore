@@ -10,3 +10,5 @@ scrambling/node_modules
 scrambling/.env.development
 scrambling/.env.production
 scrambling/index
+
+.env.*
