@@ -9,9 +9,9 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  - job_name: backend
+  - job_name: speedcubingslovakia-backend
     journal:
-      path: /var/log/journal
+      path: /var/log/journal/speedcubingslovakia-backend.log
       labels:
         job: backend
         service: backend

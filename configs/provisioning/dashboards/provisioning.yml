@@ -1,0 +1,6 @@
+apiVersion: 1
+providers:
+  - name: "Dashboard"
+    folder: "Dashboards"
+    options:
+      path: /etc/grafana/provisioning/dashboards
