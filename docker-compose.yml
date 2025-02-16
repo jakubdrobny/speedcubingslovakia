@@ -31,8 +31,8 @@ services:
   promtail:
     image: grafana/promtail:3.4
     volumes:
-      - /var/log/journal/backend:/var/log/journal/backend:ro
-      - promtail-positions:/tmp
+      - /var/log/journal:/var/log/journal:ro
+      - promtail-data:/promtail
       - ./configs/promtail-config.yml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     restart: always
@@ -67,7 +67,7 @@ services:
 volumes:
   prometheus-data:
   mimir-data:
-  promtail-positions:
+  promtail-data:
   loki-data:
   grafana-data:
 

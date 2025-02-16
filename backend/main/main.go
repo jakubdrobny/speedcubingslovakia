@@ -56,9 +56,10 @@ func main() {
 
 	router.Use(logging.GinLoggerMiddleware(logger), logging.GinRecoveryMiddleware(logger))
 	router.Use(middlewares.Authorization(db, envMap))
-	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	api_v1 := router.Group("/api")
+
+	api_v1.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	stats := api_v1.Group("/stats")
 	{
