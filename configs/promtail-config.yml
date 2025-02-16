@@ -11,10 +11,12 @@ clients:
 scrape_configs:
   - job_name: speedcubingslovakia-backend
     journal:
-      path: /var/log/journal/backend
+      path: /var/log/journal/
       labels:
         job: backend
         service: backend
+      matches: __SYSTEMD_UNIT=backend.service
+      namespace: backend
     relabel_configs:
       - source_labels: ["__journal__systemd_unit"]
         target_label: "unit"
