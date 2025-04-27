@@ -5,7 +5,7 @@
   "type": "module",
   "proxy": "http://127.0.0.1:8000",
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev": "vite",
     "build": "tsc -b && GENERATE_SOURCEMAP=false vite build",
     "lint": "eslint .",
     "preview": "vite preview"
