@@ -217,7 +217,7 @@ func GetWorldRecords(eventName string) (int, int, error) {
 		"sq1":                    "3.41",
 		"444bf":                  "51.96",
 		"555bf":                  "2:04.41",
-		"333mbf":                 "62/65 57:47",
+		"333mbf":                 "80/80 59:00",
 		"unofficial-222bf":       "1.00",
 		"unofficial-666bf":       "4:00.00",
 		"unofficial-777bf":       "8:00.00",

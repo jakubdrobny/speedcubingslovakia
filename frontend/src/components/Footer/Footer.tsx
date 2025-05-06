@@ -44,7 +44,7 @@ const Footer = () => {
           <Stack spacing={1} direction="row" alignItems="center">
             <Mail />
             <Link
-              href="mailto:speedcubingsvk@gmail.com"
+              href="mailto:support@speedcubingslovakia.sk"
               style={{ color: "#0B6BCB", textDecoration: "none" }}
             >
               Email

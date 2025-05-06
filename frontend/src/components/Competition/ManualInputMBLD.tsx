@@ -11,9 +11,8 @@ const ManualInputMBLD = () => {
   const { competitionStateRef, updateSolve, currentResultsRef } = useContext(
     CompetitionContext,
   ) as CompetitionContextType;
-  const solveProp: keyof ResultEntry = `solve${
-    competitionStateRef.current.currentSolveIdx + 1
-  }` as keyof ResultEntry;
+  const solveProp: keyof ResultEntry = `solve${competitionStateRef.current.currentSolveIdx + 1
+    }` as keyof ResultEntry;
   const formattedTime = currentResultsRef.current[solveProp].toString();
 
   const [__, setSolvedCubes, solvedCubesRef] = useState(
@@ -107,7 +106,7 @@ const ManualInputMBLD = () => {
                 key={idx}
                 size="lg"
                 type="number"
-                slotProps={{ input: { min: 0, max: 69, maxLength: 2 } }}
+                slotProps={{ input: { min: 0, max: 90, maxLength: 2 } }}
                 value={
                   idx === 0 ? solvedCubesRef.current : attemptedCubesRef.current
                 }
