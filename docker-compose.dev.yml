@@ -14,6 +14,26 @@ services:
           target: /app
     command: npm run dev
 
+  db:
+    image: postgres:17-alpine
+    container_name: speedcubingslovakia-database
+    environment:
+
+
+  backend:
+    build:
+      - context: ./backend
+      - image: Dockerfile.development
+    container_name: speedcubingslovakia-backend
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    develop:
+      watch
+    command:
+
 #   prometheus:
 #     image: prom/prometheus:v3.1.0
 #     ports:
