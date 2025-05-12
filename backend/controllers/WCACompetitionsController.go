@@ -469,6 +469,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 	page := 1
 	can := true
 	for can {
+		time.Sleep(15 * time.Second)
 		url := fmt.Sprintf(
 			"https://www.worldcubeassociation.org/api/v0/competitions?page=%d&sort=-end_date",
 			page,
