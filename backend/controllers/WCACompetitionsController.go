@@ -106,7 +106,7 @@ func GetUpcomingWCACompetitionEvents(
 ) ([]models.CompetitionEvent, error) {
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT e.event_id, e.iconcode FROM upcoming_wca_competition_events uwce JOIN events e ON uwce.event_id = e.event_id AND uwce.upcoming_wca_competition_id = $1 AND uwce.country_id = $2 ORDER BY e.event_id;`,
+		`SELECT e.iconcode FROM upcoming_wca_competition_events uwce JOIN events e ON uwce.event_id = e.event_id AND uwce.upcoming_wca_competition_id = $1 AND uwce.country_id = $2 ORDER BY e.event_id;`,
 		comp.Id,
 		comp.CountryId,
 	)
@@ -120,10 +120,10 @@ func GetUpcomingWCACompetitionEvents(
 	events := make([]models.CompetitionEvent, 0)
 	for rows.Next() {
 		var event models.CompetitionEvent
-		err = rows.Scan(&event.Id, &event.Iconcode)
+		err = rows.Scan(&event.Iconcode)
 		if err != nil {
 			log.Println(
-				"ERR rows.scan(event.Id, event.iconcode) in GetUpcomingWCACompetitionEvents: " + err.Error(),
+				"ERR rows.scan(event.iconcode) in GetUpcomingWCACompetitionEvents: " + err.Error(),
 			)
 			return []models.CompetitionEvent{}, err
 		}
