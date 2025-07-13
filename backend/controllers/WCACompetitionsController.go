@@ -106,7 +106,7 @@ func GetUpcomingWCACompetitionEvents(
 ) ([]models.CompetitionEvent, error) {
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT e.iconcode FROM upcoming_wca_competition_events uwce JOIN events e ON uwce.event_id = e.event_id AND uwce.upcoming_wca_competition_id = $1 AND uwce.country_id = $2;`,
+		`SELECT e.iconcode FROM upcoming_wca_competition_events uwce JOIN events e ON uwce.event_id = e.event_id AND uwce.upcoming_wca_competition_id = $1 AND uwce.country_id = $2 ORDER BY e.event_id;`,
 		comp.Id,
 		comp.CountryId,
 	)
