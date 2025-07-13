@@ -155,12 +155,12 @@ const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
         <Typography>
           <b>Events:</b>
         </Typography>
-        {comp.events.sort((e1: CompetitionEvent, e2: CompetitionEvent) => e1.id - e2.id).map((event: CompetitionEvent, idx2: number) => (
+        {comp.events.map((event: CompetitionEvent, idx2: number) => (
           <span
             key={idx2 + 100000}
             className={`${getCubingIconClassName(
               event.iconcode,
-            )} profile - cubing - icon - mock`}
+            )} profile-cubing-icon-mock`}
           />
         ))}
       </Stack>
