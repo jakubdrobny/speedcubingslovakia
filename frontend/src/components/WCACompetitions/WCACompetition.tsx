@@ -182,7 +182,7 @@ const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
           <b>Live results:</b>&nbsp;
           {
             <Link
-              to={"https://live.worldcubeassociation.com/competitions/" + wcaLiveId}
+              to={"https://live.worldcubeassociation.org/competitions/" + wcaLiveId}
               style={{ color: "#0B6BCB", textDecoration: "none" }}
             >
               Link
