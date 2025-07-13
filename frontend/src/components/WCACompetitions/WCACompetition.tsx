@@ -78,7 +78,7 @@ const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
     <Stack component={Card} direction="column">
       <Stack spacing={1} direction="row">
         {isLive && (
-          <Chip color="success">Live!</Chip>
+          <Chip color="danger">Live!</Chip>
         )}
         <Typography level="h3">{comp.name}</Typography>
       </Stack>
@@ -137,7 +137,7 @@ const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
               )}
             </Stack>
           )}
-          <Stack spacing={1} direction="row">
+          {!isLive && (<Stack spacing={1} direction="row">
             <Typography>
               <b>Registration: </b>
             </Typography>
@@ -148,7 +148,7 @@ const WCACompetition: React.FC<{ comp: WCACompetitionType }> = ({ comp }) => {
             ) : (
               <Chip color="danger">Closed</Chip>
             )}
-          </Stack>
+          </Stack>)}
         </>
       )}
       <Stack direction="row" alignItems="center" flexWrap="wrap" spacing={1}>
