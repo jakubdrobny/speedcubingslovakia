@@ -466,9 +466,11 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 		}
 	}
 
-	page := 1
+	page := 0
 	can := true
 	for can {
+		page += 1
+
 		time.Sleep(15 * time.Second)
 		url := fmt.Sprintf(
 			"https://www.worldcubeassociation.org/api/v0/competitions?page=%d&sort=-end_date",
@@ -485,12 +487,12 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 		var respComps []models.GetWCACompetitionsResponse
 		err = json.Unmarshal(body, &respComps)
 		if err != nil {
-			log.Println("ERR json.Unmarshal in CheckUpcomingWCACompetitions: " + err.Error())
+			log.Println(fmt.Sprintf("ERR json.Unmarshal in CheckUpcomingWCACompetitions with url=%q: %v", url, err.Error()))
 			log.Printf(
 				"==========\nFailed to unmarshal this body: %v\n==========\n",
 				string(body),
 			)
-			return err
+			continue
 		}
 
 		if len(respComps) < 25 {
@@ -637,8 +639,6 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 				}
 			}
 		}
-
-		page += 1
 	}
 
 	defer func() {
