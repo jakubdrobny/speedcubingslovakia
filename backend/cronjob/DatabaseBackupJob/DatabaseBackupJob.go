@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,9 +21,9 @@ import (
 // return filename, stdout, stderr, err
 func DumpDatabase(envMap map[string]string, filename string) error {
 	cmd := exec.Command("pg_dump", envMap["PG_DUMP_CONNECTION_STRING"], "-f", filename)
-
-	_, err := cmd.CombinedOutput()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
+		slog.Error("Failed to run command", "error", string(output), "command", cmd)
 		return err
 	}
 
