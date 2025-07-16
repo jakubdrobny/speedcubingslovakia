@@ -156,11 +156,13 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
 
   const saveResults = async (): Promise<void> => {
     let results = { ...currentResultsRef.current };
-    results.solve1 = reformatWithPenalties(currentResultsRef.current.solve1, competitionState.penalties[0]);
-    results.solve2 = reformatWithPenalties(currentResultsRef.current.solve2, competitionState.penalties[1]);
-    results.solve3 = reformatWithPenalties(currentResultsRef.current.solve3, competitionState.penalties[2]);
-    results.solve4 = reformatWithPenalties(currentResultsRef.current.solve4, competitionState.penalties[3]);
-    results.solve5 = reformatWithPenalties(currentResultsRef.current.solve5, competitionState.penalties[4]);
+    if (results.eventname !== "MBLD" && results.eventname !== "FMC") {
+      results.solve1 = reformatWithPenalties(currentResultsRef.current.solve1, competitionState.penalties[0]);
+      results.solve2 = reformatWithPenalties(currentResultsRef.current.solve2, competitionState.penalties[1]);
+      results.solve3 = reformatWithPenalties(currentResultsRef.current.solve3, competitionState.penalties[2]);
+      results.solve4 = reformatWithPenalties(currentResultsRef.current.solve4, competitionState.penalties[3]);
+      results.solve5 = reformatWithPenalties(currentResultsRef.current.solve5, competitionState.penalties[4]);
+    }
 
     try {
       const resultEntry = await sendResults({
