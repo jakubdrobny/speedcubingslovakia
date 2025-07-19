@@ -11,4 +11,7 @@ scrambling/.env.development
 scrambling/.env.production
 scrambling/index
 
+database/.env.development
+
+.env
 .env.*

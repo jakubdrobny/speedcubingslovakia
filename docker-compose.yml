@@ -88,6 +88,41 @@ services:
       - CHOKIDAR_USEPOLLING=true
     networks:
       - speedcubingslovakia
+  
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - SPEEDCUBINGSLOVAKIA_BACKEND_ENV=development
+    env_file:
+      - ./backend/.env.development
+    networks:
+      - speedcubingslovakia
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  db:
+    image: postgres:17.5-alpine
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - speedcubingslovakia
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   speedcubingslovakia:
+
+volumes:
+  postgres_data:
