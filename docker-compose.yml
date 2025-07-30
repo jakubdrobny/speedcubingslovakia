@@ -82,10 +82,11 @@ services:
       context: ./frontend
     ports:
       - "3000:3000"
+    env_file:
+      - .env.development
     volumes:
       - ./frontend:/app
-    environment:
-      - CHOKIDAR_USEPOLLING=true
+      - ./scramble_images:/app/public/scrambles:ro
     networks:
       - speedcubingslovakia
   
@@ -99,27 +100,57 @@ services:
     environment:
       - SPEEDCUBINGSLOVAKIA_BACKEND_ENV=development
     env_file:
-      - ./backend/.env.development
+      - .env.development
     networks:
       - speedcubingslovakia
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
   
   db:
     image: postgres:17.5-alpine
     restart: always
     env_file:
-      - .env
+      - .env.development
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - speedcubingslovakia
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d speedcubingslovakiadb_local"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  migrate:
+    image: migrate/migrate:v4.18.3
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.development
+    entrypoint: ["sh", "-c"]
+    command: # $$ tells docker to get the variable from container and not parse immediately
+      - >
+        migrate -path=/migrations -database "$${DB_URL}" up;
+    networks:
+      - speedcubingslovakia
+    volumes:
+      - ./database/migrations:/migrations
+
+  scrambling:
+    build:
+      context: ./scrambling
+    ports:
+      - "3999:3999"
+    environment:
+      PORT: 3999
+    networks:
+      - speedcubingslovakia
+    volumes:
+      - ./scrambling:/app
 
 networks:
   speedcubingslovakia:

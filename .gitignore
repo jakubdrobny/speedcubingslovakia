@@ -15,3 +15,5 @@ database/.env.development
 
 .env
 .env.*
+
+scramble_images/

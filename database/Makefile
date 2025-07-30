@@ -1,6 +1,3 @@
-include ../backend/.env.$(SPEEDCUBINGSLOVAKIA_BACKEND_ENV)
-export
-
 create_migration:
 	migrate create -ext=sql -dir=migrations -seq $(TITLE)
 
