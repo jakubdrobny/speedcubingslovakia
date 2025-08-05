@@ -471,27 +471,55 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 	for can {
 		page += 1
 
-		time.Sleep(15 * time.Second)
-		url := fmt.Sprintf(
-			"https://www.worldcubeassociation.org/api/v0/competitions?page=%d&sort=-end_date",
-			page,
-		)
-		body, err := utils.GetRequest(url)
-		if err != nil {
-			log.Println(
-				"ERR utils.GetRequest(url=" + url + ") in CheckUpcomingWCACompetitions: " + err.Error(),
+		var respComps []models.GetWCACompetitionsResponse
+		attempts, attempt, success := 10, 0, false
+		for ; attempt < attempts && !success; attempt++ {
+			time.Sleep(30 * time.Second)
+			url := fmt.Sprintf(
+				"https://www.worldcubeassociation.org/api/v0/competitions?page=%d&sort=-end_date",
+				page,
 			)
-			return err
+			body, err := utils.GetRequest(url)
+			if err != nil {
+				log.Println(
+					"ERR utils.GetRequest(url=" + url + ") in CheckUpcomingWCACompetitions: " + err.Error(),
+				)
+				return err
+			}
+
+			err = json.Unmarshal(body, &respComps)
+			if err != nil {
+				log.Println(fmt.Sprintf("ERR json.Unmarshal in CheckUpcomingWCACompetitions with url=%q: %v", url, err.Error()))
+				log.Printf(
+					"==========\nFailed to unmarshal this body: %v\n==========\n",
+					string(body),
+				)
+				success = false
+				attempt += 1
+			} else {
+				success = true
+			}
 		}
 
-		var respComps []models.GetWCACompetitionsResponse
-		err = json.Unmarshal(body, &respComps)
-		if err != nil {
-			log.Println(fmt.Sprintf("ERR json.Unmarshal in CheckUpcomingWCACompetitions with url=%q: %v", url, err.Error()))
-			log.Printf(
-				"==========\nFailed to unmarshal this body: %v\n==========\n",
-				string(body),
-			)
+		if success {
+			log.Println(fmt.Sprintf("Succeeded loading page number %d in %d attempts.", page, attempts))
+		} else {
+			log.Println(fmt.Sprintf("Failed to load page number %d in %d attempts. Notifying...", page, attempts))
+			from := envMap["MAIL_USERNAME"]
+			to := from
+			subject := "Querying upcoming WCA competitions failed"
+			if os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV") == "development" {
+				subject = "DEVELOPMENT: " + subject
+			}
+			content := fmt.Sprintf("Failed to load page number %d in %d attempts.", page, attempts)
+
+			err = email.SendMail(from, to, subject, content, envMap)
+			if err != nil {
+				log.Println("ERR email.SendMail in CheckUpcomingWCACompetitions: " + err.Error())
+				return err
+			}
+
+			log.Println("Email sent successfully.")
 			continue
 		}
 
@@ -519,9 +547,6 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 			}
 
 			for _, country := range countries {
-				//if respComp.CountryIso2 == "XE" {
-				//fmt.Println(respComp.Name, country.Id)
-				//}
 				startdate, _ := time.Parse(layout, respComp.Startdate)
 				upcomingWCACompetition := models.UpcomingWCACompetition{
 					Id:              respComp.Id,
