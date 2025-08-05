@@ -12,3 +12,5 @@ scrambling/.env.production
 scrambling/index
 
 .env.*
+
+scramble_images/
