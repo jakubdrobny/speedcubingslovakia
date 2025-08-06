@@ -126,22 +126,6 @@ services:
       timeout: 5s
       retries: 5
 
-  migrate:
-    image: migrate/migrate:v4.18.3
-    depends_on:
-      db:
-        condition: service_healthy
-    env_file:
-      - .env.development
-    entrypoint: ["sh", "-c"]
-    command: # $$ tells docker to get the variable from container and not parse immediately
-      - >
-        migrate -path=/migrations -database "$${DB_URL}" up;
-    networks:
-      - speedcubingslovakia
-    volumes:
-      - ./database/migrations:/migrations
-
   scrambling:
     build:
       context: ./scrambling
