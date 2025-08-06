@@ -99,10 +99,9 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - .env.development:/app/.env.development
     environment:
       - SPEEDCUBINGSLOVAKIA_BACKEND_ENV=development
-    env_file:
-      - .env.development
     networks:
       - speedcubingslovakia
     depends_on:
