@@ -1,0 +1,138 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/development/frontend.Dockerfile
+    env_file:
+      - .env.development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - ./data/scramble_images:/app/public/scrambles:ro
+    networks:
+      - speedcubingslovakia
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/development/backend.Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - .env.development:/app/.env.development
+      - ./data/scramble_images:/app/scramble_images
+    environment:
+      - SPEEDCUBINGSLOVAKIA_BACKEND_ENV=development
+    networks:
+      - speedcubingslovakia
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+  
+  db:
+    image: postgres:17.5-alpine
+    restart: always
+    env_file:
+      - .env.development
+    volumes:
+      - ./data/postgres_data:/var/lib/postgresql/data
+    networks:
+      - speedcubingslovakia
+    ports:
+      - "6432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d speedcubingslovakiadb_local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate:v4.18.3
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.development
+    entrypoint: ["sh", "-c"]
+    command: # $$ tells docker to get the variable from container and not parse immediately
+      - >
+        migrate -path=/migrations -database "$${DB_URL}" up;
+    networks:
+      - speedcubingslovakia
+    volumes:
+      - ./database/migrations:/migrations
+
+  scrambling:
+    build:
+      context: ./scrambling
+      dockerfile: ../docker/development/scrambling.Dockerfile
+    ports:
+      - "3999:3999"
+    env_file:
+      - .env.development
+    networks:
+      - speedcubingslovakia
+    volumes:
+      - ./scrambling:/app
+
+  alloy:
+    image: grafana/alloy:v1.10.1
+    volumes:
+      - ./configs/monitoring/config.alloy:/etc/alloy/config.alloy
+      - /var/run/docker.sock:/var/run/docker.sock:ro 
+    command:
+      - "run"
+      - "/etc/alloy/config.alloy"
+    restart: always
+    networks:
+      - speedcubingslovakia
+    depends_on:
+      - backend
+      - mimir
+      - loki
+      - grafana
+
+  mimir:
+    image: grafana/mimir:2.16.1
+    ports:
+      - "9009:9009"
+      - "9095:9095"
+    volumes:
+      - ./configs/monitoring/mimir-config.yml:/etc/mimir/mimir.yml
+      - ./data/mimir_data:/mimir
+    command:
+      - "-config.file=/etc/mimir/mimir.yml"
+    restart: always
+    networks:
+      - speedcubingslovakia
+
+  loki:
+    image: grafana/loki:3.5.3
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./configs/monitoring/loki-config.yml:/etc/loki/loki-config.yml
+      - ./data/loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yml
+    restart: always
+    networks:
+      - speedcubingslovakia
+
+  grafana:
+    image: grafana/grafana:12.0.4
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env.development
+    volumes:
+      - ./data/grafana_data:/var/lib/grafana
+    restart: always
+    networks:
+      - speedcubingslovakia
+
+networks:
+  speedcubingslovakia:

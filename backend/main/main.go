@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -25,9 +24,7 @@ func main() {
 
 	slog.SetDefault(logger)
 
-	envMap, err := godotenv.Read(
-		fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")),
-	)
+	envMap, err := godotenv.Read(".env")
 	if err != nil {
 		slog.Error("unable to load environmental variables from file", "error", err)
 		os.Exit(1)

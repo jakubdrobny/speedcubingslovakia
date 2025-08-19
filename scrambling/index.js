@@ -2,7 +2,7 @@ const express = require("express");
 const crypto = require("crypto");
 const app = express();
 
-const port = process.env.PORT || 3999;
+const port = process.env.SCRAMBLING_SERVICE_PORT || 3999;
 
 const cstimer = require("cstimer_module");
 cstimer.setSeed(crypto.randomBytes(64).toString("hex"));
