@@ -12,9 +12,7 @@ import (
 )
 
 func main() {
-	envMap, err := godotenv.Read(
-		fmt.Sprintf("../.env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")),
-	)
+	envMap, err := godotenv.Read()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to load environmental variables from file: %v\n", err)
 		return

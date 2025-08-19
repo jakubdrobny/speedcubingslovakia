@@ -130,7 +130,7 @@ func RemoveOldestBackups(folderPath, driveBackupFolderId string, fileService *dr
 func main() {
 	log.Println("Starting database backup procedure...")
 	log.Println("Loading environment variables...")
-	envMap, err := godotenv.Read(fmt.Sprintf("../.env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")))
+	envMap, err := godotenv.Read()
 	if err != nil {
 		log.Printf("Unable to load environmental variables from file: %v\n", err)
 		return
@@ -139,7 +139,7 @@ func main() {
 	log.Println("Environment variables successfully loaded.")
 
 	log.Println("Creating new drive service...")
-	credsFilePath := fmt.Sprintf("drive-credentials-%s.json", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV"))
+	credsFilePath := "/app/configs/drive-credentials.json"
 	service, err := drive.NewService(context.Background(), option.WithCredentialsFile(credsFilePath))
 	if err != nil {
 		log.Printf("Unable to retrieve Drive client: %v", err)

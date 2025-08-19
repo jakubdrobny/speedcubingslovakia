@@ -1,11 +1,7 @@
 #!/bin/sh
 
-set -o allexport
-. ~/.profile
-set +o allexport
+set -e
 
-cd $SPEEDCUBINGSLOVAKIA_PATH/backend
-
-echo "===== START: `date` =====" >> $SPEEDCUBINGSLOVAKIA_CRONJOB_LOGFILE_PATH/UpcomingWCACompetitionsJob.txt 2>&1
-go run cronjob/UpcomingWCACompetitionsJob/UpcomingWCACompetitionsJob.go >> $SPEEDCUBINGSLOVAKIA_CRONJOB_LOGFILE_PATH/UpcomingWCACompetitionsJob.txt 2>&1
-echo "===== END =====" >> $SPEEDCUBINGSLOVAKIA_CRONJOB_LOGFILE_PATH/UpcomingWCACompetitionsJob.txt 2>&1
+echo "===== STARTING UpcomingWCACompetitionsJob: $(date) ====="
+/usr/bin/local/upcoming_wca_competitions_job >> /proc/1/fd/1 2>&1
+echo "===== FINISHED UpcomingWCACompetitionsJob: $(date) ====="
