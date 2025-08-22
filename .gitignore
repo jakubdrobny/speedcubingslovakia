@@ -17,3 +17,5 @@ database/.env.development
 .env.*
 
 data/
+
+backend/cronjob/crontab

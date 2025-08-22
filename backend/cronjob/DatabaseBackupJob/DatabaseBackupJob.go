@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -184,7 +183,7 @@ func main() {
 	}
 
 	log.Println("Dump file in os successfully closed.")
-	log.Println("Removing oldest backup dump in $DB_BACKUPS_FOLDER_PATH... (if more than 10 dump files are stored)")
+	log.Printf("Removing oldest backup dump in %s... (if more than 10 dump files are stored)\n", envMap["DB_BACKUPS_FOLDER_PATH"])
 
 	err = RemoveOldestBackups(envMap["DB_BACKUPS_FOLDER_PATH"], envMap["DRIVE_BACKUP_FOLDER_ID"], service.Files)
 	if err != nil {
@@ -192,6 +191,6 @@ func main() {
 		return
 	}
 
-	log.Println("Oldest backup dump in $DB_BACKUPS_FOLDER_PATH successfully removed. (if more than 10 dump files are stored)")
+	log.Printf("Oldest backup dump in %s successfully removed. (if more than 10 dump files are stored)\n", envMap["DB_BACKUPS_FOLDER_PATH"])
 	log.Println("Database backup procedure successfully finished.")
 }

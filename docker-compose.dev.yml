@@ -32,6 +32,22 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+
+  cron:
+    build:
+      context: ./backend
+      dockerfile: ../docker/production/cron.Dockerfile
+    restart: always
+    volumes:
+      - .env.development:/app/.env:ro
+      - ./backend/drive-credentials-development.json:/app/configs/drive-credentials.json:ro
+      - ./data/db_backups:/app/backups
+    networks:
+      - speedcubingslovakia
+    depends_on:
+      db:
+        condition: service_healthy
+   
   
   db:
     image: postgres:17.5-alpine

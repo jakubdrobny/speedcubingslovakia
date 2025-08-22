@@ -44,6 +44,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  cron:
+    build:
+      context: ./backend
+      dockerfile: ../docker/production/cron.Dockerfile
+    restart: always
+    volumes:
+      - .env.production:/app/.env:ro
+      - ./backend/drive-credentials-production.json:/app/configs/drive-credentials.json:ro
+      - ./data/db_backups:/app/backups
+    networks:
+      - speedcubingslovakia
+    depends_on:
+      db:
+        condition: service_healthy
   
   db:
     image: postgres:17.5-alpine
