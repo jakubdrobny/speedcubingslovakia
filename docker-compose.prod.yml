@@ -53,7 +53,9 @@ services:
     volumes:
       - .env.production:/app/.env:ro
       - ./backend/drive-credentials-production.json:/app/configs/drive-credentials.json:ro
-      - ./data/db_backups:/app/backups
+      - ./data/db_backups:/app/db_backups
+      - ./data/logs:/app/logs
+      - ./data/scramble_images:/app/scramble_images
     networks:
       - speedcubingslovakia
     depends_on:

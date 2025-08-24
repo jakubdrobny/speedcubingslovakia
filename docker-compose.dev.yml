@@ -21,7 +21,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - .env.development:/app/.env.development
+      - .env.development:/app/.env
       - ./data/scramble_images:/app/scramble_images
     environment:
       - SPEEDCUBINGSLOVAKIA_BACKEND_ENV=development
@@ -30,8 +30,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
 
   cron:
     build:
@@ -41,13 +39,14 @@ services:
     volumes:
       - .env.development:/app/.env:ro
       - ./backend/drive-credentials-development.json:/app/configs/drive-credentials.json:ro
-      - ./data/db_backups:/app/backups
+      - ./data/db_backups:/app/db_backups
+      - ./data/logs:/app/logs
+      - ./data/scramble_images:/app/scramble_images
     networks:
       - speedcubingslovakia
     depends_on:
       db:
         condition: service_healthy
-   
   
   db:
     image: postgres:17.5-alpine
@@ -68,6 +67,7 @@ services:
 
   migrate:
     image: migrate/migrate:v4.18.3
+    profiles: [migrate]
     depends_on:
       db:
         condition: service_healthy

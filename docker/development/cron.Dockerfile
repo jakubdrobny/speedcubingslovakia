@@ -17,7 +17,7 @@ RUN \
 
 FROM alpine:latest
 
-RUN apk add --no-cache busybox-suid postgresql-client
+RUN apk add --no-cache busybox-suid postgresql-client tzdata
 
 WORKDIR /app
 
