@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -25,11 +24,9 @@ func main() {
 
 	slog.SetDefault(logger)
 
-	envMap, err := godotenv.Read(
-		fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")),
-	)
+	envMap, err := godotenv.Read()
 	if err != nil {
-		slog.Error("unable to load environmental variables from file", "error", err)
+		slog.Error("unable to load environmental variables from .env", "error", err)
 		os.Exit(1)
 	}
 
@@ -40,13 +37,12 @@ func main() {
 	}
 	defer db.Close()
 
-	gin.SetMode(gin.ReleaseMode)
 	metrics.Register()
 
 	router := gin.New()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://127.0.0.1:3000", "http://localhost:3000"},
+		AllowOrigins:     []string{"http://127.0.0.1:3000", "http://localhost:3000", "http://0.0.0.0:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -238,7 +234,7 @@ func main() {
 		announcements.GET("/noOfNew", controllers.GetNoOfNewAnnouncements(db, envMap))
 	}
 
-	if err := router.Run("localhost:8000"); err != nil {
+	if err := router.Run(":8000"); err != nil {
 		slog.Error("failed to start server", "error", err)
 	}
 }

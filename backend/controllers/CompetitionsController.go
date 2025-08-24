@@ -355,7 +355,7 @@ func AddNewWeeklyCompetition(db *pgxpool.Pool, envMap map[string]string) {
 		return
 	}
 
-	log.Println(competition)
+	log.Printf("competition: %+v\n", competition)
 
 	errLog, errOut := CreateCompetition(db, competition, envMap)
 	if errLog != "" && errOut != "" {
@@ -365,5 +365,5 @@ func AddNewWeeklyCompetition(db *pgxpool.Pool, envMap map[string]string) {
 	}
 
 	log.Println("Competition successfully created !!!")
-	log.Println(competition)
+	log.Printf("competition: %+v\n", competition)
 }

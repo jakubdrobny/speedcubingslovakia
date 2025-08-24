@@ -443,9 +443,7 @@ func RandSeq(n int) string {
 }
 
 func SaveScrambleImg(img_id string, svg_content string) error {
-	envMap, err := godotenv.Read(
-		fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")),
-	)
+	envMap, err := godotenv.Read()
 	if err != nil {
 		return err
 	}

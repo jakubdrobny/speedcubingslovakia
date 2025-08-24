@@ -1,0 +1,49 @@
+prometheus.scrape "backend" {
+  targets = [
+    {
+      "__address__" = "backend:8000",
+      "__metrics_path__" = "/api/metrics",
+      "job" = "speedcubingslovakia-backend",
+    },
+  ]
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+  }
+}
+
+discovery.docker "linux" {
+  host = "unix:///var/run/docker.sock"
+}
+
+loki.source.docker "loki" {
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.docker.linux.targets
+  relabel_rules = discovery.relabel.loki.rules
+  forward_to = [loki.write.loki.receiver]
+}
+
+discovery.relabel "loki" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label = "service"
+  }
+  
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    target_label = "container"
+    regex = "/(.*)"
+    replacement = "$1"
+  }
+}
+
+loki.write "loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

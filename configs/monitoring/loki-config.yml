@@ -27,7 +27,3 @@ schema_config:
 
 limits_config:
   retention_period: 4320h
-  retention_stream:
-    - selector: '{job="backend"}'
-      priority: 1
-      period: 4320h

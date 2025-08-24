@@ -1,0 +1,159 @@
+services:
+  nginx:
+    image: nginx:1.29.1-alpine-slim
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./configs/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/build:/usr/share/nginx/html:ro
+      - ./data/scramble_images:/usr/share/nginx/images:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    networks:
+      - speedcubingslovakia
+    depends_on:
+      - backend
+      - grafana
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/production/frontend.Dockerfile
+    env_file:
+      - .env.production
+    restart: always
+    networks:
+      - speedcubingslovakia
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/production/backend.Dockerfile
+    volumes:
+      - .env.production:/app/.env
+      - ./data/scramble_images:/app/scramble_images
+    environment:
+      GIN_MODE=release
+    networks:
+      - speedcubingslovakia
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+
+  cron:
+    build:
+      context: ./backend
+      dockerfile: ../docker/production/cron.Dockerfile
+    restart: always
+    volumes:
+      - .env.production:/app/.env:ro
+      - ./backend/drive-credentials-production.json:/app/configs/drive-credentials.json:ro
+      - ./data/db_backups:/app/db_backups
+      - ./data/logs:/app/logs
+      - ./data/scramble_images:/app/scramble_images
+    networks:
+      - speedcubingslovakia
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  db:
+    image: postgres:17.5-alpine
+    restart: always
+    env_file:
+      - .env.production
+    volumes:
+      - ./data/postgres_data:/var/lib/postgresql/data
+    networks:
+      - speedcubingslovakia
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate:v4.18.3
+    profiles: [migrate]
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.production
+    entrypoint: ["sh", "-c"]
+    command: # $$ tells docker to get the variable from container and not parse immediately
+      - >
+        migrate -path=/migrations -database "$${DB_URL}" up;
+    networks:
+      - speedcubingslovakia
+    volumes:
+      - ./database/migrations:/migrations
+
+  scrambling:
+    build:
+      context: ./scrambling
+      dockerfile: ../docker/production/scrambling.Dockerfile
+    env_file:
+      - .env.production 
+    restart: always
+    networks:
+      - speedcubingslovakia
+
+  alloy:
+    image: grafana/alloy:v1.10.1
+    volumes:
+      - ./configs/monitoring/config.alloy:/etc/alloy/config.alloy
+      - /var/run/docker.sock:/var/run/docker.sock:ro 
+    command:
+      - "run"
+      - "/etc/alloy/config.alloy"
+    restart: always
+    networks:
+      - speedcubingslovakia
+    depends_on:
+      - backend
+      - mimir
+      - loki
+      - grafana
+
+  mimir:
+    image: grafana/mimir:2.16.1
+    volumes:
+      - ./configs/monitoring/mimir-config.yml:/etc/mimir/mimir.yml
+      - ./data/mimir_data:/mimir
+    command:
+      - "-config.file=/etc/mimir/mimir.yml"
+    restart: always
+    networks:
+      - speedcubingslovakia
+
+  loki:
+    image: grafana/loki:3.5.3
+    volumes:
+      - ./configs/monitoring/loki-config.yml:/etc/loki/loki-config.yml
+      - ./data/loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yml
+    restart: always
+    networks:
+      - speedcubingslovakia
+
+  grafana:
+    image: grafana/grafana:12.0.4
+    env_file:
+      - .env.production
+    volumes:
+      - ./data/grafana_data:/var/lib/grafana
+    restart: always
+    networks:
+      - speedcubingslovakia
+
+networks:
+  speedcubingslovakia:

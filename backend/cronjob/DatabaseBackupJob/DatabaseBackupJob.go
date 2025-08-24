@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -130,7 +129,7 @@ func RemoveOldestBackups(folderPath, driveBackupFolderId string, fileService *dr
 func main() {
 	log.Println("Starting database backup procedure...")
 	log.Println("Loading environment variables...")
-	envMap, err := godotenv.Read(fmt.Sprintf(".env.%s", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")))
+	envMap, err := godotenv.Read()
 	if err != nil {
 		log.Printf("Unable to load environmental variables from file: %v\n", err)
 		return
@@ -139,7 +138,7 @@ func main() {
 	log.Println("Environment variables successfully loaded.")
 
 	log.Println("Creating new drive service...")
-	credsFilePath := fmt.Sprintf("drive-credentials-%s.json", os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV"))
+	credsFilePath := "/app/configs/drive-credentials.json"
 	service, err := drive.NewService(context.Background(), option.WithCredentialsFile(credsFilePath))
 	if err != nil {
 		log.Printf("Unable to retrieve Drive client: %v", err)
@@ -184,7 +183,7 @@ func main() {
 	}
 
 	log.Println("Dump file in os successfully closed.")
-	log.Println("Removing oldest backup dump in $DB_BACKUPS_FOLDER_PATH... (if more than 10 dump files are stored)")
+	log.Printf("Removing oldest backup dump in %s... (if more than 10 dump files are stored)\n", envMap["DB_BACKUPS_FOLDER_PATH"])
 
 	err = RemoveOldestBackups(envMap["DB_BACKUPS_FOLDER_PATH"], envMap["DRIVE_BACKUP_FOLDER_ID"], service.Files)
 	if err != nil {
@@ -192,6 +191,6 @@ func main() {
 		return
 	}
 
-	log.Println("Oldest backup dump in $DB_BACKUPS_FOLDER_PATH successfully removed. (if more than 10 dump files are stored)")
+	log.Printf("Oldest backup dump in %s successfully removed. (if more than 10 dump files are stored)\n", envMap["DB_BACKUPS_FOLDER_PATH"])
 	log.Println("Database backup procedure successfully finished.")
 }

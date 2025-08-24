@@ -11,6 +11,11 @@ scrambling/.env.development
 scrambling/.env.production
 scrambling/index
 
+database/.env.development
+
+.env
 .env.*
 
-scramble_images/
+data/
+
+backend/cronjob/crontab
