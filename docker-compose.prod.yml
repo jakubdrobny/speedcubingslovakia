@@ -38,6 +38,9 @@ services:
       dockerfile: ../docker/production/backend.Dockerfile
     volumes:
       - .env.production:/app/.env
+      - ./data/scramble_images:/app/scramble_images
+    environment:
+      GIN_MODE=release
     networks:
       - speedcubingslovakia
     restart: always

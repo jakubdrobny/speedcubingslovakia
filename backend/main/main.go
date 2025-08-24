@@ -24,9 +24,9 @@ func main() {
 
 	slog.SetDefault(logger)
 
-	envMap, err := godotenv.Read(".env")
+	envMap, err := godotenv.Read()
 	if err != nil {
-		slog.Error("unable to load environmental variables from file", "error", err)
+		slog.Error("unable to load environmental variables from .env", "error", err)
 		os.Exit(1)
 	}
 
@@ -37,7 +37,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// gin.SetMode(gin.ReleaseMode)
 	metrics.Register()
 
 	router := gin.New()

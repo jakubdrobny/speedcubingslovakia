@@ -23,8 +23,6 @@ services:
       - ./backend:/app
       - .env.development:/app/.env
       - ./data/scramble_images:/app/scramble_images
-    environment:
-      - SPEEDCUBINGSLOVAKIA_BACKEND_ENV=development
     networks:
       - speedcubingslovakia
     depends_on:

@@ -220,7 +220,7 @@ func GenerateScramblesForEvent(scramblingcode string, noOfSolves int, ismbld boo
 	}
 
 	scrambles := make([]string, 0)
-	for i := 0; i < noOfSolves; i++ {
+	for range noOfSolves {
 		currentScrambles, err := GetScrambles(scramblingcode, constants.MBLD_MAX_CUBES_PER_ATTEMPT, envMap)
 		if err != nil {
 			return []string{}, err
