@@ -6,7 +6,7 @@ services:
       args:
         - VITE_WCA_GET_CODE_URL=${VITE_WCA_GET_CODE_URL}
         - VITE_SCRAMBLE_IMAGES_PATH=${VITE_SCRAMBLE_IMAGES_PATH}
-        - NODE_ENV=${NODE_ENV} 
+        - NODE_ENV=${NODE_ENV}
     ports:
       - "80:80"
       - "443:443"
@@ -27,16 +27,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: ../docker/production/frontend.Dockerfile
-    env_file:
-      - .env.production
-    volumes:
-      - frontend_build:/app/dist
-    command: "true"
   
   backend:
     build:
