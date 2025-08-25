@@ -129,7 +129,7 @@ func RemoveOldestBackups(folderPath, driveBackupFolderId string, fileService *dr
 func main() {
 	log.Println("Starting database backup procedure...")
 	log.Println("Loading environment variables...")
-	envMap, err := godotenv.Read()
+	envMap, err := godotenv.Read("/app/.env")
 	if err != nil {
 		log.Printf("Unable to load environmental variables from file: %v\n", err)
 		return

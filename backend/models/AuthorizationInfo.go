@@ -2,6 +2,9 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 )
@@ -23,13 +26,26 @@ func GetAuthInfo(code string, envMap map[string]string) (AuthorizationInfo, erro
 		"code":          {code},
 		"redirect_uri":  {envMap["WCA_REDIRECT_URI"]},
 	})
-	if err != nil || res.StatusCode != http.StatusOK {
+	if err != nil {
+		slog.Error("failed to send request to WCA token URL", "error", err)
 		return AuthorizationInfo{}, err
 	}
 	defer res.Body.Close()
 
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		slog.Error("failed to read response body", "error", err)
+		return AuthorizationInfo{}, err
+	}
+
+	slog.Info("Raw response from WCA token endpoint", "status_code", res.StatusCode, "body", string(bodyBytes))
+
+	if res.StatusCode != http.StatusOK {
+		return AuthorizationInfo{}, fmt.Errorf("WCA token request failed with status %d: %s", res.StatusCode, string(bodyBytes))
+	}
+
 	var authInfo AuthorizationInfo
-	err = json.NewDecoder(res.Body).Decode(&authInfo)
+	err = json.Unmarshal(bodyBytes, &authInfo)
 	if err != nil {
 		return AuthorizationInfo{}, err
 	}

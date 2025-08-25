@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	envMap, err := godotenv.Read()
+	envMap, err := godotenv.Read("/app/.env")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to load environmental variables from file: %v\n", err)
 		return
