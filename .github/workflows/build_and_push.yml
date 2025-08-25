@@ -50,8 +50,8 @@ jobs:
       - name: Build and push Backend image
         uses: docker/build-push-action@v4
         with:
-          context: .
-          file: docker/production/backend.Dockerfile
+          context: ./backend
+          file: ../docker/production/backend.Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/backend:${{ steps.meta.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -60,7 +60,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: docker/production/cron.Dockerfile
+          file: ../docker/production/cron.Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/cron:${{ steps.meta.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -69,7 +69,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          file: docker/production/scrambling.Dockerfile
+          file: ../docker/production/scrambling.Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository }}/scrambling:${{ steps.meta.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
