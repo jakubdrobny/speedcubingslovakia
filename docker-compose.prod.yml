@@ -23,7 +23,7 @@ services:
         condition: service_started
     restart: always
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
+      test: ["CMD", "wget", "-q", "--spider", "--no-check-certificate", "http://localhost/"]
       interval: 10s
       timeout: 5s
       retries: 5
