@@ -40,7 +40,7 @@ services:
       - .env.production:/app/.env
       - ./data/scramble_images:/app/scramble_images
     environment:
-      GIN_MODE=release
+      GIN_MODE: release
     networks:
       - speedcubingslovakia
     restart: always
