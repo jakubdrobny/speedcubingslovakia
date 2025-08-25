@@ -6,25 +6,14 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  metadata:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
     outputs:
       image_tag: ${{ steps.meta.outputs.version }}
-
+      labels: ${{ steps.meta.outputs.labels }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Log in to the GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -38,60 +27,91 @@ jobs:
           tags: |
             type=sha
 
-      - name: Build and push Nginx image
-        uses: docker/build-push-action@v4
+  build-nginx:
+    runs-on: ubuntu-latest
+    needs: metadata
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v4
         with:
           context: .
           file: docker/production/nginx.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/nginx:${{ steps.meta.outputs.version }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ghcr.io/${{ github.repository }}/nginx:${{ needs.metadata.outputs.image_tag }}
+          labels: ${{ needs.metadata.outputs.labels }}
 
-      - name: Build and push Backend image
-        uses: docker/build-push-action@v4
+  build-backend:
+    runs-on: ubuntu-latest
+    needs: metadata
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v4
         with:
           context: ./backend
           file: docker/production/backend.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/backend:${{ steps.meta.outputs.version }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ghcr.io/${{ github.repository }}/backend:${{ needs.metadata.outputs.image_tag }}
+          labels: ${{ needs.metadata.outputs.labels }}
 
-      - name: Build and push Cron image
-        uses: docker/build-push-action@v4
+  build-cron:
+    runs-on: ubuntu-latest
+    needs: metadata
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
         with:
-          context: .
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v4
+        with:
+          context: ./backend
           file: docker/production/cron.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/cron:${{ steps.meta.outputs.version }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ghcr.io/${{ github.repository }}/cron:${{ needs.metadata.outputs.image_tag }}
+          labels: ${{ needs.metadata.outputs.labels }}
 
-      - name: Build and push Scrambling image
-        uses: docker/build-push-action@v4
+  build-scrambling:
+    runs-on: ubuntu-latest
+    needs: metadata
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v4
         with:
           context: ./scrambling
           file: docker/production/scrambling.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/scrambling:${{ steps.meta.outputs.version }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ghcr.io/${{ github.repository }}/scrambling:${{ needs.metadata.outputs.image_tag }}
+          labels: ${{ needs.metadata.outputs.labels }}
 
   update-docker-compose:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [build-nginx, build-backend, build-cron, build-scrambling]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Update docker-compose.prod.yml
-        uses: mikefarah/yq@v4.27.5
+      - uses: actions/checkout@v3
+      - uses: mikefarah/yq@v4.27.5
         with:
           cmd: |
-            yq e '.services.nginx.image = "ghcr.io/${{ github.repository }}/nginx:${{ needs.build-and-push.outputs.image_tag }}"' -i docker-compose.prod.yml &&
-            yq e '.services.backend.image = "ghcr.io/${{ github.repository }}/backend:${{ needs.build-and-push.outputs.image_tag }}"' -i docker-compose.prod.yml &&
-            yq e '.services.cron.image = "ghcr.io/${{ github.repository }}/cron:${{ needs.build-and-push.outputs.image_tag }}"' -i docker-compose.prod.yml &&
-            yq e '.services.scrambling.image = "ghcr.io/${{ github.repository }}/scrambling:${{ needs.build-and-push.outputs.image_tag }}"' -i docker-compose.prod.yml
-
-      - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v4
+            yq e '.services.nginx.image = "ghcr.io/${{ github.repository }}/nginx:${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
+            yq e '.services.backend.image = "ghcr.io/${{ github.repository }}/backend:${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
+            yq e '.services.cron.image = "ghcr.io/${{ github.repository }}/cron:${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
+            yq e '.services.scrambling.image = "ghcr.io/${{ github.repository }}/scrambling:${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml
+      - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "Update docker-compose.prod.yml with new image tags"
           branch: main
