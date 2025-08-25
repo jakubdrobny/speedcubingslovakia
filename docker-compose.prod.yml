@@ -13,8 +13,10 @@ services:
     networks:
       - speedcubingslovakia
     depends_on:
-      - backend
-      - grafana
+      backend:
+        condition: service_healthy
+      grafana:
+        condition: service_started
     restart: always
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost/"]
