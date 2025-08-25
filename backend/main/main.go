@@ -51,6 +51,11 @@ func main() {
 	}))
 
 	router.Use(logging.GinLoggerMiddleware(logger), logging.GinRecoveryMiddleware(logger))
+
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "OK"})
+	})
+
 	router.Use(middlewares.Authorization(db, envMap))
 
 	api_v1 := router.Group("/api")

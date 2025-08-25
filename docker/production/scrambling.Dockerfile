@@ -2,7 +2,7 @@ FROM node:22-slim AS builder
 
 WORKDIR /app
 
-RUN npm install -g pkg
+RUN npm install -g @yao-pkg/pkg
 
 COPY package*.json ./
 
