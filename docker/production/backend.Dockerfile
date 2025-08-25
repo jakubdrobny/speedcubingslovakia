@@ -11,6 +11,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags "-w -s" -o /app/server main/ma
 
 FROM alpine:latest
 
+WORKDIR /app
+
 COPY --from=builder /app/server .
 
 EXPOSE 8000

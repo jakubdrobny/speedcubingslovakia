@@ -1,12 +1,16 @@
 services:
   nginx:
-    image: nginx:1.29.1-alpine-slim
+    build:
+      context: .
+      dockerfile: ./docker/production/nginx.Dockerfile
+      args:
+        - VITE_WCA_GET_CODE_URL=${VITE_WCA_GET_CODE_URL}
+        - VITE_SCRAMBLE_IMAGES_PATH=${VITE_SCRAMBLE_IMAGES_PATH}
+        - NODE_ENV=${NODE_ENV} 
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./configs/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./frontend/build:/usr/share/nginx/html:ro
       - ./data/scramble_images:/usr/share/nginx/images:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot:ro
@@ -30,9 +34,9 @@ services:
       dockerfile: ../docker/production/frontend.Dockerfile
     env_file:
       - .env.production
-    restart: always
-    networks:
-      - speedcubingslovakia
+    volumes:
+      - frontend_build:/app/dist
+    command: "true"
   
   backend:
     build:
@@ -50,7 +54,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
