@@ -32,7 +32,10 @@ jobs:
       - name: Debug print metadata outputs
         run: |
           echo "Raw tags output:"
-          echo '${{ steps.meta.outputs.tags }}'
+          echo '${{ fromJSON(steps.meta.outputs.json).tags[0] }}'
+          echo '${{ fromJSON(steps.meta.outputs.json).tags[1] }}'
+          echo '${{ fromJSON(steps.meta.outputs.json).tags[2] }}'
+          echo '${{ fromJSON(steps.meta.outputs.json).tags[3] }}'
 
           echo ""
           echo "Raw JSON output:"
