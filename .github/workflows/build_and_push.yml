@@ -9,10 +9,10 @@ jobs:
   metadata:
     runs-on: ubuntu-latest
     outputs:
-      nginx_tag: ${{ join(fromJSON(steps.meta.outputs.json).tags.*[?contains(@, '/nginx:')], ',') }}
-      backend_tag: ${{ join(fromJSON(steps.meta.outputs.json).tags.*[?contains(@, '/backend:')], ',') }}
-      cron_tag: ${{ join(fromJSON(steps.meta.outputs.json).tags.*[?contains(@, '/cron:')], ',') }}
-      scrambling_tag: ${{ join(fromJSON(steps.meta.outputs.json).tags.*[?contains(@, '/scrambling:')], ',') }}
+      nginx_tag: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+      backend_tag: ${{ fromJSON(steps.meta.outputs.json).tags[1] }}
+      cron_tag: ${{ fromJSON(steps.meta.outputs.json).tags[2] }}
+      scrambling_tag: ${{ fromJSON(steps.meta.outputs.json).tags[3] }}
       labels: ${{ steps.meta.outputs.labels }}
     steps:
       - name: Checkout repository
