@@ -120,3 +120,31 @@ jobs:
           commit_message: "Update docker-compose.prod.yml with new image tags"
           branch: main
           file_pattern: docker-compose.prod.yml
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: update-docker-compose
+    name: Deploy to Server
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          script: |
+            cd /app
+
+            echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            git stash
+
+            git pull origin main
+
+            docker compose -f docker-compose.prod.yml pull
+
+            docker compose -f docker-compose.prod.yml down
+
+            docker compose --env-file -f docker-compose.prod.yml up -d
+
+            docker image prune -af

@@ -10,7 +10,7 @@ RUN npm ci --omit=dev
 
 COPY . .
 
-RUN pkg . --targets node22-alpine-x64 --output /app/scrambling-service
+RUN pkg . --targets node22-alpine-arm64 --output /app/scrambling-service
 
 FROM alpine:latest
 
