@@ -9,7 +9,10 @@ jobs:
   metadata:
     runs-on: ubuntu-latest
     outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
+      nginx_tag: ${{ join(fromJSON(steps.meta.outputs.json).tags.*[?contains(@, '/nginx:')], ',') }}
+      backend_tag: ${{ join(fromJSON(steps.meta.outputs.json).tags.*[?contains(@, '/backend:')], ',') }}
+      cron_tag: ${{ join(fromJSON(steps.meta.outputs.json).tags.*[?contains(@, '/cron:')], ',') }}
+      scrambling_tag: ${{ join(fromJSON(steps.meta.outputs.json).tags.*[?contains(@, '/scrambling:')], ',') }}
       labels: ${{ steps.meta.outputs.labels }}
     steps:
       - name: Checkout repository
@@ -42,7 +45,7 @@ jobs:
           context: .
           file: docker/production/nginx.Dockerfile
           push: true
-          tags: ${{ needs.metadata.outputs.image_tag }}
+          tags: ${{ needs.metadata.outputs.nginx_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
           build-args: |
             VITE_WCA_GET_CODE_URL=${{ secrets.VITE_WCA_GET_CODE_URL }}
@@ -64,7 +67,7 @@ jobs:
           context: ./backend
           file: docker/production/backend.Dockerfile
           push: true
-          tags: ${{ needs.metadata.outputs.image_tag }}
+          tags: ${{ needs.metadata.outputs.backend_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
 
   build-cron:
@@ -82,7 +85,7 @@ jobs:
           context: ./backend
           file: docker/production/cron.Dockerfile
           push: true
-          tags: ${{ needs.metadata.outputs.image_tag }}
+          tags: ${{ needs.metadata.outputs.cron_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
 
   build-scrambling:
@@ -100,7 +103,7 @@ jobs:
           context: ./scrambling
           file: docker/production/scrambling.Dockerfile
           push: true
-          tags: ${{ needs.metadata.outputs.image_tag }}
+          tags: ${{ needs.metadata.outputs.scrambling_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
 
   update-docker-compose:
@@ -111,10 +114,10 @@ jobs:
       - uses: mikefarah/yq@v4.47.1
         with:
           cmd: |
-            yq e -P '.services.nginx.image = "${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.backend.image = "${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.cron.image = "${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.scrambling.image = "${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml
+            yq e -P '.services.nginx.image = "${{ needs.metadata.outputs.nginx_tag }}"' -i docker-compose.prod.yml &&
+            yq e -P '.services.backend.image = "${{ needs.metadata.outputs.backend_tag }}"' -i docker-compose.prod.yml &&
+            yq e -P '.services.cron.image = "${{ needs.metadata.outputs.cron_tag }}"' -i docker-compose.prod.yml &&
+            yq e -P '.services.scrambling.image = "${{ needs.metadata.outputs.scrambling_tag }}"' -i docker-compose.prod.yml
       - uses: stefanzweifel/git-auto-commit-action@v6.0.1
         with:
           commit_message: "Update docker-compose.prod.yml with new image tags"
@@ -132,7 +135,10 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
+          script_stop: true
           script: |
+            set -euo pipefail
+
             cd /app
 
             echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -145,6 +151,6 @@ jobs:
 
             docker compose -f docker-compose.prod.yml down
 
-            docker compose --env-file -f docker-compose.prod.yml up -d
+            docker compose --env-file .env.production -f docker-compose.prod.yml up -d
 
             docker image prune -af
