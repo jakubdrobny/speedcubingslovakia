@@ -42,7 +42,7 @@ jobs:
           context: .
           file: docker/production/nginx.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/nginx:${{ needs.metadata.outputs.image_tag }}
+          tags: ${{ needs.metadata.outputs.image_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
           build-args: |
             VITE_WCA_GET_CODE_URL=${{ secrets.VITE_WCA_GET_CODE_URL }}
@@ -64,7 +64,7 @@ jobs:
           context: ./backend
           file: docker/production/backend.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/backend:${{ needs.metadata.outputs.image_tag }}
+          tags: ${{ needs.metadata.outputs.image_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
 
   build-cron:
@@ -82,7 +82,7 @@ jobs:
           context: ./backend
           file: docker/production/cron.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/cron:${{ needs.metadata.outputs.image_tag }}
+          tags: ${{ needs.metadata.outputs.image_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
 
   build-scrambling:
@@ -100,7 +100,7 @@ jobs:
           context: ./scrambling
           file: docker/production/scrambling.Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/scrambling:${{ needs.metadata.outputs.image_tag }}
+          tags: ${{ needs.metadata.outputs.image_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
 
   update-docker-compose:
@@ -111,10 +111,10 @@ jobs:
       - uses: mikefarah/yq@v4.47.1
         with:
           cmd: |
-            yq e -P '.services.nginx.image = "ghcr.io/${{ github.repository }}/nginx:${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.backend.image = "ghcr.io/${{ github.repository }}/backend:${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.cron.image = "ghcr.io/${{ github.repository }}/cron:${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.scrambling.image = "ghcr.io/${{ github.repository }}/scrambling:${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml
+            yq e -P '.services.nginx.image = "${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
+            yq e -P '.services.backend.image = "${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
+            yq e -P '.services.cron.image = "${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml &&
+            yq e -P '.services.scrambling.image = "${{ needs.metadata.outputs.image_tag }}"' -i docker-compose.prod.yml
       - uses: stefanzweifel/git-auto-commit-action@v6.0.1
         with:
           commit_message: "Update docker-compose.prod.yml with new image tags"
