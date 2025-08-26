@@ -29,6 +29,14 @@ jobs:
             ghcr.io/${{ github.repository }}/scrambling
           tags: |
             type=sha
+      - name: Debug print metadata outputs
+        run: |
+          echo "Raw tags output:"
+          echo '${{ steps.meta.outputs.tags }}'
+
+          echo ""
+          echo "Raw JSON output:"
+          echo '${{ steps.meta.outputs.json }}' | jq .
 
   build-nginx:
     runs-on: ubuntu-latest
