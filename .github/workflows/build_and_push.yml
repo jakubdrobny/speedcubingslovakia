@@ -29,17 +29,13 @@ jobs:
             ghcr.io/${{ github.repository }}/scrambling
           tags: |
             type=sha
-      - name: Debug print metadata outputs
+      - name: Set job outputs
+        id: set-tags
         run: |
-          echo "Raw tags output:"
-          echo '${{ fromJSON(steps.meta.outputs.json).tags[0] }}'
-          echo '${{ fromJSON(steps.meta.outputs.json).tags[1] }}'
-          echo '${{ fromJSON(steps.meta.outputs.json).tags[2] }}'
-          echo '${{ fromJSON(steps.meta.outputs.json).tags[3] }}'
-
-          echo ""
-          echo "Raw JSON output:"
-          echo '${{ steps.meta.outputs.json }}' | jq .
+          echo "nginx_tag=$(echo '${{ steps.meta.outputs.json }}' | jq -r '.tags[0]')" >> $GITHUB_OUTPUT
+          echo "backend_tag=$(echo '${{ steps.meta.outputs.json }}' | jq -r '.tags[1]')" >> $GITHUB_OUTPUT
+          echo "cron_tag=$(echo '${{ steps.meta.outputs.json }}' | jq -r '.tags[2]')" >> $GITHUB_OUTPUT
+          echo "scrambling_tag=$(echo '${{ steps.meta.outputs.json }}' | jq -r '.tags[3]')" >> $GITHUB_OUTPUT
 
   build-nginx:
     runs-on: ubuntu-latest
