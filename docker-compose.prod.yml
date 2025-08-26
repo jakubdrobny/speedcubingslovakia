@@ -1,9 +1,9 @@
 services:
   nginx:
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/nginx:latest'
+    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/nginx:'
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
     volumes:
       - ./data/scramble_images:/usr/share/nginx/images:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
@@ -17,13 +17,18 @@ services:
         condition: service_started
     restart: always
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "--no-check-certificate", "http://localhost/"]
+      test:
+        - CMD
+        - wget
+        - -q
+        - --spider
+        - --no-check-certificate
+        - http://localhost/
       interval: 10s
       timeout: 5s
       retries: 5
- 
   backend:
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/backend:latest'
+    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/backend:'
     volumes:
       - .env.production:/app/.env
       - ./data/scramble_images:/app/scramble_images
@@ -36,14 +41,18 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000/health"]
+      test:
+        - CMD
+        - wget
+        - -q
+        - --spider
+        - http://localhost:8000/health
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
- 
   cron:
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/cron:latest'
+    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/cron:'
     restart: always
     volumes:
       - .env.production:/app/.env:ro
@@ -56,7 +65,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
- 
   db:
     image: postgres:17.5-alpine
     restart: always
@@ -67,44 +75,46 @@ services:
     networks:
       - speedcubingslovakia
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test:
+        - CMD-SHELL
+        - pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
       interval: 10s
       timeout: 5s
       retries: 5
-
   migrate:
     image: migrate/migrate:v4.18.3
-    profiles: [migrate]
+    profiles:
+      - migrate
     depends_on:
       db:
         condition: service_healthy
     env_file:
       - .env.production
-    entrypoint: ["sh", "-c"]
+    entrypoint:
+      - sh
+      - -c
     command: # $$ tells docker to get the variable from container and not parse immediately
-      - >
+      - |
         migrate -path=/migrations -database "$${DB_URL}" up;
     networks:
       - speedcubingslovakia
     volumes:
       - ./database/migrations:/migrations
-  
   scrambling:
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:latest'
+    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:'
     env_file:
       - .env.production
     restart: always
     networks:
       - speedcubingslovakia
-  
   alloy:
     image: grafana/alloy:v1.10.1
     volumes:
       - ./configs/monitoring/config.alloy:/etc/alloy/config.alloy
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command:
-      - "run"
-      - "/etc/alloy/config.alloy"
+      - run
+      - /etc/alloy/config.alloy
     restart: always
     networks:
       - speedcubingslovakia
@@ -113,18 +123,16 @@ services:
       - mimir
       - loki
       - grafana
-  
   mimir:
     image: grafana/mimir:2.16.1
     volumes:
       - ./configs/monitoring/mimir-config.yml:/etc/mimir/mimir.yml
       - ./data/mimir_data:/mimir
     command:
-      - "-config.file=/etc/mimir/mimir.yml"
+      - -config.file=/etc/mimir/mimir.yml
     restart: always
     networks:
       - speedcubingslovakia
-  
   loki:
     image: grafana/loki:3.5.3
     volumes:
@@ -134,7 +142,6 @@ services:
     restart: always
     networks:
       - speedcubingslovakia
-  
   grafana:
     image: grafana/grafana:12.0.4
     env_file:
@@ -144,6 +151,5 @@ services:
     restart: always
     networks:
       - speedcubingslovakia
-
 networks:
   speedcubingslovakia:
