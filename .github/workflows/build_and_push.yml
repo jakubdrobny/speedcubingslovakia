@@ -9,42 +9,42 @@ jobs:
   metadata:
     runs-on: ubuntu-latest
     outputs:
-      nginx_tag: ${{ steps.set-tags.outputs.nginx_tag }}
-      backend_tag: ${{ steps.set-tags.outputs.backend_tag }}
-      cron_tag: ${{ steps.set-tags.outputs.cron_tag }}
-      scrambling_tag: ${{ steps.set-tags.outputs.scrambling_tag }}
-      labels: ${{ steps.meta.outputs.labels }}
+      nginx_tag: ${{ steps.meta_nginx.outputs.tags }}
+      backend_tag: ${{ steps.meta_backend.outputs.tags }}
+      cron_tag: ${{ steps.meta_cron.outputs.tags }}
+      scrambling_tag: ${{ steps.meta_scrambling.outputs.tags }}
+      labels: ${{ steps.meta_nginx.outputs.labels }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5.8.0
+      - name: Extract metadata for nginx
+        id: meta_nginx
+        uses: docker/metadata-action@v5
         with:
-          images: |
-            ghcr.io/${{ github.repository }}/nginx
-            ghcr.io/${{ github.repository }}/backend
-            ghcr.io/${{ github.repository }}/cron
-            ghcr.io/${{ github.repository }}/scrambling
-          tags: |
-            type=sha
+          images: ghcr.io/${{ github.repository }}/nginx
+          tags: type=sha
 
-      - name: Set job outputs
-        id: set-tags
-        run: |
-          # Parse JSON safely using jq
-          echo "nginx_tag=$(jq -r '.tags[0]' <<< "${{ steps.meta.outputs.json }}")" >> $GITHUB_OUTPUT
-          echo "backend_tag=$(jq -r '.tags[1]' <<< "${{ steps.meta.outputs.json }}")" >> $GITHUB_OUTPUT
-          echo "cron_tag=$(jq -r '.tags[2]' <<< "${{ steps.meta.outputs.json }}")" >> $GITHUB_OUTPUT
-          echo "scrambling_tag=$(jq -r '.tags[3]' <<< "${{ steps.meta.outputs.json }}")" >> $GITHUB_OUTPUT
+      - name: Extract metadata for backend
+        id: meta_backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/backend
+          tags: type=sha
 
-      - name: Debug print parsed tags
-        run: |
-          echo "NGINX TAG: ${{ steps.set-tags.outputs.nginx_tag }}"
-          echo "BACKEND TAG: ${{ steps.set-tags.outputs.backend_tag }}"
-          echo "CRON TAG: ${{ steps.set-tags.outputs.cron_tag }}"
-          echo "SCRAMBLING TAG: ${{ steps.set-tags.outputs.scrambling_tag }}"
+      - name: Extract metadata for cron
+        id: meta_cron
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/cron
+          tags: type=sha
+
+      - name: Extract metadata for scrambling
+        id: meta_scrambling
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/scrambling
+          tags: type=sha
 
   build-nginx:
     runs-on: ubuntu-latest
