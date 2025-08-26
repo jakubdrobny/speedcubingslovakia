@@ -1,12 +1,6 @@
 services:
   nginx:
-    build:
-      context: .
-      dockerfile: ./docker/production/nginx.Dockerfile
-      args:
-        - VITE_WCA_GET_CODE_URL=${VITE_WCA_GET_CODE_URL}
-        - VITE_SCRAMBLE_IMAGES_PATH=${VITE_SCRAMBLE_IMAGES_PATH}
-        - NODE_ENV=${NODE_ENV}
+    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/nginx:latest'
     ports:
       - "80:80"
       - "443:443"
@@ -27,11 +21,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/nginx:'
+ 
   backend:
-    build:
-      context: ./backend
-      dockerfile: ../docker/production/backend.Dockerfile
+    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/backend:latest'
     volumes:
       - .env.production:/app/.env
       - ./data/scramble_images:/app/scramble_images
@@ -49,11 +41,9 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/backend:'
+ 
   cron:
-    build:
-      context: ./backend
-      dockerfile: ../docker/production/cron.Dockerfile
+    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/cron:latest'
     restart: always
     volumes:
       - .env.production:/app/.env:ro
@@ -66,7 +56,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/cron:'
+ 
   db:
     image: postgres:17.5-alpine
     restart: always
@@ -81,6 +71,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
   migrate:
     image: migrate/migrate:v4.18.3
     profiles: [migrate]
@@ -93,21 +84,19 @@ services:
     command: # $$ tells docker to get the variable from container and not parse immediately
       - >
         migrate -path=/migrations -database "$${DB_URL}" up;
-
     networks:
       - speedcubingslovakia
     volumes:
       - ./database/migrations:/migrations
+  
   scrambling:
-    build:
-      context: ./scrambling
-      dockerfile: ../docker/production/scrambling.Dockerfile
+    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:latest'
     env_file:
       - .env.production
     restart: always
     networks:
       - speedcubingslovakia
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:'
+  
   alloy:
     image: grafana/alloy:v1.10.1
     volumes:
@@ -124,6 +113,7 @@ services:
       - mimir
       - loki
       - grafana
+  
   mimir:
     image: grafana/mimir:2.16.1
     volumes:
@@ -134,6 +124,7 @@ services:
     restart: always
     networks:
       - speedcubingslovakia
+  
   loki:
     image: grafana/loki:3.5.3
     volumes:
@@ -143,6 +134,7 @@ services:
     restart: always
     networks:
       - speedcubingslovakia
+  
   grafana:
     image: grafana/grafana:12.0.4
     env_file:
@@ -152,5 +144,6 @@ services:
     restart: always
     networks:
       - speedcubingslovakia
+
 networks:
   speedcubingslovakia:
