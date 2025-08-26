@@ -9,10 +9,10 @@ jobs:
   metadata:
     runs-on: ubuntu-latest
     outputs:
-      nginx_tag: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-      backend_tag: ${{ fromJSON(steps.meta.outputs.json).tags[1] }}
-      cron_tag: ${{ fromJSON(steps.meta.outputs.json).tags[2] }}
-      scrambling_tag: ${{ fromJSON(steps.meta.outputs.json).tags[3] }}
+      nginx_tag: ${{ steps.set-tags.outputs.nginx_tag }}
+      backend_tag: ${{ steps.set-tags.outputs.backend_tag }}
+      cron_tag: ${{ steps.set-tags.outputs.cron_tag }}
+      scrambling_tag: ${{ steps.set-tags.outputs.scrambling_tag }}
       labels: ${{ steps.meta.outputs.labels }}
     steps:
       - name: Checkout repository
@@ -29,6 +29,7 @@ jobs:
             ghcr.io/${{ github.repository }}/scrambling
           tags: |
             type=sha
+            
       - name: Set job outputs
         id: set-tags
         run: |
