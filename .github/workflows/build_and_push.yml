@@ -72,7 +72,7 @@ jobs:
           echo "Raw tags output:"
           echo '${{ needs.metadata }}'
           echo "Raw JSON output:"
-          echo '${{ needs.metadata.outputs.json }}' | jq .
+          echo '${{ needs.metadata }}' | jq .
 
   build-backend:
     runs-on: ubuntu-latest
