@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/nginx:latest'
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/nginx:sha-2b5c432
     ports:
       - 80:80
       - 443:443
@@ -27,9 +27,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
   backend:
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/backend:latest'
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/backend:sha-2b5c432
     volumes:
       - .env.production:/app/.env
       - ./data/scramble_images:/app/scramble_images
@@ -52,9 +51,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-  
   cron:
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/cron:latest'
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/cron:sha-2b5c432
     restart: always
     volumes:
       - .env.production:/app/.env:ro
@@ -67,7 +65,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  
   db:
     image: postgres:17.5-alpine
     restart: always
@@ -84,7 +81,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  
   migrate:
     image: migrate/migrate:v4.18.3
     profiles:
@@ -104,15 +100,13 @@ services:
       - speedcubingslovakia
     volumes:
       - ./database/migrations:/migrations
-  
   scrambling:
-    image: 'ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:latest'
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:sha-2b5c432
     env_file:
       - .env.production
     restart: always
     networks:
       - speedcubingslovakia
-  
   alloy:
     image: grafana/alloy:v1.10.1
     volumes:
@@ -129,7 +123,6 @@ services:
       - mimir
       - loki
       - grafana
-  
   mimir:
     image: grafana/mimir:2.16.1
     volumes:
@@ -140,7 +133,6 @@ services:
     restart: always
     networks:
       - speedcubingslovakia
-  
   loki:
     image: grafana/loki:3.5.3
     volumes:
@@ -150,7 +142,6 @@ services:
     restart: always
     networks:
       - speedcubingslovakia
-  
   grafana:
     image: grafana/grafana:12.0.4
     env_file:
@@ -160,6 +151,5 @@ services:
     restart: always
     networks:
       - speedcubingslovakia
-
 networks:
   speedcubingslovakia:
