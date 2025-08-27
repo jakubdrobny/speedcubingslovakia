@@ -70,7 +70,7 @@ jobs:
       - name: Debug print metadata outputs
         run: |
           echo "Raw tags output:"
-          echo '${{ needs.metadata.outputs }}'
+          echo '${{ needs.metadata }}'
           echo "Raw JSON output:"
           echo '${{ needs.metadata.outputs.json }}' | jq .
 
