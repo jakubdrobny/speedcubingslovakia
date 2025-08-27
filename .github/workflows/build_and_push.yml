@@ -70,6 +70,7 @@ jobs:
       - name: Debug print all metadata outputs as JSON
         run: |
           echo "All metadata outputs:"
+          echo 'nginx_tag: ${{needs.metadata.outputs.nginx_tag }}'
           echo '${{ toJSON(needs.metadata.outputs) }}' | jq .
 
   build-backend:
