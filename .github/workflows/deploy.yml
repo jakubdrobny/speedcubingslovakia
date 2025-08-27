@@ -50,6 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: metadata
     steps:
+      - uses: docker/setup-qemu-action@v3
       - uses: actions/checkout@v5
       - uses: docker/login-action@v3.5.0
         with:
@@ -67,11 +68,13 @@ jobs:
             VITE_WCA_GET_CODE_URL=${{ secrets.VITE_WCA_GET_CODE_URL }}
             VITE_SCRAMBLE_IMAGES_PATH=${{ secrets.VITE_SCRAMBLE_IMAGES_PATH }}
             NODE_ENV=production
+          platform: linux/arm64
 
   build-backend:
     runs-on: ubuntu-latest
     needs: metadata
     steps:
+      - uses: docker/setup-qemu-action@v3
       - uses: actions/checkout@v5
       - uses: docker/login-action@v3.5.0
         with:
@@ -85,11 +88,13 @@ jobs:
           push: true
           tags: ${{ needs.metadata.outputs.backend_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
+          platform: linux/arm64
 
   build-cron:
     runs-on: ubuntu-latest
     needs: metadata
     steps:
+      - uses: docker/setup-qemu-action@v3
       - uses: actions/checkout@v5
       - uses: docker/login-action@v3.5.0
         with:
@@ -103,11 +108,13 @@ jobs:
           push: true
           tags: ${{ needs.metadata.outputs.cron_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
+          platform: linux/arm64
 
   build-scrambling:
     runs-on: ubuntu-latest
     needs: metadata
     steps:
+      - uses: docker/setup-qemu-action@v3
       - uses: actions/checkout@v5
       - uses: docker/login-action@v3.5.0
         with:
@@ -121,6 +128,7 @@ jobs:
           push: true
           tags: ${{ needs.metadata.outputs.scrambling_tag }}
           labels: ${{ needs.metadata.outputs.labels }}
+          platform: linux/arm64
 
   update-docker-compose:
     runs-on: ubuntu-latest
