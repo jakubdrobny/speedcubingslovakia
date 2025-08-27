@@ -17,3 +17,5 @@ database/.env.development
 .env.*
 
 data/
+
+.github/workflows/old_deploy.yml
