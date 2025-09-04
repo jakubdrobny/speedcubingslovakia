@@ -23,32 +23,59 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}/nginx
-          tags: type=sha
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Extract metadata for backend
         id: meta_backend
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}/backend
-          tags: type=sha
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Extract metadata for cron
         id: meta_cron
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}/cron
-          tags: type=sha
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Extract metadata for scrambling
         id: meta_scrambling
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}/scrambling
-          tags: type=sha
+          tags: |
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
 
-  build-nginx:
+  build:
     runs-on: ubuntu-latest
     needs: metadata
+    strategy:
+      matrix:
+        include:
+          - name: nginx
+            context: .
+            dockerfile: docker/production/nginx.Dockerfile
+            build-args: |
+              VITE_WCA_GET_CODE_URL=${{ secrets.VITE_WCA_GET_CODE_URL }}
+              VITE_SCRAMBLE_IMAGES_PATH=${{ secrets.VITE_SCRAMBLE_IMAGES_PATH }}
+              NODE_ENV=production
+          - name: backend
+            context: ./backend
+            dockerfile: docker/production/backend.Dockerfile
+          - name: cron
+            context: ./backend
+            dockerfile: docker/production/cron.Dockerfile
+          - name: scrambling
+            context: ./scrambling
+            dockerfile: docker/production/scrambling.Dockerfile
     steps:
       - uses: docker/setup-qemu-action@v3
       - uses: actions/checkout@v5
@@ -59,80 +86,19 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v4
         with:
-          context: .
-          file: docker/production/nginx.Dockerfile
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
           push: true
-          tags: ${{ needs.metadata.outputs.nginx_tag }}
-          labels: ${{ needs.metadata.outputs.labels }}
-          build-args: |
-            VITE_WCA_GET_CODE_URL=${{ secrets.VITE_WCA_GET_CODE_URL }}
-            VITE_SCRAMBLE_IMAGES_PATH=${{ secrets.VITE_SCRAMBLE_IMAGES_PATH }}
-            NODE_ENV=production
-          platforms: linux/arm64
-
-  build-backend:
-    runs-on: ubuntu-latest
-    needs: metadata
-    steps:
-      - uses: docker/setup-qemu-action@v3
-      - uses: actions/checkout@v5
-      - uses: docker/login-action@v3.5.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          file: docker/production/backend.Dockerfile
-          push: true
-          tags: ${{ needs.metadata.outputs.backend_tag }}
+          tags: ${{ needs.metadata.outputs[format('{0}_tag', matrix.name)] }}
           labels: ${{ needs.metadata.outputs.labels }}
           platforms: linux/arm64
-
-  build-cron:
-    runs-on: ubuntu-latest
-    needs: metadata
-    steps:
-      - uses: docker/setup-qemu-action@v3
-      - uses: actions/checkout@v5
-      - uses: docker/login-action@v3.5.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          file: docker/production/cron.Dockerfile
-          push: true
-          tags: ${{ needs.metadata.outputs.cron_tag }}
-          labels: ${{ needs.metadata.outputs.labels }}
-          platforms: linux/arm64
-
-  build-scrambling:
-    runs-on: ubuntu-latest
-    needs: metadata
-    steps:
-      - uses: docker/setup-qemu-action@v3
-      - uses: actions/checkout@v5
-      - uses: docker/login-action@v3.5.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v4
-        with:
-          context: ./scrambling
-          file: docker/production/scrambling.Dockerfile
-          push: true
-          tags: ${{ needs.metadata.outputs.scrambling_tag }}
-          labels: ${{ needs.metadata.outputs.labels }}
-          platforms: linux/arm64
+          build-args: ${{ matrix.build-args }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max
 
   update-docker-compose:
     runs-on: ubuntu-latest
-    needs: [build-nginx, build-backend, build-cron, build-scrambling, metadata]
+    needs: [build, metadata]
     steps:
       - uses: actions/checkout@v5
       - uses: mikefarah/yq@v4.47.1
