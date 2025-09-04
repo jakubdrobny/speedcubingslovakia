@@ -100,13 +100,22 @@ jobs:
     needs: [build, metadata]
     steps:
       - uses: actions/checkout@v5
-      - uses: mikefarah/yq@v4.47.1
-        with:
-          cmd: |
-            yq e -P '.services.nginx.image = "${{ needs.metadata.outputs.nginx_tag }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.backend.image = "${{ needs.metadata.outputs.backend_tag }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.cron.image = "${{ needs.metadata.outputs.cron_tag }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.scrambling.image = "${{ needs.metadata.outputs.scrambling_tag }}"' -i docker-compose.prod.yml
+      - name: Update image tags in docker-compose.prod.yml
+        env:
+          NGINX_TAGS: ${{ needs.metadata.outputs.nginx_tag }}
+          BACKEND_TAGS: ${{ needs.metadata.outputs.backend_tag }}
+          CRON_TAGS: ${{ needs.metadata.outputs.cron_tag }}
+          SCRAMBLING_TAGS: ${{ needs.metadata.outputs.scrambling_tag }}
+        run: |
+          NGINX_SHA_TAG=$(echo "$NGINX_TAGS" | grep 'sha-')
+          BACKEND_SHA_TAG=$(echo "$BACKEND_TAGS" | grep 'sha-')
+          CRON_SHA_TAG=$(echo "$CRON_TAGS" | grep 'sha-')
+          SCRAMBLING_SHA_TAG=$(echo "$SCRAMBLING_TAGS" | grep 'sha-')
+
+          yq e -i -P '.services.nginx.image = env(NGINX_SHA_TAG)' docker-compose.prod.yml
+          yq e -i -P '.services.backend.image = env(BACKEND_SHA_TAG)' docker-compose.prod.yml
+          yq e -i -P '.services.cron.image = env(CRON_SHA_TAG)' docker-compose.prod.yml
+          yq e -i -P '.services.scrambling.image = env(SCRAMBLING_SHA_TAG)' docker-compose.prod.yml
       - uses: stefanzweifel/git-auto-commit-action@v6.0.1
         with:
           commit_message: "Update docker-compose.prod.yml with new image tags"
