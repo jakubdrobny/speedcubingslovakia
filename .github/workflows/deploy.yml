@@ -88,7 +88,6 @@ jobs:
           push: true
           tags: ${{ needs.metadata.outputs[format('{0}_tag', matrix.name)] }}
           labels: ${{ needs.metadata.outputs.labels }}
-          platforms: linux/arm64
           build-args: |
             ${{ matrix.name == 'nginx' && format('VITE_WCA_GET_CODE_URL={0}', secrets.VITE_WCA_GET_CODE_URL) || '' }}
             ${{ matrix.name == 'nginx' && format('VITE_SCRAMBLE_IMAGES_PATH={0}', secrets.VITE_SCRAMBLE_IMAGES_PATH) || '' }}
