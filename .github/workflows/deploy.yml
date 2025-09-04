@@ -63,10 +63,6 @@ jobs:
           - name: nginx
             context: .
             dockerfile: docker/production/nginx.Dockerfile
-            build-args: |
-              VITE_WCA_GET_CODE_URL=${{ secrets.VITE_WCA_GET_CODE_URL }}
-              VITE_SCRAMBLE_IMAGES_PATH=${{ secrets.VITE_SCRAMBLE_IMAGES_PATH }}
-              NODE_ENV=production
           - name: backend
             context: ./backend
             dockerfile: docker/production/backend.Dockerfile
@@ -92,7 +88,10 @@ jobs:
           tags: ${{ needs.metadata.outputs[format('{0}_tag', matrix.name)] }}
           labels: ${{ needs.metadata.outputs.labels }}
           platforms: linux/arm64
-          build-args: ${{ matrix.build-args }}
+          build-args: |
+            ${{ matrix.name == 'nginx' && format('VITE_WCA_GET_CODE_URL={0}', secrets.VITE_WCA_GET_CODE_URL) || '' }}
+            ${{ matrix.name == 'nginx' && format('VITE_SCRAMBLE_IMAGES_PATH={0}', secrets.VITE_SCRAMBLE_IMAGES_PATH) || '' }}
+            ${{ matrix.name == 'nginx' && 'NODE_ENV=production' || '' }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,scope=${{ matrix.name }},mode=max
 
