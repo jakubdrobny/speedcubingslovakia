@@ -9,10 +9,10 @@ jobs:
   metadata:
     runs-on: ubuntu-latest
     outputs:
-      nginx_json: ${{ steps.meta_nginx.outputs.json }}
-      backend_json: ${{ steps.meta_backend.outputs.json }}
-      cron_json: ${{ steps.meta_cron.outputs.json }}
-      scrambling_json: ${{ steps.meta_scrambling.outputs.json }}
+      nginx_tag: ${{ steps.meta_nginx.outputs.tags }}
+      backend_tag: ${{ steps.meta_backend.outputs.tags }}
+      cron_tag: ${{ steps.meta_cron.outputs.tags }}
+      scrambling_tag: ${{ steps.meta_scrambling.outputs.tags }}
       labels: ${{ steps.meta_nginx.outputs.labels }}
     steps:
       - name: Checkout repository
@@ -74,7 +74,6 @@ jobs:
             dockerfile: docker/production/scrambling.Dockerfile
     steps:
       - uses: actions/checkout@v5
-      - uses: docker/setup-qemu-action@v3.6.0
       - uses: docker/setup-buildx-action@v3.11.1
       - uses: docker/login-action@v3.5.0
         with:
@@ -100,13 +99,20 @@ jobs:
     needs: [build, metadata]
     steps:
       - uses: actions/checkout@v5
+      - name: Extract SHA tags
+        id: sha_extractor
+        run: |
+          echo "nginx_sha_tag=$(echo "${{ needs.metadata.outputs.nginx_tag }}" | grep 'sha-')" >> $GITHUB_OUTPUT
+          echo "backend_sha_tag=$(echo "${{ needs.metadata.outputs.backend_tag }}" | grep 'sha-')" >> $GITHUB_OUTPUT
+          echo "cron_sha_tag=$(echo "${{ needs.metadata.outputs.cron_tag }}" | grep 'sha-')" >> $GITHUB_OUTPUT
+          echo "scrambling_sha_tag=$(echo "${{ needs.metadata.outputs.scrambling_tag }}" | grep 'sha-')" >> $GITHUB_OUTPUT
       - uses: mikefarah/yq@v4.47.1
         with:
           cmd: |
-            yq e -P '.services.nginx.image = "${{ fromJSON(needs.metadata.outputs.nginx_json).tags[0] }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.backend.image = "${{ fromJSON(needs.metadata.outputs.backend_json).tags[0] }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.cron.image = "${{ fromJSON(needs.metadata.outputs.cron_json).tags[0] }}"' -i docker-compose.prod.yml &&
-            yq e -P '.services.scrambling.image = "${{ fromJSON(needs.metadata.outputs.scrambling_json).tags[0] }}"' -i docker-compose.prod.yml
+            yq e -P '.services.nginx.image = "${{ steps.sha_extractor.outputs.nginx_sha_tag }}"' -i docker-compose.prod.yml &&
+            yq e -P '.services.backend.image = "${{ steps.sha_extractor.outputs.backend_sha_tag }}"' -i docker-compose.prod.yml &&
+            yq e -P '.services.cron.image = "${{ steps.sha_extractor.outputs.cron_sha_tag }}"' -i docker-compose.prod.yml &&
+            yq e -P '.services.scrambling.image = "${{ steps.sha_extractor.outputs.scrambling_sha_tag }}"' -i docker-compose.prod.yml
       - uses: stefanzweifel/git-auto-commit-action@v6.0.1
         with:
           commit_message: "Update docker-compose.prod.yml with new image tags"
