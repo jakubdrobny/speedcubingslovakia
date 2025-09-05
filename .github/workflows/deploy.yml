@@ -55,7 +55,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
   build:
-    runs-on: ubuntu-latest-arm64
+    runs-on: ubuntu-24.04-arm
     needs: metadata
     strategy:
       matrix:
