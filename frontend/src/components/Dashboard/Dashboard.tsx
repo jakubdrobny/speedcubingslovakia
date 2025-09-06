@@ -16,7 +16,7 @@ const Dashboard = () => {
         </Button>
         <Button
           component={Link}
-          to="/monitoring"
+          to={import.meta.env.VITE_MONITORING_PATH}
           color="primary"
           variant="outlined"
         >
@@ -55,7 +55,7 @@ const Dashboard = () => {
           Create announcement
         </Button>
       </Stack>
-    </div>
+    </div >
   );
 };
 
