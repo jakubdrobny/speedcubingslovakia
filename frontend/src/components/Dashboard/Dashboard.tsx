@@ -16,6 +16,14 @@ const Dashboard = () => {
         </Button>
         <Button
           component={Link}
+          to="/monitoring"
+          color="primary"
+          variant="outlined"
+        >
+          Monitoring
+        </Button>
+        <Button
+          component={Link}
           to="/admin/manage-roles"
           color="primary"
           variant="outlined"
