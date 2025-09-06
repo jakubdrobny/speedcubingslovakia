@@ -90,6 +90,7 @@ jobs:
           build-args: |
             ${{ matrix.name == 'nginx' && format('VITE_WCA_GET_CODE_URL={0}', secrets.VITE_WCA_GET_CODE_URL) || '' }}
             ${{ matrix.name == 'nginx' && format('VITE_SCRAMBLE_IMAGES_PATH={0}', secrets.VITE_SCRAMBLE_IMAGES_PATH) || '' }}
+            ${{ matrix.name == 'nginx' && format('VITE_MONITORING_PATH={0}', secrets.VITE_MONITORING_PATH) || '' }}
             ${{ matrix.name == 'nginx' && 'NODE_ENV=production' || '' }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,scope=${{ matrix.name }},mode=max
