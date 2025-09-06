@@ -17,6 +17,7 @@ const Dashboard = () => {
         <Button
           component={Link}
           to={import.meta.env.VITE_MONITORING_PATH}
+          reloadDocument
           color="primary"
           variant="outlined"
         >
