@@ -106,6 +106,8 @@ jobs:
           echo "backend_sha_tag=$(echo "${{ needs.metadata.outputs.backend_tag }}" | grep 'sha-')" >> $GITHUB_OUTPUT
           echo "cron_sha_tag=$(echo "${{ needs.metadata.outputs.cron_tag }}" | grep 'sha-')" >> $GITHUB_OUTPUT
           echo "scrambling_sha_tag=$(echo "${{ needs.metadata.outputs.scrambling_tag }}" | grep 'sha-')" >> $GITHUB_OUTPUT
+      - name: Pull latest changes
+        run: git pull origin main
       - uses: mikefarah/yq@v4.47.1
         with:
           cmd: |
@@ -115,7 +117,7 @@ jobs:
             yq e -P '.services.scrambling.image = "${{ steps.sha_extractor.outputs.scrambling_sha_tag }}"' -i docker-compose.prod.yml
       - uses: stefanzweifel/git-auto-commit-action@v6.0.1
         with:
-          commit_message: "Update docker-compose.prod.yml with new image tags"
+          commit_message: "Update image tags"
           branch: main
           file_pattern: docker-compose.prod.yml
 
