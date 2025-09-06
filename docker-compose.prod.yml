@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: ghcr.io/jakubdrobny/speedcubingslovakia/nginx:sha-e78d387
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/nginx:sha-a1ae1d2
     ports:
       - 80:80
       - 443:443
@@ -28,7 +28,7 @@ services:
       timeout: 5s
       retries: 5
   backend:
-    image: ghcr.io/jakubdrobny/speedcubingslovakia/backend:sha-e78d387
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/backend:sha-a1ae1d2
     volumes:
       - .env.production:/app/.env
       - ./data/scramble_images:/app/scramble_images
@@ -52,7 +52,7 @@ services:
       retries: 5
       start_period: 10s
   cron:
-    image: ghcr.io/jakubdrobny/speedcubingslovakia/cron:sha-e78d387
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/cron:sha-a1ae1d2
     restart: always
     volumes:
       - .env.production:/app/.env:ro
@@ -101,7 +101,7 @@ services:
     volumes:
       - ./database/migrations:/migrations
   scrambling:
-    image: ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:sha-e78d387
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:sha-a1ae1d2
     env_file:
       - .env.production
     restart: always
