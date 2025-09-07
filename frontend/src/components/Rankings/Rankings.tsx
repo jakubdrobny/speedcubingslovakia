@@ -122,7 +122,7 @@ const Rankings = () => {
         <Stack direction="row" flexWrap="wrap">
           {events.map((event: CompetitionEvent, idx: number) => (
             <span
-              key={idx}
+              key={idx.toString() + "+" + event.displayname}
               className={`${getCubingIconClassName(
                 event.iconcode,
               )} profile-cubing-icon-mock`}
@@ -229,12 +229,14 @@ const Rankings = () => {
             <Option value="100+Persons">100 Persons</Option>
             <Option value="1000+Persons">1000 Persons</Option>
             {eventsRef.current[currentEventIdx] &&
-              eventsRef.current[currentEventIdx].displayname !== "Overall" && (
-                <>
-                  <Option value="100+Results">100 Results</Option>
-                  <Option value="1000+Results">1000 Results</Option>
-                </>
-              )}
+              eventsRef.current[currentEventIdx].displayname !== "Overall" && [
+                <Option key="100+Results" value="100+Results">
+                  100 Results
+                </Option>,
+                <Option key="1000+Results" value="1000+Results">
+                  1000 Results
+                </Option>,
+              ]}
           </Select>
         </Stack>
       </Stack>
@@ -251,13 +253,13 @@ const Rankings = () => {
           disabled={loadingState.isLoading}
         >
           {regionGroups.map((regionGroup: RegionSelectGroup, idx: number) => (
-            <div key={idx}>
+            <div key={idx.toString() + "+" + regionGroup.groupName}>
               <Option value={regionGroup.groupName} disabled sx={{ pl: 2 }}>
                 <b style={{ color: "black" }}>{regionGroup.groupName}</b>
               </Option>
               {regionGroup.groupMembers.map((groupMember: string, idx2) => (
                 <Option
-                  key={idx2}
+                  key={idx2.toString() + "+" + groupMember}
                   value={regionGroup.groupName + "+" + groupMember}
                   label={groupMember}
                   sx={{ pl: 4 }}
