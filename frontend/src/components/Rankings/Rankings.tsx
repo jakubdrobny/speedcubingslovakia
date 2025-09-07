@@ -52,9 +52,7 @@ const Rankings = () => {
   const isoverall = events[currentEventIdx]?.displayname === "Overall";
   const [queryTypeValue, setQueryTypeValue, queryTypeValueRef] =
     useState<string>(defaultQueryTypeValue);
-  const { windowSize } = useContext(
-    WindowSizeContext
-  ) as WindowSizeContextType;
+  const { windowSize } = useContext(WindowSizeContext) as WindowSizeContextType;
 
   const fetchRankings = useCallback(() => {
     if (
@@ -64,13 +62,16 @@ const Rankings = () => {
     )
       return;
 
+    const isOverall =
+      eventsRef.current[currentEventIdxRef.current]?.displayname === "Overall";
+
     setLoadingState({ isLoading: true, error: {} });
     getRankings(
       eventsRef.current[currentEventIdxRef.current]?.id,
       singleRef.current,
       regionValueRef.current.split("+")[0],
       regionValueRef.current.split("+")[1],
-      queryTypeValueRef.current
+      !isOverall ? queryTypeValueRef.current : "100+Persons",
     )
       .then((res: RankingsEntry[]) => {
         setRankings(res);
@@ -118,37 +119,54 @@ const Rankings = () => {
       </Typography>
       <Stack direction="row" spacing={1}>
         <Typography level="h3">Event:</Typography>
-        <Stack direction="row" flexWrap="wrap" useFlexGap>
+        <Stack direction="row" flexWrap="wrap">
           {events.map((event: CompetitionEvent, idx: number) => (
             <span
               key={idx}
               className={`${getCubingIconClassName(
-                event.iconcode
+                event.iconcode,
               )} profile-cubing-icon-mock`}
               onClick={() => {
                 if (!loadingState.isLoading) {
+                  const isOverall =
+                    eventsRef.current[idx].displayname === "Overall";
                   if (
                     eventsRef &&
                     eventsRef.current &&
                     idx < eventsRef.current.length &&
                     (eventsRef.current[idx].displayname === "MBLD" ||
                       eventsRef.current[idx].format === "bo1" ||
-                      eventsRef.current[idx].displayname === "Overall")
+                      isOverall)
                   )
                     setSingle(true);
+
+                  if (
+                    isOverall &&
+                    queryTypeValueRef.current.includes("Results")
+                  ) {
+                    setQueryTypeValue("100+Persons");
+                  }
                   setCurrentEventIdx(idx);
                   fetchRankings();
                 }
               }}
               style={{
-                padding: "0 0.25em",
+                padding: "0.2em 0.25em",
                 fontSize: "1.75em",
-                color: currentEventIdx === idx ? "#0B6BCB" : "",
+                color:
+                  currentEventIdx === idx
+                    ? "#0B6BCB"
+                    : idx === events.length - 1
+                      ? "#CDB450"
+                      : "",
                 cursor: "pointer",
+                opacity: loadingState.isLoading ? 0.5 : 1,
+                display: "flex",
+                alignItems: "center",
               }}
             >
               {idx === events.length - 1 && (
-                <EmojiEvents sx={{ paddingTop: "1px", fontSize: "1em" }} />
+                <EmojiEvents sx={{ fontSize: "1em" }} />
               )}
             </span>
           ))}
@@ -206,11 +224,17 @@ const Rankings = () => {
               fetchRankings();
             }}
             renderValue={(sel) => <Box sx={{ pl: 0.5 }}>{sel?.label}</Box>}
+            disabled={loadingState.isLoading}
           >
             <Option value="100+Persons">100 Persons</Option>
             <Option value="1000+Persons">1000 Persons</Option>
-            <Option value="100+Results">100 Results</Option>
-            <Option value="1000+Results">1000 Results</Option>
+            {eventsRef.current[currentEventIdx] &&
+              eventsRef.current[currentEventIdx].displayname !== "Overall" && (
+                <>
+                  <Option value="100+Results">100 Results</Option>
+                  <Option value="1000+Results">1000 Results</Option>
+                </>
+              )}
           </Select>
         </Stack>
       </Stack>
@@ -224,6 +248,7 @@ const Rankings = () => {
           }}
           renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
           sx={{ minWidth: "200px" }}
+          disabled={loadingState.isLoading}
         >
           {regionGroups.map((regionGroup: RegionSelectGroup, idx: number) => (
             <div key={idx}>
@@ -237,6 +262,7 @@ const Rankings = () => {
                   label={groupMember}
                   sx={{ pl: 4 }}
                   color="neutral"
+                  disabled={loadingState.isLoading}
                 >
                   {groupMember}
                 </Option>

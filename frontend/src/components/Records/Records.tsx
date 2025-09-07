@@ -66,7 +66,7 @@ const Records = () => {
         ? -1
         : eventsRef.current[currentEventIdxRef.current].id,
       regionValueRef.current.split("+")[0],
-      regionValueRef.current.split("+")[1]
+      regionValueRef.current.split("+")[1],
     )
       .then((res: RecordsItem[]) => {
         setRecords(res);
@@ -98,13 +98,14 @@ const Records = () => {
               cursor: "pointer",
               transform: "scale(1.25)",
               padding: "0 9px 0 10px",
+              opacity: loadingState.isLoading ? 0.5 : 1,
             }}
           />
           {events.map((event: CompetitionEvent, idx: number) => (
             <span
               key={idx}
               className={`${getCubingIconClassName(
-                event.iconcode
+                event.iconcode,
               )} profile-cubing-icon-mock`}
               onClick={() => {
                 if (!loadingState.isLoading) {
@@ -117,6 +118,7 @@ const Records = () => {
                 fontSize: "1.75em",
                 color: currentEventIdx === idx ? "#0B6BCB" : "",
                 cursor: "pointer",
+                opacity: loadingState.isLoading ? 0.5 : 1,
               }}
             />
           ))}
@@ -134,6 +136,7 @@ const Records = () => {
           }}
           renderValue={(sel) => <Box sx={{ pl: 1 }}>{sel?.label}</Box>}
           sx={{ minWidth: "200px" }}
+          disabled={loadingState.isLoading}
         >
           {regionGroups.map((regionGroup: RegionSelectGroup, idx: number) => (
             <div key={idx}>
@@ -147,6 +150,7 @@ const Records = () => {
                   label={groupMember}
                   sx={{ pl: 4 }}
                   color="neutral"
+                  disabled={loadingState.isLoading}
                 >
                   {groupMember}
                 </Option>

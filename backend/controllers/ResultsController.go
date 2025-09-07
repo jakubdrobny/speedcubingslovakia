@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"sort"
 	"strconv"
@@ -605,7 +606,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 		persons := queryType == "Persons"
 		if numOfEntries != 100 && numOfEntries != 1000 {
 			log.Println(
-				"ERR invalid no. of entries (" + string(
+				"ERR invalid no. of entries (" + strconv.Itoa(
 					numOfEntries,
 				) + ") in query in GetRankings. Possible values: 100, 1000",
 			)
@@ -626,6 +627,11 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 		rankings := make([]RankingsEntry, 0)
 
 		if eid == -1 {
+			if queryType == "Results" {
+				slog.Warn("overall category cannot be paired with Results queryType.")
+				c.IndentedJSON(http.StatusInternalServerError, "Invalid event and query type combination.")
+				return
+			}
 			competitionResults, err := models.GetOverallResults(db, "", regionType, regionPrecise)
 			if err != nil {
 				log.Println("ERR models.GetOverallResults in GetRankings: " + err.Error())
