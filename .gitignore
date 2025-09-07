@@ -15,6 +15,7 @@ database/.env.development
 
 .env
 .env.*
+!.env.example
 
 data/
 
