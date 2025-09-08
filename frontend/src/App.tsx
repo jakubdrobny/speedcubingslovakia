@@ -148,7 +148,7 @@ const App = () => {
                 element={<CompetitionEdit edit={false} />}
               />
               <Route path="/admin/dashboard" Component={Dashboard} />
-              <Route path="/admin/manage-roles" Component={ManageRoles} />
+              <Route path="/admin/manage-users" Component={ManageUsers} />
               <Route path="/results/edit" Component={ResultsEdit} />
               <Route
                 path="/announcement/:id/edit"

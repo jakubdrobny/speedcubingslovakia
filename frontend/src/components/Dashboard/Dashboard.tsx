@@ -25,11 +25,11 @@ const Dashboard = () => {
         </Button>
         <Button
           component={Link}
-          to="/admin/manage-roles"
+          to="/admin/manage-users"
           color="primary"
           variant="outlined"
         >
-          Manage roles
+          Manage users
         </Button>
         <Button
           component={Link}
@@ -56,7 +56,7 @@ const Dashboard = () => {
           Create announcement
         </Button>
       </Stack>
-    </div >
+    </div>
   );
 };
 

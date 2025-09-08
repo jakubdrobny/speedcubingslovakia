@@ -15,9 +15,9 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
-func GetManageRolesUsers(db *pgxpool.Pool) gin.HandlerFunc {
+func GetManageUsers(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		manageRolesUsers := make([]models.ManageRolesUser, 0)
+		manageUsers := make([]models.ManageUser, 0)
 
 		rows, err := db.Query(
 			context.Background(),
