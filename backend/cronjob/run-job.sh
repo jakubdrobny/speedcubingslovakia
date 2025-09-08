@@ -12,6 +12,8 @@ EXECUTABLE_PATH=$1
 JOB_NAME=$2
 LOGS_PATH="/app/logs/${JOB_NAME}.txt"
 
+cd /app
+
 echo "===== STARTING ${JOB_NAME}: $(date) =====" >> "${LOGS_PATH}" 2>&1
 ${EXECUTABLE_PATH} >> "${LOGS_PATH}" 2>&1
 echo "===== FINISHED ${JOB_NAME}: $(date) =====" >> "${LOGS_PATH}" 2>&1

@@ -277,16 +277,20 @@ func (c *CompetitionData) GenerateScrambles(envMap map[string]string) error {
 
 		ismbld := event.Iconcode == "333mbf"
 
+		fmt.Printf("GenerateScrambles:dbg1\nevent:%+v\n", event)
+
 		scrambles, err := GenerateScramblesForEvent(event.Scramblingcode, noOfSolves, ismbld, envMap)
 		if err != nil {
 			return err
 		}
 
+		fmt.Println("GenerateScrambles:dbg2")
 		images, err := GenerateImagesForScrambles(scrambles, event.Scramblingcode, ismbld, envMap)
 		if err != nil {
 			return err
 		}
 
+		fmt.Println("GenerateScrambles:dbg3")
 		var scrambleSet ScrambleSet
 		scrambleSet.Event = event
 		for idx, scrambleText := range scrambles {
