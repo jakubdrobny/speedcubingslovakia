@@ -182,12 +182,12 @@ func main() {
 			middlewares.AdminMiddleWare(),
 			controllers.GetManageUsers(db),
 		)
-		users.PUT(
-			"/manage-roles",
-			middlewares.AuthMiddleWare(),
-			middlewares.AdminMiddleWare(),
-			controllers.PutManageRolesUsers(db),
-		)
+		// users.PUT(
+		// 	"/manage-roles",
+		// 	middlewares.AuthMiddleWare(),
+		// 	middlewares.AdminMiddleWare(),
+		// 	controllers.PutManageRolesUsers(db),
+		// )
 		users.POST("/login", controllers.PostLogIn(db, envMap))
 		users.GET("/search", controllers.GetSearchUsers(db))
 		users.GET("/map", controllers.GetUserMapData(db))

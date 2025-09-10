@@ -180,12 +180,22 @@ export enum PenaltyType {
   DNF,
 }
 
+export type Continent = {
+  name: string;
+  record_name: string;
+};
+
+export type Country = {
+  name: string;
+  iso2: string;
+  continent: Continent;
+};
+
 export type ManageUser = {
   id: number;
   name: string;
   wca_id: string;
-  country_name: string;
-  country_iso2: string;
+  country: Country;
   is_admin: boolean;
 };
 
