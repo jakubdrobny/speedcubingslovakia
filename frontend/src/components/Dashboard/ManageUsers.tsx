@@ -115,9 +115,9 @@ const ManageRoles = () => {
                         </td>
                         <td style={{ height: "1em", textAlign: "left" }}>
                           <span
-                            className={`fi fi-${user.country.iso2.toLowerCase()}`}
+                            className={`fi fi-${user.country_iso2.toLowerCase()}`}
                           />
-                          &nbsp;&nbsp;{user.country.name}
+                          &nbsp;&nbsp;{user.country}
                         </td>
                         <td style={{ height: "1em", textAlign: "left" }}>
                           <Switch
