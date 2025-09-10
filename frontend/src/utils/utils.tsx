@@ -14,7 +14,6 @@ import {
   FilterValue,
   InputMethod,
   LoadingState,
-  ManageRolesUser,
   ProfileType,
   RankingsEntry,
   RecordsItem,
@@ -44,7 +43,7 @@ export const loadFilteredCompetitions = async (
 
 export const getCompetitionById = async (
   id: string | undefined,
-): Promise<CompetitionData> => {
+): Promise<CompetitionData | undefined> => {
   if (id === undefined) {
     return Promise.reject("Invalid competition id.");
   }
@@ -142,7 +141,7 @@ export const reformatWithPenalties = (
   return newFormattedTime;
 };
 
-export const getManageUsers = async (): Promise<ManageRolesUser[]> => {
+export const getManageUsers = async (): Promise<ManageUser[]> => {
   const response = await axios.get("/api/users/manage-roles");
   return response.data;
 };
@@ -570,7 +569,7 @@ export const getCubingIconClassName = (iconcode: any): string => {
 
 export const getAnnouncementById = async (
   id: string | undefined,
-): Promise<AnnouncementState> => {
+): Promise<AnnouncementState | undefined> => {
   if (id === undefined) {
     return Promise.reject("Invalid competition id.");
   }
