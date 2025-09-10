@@ -54,7 +54,7 @@ export const getCompetitionById = async (
 
 export const getResultsFromCompetitionAndEvent = async (
   cid: string | undefined,
-  event: CompetitionEvent | undefined,
+  event: CompetitionEvent,
 ): Promise<ResultEntry> => {
   if (cid === undefined || event === undefined)
     return Promise.reject("invalid competition/event id");
@@ -569,7 +569,7 @@ export const getCubingIconClassName = (iconcode: any): string => {
 
 export const getAnnouncementById = async (
   id: string | undefined,
-): Promise<AnnouncementState | undefined> => {
+): Promise<AnnouncementState> => {
   if (id === undefined) {
     return Promise.reject("Invalid competition id.");
   }
