@@ -184,7 +184,7 @@ export type ManageUser = {
   id: number;
   name: string;
   wca_id: string;
-  country: string;
+  country_name: string;
   country_iso2: string;
   is_admin: boolean;
 };

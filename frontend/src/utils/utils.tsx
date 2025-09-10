@@ -148,7 +148,7 @@ export const getManageUsers = async (): Promise<ManageRolesUser[]> => {
 };
 
 export const updateUserRoles = async (newUser: ManageUser): Promise<string> => {
-  const response = await axios.put("/api/users/manage-roles", newUser);
+  const response = await axios.post("/api/users/manage-roles", newUser);
   return response.data;
 };
 

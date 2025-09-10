@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -16,20 +17,45 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
-func GetManageUsers(db interfaces.DbExecutor) gin.HandlerFunc {
+func GetManageUsers(db interfaces.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var err error
-		defer utils.PrintStack(err)
+		defer utils.PrintStack(&err)
 
 		ctx := c.Request.Context()
 
 		manageUsers, err := models.ViewManageUsers(ctx, db)
 		if err != nil {
+			err = fmt.Errorf("%w: when calling models.ViewManageUsers", err)
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to query users.")
 			return
 		}
 
 		c.IndentedJSON(http.StatusOK, manageUsers)
+	}
+}
+
+func ManageUserRole(db interfaces.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var err error
+		defer utils.PrintStack(&err)
+
+		ctx := c.Request.Context()
+
+		var manageUser models.ManageUser
+		if err := c.ShouldBindJSON(&manageUser); err != nil {
+			err = fmt.Errorf("%w: when parsing request body", err)
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to parse request body.")
+			return
+		}
+
+		if err = manageUser.UpdateRole(ctx, db); err != nil {
+			err = fmt.Errorf("%w: when updating user role", err)
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to update user role.")
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, "Successfully update user role.")
 	}
 }
 

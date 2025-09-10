@@ -6,7 +6,12 @@ import (
 	"strings"
 )
 
-func PrintStack(err error) {
+func PrintStack(errPtr *error) {
+	err := *errPtr
+	if err == nil {
+		return
+	}
+
 	errorStack := []string{}
 	for err != nil {
 		errorStack = append(errorStack, err.Error())
