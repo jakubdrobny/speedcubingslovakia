@@ -34,7 +34,7 @@ const Dashboard = lazy(() => import("./components/Dashboard/Dashboard"));
 const Footer = lazy(() => import("./components/Footer/Footer"));
 const Home = lazy(() => import("./components/Home/Home"));
 const LogIn = lazy(() => import("./components/Login/LogIn"));
-const ManageRoles = lazy(() => import("./components/Dashboard/ManageRoles"));
+const ManageUsers = lazy(() => import("./components/Dashboard/ManageUsers"));
 const NavHorizontal = lazy(() => import("./components/Nav/NavHorizontal"));
 const NavVertical = lazy(() => import("./components/Nav/NavVertical"));
 const NotFound = lazy(() => import("./components/NotFound/NotFound"));
@@ -148,7 +148,7 @@ const App = () => {
                 element={<CompetitionEdit edit={false} />}
               />
               <Route path="/admin/dashboard" Component={Dashboard} />
-              <Route path="/admin/manage-roles" Component={ManageRoles} />
+              <Route path="/admin/manage-users" Component={ManageUsers} />
               <Route path="/results/edit" Component={ResultsEdit} />
               <Route
                 path="/announcement/:id/edit"

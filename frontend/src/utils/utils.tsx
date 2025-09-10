@@ -26,6 +26,7 @@ import {
   Tag,
   WCACompetitionType,
   MarkerType,
+  ManageUser,
 } from "../Types";
 import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
@@ -146,10 +147,8 @@ export const getManageUsers = async (): Promise<ManageRolesUser[]> => {
   return response.data;
 };
 
-export const updateUserRoles = async (
-  newUsers: ManageRolesUser[],
-): Promise<ManageRolesUser[]> => {
-  const response = await axios.put("/api/users/manage-roles", newUsers);
+export const updateUserRoles = async (newUser: ManageUser): Promise<string> => {
+  const response = await axios.post("/api/users/manage-roles", newUser);
   return response.data;
 };
 
@@ -285,8 +284,9 @@ export const reformatTime = (
   let digits = !matchedDigits ? "" : matchedDigits.join("");
   if (digits.length < 3) digits = digits.padStart(3, "0");
 
-  let newFormattedTime = `${digits[digits.length - 1]}${digits[digits.length - 2]
-    }.`;
+  let newFormattedTime = `${digits[digits.length - 1]}${
+    digits[digits.length - 2]
+  }.`;
   let idx = digits.length - 3;
   while (idx >= 0) {
     newFormattedTime += digits[idx--];
@@ -494,8 +494,10 @@ export const getRankings = async (
   queryType: string,
 ): Promise<RankingsEntry[]> => {
   const response = await axios.get(
-    `/api/results/rankings?eid=${eid}&type=${single ? "single" : "average"
-    }&regionGroup=${regionGroup}&region=${region}&queryType=${queryType.split("+")[1]
+    `/api/results/rankings?eid=${eid}&type=${
+      single ? "single" : "average"
+    }&regionGroup=${regionGroup}&region=${region}&queryType=${
+      queryType.split("+")[1]
     }&numOfEntries=${queryType.split("+")[0]}`,
   );
   return response.data;
@@ -561,8 +563,9 @@ export const initialResultsStruct: CompetitionResultStruct = {
 };
 
 export const getCubingIconClassName = (iconcode: any): string => {
-  return `cubing-icon ${iconcode.toString().startsWith("unofficial") ? "" : "event-"
-    }${iconcode.toString()}`;
+  return `cubing-icon ${
+    iconcode.toString().startsWith("unofficial") ? "" : "event-"
+  }${iconcode.toString()}`;
 };
 
 export const getAnnouncementById = async (

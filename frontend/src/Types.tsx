@@ -180,10 +180,13 @@ export enum PenaltyType {
   DNF,
 }
 
-export type ManageRolesUser = {
+export type ManageUser = {
   id: number;
   name: string;
-  isadmin: boolean;
+  wca_id: string;
+  country_name: string;
+  country_iso2: string;
+  is_admin: boolean;
 };
 
 export enum DashboardPanel {

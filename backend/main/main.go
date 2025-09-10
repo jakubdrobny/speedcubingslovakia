@@ -180,13 +180,13 @@ func main() {
 			"/manage-roles",
 			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
-			controllers.GetManageRolesUsers(db),
+			controllers.GetManageUsers(db),
 		)
-		users.PUT(
+		users.POST(
 			"/manage-roles",
 			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
-			controllers.PutManageRolesUsers(db),
+			controllers.ManageUserRole(db),
 		)
 		users.POST("/login", controllers.PostLogIn(db, envMap))
 		users.GET("/search", controllers.GetSearchUsers(db))
