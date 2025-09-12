@@ -1,11 +1,4 @@
-import {
-  Card,
-  CircularProgress,
-  Stack,
-  Switch,
-  Table,
-  Typography,
-} from "@mui/joy";
+import { Card, Stack, Switch, Table, Typography } from "@mui/joy";
 import { LoadingState, ManageUser } from "../../Types";
 import {
   getError,
@@ -17,6 +10,7 @@ import {
 } from "../../utils/utils";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import LoadingComponent from "../Loading/LoadingComponent";
 
 const ManageRoles = () => {
   const [users, setUsers] = useState<ManageUser[]>([]);
@@ -28,7 +22,7 @@ const ManageRoles = () => {
 
     getManageUsers()
       .then((res: ManageUser[]) => {
-        setUsers(res.sort((u1: ManageUser, u2: ManageUser) => u1.id - u2.id));
+        setUsers(res.sort((u1: ManageUser, u2: ManageUser) => u2.id - u1.id));
         setLoadingState({ isLoading: false, error: {} });
       })
       .catch((err) => {
@@ -61,7 +55,7 @@ const ManageRoles = () => {
   const columnNames = () => ["Order", "Name", "Country", "Is Admin?"];
 
   return (
-    <Stack style={{ marginTop: "1em" }} spacing={2}>
+    <Stack style={{ padding: 16 }} spacing={2}>
       <div style={{ borderBottom: "1px solid #CDD7E1" }}>
         <Typography fontWeight={"bold"} level="h2">
           Manage Roles
@@ -70,13 +64,10 @@ const ManageRoles = () => {
 
       {!isObjectEmpty(loadingState.error) &&
         renderResponseError(loadingState.error)}
-      <Card sx={{ padding: 0, margin: 0 }}>
-        {loadingState.isLoading && (!users || users.length === 0) ? (
-          <>
-            <CircularProgress />
-            &nbsp;Loading...
-          </>
-        ) : (
+      {loadingState.isLoading && (!users || users.length === 0) ? (
+        <LoadingComponent title="Fetching user data..." />
+      ) : (
+        <Card sx={{ padding: 0, margin: 0, overflowX: "auto" }}>
           <Table
             size="md"
             sx={{
@@ -112,7 +103,7 @@ const ManageRoles = () => {
                     </td>
                     <td style={{ height: "1em", textAlign: "left" }}>
                       <Link
-                        to={`/profile/${user.wca_id}`}
+                        to={`/profile/${user.wca_id ? user.wca_id : user.name}`}
                         style={{
                           color: "#0B6BCB",
                           textDecoration: "none",
@@ -130,6 +121,7 @@ const ManageRoles = () => {
                     </td>
                     <td style={{ height: "1em", textAlign: "left" }}>
                       <Switch
+                        disabled={loadingState.isLoading}
                         checked={user.is_admin}
                         onChange={handleUserRoleChange(idx)}
                       />
@@ -139,8 +131,8 @@ const ManageRoles = () => {
               })}
             </tbody>
           </Table>
-        )}
-      </Card>
+        </Card>
+      )}
     </Stack>
   );
 };

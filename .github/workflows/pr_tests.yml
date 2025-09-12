@@ -1,0 +1,10 @@
+name: PR Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  frontend-tests:
+    uses: ./.github/workflows/frontend_tests.yml

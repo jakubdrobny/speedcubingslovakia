@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/jakubdrobny/speedcubingslovakia/backend/email"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/interfaces"
 )
 
@@ -268,6 +271,59 @@ func (u *User) LoadContinent(db *pgxpool.Pool) error {
 			return err
 		}
 	}
+
+	return nil
+}
+
+func (u User) SendNewUserMailAsync(ctx context.Context, db interfaces.DB, envMap map[string]string) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in SendSuspicousMailAsync goroutine", r)
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		log.Println("Request was cancelled. Aborting suspicous mail send.")
+		return nil
+	default:
+	}
+
+	var order int
+	err := db.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&order)
+	if err != nil {
+		return fmt.Errorf("%w: when querying all users from db", err)
+	}
+
+	var mailSubject string
+	if envMap["NODE_ENV"] == "development" {
+		mailSubject += "DEVELOPMENT: "
+	}
+	mailSubject += "New user registered!!!"
+
+	profileLink := u.WcaId
+	if u.WcaId == "" {
+		profileLink = u.Name
+	}
+	content :=
+		"<b>Username + WCA ID:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/profile/" + profileLink + "\">" + u.Name + "</a> (" + profileLink + ")<br>" +
+			"<b>Email:</b> " + u.Email + "<br>" +
+			"<b>Sex:</b> " + u.Sex + "<br>" +
+			"<b>Country:</b> " + u.CountryId + "<br>" +
+			"<b>User no. " + strconv.Itoa(order) + "</b>"
+
+	err = email.SendMail(
+		envMap["MAIL_USERNAME"],
+		envMap["MAIL_USERNAME"],
+		mailSubject,
+		content,
+		envMap,
+	)
+	if err != nil {
+		return fmt.Errorf("%w: when sending email about new user", err)
+	}
+
+	log.Println("Successfully sent mail about new user.")
 
 	return nil
 }
