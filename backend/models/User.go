@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -288,6 +289,12 @@ func (u User) SendNewUserMailAsync(ctx context.Context, db interfaces.DB, envMap
 	default:
 	}
 
+	var order int
+	err := db.QueryRow(ctx, `SELECT COUNT(*) FROM users`).Scan(&order)
+	if err != nil {
+		return fmt.Errorf("%w: when querying all users from db", err)
+	}
+
 	var mailSubject string
 	if envMap["NODE_ENV"] == "development" {
 		mailSubject += "DEVELOPMENT: "
@@ -302,9 +309,10 @@ func (u User) SendNewUserMailAsync(ctx context.Context, db interfaces.DB, envMap
 		"<b>Username + WCA ID:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/profile/" + profileLink + "\">" + u.Name + "</a> (" + profileLink + ")<br>" +
 			"<b>Email:</b> " + u.Email + "<br>" +
 			"<b>Sex:</b> " + u.Sex + "<br>" +
-			"<b>Country:</b> " + u.CountryId + "<br>"
+			"<b>Country:</b> " + u.CountryId + "<br>" +
+			"<b>User no. " + strconv.Itoa(order) + "</b>"
 
-	err := email.SendMail(
+	err = email.SendMail(
 		envMap["MAIL_USERNAME"],
 		envMap["MAIL_USERNAME"],
 		mailSubject,
