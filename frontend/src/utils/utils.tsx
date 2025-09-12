@@ -575,7 +575,7 @@ export const getAnnouncementById = async (
   }
 
   const response = await axios.get(`/api/announcements/id/${id}`);
-  return !response.data ? undefined : response.data;
+  return response.data;
 };
 
 export const getAvailableTags = async (): Promise<Tag[]> => {
