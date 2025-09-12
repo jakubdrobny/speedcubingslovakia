@@ -97,6 +97,12 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 			err = user.Update(db)
 		} else {
 			err = user.Insert(db)
+
+			go func() {
+				if err := user.SendNewUserMailAsync(context.TODO(), db, envMap); err != nil {
+					utils.PrintStack(&err)
+				}
+			}()
 		}
 
 		if err != nil {

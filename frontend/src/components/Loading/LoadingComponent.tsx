@@ -2,7 +2,7 @@ import { CircularProgress, Typography } from "@mui/joy";
 
 import React from "react";
 
-const LoadingComponent: React.FC<{ title: string }> = ({ title }) => {
+const LoadingComponent: React.FC<{ title?: string }> = ({ title }) => {
   return (
     <Typography
       level="h3"
@@ -13,7 +13,7 @@ const LoadingComponent: React.FC<{ title: string }> = ({ title }) => {
         height: "100%",
       }}
     >
-      <CircularProgress /> &nbsp; {title}
+      <CircularProgress /> &nbsp; {title ? title : "Loading..."}
     </Typography>
   );
 };

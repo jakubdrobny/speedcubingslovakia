@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
@@ -729,142 +728,151 @@ func (r *ResultEntry) GetSuspicousChangeTimesHTML(
 	) + "</tr></table>"
 }
 
-func (r *ResultEntry) SendSuspicousMail(
-	c *gin.Context,
+func (r *ResultEntry) SendSuspicousMailAsync(
+	ctx context.Context,
 	db *pgxpool.Pool,
 	envMap map[string]string,
 	previouslySavedTimes []string,
 ) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in SendSuspicousMailAsync goroutine", r)
+		}
+	}()
+
 	select {
-	case <-c.Request.Context().Done():
-		if r.Iconcode == "333fm" {
-			log.Println("Change in FMC results. Not sending an email.")
-			return
-		}
-
-		noOfSolves, err := utils.GetNoOfSolves(r.Format)
-		if err != nil {
-			log.Println(
-				"ERR utils.GetScramGetNoOfSolvesblesByResultEntryId in r.SendSuspicousMail: " + err.Error(),
-			)
-			return
-		}
-
-		suspicousChangeInResults := r.SuspicousChangeInResults(previouslySavedTimes, noOfSolves)
-		suspicousResult := !r.Status.ApprovalFinished
-
-		if suspicousResult || suspicousChangeInResults {
-			log.Println("Sending email...")
-
-			scrambles, err := utils.GetScramblesByResultEntryId(db, r.Eventid, r.Competitionid)
-			if err != nil {
-				log.Println(
-					"ERR utils.GetScramblesByResultEntryId in r.SendSuspicousMail: " + err.Error(),
-				)
-				return
-			}
-
-			average, err := r.AverageFormatted(r.IsFMC(), scrambles)
-			if err != nil {
-				log.Println("ERR r.AverageFormatted in r.SendSuspicousMail: " + err.Error())
-				return
-			}
-
-			newTimesFormatted, err := r.GetFormattedTimes(r.IsFMC(), scrambles)
-			if err != nil {
-				log.Println("ERR r.GetFormattedTimes in r.SendSuspicousMail: " + err.Error())
-				return
-			}
-
-			oldTimesFormatted, err := GetFormattedTimes(previouslySavedTimes, r.Format, scrambles)
-			if err != nil {
-				log.Println("ERR GetFormattedTimes in r.SendSuspicousMail: " + err.Error())
-				return
-			}
-
-			adminToken, err := utils.CreateToken(
-				1,
-				envMap["JWT_SECRET_KEY"],
-				60*24,
-			) // admin token for a day
-			if err != nil {
-				log.Println("ERR utils.CreateToken in r.SendSuspicousMail: " + err.Error())
-				return
-			}
-
-			mailSubject := "Suspicous"
-			if suspicousResult {
-				mailSubject += " result"
-			}
-			if suspicousChangeInResults {
-				if suspicousResult {
-					mailSubject += " and"
-				}
-				mailSubject += " change in results"
-			}
-			mailSubject += " detected !!!"
-
-			backendEnv := os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")
-			if backendEnv == "development" {
-				mailSubject = "DEVELOPMENT: " + mailSubject
-			}
-
-			r.Email, err = GetEmailByWCAID(db, r.WcaId)
-			if err != nil {
-				log.Println("ERR GetEmailByWCAID in r.SendSuspicousMail: " + err.Error())
-				return
-			}
-
-			content := "<html>" +
-				"<head>" +
-				"<style>" +
-				`.mui-joy-btn { font-size: 0.875rem; box-sizing: border-box; border-radius: 6px; border: none; background-color: transparent; display: inline-flex; align-items: center; justify-content: center; position: relative; text-decoration: none; font-weight: 600; }
-					.mui-joy-btn-soft-success { color: #0a470a; background-color: #e3fbe3; }
-					.mui-joy-btn-soft-danger { color: #7d1212; background-color: #fce4e4; }` +
-				"</style></head><body>" +
-				"<b>Username:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/profile/" + r.WcaId + "\">" + r.Username + "</a><br>" +
-				"<b>Email:</b> " + r.Email + "<br>" +
-				"<b>Competition:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/competition/" + r.Competitionid + "\">" + r.Competitionname + "</a><br>" +
-				"<b>Event:</b> " + r.Eventname + "<br>" +
-				"<b>Single:</b> " + r.SingleFormatted(r.IsFMC(), scrambles) + "<br>" +
-				"<b>Average:</b> " + average + "<br>"
-
-			if suspicousChangeInResults {
-				suspicousChangeTimesHTML := r.GetSuspicousChangeTimesHTML(
-					previouslySavedTimes,
-					noOfSolves,
-					oldTimesFormatted,
-					newTimesFormatted,
-				)
-				content += suspicousChangeTimesHTML
-			} else {
-				content += "<b>Times:</b> " + strings.Join(newTimesFormatted, ", ") + "<br>"
-			}
-			content +=
-				"<b>Comment:</b> " + r.Comment + "<br>" +
-					"<a class=\"mui-joy-btn mui-joy-btn-soft-danger\" style=\"padding:10px;\" " +
-					"href=\"" + envMap["MAIL_VALIDATE_URL"] + "?resultId=" + strconv.Itoa(r.Id) + "&verdict=false&atoken=" + adminToken + "\">Deny</a>&nbsp;" +
-					"<a class=\"mui-joy-btn mui-joy-btn-soft-success\" style=\"padding:10px;\" " +
-					"href=\"" + envMap["MAIL_VALIDATE_URL"] + "?resultId=" + strconv.Itoa(r.Id) + "&verdict=true&atoken=" + adminToken + "\">Allow</a><br>" +
-					"<span style=\"font-size: 0.5rem\">Token for validating these results will expire in 24 hours.</span>" +
-					"</body></html>"
-
-			err = email.SendMail(
-				envMap["MAIL_USERNAME"],
-				envMap["MAIL_USERNAME"],
-				mailSubject,
-				content,
-				envMap,
-			)
-			if err != nil {
-				log.Println("ERR email.SendMail in r.SendSuspicousMail: " + err.Error())
-				return
-			}
-
-			log.Println("Successfully sent mail about suspicous result.")
-		}
+	case <-ctx.Done():
+		log.Println("Request was cancelled. Aborting suspicous mail send.")
+		return
+	default:
 	}
 
+	if r.Iconcode == "333fm" {
+		log.Println("Change in FMC results. Not sending an email.")
+		return
+	}
+
+	noOfSolves, err := utils.GetNoOfSolves(r.Format)
+	if err != nil {
+		log.Println(
+			"ERR utils.GetScramGetNoOfSolvesblesByResultEntryId in r.SendSuspicousMailAsync: " + err.Error(),
+		)
+		return
+	}
+
+	suspicousChangeInResults := r.SuspicousChangeInResults(previouslySavedTimes, noOfSolves)
+	suspicousResult := !r.Status.ApprovalFinished
+
+	if suspicousResult || suspicousChangeInResults {
+		log.Println("Sending email...")
+
+		scrambles, err := utils.GetScramblesByResultEntryId(db, r.Eventid, r.Competitionid)
+		if err != nil {
+			log.Println(
+				"ERR utils.GetScramblesByResultEntryId in r.SendSuspicousMailAsync: " + err.Error(),
+			)
+			return
+		}
+
+		average, err := r.AverageFormatted(r.IsFMC(), scrambles)
+		if err != nil {
+			log.Println("ERR r.AverageFormatted in r.SendSuspicousMailAsync: " + err.Error())
+			return
+		}
+
+		newTimesFormatted, err := r.GetFormattedTimes(r.IsFMC(), scrambles)
+		if err != nil {
+			log.Println("ERR r.GetFormattedTimes in r.SendSuspicousMailAsync: " + err.Error())
+			return
+		}
+
+		oldTimesFormatted, err := GetFormattedTimes(previouslySavedTimes, r.Format, scrambles)
+		if err != nil {
+			log.Println("ERR GetFormattedTimes in r.SendSuspicousMailAsync: " + err.Error())
+			return
+		}
+
+		adminToken, err := utils.CreateToken(
+			1,
+			envMap["JWT_SECRET_KEY"],
+			60*24,
+		) // admin token for a day
+		if err != nil {
+			log.Println("ERR utils.CreateToken in r.SendSuspicousMailAsync: " + err.Error())
+			return
+		}
+
+		mailSubject := "Suspicous"
+		if suspicousResult {
+			mailSubject += " result"
+		}
+		if suspicousChangeInResults {
+			if suspicousResult {
+				mailSubject += " and"
+			}
+			mailSubject += " change in results"
+		}
+		mailSubject += " detected !!!"
+
+		backendEnv := os.Getenv("SPEEDCUBINGSLOVAKIA_BACKEND_ENV")
+		if backendEnv == "development" {
+			mailSubject = "DEVELOPMENT: " + mailSubject
+		}
+
+		r.Email, err = GetEmailByWCAID(db, r.WcaId)
+		if err != nil {
+			log.Println("ERR GetEmailByWCAID in r.SendSuspicousMail: " + err.Error())
+			return
+		}
+
+		content := "<html>" +
+			"<head>" +
+			"<style>" +
+			`.mui-joy-btn { font-size: 0.875rem; box-sizing: border-box; border-radius: 6px; border: none; background-color: transparent; display: inline-flex; align-items: center; justify-content: center; position: relative; text-decoration: none; font-weight: 600; }
+					.mui-joy-btn-soft-success { color: #0a470a; background-color: #e3fbe3; }
+					.mui-joy-btn-soft-danger { color: #7d1212; background-color: #fce4e4; }` +
+			"</style></head><body>" +
+			"<b>Username:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/profile/" + r.WcaId + "\">" + r.Username + "</a><br>" +
+			"<b>Email:</b> " + r.Email + "<br>" +
+			"<b>Competition:</b> <a href=\"" + envMap["WEBSITE_HOME"] + "/competition/" + r.Competitionid + "\">" + r.Competitionname + "</a><br>" +
+			"<b>Event:</b> " + r.Eventname + "<br>" +
+			"<b>Single:</b> " + r.SingleFormatted(r.IsFMC(), scrambles) + "<br>" +
+			"<b>Average:</b> " + average + "<br>"
+
+		if suspicousChangeInResults {
+			suspicousChangeTimesHTML := r.GetSuspicousChangeTimesHTML(
+				previouslySavedTimes,
+				noOfSolves,
+				oldTimesFormatted,
+				newTimesFormatted,
+			)
+			content += suspicousChangeTimesHTML
+		} else {
+			content += "<b>Times:</b> " + strings.Join(newTimesFormatted, ", ") + "<br>"
+		}
+		content +=
+			"<b>Comment:</b> " + r.Comment + "<br>" +
+				"<a class=\"mui-joy-btn mui-joy-btn-soft-danger\" style=\"padding:10px;\" " +
+				"href=\"" + envMap["MAIL_VALIDATE_URL"] + "?resultId=" + strconv.Itoa(r.Id) + "&verdict=false&atoken=" + adminToken + "\">Deny</a>&nbsp;" +
+				"<a class=\"mui-joy-btn mui-joy-btn-soft-success\" style=\"padding:10px;\" " +
+				"href=\"" + envMap["MAIL_VALIDATE_URL"] + "?resultId=" + strconv.Itoa(r.Id) + "&verdict=true&atoken=" + adminToken + "\">Allow</a><br>" +
+				"<span style=\"font-size: 0.5rem\">Token for validating these results will expire in 24 hours.</span>" +
+				"</body></html>"
+
+		err = email.SendMail(
+			envMap["MAIL_USERNAME"],
+			envMap["MAIL_USERNAME"],
+			mailSubject,
+			content,
+			envMap,
+		)
+		if err != nil {
+			log.Println("ERR email.SendMail in r.SendSuspicousMailAsync: " + err.Error())
+			return
+		}
+
+		log.Println("Successfully sent mail about suspicous result.")
+	}
 }
 
 func (r *ResultEntry) GetPreviouslySavedTimes(db *pgxpool.Pool) ([]string, error) {

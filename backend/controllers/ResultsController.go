@@ -403,7 +403,7 @@ func PostResults(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 			return
 		}
 
-		go resultEntry.SendSuspicousMail(c, db, envMap, previousTimes)
+		go resultEntry.SendSuspicousMailAsync(context.TODO(), db, envMap, previousTimes)
 
 		c.IndentedJSON(http.StatusCreated, resultEntry)
 	}
