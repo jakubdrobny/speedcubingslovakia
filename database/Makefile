@@ -1,15 +1,3 @@
-# create_migration:
-# 	migrate create -ext=sql -dir=migrations -seq $(TITLE)
-#
-# migrate_up:
-# 	migrate -path=migrations/ -database "${DB_URL}" -verbose up $(STEPS)
-#
-# migrate_down:
-# 	migrate -path=migrations/ -database "${DB_URL}" -verbose down $(STEPS)
-#
-# migrate_force:
-# 	migrate -path=migrations/ -database "${DB_URL}" force $(VERSION)
-
 create_migration:
 	@if [ -z "$(TITLE)" ]; then echo "Usage: make create_migration TITLE=your_migration_title"; exit 1; fi
 	@echo "Creating migration: $(TITLE)"
