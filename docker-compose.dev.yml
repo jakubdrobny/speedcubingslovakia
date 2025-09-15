@@ -71,14 +71,17 @@ services:
         condition: service_healthy
     env_file:
       - .env.development
-    entrypoint: ["sh", "-c"]
-    command: # $$ tells docker to get the variable from container and not parse immediately
-      - >
-        migrate -path=/migrations -database "$${DB_URL}" up;
+    environment:
+      - MIGRATE_CMD=${MIGRATE_CMD}
+      - MIGRATE_STEPS=${MIGRATE_STEPS}
+      - MIGRATE_VERSION=${MIGRATE_VERSION}
+      - MIGRATE_TITLE=${MIGRATE_TITLE}
     networks:
       - speedcubingslovakia
     volumes:
       - ./database/migrations:/migrations
+      - ./database/run-migrate.sh:/usr/local/bin/run-migrate.sh
+    entrypoint: ["run-migrate.sh"]
 
   scrambling:
     build:
