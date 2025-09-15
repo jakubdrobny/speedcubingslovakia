@@ -471,7 +471,10 @@ export const getError = (err: AxiosError): ResponseError => {
         ),
     };
   }
-  return { message: err.response?.data as string };
+  return {
+    message: err.response?.data as string,
+    status: err.response?.status,
+  };
 };
 
 export const getUsers = async (searchQuery: string): Promise<SearchUser[]> => {
@@ -770,4 +773,24 @@ export const DeleteMarker = async (marker: MarkerType): Promise<void> => {
   });
 
   return response.data;
+};
+
+export const getSearchUsers = async (query: string): Promise<ManageUser[]> => {
+  const res = await axios.get(`/users/search?query=${query}`);
+  return res.data;
+};
+
+export const findDuplicateUser = async (userId: number): Promise<User> => {
+  const res = await axios.get(`/users/find-duplicate/${userId}`);
+  return res.data;
+};
+
+export const mergeUsers = async (
+  oldUserId: number,
+  newUserId: number,
+): Promise<string> => {
+  return await axios.post("/users/merge", {
+    old_user_id: oldUserId,
+    new_user_id: newUserId,
+  });
 };

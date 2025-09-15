@@ -60,6 +60,7 @@ export type CompetitionState = CompetitionData & {
 export type ResponseError = {
   message?: string;
   element?: ReactElement;
+  status?: number;
 };
 
 export type CompetitionContextType = {
@@ -445,4 +446,15 @@ export type MarkerType = {
   radius: number;
   new: boolean;
   open: boolean;
+};
+
+export type User = {
+  id: number;
+  name: string;
+  country_id: string;
+  sex: string;
+  wcaid: string;
+  isadmin: boolean;
+  url: string;
+  avatarurl: string;
 };

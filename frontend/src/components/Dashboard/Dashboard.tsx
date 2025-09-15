@@ -33,6 +33,14 @@ const Dashboard = () => {
         </Button>
         <Button
           component={Link}
+          to="/admin/merge-duplicate-users"
+          color="primary"
+          variant="outlined"
+        >
+          Merge duplicate users
+        </Button>
+        <Button
+          component={Link}
           to="/competition/create"
           color="primary"
           variant="outlined"
