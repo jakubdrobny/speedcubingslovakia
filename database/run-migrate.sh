@@ -10,7 +10,7 @@ DATABASE_URL="${DB_URL}"
 MIGRATE_BASE_CMD="migrate -path=/migrations -database ${DATABASE_URL} -verbose"
 
 if [ "$CMD" = "create" ]; then
-  if [ -z "$TITLE"]; then
+  if [ -z "$TITLE" ]; then
     echo "Error: MIGRATE_TITLE is require for the 'create' command."
     exit 1
   fi

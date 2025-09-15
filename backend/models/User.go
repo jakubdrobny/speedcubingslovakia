@@ -2,7 +2,9 @@ package models
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -326,4 +328,168 @@ func (u User) SendNewUserMailAsync(ctx context.Context, db interfaces.DB, envMap
 	log.Println("Successfully sent mail about new user.")
 
 	return nil
+}
+
+func FindFuzzyDuplicateUser(ctx context.Context, db interfaces.DB, userID int) (User, bool, error) {
+	var duplicate User
+	err := db.QueryRow(ctx, `
+		SELECT u2.user_id, u2.name, u2.country_id, u2.sex, u2.wcaid, u2.isadmin, u2.url, u2.avatarurl, u2.email
+		FROM users u1
+		JOIN users u2 ON u1.user_id < u2.user_id
+		WHERE u1.user_id = $1
+		  AND (unaccent(u1.name) ILIKE '%' || unaccent(u2.name) || '%' OR unaccent(u2.name) ILIKE '%' || unaccent(u1.name) || '%')
+		  AND u1.name <> '' AND u2.name <> ''
+		ORDER BY u2.user_id
+		LIMIT 1;
+	`, userID).Scan(
+		&duplicate.Id,
+		&duplicate.Name,
+		&duplicate.CountryId,
+		&duplicate.Sex,
+		&duplicate.WcaId,
+		&duplicate.IsAdmin,
+		&duplicate.Url,
+		&duplicate.AvatarUrl,
+		&duplicate.Email,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return User{}, false, nil
+		}
+		return User{}, false, fmt.Errorf("%w: when querying error for duplicate user", err)
+	}
+
+	return duplicate, true, nil
+}
+
+func MergeUsers(ctx context.Context, db interfaces.DB, oldUserID, newUserID int) error {
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("%w: when starting db transaction", err)
+	}
+	defer tx.Rollback(ctx)
+
+	var areNamesSimilar bool
+	validationQuery := `
+		SELECT
+			(unaccent(u1.name) ILIKE '%' || unaccent(u2.name) || '%' OR
+			 unaccent(u2.name) ILIKE '%' || unaccent(u1.name) || '%')
+		FROM users u1, users u2
+		WHERE u1.user_id = $1 AND u2.user_id = $2;`
+
+	err = tx.QueryRow(ctx, validationQuery, oldUserID, newUserID).Scan(&areNamesSimilar)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("validation failed: one or both user IDs (%d, %d) do not exist", oldUserID, newUserID)
+		}
+		return fmt.Errorf("%w: when executing validation query", err)
+	}
+
+	if !areNamesSimilar {
+		return fmt.Errorf("validation failed: users %d and %d do not have similar names", oldUserID, newUserID)
+	}
+
+	type foreignKeyInfo struct {
+		ChildTable  string
+		ChildColumn string
+	}
+
+	var fks []foreignKeyInfo
+	fkQuery := `
+		SELECT
+			conrelid::regclass AS child_table,
+			a.attname AS child_column
+		FROM
+			pg_constraint AS c
+		JOIN pg_attribute AS a ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+		WHERE
+			c.contype = 'f'
+			AND c.confrelid = 'users'::regclass
+	`
+	rows, err := tx.Query(ctx, fkQuery)
+	if err != nil {
+		return fmt.Errorf("%w: when querying foreign key constraints", err)
+	}
+
+	for rows.Next() {
+		var fk foreignKeyInfo
+		if err := rows.Scan(&fk.ChildTable, &fk.ChildColumn); err != nil {
+			rows.Close()
+			return fmt.Errorf("%w: when scanning fk record", err)
+		}
+		fks = append(fks, fk)
+	}
+	rows.Close()
+	if err = rows.Err(); err != nil {
+		return fmt.Errorf("%w: when iteraing through rows", rows.Err())
+	}
+
+	for _, fk := range fks {
+		updateQuery := fmt.Sprintf(`UPDATE %s SET %s = $1 WHERE %s = $2`, fk.ChildTable, fk.ChildColumn, fk.ChildColumn)
+		if _, err := tx.Exec(ctx, updateQuery, newUserID, oldUserID); err != nil {
+			return fmt.Errorf("%w: when executing update child table %s query", err, fk.ChildTable)
+		}
+	}
+
+	if _, err := tx.Exec(ctx, `DELETE FROM users WHERE user_id = $1`, oldUserID); err != nil {
+		return fmt.Errorf("%w: when executing delete old user", err)
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("%w: when commiting transaction", err)
+	}
+
+	return nil
+}
+
+func SearchUsers(ctx context.Context, db interfaces.DB, query string) ([]ManageUser, error) {
+	sql := `
+		SELECT
+			u.user_id,
+			u.name,
+			u.wcaid,
+			c.name,
+			c.iso2,
+			u.isadmin
+		FROM
+			users u
+		LEFT JOIN
+			countries c ON u.country_id = c.country_id
+		WHERE
+			unaccent(u.name) ILIKE unaccent($1)
+		ORDER BY
+			u.name
+		LIMIT 20;`
+
+	searchPattern := "%" + query + "%"
+
+	rows, err := db.Query(ctx, sql, searchPattern)
+	if err != nil {
+		return nil, fmt.Errorf("%w: when executing user search query", err)
+	}
+	defer rows.Close()
+
+	users := make([]ManageUser, 0)
+	for rows.Next() {
+		var user ManageUser
+		err := rows.Scan(
+			&user.Id,
+			&user.Name,
+			&user.WcaId,
+			&user.CountryName,
+			&user.CountryIso2,
+			&user.IsAdmin,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("%w: when scanning user row", err)
+		}
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return []ManageUser{}, fmt.Errorf("%w: when iterating over rows", err)
+	}
+
+	return users, nil
 }

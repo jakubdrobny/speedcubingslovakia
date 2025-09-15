@@ -26,6 +26,7 @@ import {
   WCACompetitionType,
   MarkerType,
   ManageUser,
+  User,
 } from "../Types";
 import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
@@ -477,12 +478,6 @@ export const getError = (err: AxiosError): ResponseError => {
   };
 };
 
-export const getUsers = async (searchQuery: string): Promise<SearchUser[]> => {
-  if (searchQuery === "") searchQuery = "_";
-  const response = await axios.get(`/api/users/search?query=${searchQuery}`);
-  return response.data;
-};
-
 export const getRegionGroups = async (): Promise<RegionSelectGroup[]> => {
   const response = await axios.get("/api/results/regions/grouped");
   return response.data;
@@ -771,26 +766,26 @@ export const DeleteMarker = async (marker: MarkerType): Promise<void> => {
     url: `/api/competitions/wca/subscribe/position/delete`,
     data: { ...marker },
   });
-
   return response.data;
 };
 
 export const getSearchUsers = async (query: string): Promise<ManageUser[]> => {
-  const res = await axios.get(`/users/search?query=${query}`);
-  return res.data;
+  const response = await axios.get(`/api/users/search?query=${query}`);
+  return response.data;
 };
 
 export const findDuplicateUser = async (userId: number): Promise<User> => {
-  const res = await axios.get(`/users/find-duplicate/${userId}`);
-  return res.data;
+  const response = await axios.get(`/api/users/find-duplicate/${userId}`);
+  return response.data;
 };
 
 export const mergeUsers = async (
   oldUserId: number,
   newUserId: number,
 ): Promise<string> => {
-  return await axios.post("/users/merge", {
+  const response = await axios.post("/api/users/merge", {
     old_user_id: oldUserId,
     new_user_id: newUserId,
   });
+  return response.data;
 };

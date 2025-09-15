@@ -188,6 +188,18 @@ func main() {
 			middlewares.AdminMiddleWare(),
 			controllers.ManageUserRole(db),
 		)
+		users.GET(
+			"/find-duplicate/:id",
+			middlewares.AuthMiddleWare(),
+			middlewares.AdminMiddleWare(),
+			controllers.FindDuplicateUser(db),
+		)
+		users.POST(
+			"/merge",
+			middlewares.AuthMiddleWare(),
+			middlewares.AdminMiddleWare(),
+			controllers.MergeUsers(db),
+		)
 		users.POST("/login", controllers.PostLogIn(db, envMap))
 		users.GET("/search", controllers.GetSearchUsers(db))
 		users.GET("/map", controllers.GetUserMapData(db))

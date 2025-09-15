@@ -1,4 +1,5 @@
 import {
+  Alert,
   Autocomplete,
   Box,
   Button,
@@ -112,7 +113,7 @@ const MergeUsers = () => {
 
       <Card>
         <Stack spacing={2}>
-          <Typography level="h3">1. Select a User</Typography>
+          <Typography level="h3">1. Select a user</Typography>
           <Autocomplete
             placeholder="Search for a user..."
             options={searchResults}
@@ -124,13 +125,14 @@ const MergeUsers = () => {
               setNoDuplicateFound(false);
             }}
             isOptionEqualToValue={(option, value) => option.id === value.id}
+            loading={loadingState.isLoading}
           />
           {selectedUser && (
             <Button
               onClick={handleFindDuplicate}
               loading={loadingState.isLoading}
             >
-              Find Potential Duplicate
+              Find potential duplicate
             </Button>
           )}
         </Stack>
@@ -139,17 +141,15 @@ const MergeUsers = () => {
       {loadingState.isLoading && <CircularProgress />}
 
       {noDuplicateFound && (
-        <Card color="warning" variant="soft">
-          <Typography>
-            No potential duplicate account found for this user.
-          </Typography>
-        </Card>
+        <Alert color="warning" variant="soft">
+          No potential duplicate account found for this user.
+        </Alert>
       )}
 
       {selectedUser && duplicateUser && (
         <Card>
           <Stack spacing={2}>
-            <Typography level="h3">2. Confirm Merge</Typography>
+            <Typography level="h3">2. Confirm merge</Typography>
             <Typography>
               A potential duplicate has been found. All data from the user with
               the lower ID will be moved to the user with the higher ID, and the
@@ -165,7 +165,7 @@ const MergeUsers = () => {
               onClick={handleMerge}
               loading={loadingState.isLoading}
             >
-              Confirm and Merge Users
+              Confirm and merge users
             </Button>
           </Stack>
         </Card>

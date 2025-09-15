@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -142,33 +143,26 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	}
 }
 
-func GetSearchUsers(db *pgxpool.Pool) gin.HandlerFunc {
+func GetSearchUsers(db interfaces.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var err error
+		defer utils.PrintStack(&err)
+
 		query := c.Query("query")
+		if len(query) < 2 {
+			c.IndentedJSON(http.StatusOK, []models.ManageUser{})
+			return
+		}
 
-		tx, err := db.Begin(context.Background())
+		ctx := c.Request.Context()
+		users, err := models.SearchUsers(ctx, db, query)
 		if err != nil {
-			log.Println("ERR db.begin in GetSearchUsers: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to start transaction.")
-			tx.Rollback(context.Background())
+			err = fmt.Errorf("%w: when calling models.SearchUsers", err)
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to search for users.")
 			return
 		}
 
-		searchUsers, statusCode, logMessage, returnMessage := models.GetUsersFromDB(tx, query)
-		if statusCode == http.StatusInternalServerError {
-			log.Println(logMessage)
-			c.IndentedJSON(statusCode, returnMessage)
-			return
-		}
-
-		err = tx.Commit(context.Background())
-		if err != nil {
-			log.Println("ERR tx.commit in GetSearchUsers: " + err.Error())
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to finish transaction.")
-			return
-		}
-
-		c.IndentedJSON(statusCode, searchUsers)
+		c.IndentedJSON(http.StatusOK, users)
 	}
 }
 
@@ -205,5 +199,61 @@ func GetUserMapData(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		c.IndentedJSON(http.StatusOK, featureCollection)
+	}
+}
+
+func FindDuplicateUser(db interfaces.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var err error
+		defer utils.PrintStack(&err)
+
+		userID, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.IndentedJSON(http.StatusBadRequest, "Invalid user ID provided.")
+			return
+		}
+
+		ctx := c.Request.Context()
+		duplicate, found, err := models.FindFuzzyDuplicateUser(ctx, db, userID)
+		if err != nil {
+			err = fmt.Errorf("%w: when calling models.FindFuzzyDuplicateUser", err)
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to query for duplicate user.")
+			return
+		}
+
+		if !found {
+			c.IndentedJSON(http.StatusNotFound, "Duplicate user not found.")
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, duplicate)
+	}
+}
+
+type MergeUsersRequest struct {
+	OldUserID int `json:"old_user_id" binding:"required"`
+	NewUserID int `json:"new_user_id" binding:"required"`
+}
+
+func MergeUsers(db interfaces.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var err error
+		defer utils.PrintStack(&err)
+
+		var req MergeUsersRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			err = fmt.Errorf("%w: when parsing request body", err)
+			c.IndentedJSON(http.StatusBadRequest, "Invalid request body.")
+			return
+		}
+
+		ctx := c.Request.Context()
+		if err := models.MergeUsers(ctx, db, req.OldUserID, req.NewUserID); err != nil {
+			err = fmt.Errorf("%w: when merging users", err)
+			c.IndentedJSON(http.StatusInternalServerError, "Failed to merge users.")
+			return
+		}
+
+		c.IndentedJSON(http.StatusOK, "Users merged successfully.")
 	}
 }
