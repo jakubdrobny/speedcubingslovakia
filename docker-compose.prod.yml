@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: ghcr.io/jakubdrobny/speedcubingslovakia/nginx:sha-c5b0b72
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/nginx:sha-d224fcd
     ports:
       - 80:80
       - 443:443
@@ -28,7 +28,7 @@ services:
       timeout: 5s
       retries: 5
   backend:
-    image: ghcr.io/jakubdrobny/speedcubingslovakia/backend:sha-c5b0b72
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/backend:sha-d224fcd
     volumes:
       - .env.production:/app/.env
       - ./data/scramble_images:/app/scramble_images
@@ -52,7 +52,7 @@ services:
       retries: 5
       start_period: 10s
   cron:
-    image: ghcr.io/jakubdrobny/speedcubingslovakia/cron:sha-c5b0b72
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/cron:sha-d224fcd
     restart: always
     volumes:
       - .env.production:/app/.env:ro
@@ -83,7 +83,8 @@ services:
       retries: 5
   migrate:
     image: migrate/migrate:v4.18.3
-    profiles: [migrate]
+    profiles:
+      - migrate
     depends_on:
       db:
         condition: service_healthy
@@ -99,9 +100,10 @@ services:
     volumes:
       - ./database/migrations:/migrations
       - ./database/run-migrate.sh:/usr/local/bin/run-migrate.sh
-    entrypoint: ["run-migrate.sh"]
+    entrypoint:
+      - run-migrate.sh
   scrambling:
-    image: ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:sha-c5b0b72
+    image: ghcr.io/jakubdrobny/speedcubingslovakia/scrambling:sha-d224fcd
     env_file:
       - .env.production
     restart: always
