@@ -21,7 +21,6 @@ import {
   ResponseError,
   ResultEntry,
   ResultsStatus,
-  SearchUser,
   Tag,
   WCACompetitionType,
   MarkerType,
