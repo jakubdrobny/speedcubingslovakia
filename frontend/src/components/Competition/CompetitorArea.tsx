@@ -20,7 +20,7 @@ const CompetitorArea: React.FC<{ loading: boolean }> = ({ loading }) => {
             <span style={{ fontSize: "1em" }}>&nbsp;</span>
             <a
               href={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
-              onClick={() => saveCurrentLocation(window.location.pathname)}
+              onClick={() => saveCurrentLocation()}
             >
               log in
             </a>

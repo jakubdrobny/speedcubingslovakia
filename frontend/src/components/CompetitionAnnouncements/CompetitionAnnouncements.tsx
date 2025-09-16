@@ -168,7 +168,7 @@ const CompetitionAnnouncements = () => {
                 color="warning"
                 sx={{ px: { xs: 0, md: 2 }, width: "auto" }}
                 to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
-                onClick={() => saveCurrentLocation(window.location.pathname)}
+                onClick={() => saveCurrentLocation()}
               >
                 Login to subscribe
               </Button>

@@ -14,6 +14,7 @@ import {
 import {
   CompetitionContextType,
   CompetitionData,
+  CompetitionEvent,
   ResultsCompeteChoiceEnum,
 } from "../../Types";
 import {
@@ -25,7 +26,7 @@ import {
   renderResponseError,
 } from "../../utils/utils";
 import { useContext, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import CompetitionResults from "./CompetitionResults";
@@ -50,6 +51,22 @@ const Competition = () => {
     resultsCompeteChoice,
     setResultsCompeteChoice,
   } = useContext(CompetitionContext) as CompetitionContextType;
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // returns the index of the event from the events
+  const locateEventFromURLQuery = (
+    eventQueryParam: string,
+    events: CompetitionEvent[],
+  ): number => {
+    for (let i = 0; i < events.length; i++) {
+      if (eventQueryParam === events[i].iconcode) {
+        return i;
+      }
+    }
+
+    setSearchParams({ event: "333" });
+    return -1;
+  };
 
   useEffect(() => {
     setLoadingState({ results: false, compinfo: true, error: {} });
@@ -60,7 +77,13 @@ const Competition = () => {
 
         if (info === undefined) navigate("/not-found");
         else {
-          updateBasicInfo(info);
+          let eventIdx = locateEventFromURLQuery(
+            searchParams.get("event") || "",
+            info.events,
+          );
+          eventIdx =
+            eventIdx < 0 || eventIdx >= info.events.length ? 0 : eventIdx;
+          updateBasicInfo(info, eventIdx);
         }
       })
       .catch((err) => {
@@ -71,7 +94,7 @@ const Competition = () => {
         });
       });
 
-    return () => setCompetitionState(initialCompetitionState);
+    return () => setCompetitionState({ ...initialCompetitionState });
   }, []);
 
   return (
