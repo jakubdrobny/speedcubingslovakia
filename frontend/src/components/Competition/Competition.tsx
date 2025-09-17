@@ -34,6 +34,8 @@ import CompetitorArea from "./CompetitorArea";
 import { EventSelector } from "./EventSelector";
 import ResultsCompeteChoice from "./ResultsCompeteChoice";
 import { Warning } from "@mui/icons-material";
+import { RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME } from "../../constants";
+import { search } from "node-emoji";
 
 const Competition = () => {
   const navigate = useNavigate();
@@ -64,8 +66,28 @@ const Competition = () => {
       }
     }
 
-    setSearchParams({ event: "333" });
+    searchParams.set("event", "333");
+    setSearchParams(searchParams);
     return -1;
+  };
+
+  const handleResultsCompeteChoiceQueryParam = () => {
+    let currentParamValue =
+      searchParams.get(RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME) || "";
+    if (!["compete", "results"].includes(currentParamValue)) {
+      currentParamValue = "results";
+      searchParams.set(
+        RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME,
+        currentParamValue,
+      );
+      setSearchParams(searchParams);
+    }
+
+    setResultsCompeteChoice(
+      currentParamValue === "results"
+        ? ResultsCompeteChoiceEnum.Results
+        : ResultsCompeteChoiceEnum.Compete,
+    );
   };
 
   useEffect(() => {
@@ -84,6 +106,7 @@ const Competition = () => {
           eventIdx =
             eventIdx < 0 || eventIdx >= info.events.length ? 0 : eventIdx;
           updateBasicInfo(info, eventIdx);
+          handleResultsCompeteChoiceQueryParam();
         }
       })
       .catch((err) => {

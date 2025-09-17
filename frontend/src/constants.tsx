@@ -7,3 +7,4 @@ export const MIN_RADIUS = 0;
 export const MAX_RADIUS = 50000;
 export const DISABLED_COLOR =
   "var(--variant-solidDisabledColor, var(--joy-palette-primary-solidDisabledColor, var(--joy-palette-neutral-400, #9FA6AD)))";
+export const RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME = "view";

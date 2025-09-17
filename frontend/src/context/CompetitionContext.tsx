@@ -24,6 +24,7 @@ import {
 
 import useState from "react-usestateref";
 import { useSearchParams } from "react-router-dom";
+import { RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME } from "../constants";
 
 export const CompetitionContext = createContext<CompetitionContextType | null>(
   null,
@@ -45,7 +46,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   const [loadingState, setLoadingState] = useState<CompetitionLoadingState>(
     initialCompetitionLoadingState,
   );
-  const [_, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const updateBasicInfo = (
     info: CompetitionData,
@@ -85,7 +86,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
         ...ps,
         currentEventIdx: ps.currentEventIdx - 1,
       }));
-      setSearchParams({ event: event.iconcode });
+      searchParams.set("event", event.iconcode);
+      setSearchParams(searchParams);
     }
 
     setLoadingState((ps) => ({ ...ps, results: true, error: {} }));
@@ -152,9 +154,8 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     }));
     setLoadingState((ps) => ({ ...ps, results: true, error: {} }));
     const events = competitionStateRef.current.events;
-    setSearchParams({
-      event: events[idx].iconcode,
-    });
+    searchParams.set("event", events[idx].iconcode);
+    setSearchParams(searchParams);
 
     if (resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete)
       fetchCompeteResultEntry();

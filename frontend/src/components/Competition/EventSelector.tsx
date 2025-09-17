@@ -18,7 +18,7 @@ export const EventSelector = () => {
     loadingState,
     resultsCompeteChoice,
   } = useContext(CompetitionContext) as CompetitionContextType;
-  const [_, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   let events = competitionState?.events;
   const shouldNotHaveOverall =
@@ -37,9 +37,8 @@ export const EventSelector = () => {
               key={idx}
               onClick={() => {
                 updateCurrentEvent(idx);
-                setSearchParams({
-                  event: e.iconcode,
-                });
+                searchParams.set("event", e.iconcode);
+                setSearchParams(searchParams);
               }}
               variant={
                 idx === competitionState.currentEventIdx ? "solid" : "soft"
