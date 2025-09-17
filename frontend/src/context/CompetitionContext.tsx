@@ -47,10 +47,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   );
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const updateBasicInfo = (
-    info: CompetitionData,
-    currentEventIdx: number = 0,
-  ) => {
+  const updateBasicInfo = (info: CompetitionData, currentEventIdx: number) => {
     const match =
       info.events[competitionStateRef.current.currentEventIdx].format.match(
         /\d+$/,

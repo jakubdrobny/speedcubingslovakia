@@ -65,7 +65,7 @@ const Competition = () => {
       }
     }
 
-    searchParams.set("event", "333");
+    searchParams.set("event", "overall");
     setSearchParams(searchParams);
     return -1;
   };
@@ -103,7 +103,9 @@ const Competition = () => {
             info.events,
           );
           eventIdx =
-            eventIdx < 0 || eventIdx >= info.events.length ? 0 : eventIdx;
+            eventIdx < 0 || eventIdx >= info.events.length
+              ? info.events.length - 1
+              : eventIdx;
           updateBasicInfo(info, eventIdx);
           handleResultsCompeteChoiceQueryParam();
         }
