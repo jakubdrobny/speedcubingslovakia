@@ -103,9 +103,7 @@ const Competition = () => {
             info.events,
           );
           eventIdx =
-            eventIdx < 0 || eventIdx >= info.events.length
-              ? info.events.length - 1
-              : eventIdx;
+            eventIdx < 0 || eventIdx >= info.events.length ? 0 : eventIdx;
           updateBasicInfo(info, eventIdx);
           handleResultsCompeteChoiceQueryParam();
         }
@@ -179,7 +177,8 @@ const Competition = () => {
           </DialogContent>
         </ModalDialog>
       </Modal>
-      {!isObjectEmpty(loadingState.error) ? (
+      {!isObjectEmpty(loadingState.error) &&
+      loadingState.error.status !== 401 ? (
         renderResponseError(loadingState.error)
       ) : loadingState.compinfo ? (
         <CircularProgress />
