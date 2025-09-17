@@ -451,6 +451,7 @@ export const getError = (err: AxiosError): ResponseError => {
   const status = err.response?.status;
   if (status === 401 || status === 200) {
     return {
+      status: status,
       element:
         status === 200 ? (
           <Alert color="success">

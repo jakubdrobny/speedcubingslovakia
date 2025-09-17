@@ -76,11 +76,11 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     if (event.displayname === "Overall") {
       event =
         competitionStateRef.current.events[
-          competitionStateRef.current.currentEventIdx - 1
+          competitionStateRef.current.currentEventIdx + 1
         ];
       setCompetitionState((ps) => ({
         ...ps,
-        currentEventIdx: ps.currentEventIdx - 1,
+        currentEventIdx: ps.currentEventIdx + 1,
       }));
       searchParams.set("event", event.iconcode);
       setSearchParams(searchParams);

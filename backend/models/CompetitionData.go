@@ -133,7 +133,7 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) error {
 }
 
 func (c *CompetitionData) GetEvents(db *pgxpool.Pool) error {
-	events := make([]CompetitionEvent, 0)
+	events := []CompetitionEvent{{-1, "", "Overall", "", "overall", ""}}
 
 	rows, err := db.Query(context.Background(), `SELECT e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode FROM competition_events ce JOIN events e ON ce.event_id = e.event_id WHERE ce.competition_id = $1 ORDER BY e.event_id`, c.Id)
 	if err != nil {
@@ -148,7 +148,6 @@ func (c *CompetitionData) GetEvents(db *pgxpool.Pool) error {
 		}
 		events = append(events, event)
 	}
-	events = append(events, CompetitionEvent{-1, "", "Overall", "", "overall", ""})
 
 	c.Events = events
 

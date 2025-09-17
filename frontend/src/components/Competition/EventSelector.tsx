@@ -24,30 +24,31 @@ export const EventSelector = () => {
   const shouldNotHaveOverall =
     events &&
     events.length > 0 &&
-    events[events.length - 1].id === -1 &&
+    events[0].id === -1 &&
     resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete;
-  if (shouldNotHaveOverall) events = events.slice(0, events.length - 1);
+  events = events.slice(+shouldNotHaveOverall);
 
   return (
     <Grid container>
       <ButtonGroup sx={{ py: 1, flexWrap: "wrap" }}>
         {events.map((e: CompetitionEvent, idx: number) => {
+          const realIdx = idx + +shouldNotHaveOverall;
           return (
             <Button
-              key={idx}
+              key={realIdx.toString() + e.iconcode}
               onClick={() => {
-                updateCurrentEvent(idx);
+                updateCurrentEvent(realIdx);
                 searchParams.set("event", e.iconcode);
                 setSearchParams(searchParams);
               }}
               variant={
-                idx === competitionState.currentEventIdx ? "solid" : "soft"
+                realIdx === competitionState.currentEventIdx ? "solid" : "soft"
               }
               color="primary"
               disabled={loadingState.results}
             >
               {resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete ||
-              idx < events.length - 1 ? (
+              e.id !== -1 ? (
                 <span className={getCubingIconClassName(e.iconcode)}>
                   &nbsp;
                 </span>
