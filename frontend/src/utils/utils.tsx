@@ -462,7 +462,7 @@ export const getError = (err: AxiosError): ResponseError => {
             <span style={{ padding: "0 2px" }}></span>
             <Link
               to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
-              onClick={() => saveCurrentLocation(window.location.pathname)}
+              onClick={() => saveCurrentLocation()}
             >
               re-login
             </Link>
@@ -546,7 +546,8 @@ export const reformatFMCSolve = (solve: string): string => {
   return solve.split(".")[0];
 };
 
-export const saveCurrentLocation = (locationPathname: string) => {
+export const saveCurrentLocation = () => {
+  const locationPathname = window.location.pathname + window.location.search;
   const cookies = new Cookies(null, { path: "/" });
   cookies.set("backlink", locationPathname, {
     expires: new Date(new Date().getTime() + 60 * 1000), // expires in 1 minute

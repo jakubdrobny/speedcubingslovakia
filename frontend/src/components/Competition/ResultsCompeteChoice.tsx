@@ -2,6 +2,8 @@ import { AddAlarm, EmojiEvents } from "@mui/icons-material";
 import { Button, ButtonGroup } from "@mui/joy";
 
 import { ResultsCompeteChoiceEnum } from "../../Types";
+import { useSearchParams } from "react-router-dom";
+import { RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME } from "../../constants";
 
 const ResultsCompeteChoice: React.FC<{
   resultsCompeteChoice: ResultsCompeteChoiceEnum;
@@ -10,12 +12,15 @@ const ResultsCompeteChoice: React.FC<{
   ) => void;
   loading: boolean;
 }> = ({ resultsCompeteChoice, setResultsCompeteChoice, loading }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   return (
     <ButtonGroup sx={{ pb: 1, flexWrap: "wrap", margin: 0 }}>
       <Button
-        onClick={() =>
-          setResultsCompeteChoice(ResultsCompeteChoiceEnum.Results)
-        }
+        onClick={() => {
+          searchParams.set(RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME, "results");
+          setSearchParams(searchParams);
+          setResultsCompeteChoice(ResultsCompeteChoiceEnum.Results);
+        }}
         variant={
           resultsCompeteChoice === ResultsCompeteChoiceEnum.Results
             ? "solid"
@@ -28,9 +33,11 @@ const ResultsCompeteChoice: React.FC<{
         &nbsp; Results
       </Button>
       <Button
-        onClick={() =>
-          setResultsCompeteChoice(ResultsCompeteChoiceEnum.Compete)
-        }
+        onClick={() => {
+          searchParams.set(RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME, "compete");
+          setSearchParams(searchParams);
+          setResultsCompeteChoice(ResultsCompeteChoiceEnum.Compete);
+        }}
         variant={
           resultsCompeteChoice === ResultsCompeteChoiceEnum.Compete
             ? "solid"

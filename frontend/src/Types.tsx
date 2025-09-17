@@ -66,7 +66,7 @@ export type ResponseError = {
 export type CompetitionContextType = {
   competitionState: CompetitionState;
   currentResults: ResultEntry;
-  updateBasicInfo: (info: CompetitionData) => void;
+  updateBasicInfo: (info: CompetitionData, currentEventIdx: number) => void;
   updateCurrentEvent: (idx: number) => void;
   updateCurrentSolve: (idx: number) => void;
   saveResults: () => Promise<void>;

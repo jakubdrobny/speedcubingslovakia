@@ -14,6 +14,7 @@ import {
 import {
   CompetitionContextType,
   CompetitionData,
+  CompetitionEvent,
   ResultsCompeteChoiceEnum,
 } from "../../Types";
 import {
@@ -25,7 +26,7 @@ import {
   renderResponseError,
 } from "../../utils/utils";
 import { useContext, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { CompetitionContext } from "../../context/CompetitionContext";
 import CompetitionResults from "./CompetitionResults";
@@ -33,6 +34,7 @@ import CompetitorArea from "./CompetitorArea";
 import { EventSelector } from "./EventSelector";
 import ResultsCompeteChoice from "./ResultsCompeteChoice";
 import { Warning } from "@mui/icons-material";
+import { RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME } from "../../constants";
 
 const Competition = () => {
   const navigate = useNavigate();
@@ -50,6 +52,42 @@ const Competition = () => {
     resultsCompeteChoice,
     setResultsCompeteChoice,
   } = useContext(CompetitionContext) as CompetitionContextType;
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // returns the index of the event from the events
+  const locateEventFromURLQuery = (
+    eventQueryParam: string,
+    events: CompetitionEvent[],
+  ): number => {
+    for (let i = 0; i < events.length; i++) {
+      if (eventQueryParam === events[i].iconcode) {
+        return i;
+      }
+    }
+
+    searchParams.set("event", "333");
+    setSearchParams(searchParams);
+    return -1;
+  };
+
+  const handleResultsCompeteChoiceQueryParam = () => {
+    let currentParamValue =
+      searchParams.get(RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME) || "";
+    if (!["compete", "results"].includes(currentParamValue)) {
+      currentParamValue = "results";
+      searchParams.set(
+        RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME,
+        currentParamValue,
+      );
+      setSearchParams(searchParams);
+    }
+
+    setResultsCompeteChoice(
+      currentParamValue === "results"
+        ? ResultsCompeteChoiceEnum.Results
+        : ResultsCompeteChoiceEnum.Compete,
+    );
+  };
 
   useEffect(() => {
     setLoadingState({ results: false, compinfo: true, error: {} });
@@ -60,7 +98,14 @@ const Competition = () => {
 
         if (info === undefined) navigate("/not-found");
         else {
-          updateBasicInfo(info);
+          let eventIdx = locateEventFromURLQuery(
+            searchParams.get("event") || "",
+            info.events,
+          );
+          eventIdx =
+            eventIdx < 0 || eventIdx >= info.events.length ? 0 : eventIdx;
+          updateBasicInfo(info, eventIdx);
+          handleResultsCompeteChoiceQueryParam();
         }
       })
       .catch((err) => {
@@ -71,7 +116,7 @@ const Competition = () => {
         });
       });
 
-    return () => setCompetitionState(initialCompetitionState);
+    return () => setCompetitionState({ ...initialCompetitionState });
   }, []);
 
   return (
