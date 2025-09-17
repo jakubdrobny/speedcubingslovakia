@@ -17,12 +17,17 @@ const CommentBox: React.FC<{ disabled: boolean }> = ({ disabled }) => {
     });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    e.stopPropagation();
+  };
+
   return (
     <Card>
       <h3 style={{ textAlign: "center", margin: "0.25em 0" }}>Comment:</h3>
       <Textarea
         value={emojify(currentResultsRef.current.comment)}
         onChange={(e) => handleCommentChange(e.target.value)}
+        onKeyDown={(e) => handleKeyDown(e)}
         placeholder="Enter a comment to your solutions..."
         minRows={4}
         style={{ marginBottom: "1.25em" }}
