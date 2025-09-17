@@ -81,7 +81,7 @@ const NavItems: React.FC<{
           component={Link}
           to={import.meta.env.VITE_WCA_GET_CODE_URL || ""}
           onClick={() => {
-            saveCurrentLocation(window.location.pathname);
+            saveCurrentLocation();
             closeNav();
           }}
           sx={{ justifyContent: "flex-end" }}

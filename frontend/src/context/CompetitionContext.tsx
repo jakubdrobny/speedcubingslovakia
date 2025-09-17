@@ -24,7 +24,6 @@ import {
 
 import useState from "react-usestateref";
 import { useSearchParams } from "react-router-dom";
-import { RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME } from "../constants";
 
 export const CompetitionContext = createContext<CompetitionContextType | null>(
   null,

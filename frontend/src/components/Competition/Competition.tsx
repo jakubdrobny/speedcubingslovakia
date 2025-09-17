@@ -35,7 +35,6 @@ import { EventSelector } from "./EventSelector";
 import ResultsCompeteChoice from "./ResultsCompeteChoice";
 import { Warning } from "@mui/icons-material";
 import { RESULTS_COMPETE_CHOICE_QUERY_PARAM_NAME } from "../../constants";
-import { search } from "node-emoji";
 
 const Competition = () => {
   const navigate = useNavigate();
