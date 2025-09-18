@@ -51,6 +51,9 @@ const WCACompetitions = lazy(
 const MergeUsers = lazy(
   () => import("./components/Dashboard/MergeDuplicateUsers"),
 );
+const SubscriptionsDashboard = lazy(
+  () => import("./components/Dashboard/SubscriptionsDashboard"),
+);
 
 const App = () => {
   const { authStateRef, setAuthState } = useContext(
@@ -162,6 +165,10 @@ const App = () => {
                 element={<AnnouncementEdit edit={false} />}
               />
               <Route path="/admin/stats" Component={AdminStats} />
+              <Route
+                path="/admin/subscriptions"
+                Component={SubscriptionsDashboard}
+              />
               <Route
                 path="/admin/merge-duplicate-users"
                 Component={MergeUsers}

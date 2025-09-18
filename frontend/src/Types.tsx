@@ -458,3 +458,19 @@ export type User = {
   url: string;
   avatarurl: string;
 };
+
+export type SubscriptionStats = {
+  position_subscriptions: number;
+  country_subscriptions: number;
+  total_unique_users: number;
+};
+
+export type UserSubscriptionDetail = {
+  id: number;
+  name: string;
+  wca_id: string;
+  country_name: string;
+  country_iso2: string;
+  country_sub_count: number;
+  position_sub_count: number;
+};
