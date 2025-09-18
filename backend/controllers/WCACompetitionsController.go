@@ -24,7 +24,9 @@ import (
 
 func GetWCARegionGroups(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		countries, err := models.GetCountries(db)
+		ctx := context.TODO()
+
+		countries, err := models.GetCountries(ctx, db)
 		if err != nil {
 			log.Println("ERR GetCountries in GetRegionsGrouped: " + err.Error())
 			c.IndentedJSON(
@@ -60,6 +62,8 @@ func GetWCARegionGroups(db *pgxpool.Pool) gin.HandlerFunc {
 // region is in format {country_name} or {country_name}, {state_name}
 func GetUpcomingWCACompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := context.TODO()
+
 		regionQuery := c.Query("region")
 		regionQuerySplit := strings.Split(regionQuery, ", ")
 		regionCountryName := regionQuerySplit[0]
@@ -69,10 +73,11 @@ func GetUpcomingWCACompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 			stateId = regionQuerySplit[1]
 		}
 
-		region, err := models.GetCountryByName(db, regionCountryName)
+		var country models.Country
+		err := country.Get(ctx, db, regionCountryName)
 		if err != nil {
 			log.Println(
-				"ERR models.GetCountryByName in GetUpcomingWCACompetitions: " + err.Error(),
+				"ERR country.Get in GetUpcomingWCACompetitions: " + err.Error(),
 			)
 			c.IndentedJSON(
 				http.StatusInternalServerError,
@@ -81,11 +86,11 @@ func GetUpcomingWCACompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		if region.Id == "" {
+		if country.CountryId == "" {
 			c.IndentedJSON(http.StatusInternalServerError, "Country does not exists.")
 			return
 		}
-		countryId = region.Id
+		countryId = country.CountryId
 
 		upcomingCompetitions, err := GetSavedUpcomingWCACompetitions(db, countryId, stateId)
 		if err != nil {
@@ -289,10 +294,10 @@ func constructContent(
 	}
 	content += "</table><br/>"
 
-	content += fmt.Sprintf(
-		"Thank you for subscribing to our competition announcement newsletter.<br/><br/>If you want to prepare for WCA competitions and compete with your friends, don't forget to compete in Online Weekly Competitions at our <a href=\"https://speedcubingslovakia.sk/competitions\"><b>website</b></a>.<br/><br/>",
-	)
-	content += fmt.Sprintf("Have a great day.<br/><br/><i>Jakub</i></body></html>")
+	content +=
+		"Thank you for subscribing to our competition announcement newsletter.<br/><br/>If you want to prepare for WCA competitions and compete with your friends, don't forget to compete in Online Weekly Competitions at our <a href=\"https://speedcubingslovakia.sk/competitions\"><b>website</b></a>.<br/><br/>"
+
+	content += "Have a great day.<br/><br/><i>Jakub</i></body></html>"
 
 	return content
 }
@@ -425,8 +430,10 @@ func MakeCompAnnouncementAnnouncements(
 }
 
 func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) error {
+	ctx := context.TODO()
+
 	log.Println("Querying countries...")
-	countriesArray, err := models.GetCountries(db)
+	countriesArray, err := models.GetCountries(ctx, db)
 	if err != nil {
 		log.Println("ERR models.GetCountries in CheckUpcomingWCACompetitions: " + err.Error())
 		return err
@@ -489,7 +496,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 
 			err = json.Unmarshal(body, &respComps)
 			if err != nil {
-				log.Println(fmt.Sprintf("ERR json.Unmarshal in CheckUpcomingWCACompetitions with url=%q: %v", url, err.Error()))
+				log.Printf("ERR json.Unmarshal in CheckUpcomingWCACompetitions with url=%q: %v", url, err.Error())
 				log.Printf(
 					"==========\nFailed to unmarshal this body: %v\n==========\n",
 					string(body),
@@ -502,9 +509,9 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 		}
 
 		if success {
-			log.Println(fmt.Sprintf("Succeeded loading page number %d in %d attempts.", page, attempts))
+			log.Printf("Succeeded loading page number %d in %d attempts.", page, attempts)
 		} else {
-			log.Println(fmt.Sprintf("Failed to load page number %d in %d attempts. Notifying...", page, attempts))
+			log.Printf("Failed to load page number %d in %d attempts. Notifying...", page, attempts)
 			from := envMap["MAIL_USERNAME"]
 			to := from
 			subject := "Querying upcoming WCA competitions failed"
@@ -561,7 +568,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 						respComp.EventIds,
 						func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} },
 					),
-					CountryId:         country.Id,
+					CountryId:         country.CountryId,
 					CountryName:       country.Name,
 					CountryIso2:       country.Iso2,
 					RegistrationOpen:  respComp.RegistrationOpen,
@@ -601,7 +608,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 
 					log.Println("Querying subscribers...")
 					queryString := `SELECT user_id, state FROM wca_competitions_announcements_subscriptions WHERE (country_id = $1 AND state = '')`
-					args := []any{country.Id}
+					args := []any{country.CountryId}
 					if upcomingWCACompetition.State != "" {
 						queryString += " OR (country_id = $2 AND state = $3)"
 						args = append(args, upcomingWCACompetition.CountryId, upcomingWCACompetition.State)
@@ -609,7 +616,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					queryString += ";"
 					rows, err := tx.Query(context.Background(), queryString, args...)
 					if err != nil {
-						log.Println("ERR tx.Query(subscriptions) for " + country.Id + " in CheckUpcomingWCACompetitions: " + err.Error())
+						log.Println("ERR tx.Query(subscriptions) for " + country.CountryId + " in CheckUpcomingWCACompetitions: " + err.Error())
 						return err
 					}
 
