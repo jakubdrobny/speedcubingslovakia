@@ -16,7 +16,7 @@ import (
 func PositionSubscriptionFromDB(
 	db interfaces.DB,
 	userId int,
-) ([]models.WCACompAnnouncementsPositionSubscriptions, error) {
+) ([]models.WCACompAnnouncementsPositionSubscription, error) {
 	queryString := `SELECT wca_competitions_announcements_position_subscription_id as id, latitude_degrees, longitude_degrees, radius, user_id FROM wca_competitions_announcements_position_subscriptions`
 	args := []any{}
 	if userId != 0 {
@@ -38,12 +38,12 @@ func PositionSubscriptionFromDB(
 			"user_id",
 			userId,
 		)
-		return []models.WCACompAnnouncementsPositionSubscriptions{}, err
+		return []models.WCACompAnnouncementsPositionSubscription{}, err
 	}
 
-	subscriptions := make([]models.WCACompAnnouncementsPositionSubscriptions, 0)
+	subscriptions := make([]models.WCACompAnnouncementsPositionSubscription, 0)
 	for rows.Next() {
-		sub := models.WCACompAnnouncementsPositionSubscriptions{
+		sub := models.WCACompAnnouncementsPositionSubscription{
 			New:  false,
 			Open: false,
 		}
@@ -60,7 +60,7 @@ func PositionSubscriptionFromDB(
 				"error",
 				err,
 			)
-			return []models.WCACompAnnouncementsPositionSubscriptions{}, err
+			return []models.WCACompAnnouncementsPositionSubscription{}, err
 		}
 
 		subscriptions = append(subscriptions, sub)
@@ -98,10 +98,11 @@ func GetWCACompAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerF
 
 func UpdateWCAAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := context.TODO()
 		uid := c.GetInt("uid")
 
 		slog.Info("Updating position subscription...", "user_id", uid)
-		var subscription models.WCACompAnnouncementsPositionSubscriptions
+		var subscription models.WCACompAnnouncementsPositionSubscription
 
 		if err := c.ShouldBindJSON(&subscription); err != nil {
 			slog.Error(
@@ -147,7 +148,7 @@ func UpdateWCAAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerFu
 		}
 		defer tx.Rollback(context.Background())
 
-		exists, err := subscription.Exists(tx)
+		exists, err := subscription.Exists(ctx, tx)
 		if err != nil {
 			slog.Error(
 				"ERR subscription.Exists in UpdateWCAAnnouncementsPositionSubscriptions.",
@@ -164,7 +165,7 @@ func UpdateWCAAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerFu
 		}
 
 		if exists {
-			err := subscription.Update(tx)
+			err := subscription.UpdateRadius(ctx, tx)
 			if err != nil {
 				slog.Error(
 					"ERR subscription.Update in UpdateWCAAnnouncementsPositionSubscriptions.",
@@ -181,7 +182,7 @@ func UpdateWCAAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerFu
 			}
 		} else {
 			// no update happened => we need to insert
-			subscriptionId, err := subscription.Insert(tx)
+			err := subscription.Insert(ctx, tx)
 			if err != nil {
 				slog.Error(
 					"ERR subscription.Insert in UpdateWCAAnnouncementsPositionSubscriptions.",
@@ -196,8 +197,6 @@ func UpdateWCAAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerFu
 				)
 				return
 			}
-
-			subscription.Id = subscriptionId
 		}
 
 		subscription.New = false
@@ -222,10 +221,11 @@ func UpdateWCAAnnouncementsPositionSubscriptions(db interfaces.DB) gin.HandlerFu
 
 func DeleteWCAAnnouncementsPositionSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := context.TODO()
 		uid := c.GetInt("uid")
 
 		slog.Info("Deleting position subscription...", "user_id", uid)
-		var subscription models.WCACompAnnouncementsPositionSubscriptions
+		var subscription models.WCACompAnnouncementsPositionSubscription
 
 		if err := c.ShouldBindJSON(&subscription); err != nil {
 			slog.Error(
@@ -244,7 +244,7 @@ func DeleteWCAAnnouncementsPositionSubscriptions(db *pgxpool.Pool) gin.HandlerFu
 
 		subscription.UserId = uid
 
-		_, err := subscription.Delete(db)
+		err := subscription.Delete(ctx, db)
 		if err != nil {
 			slog.Error(
 				"ERR db.Exec(delete position subscription) in DeleteWCAAnnouncementsPositionSubscriptions.",

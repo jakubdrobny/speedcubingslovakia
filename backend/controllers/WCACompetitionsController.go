@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	views "github.com/jakubdrobny/speedcubingslovakia/backend"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/constants"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/email"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
@@ -86,11 +87,11 @@ func GetUpcomingWCACompetitions(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		if country.CountryId == "" {
+		if country.Id == "" {
 			c.IndentedJSON(http.StatusInternalServerError, "Country does not exists.")
 			return
 		}
-		countryId = country.CountryId
+		countryId = country.Id
 
 		upcomingCompetitions, err := GetSavedUpcomingWCACompetitions(db, countryId, stateId)
 		if err != nil {
@@ -462,7 +463,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 	notifications := make(map[int]map[string]map[string]models.UpcomingWCACompetition)
 	newlyAnnouncedSlovakComps := make([]models.UpcomingWCACompetition, 0)
 
-	var positionSubscriptions []models.WCACompAnnouncementsPositionSubscriptions
+	var positionSubscriptions []models.WCACompAnnouncementsPositionSubscription
 	if notifySubscribers {
 		positionSubscriptions, err = PositionSubscriptionFromDB(tx, 0)
 		if err != nil {
@@ -568,7 +569,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 						respComp.EventIds,
 						func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} },
 					),
-					CountryId:         country.CountryId,
+					CountryId:         country.Id,
 					CountryName:       country.Name,
 					CountryIso2:       country.Iso2,
 					RegistrationOpen:  respComp.RegistrationOpen,
@@ -608,7 +609,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 
 					log.Println("Querying subscribers...")
 					queryString := `SELECT user_id, state FROM wca_competitions_announcements_subscriptions WHERE (country_id = $1 AND state = '')`
-					args := []any{country.CountryId}
+					args := []any{country.Id}
 					if upcomingWCACompetition.State != "" {
 						queryString += " OR (country_id = $2 AND state = $3)"
 						args = append(args, upcomingWCACompetition.CountryId, upcomingWCACompetition.State)
@@ -616,7 +617,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					queryString += ";"
 					rows, err := tx.Query(context.Background(), queryString, args...)
 					if err != nil {
-						log.Println("ERR tx.Query(subscriptions) for " + country.CountryId + " in CheckUpcomingWCACompetitions: " + err.Error())
+						log.Println("ERR tx.Query(subscriptions) for " + country.Id + " in CheckUpcomingWCACompetitions: " + err.Error())
 						return err
 					}
 
@@ -646,7 +647,7 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					}
 
 					for _, positionSupscription := range positionSubscriptions {
-						if utils.PointInsideCircle(upcomingWCACompetition.LatitudeDegrees, upcomingWCACompetition.LongitudeDegrees, positionSupscription.Radius, positionSupscription.LatitudeDegrees, positionSupscription.LongitudeDegrees) {
+						if utils.PointInsideCircle(upcomingWCACompetition.LatitudeDegrees, upcomingWCACompetition.LongitudeDegrees, float64(positionSupscription.Radius), positionSupscription.LatitudeDegrees, positionSupscription.LongitudeDegrees) {
 							currentUserId := positionSupscription.UserId
 							if _, ok := notifications[currentUserId]; !ok {
 								notifications[currentUserId] = make(map[string]map[string]models.UpcomingWCACompetition)
@@ -730,11 +731,9 @@ func GetWCACompAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		subscriptions := make([]models.WCACompAnnouncementSubscriptions, 0)
+		subscriptions := make([]views.WCACompAnnouncementsSubscription, 0)
 		for rows.Next() {
-			//a, b := rows.Values()
-			//log.Printf("values: %v, error; %v\n", a, b)
-			var sub models.WCACompAnnouncementSubscriptions
+			var sub views.WCACompAnnouncementsSubscription
 			err = rows.Scan(&sub.CountryId, &sub.CountryName, &sub.State, &sub.Subscribed)
 			if err != nil {
 				log.Println(
@@ -751,9 +750,15 @@ func GetWCACompAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 	}
 }
 
+type updateWCAAnnouncementsSubscriptionRequestBody struct {
+	CountryId  string `json:"countryId"`
+	State      string `json:"state"`
+	Subscribed bool   `json:"subscribed"`
+}
+
 func UpdateWCAAnnouncementSubscriptions(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var body models.UpdateWCAAnnouncementSubscriptionsRequestBody
+		var body updateWCAAnnouncementsSubscriptionRequestBody
 
 		if err := c.ShouldBindJSON(&body); err != nil {
 			log.Println(

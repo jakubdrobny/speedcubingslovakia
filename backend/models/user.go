@@ -29,9 +29,9 @@ type User struct {
 	Email       string `json:"-"`
 }
 
-func (u *User) Exists(db *pgxpool.Pool) (bool, error) {
+func (u *User) Exists(ctx context.Context, db interfaces.DB) (bool, error) {
 	rows, err := db.Query(
-		context.Background(),
+		ctx,
 		`SELECT u.user_id, u.isadmin FROM users u WHERE u.wcaid = $1 AND u.name = $2;`,
 		u.WcaId,
 		u.Name,
@@ -72,8 +72,8 @@ func (u *User) Update(db *pgxpool.Pool) error {
 	return nil
 }
 
-func (u *User) CreateAllAnnouncementReadConnection(db *pgxpool.Pool) error {
-	rows, err := db.Query(context.Background(), `SELECT a.announcement_id FROM announcements a;`)
+func (u *User) CreateAllAnnouncementReadConnection(ctx context.Context, db interfaces.DB) error {
+	rows, err := db.Query(ctx, `SELECT a.announcement_id FROM announcements a;`)
 	if err != nil {
 		return err
 	}
@@ -99,20 +99,24 @@ func (u *User) CreateAllAnnouncementReadConnection(db *pgxpool.Pool) error {
 	return nil
 }
 
-func (u *User) Insert(db *pgxpool.Pool) error {
+func (u *User) Insert(ctx context.Context, db interfaces.DB) error {
 	err := db.QueryRow(context.Background(), `INSERT INTO users (name, country_id, sex, url, avatarurl, wcaid, isadmin, email) VALUES ($1,$2,$3,$4,$5,$6,false,$7) RETURNING user_id;`, u.Name, u.CountryId, u.Sex, u.Url, u.AvatarUrl, u.WcaId, u.Email).
 		Scan(&u.Id)
 	if err != nil {
-		return err
-	}
-	exists, err := u.Exists(db)
-	if !exists || err != nil {
-		return fmt.Errorf("%s %t", err, exists)
+		return fmt.Errorf("%w: failed to insert user=%+v and scan its id", err, *u)
 	}
 
-	err = u.CreateAllAnnouncementReadConnection(db)
+	exists, err := u.Exists(ctx, db)
+	if !exists || err != nil {
+		if !exists {
+			return fmt.Errorf("user=%+v not found", *u)
+		}
+		return fmt.Errorf("%w: when checking existance of user=%+v", err, *u)
+	}
+
+	err = u.CreateAllAnnouncementReadConnection(ctx, db)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: when creating annoucement read connections for user=%+v", err, *u)
 	}
 
 	return nil

@@ -11,7 +11,7 @@ import (
 )
 
 type Country struct {
-	CountryId   string `json:"id"`
+	Id          string `json:"id"`
 	Name        string `json:"name"`
 	Iso2        string `json:"iso2"`
 	ContinentId string `json:"-"`
@@ -30,7 +30,7 @@ func GetCountries(ctx context.Context, db interfaces.DB) ([]Country, error) {
 	countries := make([]Country, 0)
 	for rows.Next() {
 		var country Country
-		err = rows.Scan(&country.CountryId, &country.Name, &country.Iso2, &country.ContinentId)
+		err = rows.Scan(&country.Id, &country.Name, &country.Iso2, &country.ContinentId)
 		if err != nil {
 			return []Country{}, fmt.Errorf("%w: when scanning country", err)
 		}
@@ -50,7 +50,7 @@ func (c *Country) Get(ctx context.Context, db interfaces.DB, name string) error 
 		ctx,
 		`SELECT c.country_id, c.name, c.iso2, c.continent_id FROM countries c WHERE c.name = $1;`,
 		name,
-	).Scan(&c.CountryId, &c.Name, &c.Iso2, &c.ContinentId)
+	).Scan(&c.Id, &c.Name, &c.Iso2, &c.ContinentId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return fmt.Errorf("country with name=%s not found", name)
@@ -62,7 +62,7 @@ func (c *Country) Get(ctx context.Context, db interfaces.DB, name string) error 
 }
 
 func (c Country) Insert(ctx context.Context, db interfaces.DB) error {
-	_, err := db.Exec(ctx, `INSERT INTO countries (country_id, name, continent_id, iso2) VALUES ($1, $2, $3, $4)`, c.CountryId, c.Name, c.ContinentId, c.Iso2)
+	_, err := db.Exec(ctx, `INSERT INTO countries (country_id, name, continent_id, iso2) VALUES ($1, $2, $3, $4)`, c.Id, c.Name, c.ContinentId, c.Iso2)
 	if err != nil {
 		return fmt.Errorf("%w: when executing insert continent statement for country=%+v", err, c)
 	}
