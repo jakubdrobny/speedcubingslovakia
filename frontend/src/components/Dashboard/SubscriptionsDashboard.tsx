@@ -32,7 +32,6 @@ const DetailsTable = ({ details }: { details: UserSubscriptionDetail[] }) => {
     <Card sx={{ padding: 0, margin: 0, overflowX: "auto" }}>
       <Table
         size="md"
-        stickyHeader
         sx={{
           tableLayout: "auto",
           width: "100%",
@@ -42,7 +41,7 @@ const DetailsTable = ({ details }: { details: UserSubscriptionDetail[] }) => {
         <thead>
           <tr>
             {columnNames().map((val, idx) => (
-              <th key={idx}>
+              <th key={idx} style={{ height: "1em" }}>
                 <b>{val}</b>
               </th>
             ))}
@@ -51,7 +50,7 @@ const DetailsTable = ({ details }: { details: UserSubscriptionDetail[] }) => {
         <tbody>
           {details.map((row) => (
             <tr key={row.id}>
-              <td>
+              <td style={{ height: "1em" }}>
                 <Link
                   to={`/profile/${row.wca_id ? row.wca_id : row.name}`}
                   style={{
@@ -64,14 +63,14 @@ const DetailsTable = ({ details }: { details: UserSubscriptionDetail[] }) => {
                   {row.wca_id && ` (${row.wca_id})`}
                 </Link>
               </td>
-              <td>
+              <td style={{ height: "1em" }}>
                 <span className={`fi fi-${row.country_iso2.toLowerCase()}`} />
                 &nbsp;&nbsp;{row.country_name}
               </td>
-              <td>
+              <td style={{ height: "1em" }}>
                 <b>{row.country_sub_count}</b> countries
               </td>
-              <td>
+              <td style={{ height: "1em" }}>
                 <b>{row.position_sub_count}</b> positions
               </td>
             </tr>
