@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -10,20 +12,32 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/utils"
 )
 
-func GetSubscriptionStats(db interfaces.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func GetSubscriptionStats(db interfaces.DB, getSubscriptionStats func(context.Context, interfaces.DB) (models.SubscriptionStats, error)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
+
 		var err error
 		defer utils.PrintStack(&err)
 
-		ctx := c.Request.Context()
-		stats, err := models.GetSubscriptionStats(ctx, db)
+		stats, err := getSubscriptionStats(ctx, db)
 		if err != nil {
 			err = fmt.Errorf("%w: when calling models.GetSubscriptionStats", err)
-			c.IndentedJSON(http.StatusInternalServerError, "Failed to query subscription stats.")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Failed to query subscription stats."))
 			return
 		}
 
-		c.IndentedJSON(http.StatusOK, stats)
+		responseJson, err := json.Marshal(stats)
+		if err != nil {
+			err = fmt.Errorf("%w: when marshalling response=%+v", err, stats)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Failed to serialize response."))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(responseJson)
 	}
 }
 
