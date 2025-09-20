@@ -14,7 +14,7 @@ type SubscriptionStats struct {
 }
 
 type UserSubscriptionDetail struct {
-	ID               int    `json:"id"`
+	Id               int    `json:"id"`
 	Name             string `json:"name"`
 	WCAID            string `json:"wca_id"`
 	CountryName      string `json:"country_name"`
@@ -85,7 +85,7 @@ func GetUserSubscriptionDetails(ctx context.Context, db interfaces.DB) ([]UserSu
 	for rows.Next() {
 		var detail UserSubscriptionDetail
 		if err := rows.Scan(
-			&detail.ID,
+			&detail.Id,
 			&detail.Name,
 			&detail.WCAID,
 			&detail.CountryName,

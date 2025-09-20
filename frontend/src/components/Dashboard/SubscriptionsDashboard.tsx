@@ -92,6 +92,7 @@ const SubscriptionsDashboard = () => {
   useEffect(() => {
     Promise.all([getSubscriptionStats(), getUserSubscriptionDetails()])
       .then(([statsData, detailsData]) => {
+        console.log(statsData, detailsData);
         setStats(statsData);
         setDetails(detailsData);
         setLoadingState({ isLoading: false, error: {} });
@@ -107,13 +108,13 @@ const SubscriptionsDashboard = () => {
         Subscriptions Dashboard
       </Typography>
 
-      {!loadingState.isLoading && (
+      {loadingState.isLoading && (
         <LoadingComponent title="Fetching subscription data..." />
       )}
       {!isObjectEmpty(loadingState.error) &&
         renderResponseError(loadingState.error)}
 
-      {loadingState.isLoading && stats && (
+      {!loadingState.isLoading && stats && (
         <Grid container spacing={2} sx={{ flexGrow: 1 }}>
           <Grid xs={12} md={4}>
             <StatCard

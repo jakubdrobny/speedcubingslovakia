@@ -75,7 +75,7 @@ func main() {
 			"/subscriptions/details",
 			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
-			controllers.GetUserSubscriptionDetails(db),
+			gin.WrapH(controllers.GetUserSubscriptionDetails(db, models.GetUserSubscriptionDetails)),
 		)
 		stats.GET(
 			"/subscriptions",

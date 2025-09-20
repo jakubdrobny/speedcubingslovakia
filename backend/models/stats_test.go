@@ -63,7 +63,7 @@ func TestGetUserSubscriptionDetails(t *testing.T) {
 
 	detailsMap := make(map[int]models.UserSubscriptionDetail)
 	for _, d := range details {
-		detailsMap[d.ID] = d
+		detailsMap[d.Id] = d
 	}
 
 	countryUserDetail, ok := detailsMap[user1.Id]
