@@ -66,7 +66,7 @@ func main() {
 	stats := api_v1.Group("/stats")
 	{
 		stats.GET(
-			"/stats",
+			"/dashboard",
 			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.GetAdminStats(db),
