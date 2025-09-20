@@ -1,0 +1,22 @@
+name: Backend Tests 
+
+on:
+  workflow_call:
+
+jobs:
+  backend-tests: 
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.25'
+      - name: Install dependencies
+        run: go mod download
+      - name: Run tests
+        run: go test ./...
