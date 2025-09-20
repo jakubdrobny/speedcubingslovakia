@@ -9,9 +9,12 @@ jobs:
   frontend-tests:
     uses: ./.github/workflows/frontend_tests.yml
 
+  backend-tests:
+    uses: ./.github/workflows/backend_tests.yml
+
   metadata:
     runs-on: ubuntu-latest
-    needs: frontend-tests
+    needs: [frontend-tests, backend-tests]
     outputs:
       nginx_tag: ${{ steps.meta_nginx.outputs.tags }}
       backend_tag: ${{ steps.meta_backend.outputs.tags }}

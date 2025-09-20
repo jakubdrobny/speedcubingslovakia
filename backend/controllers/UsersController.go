@@ -62,6 +62,8 @@ func ManageUserRole(db interfaces.DB) gin.HandlerFunc {
 
 func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := context.TODO()
+
 		reqBodyBytes, err := io.ReadAll(c.Request.Body)
 		if err != nil {
 			log.Println("ERR io.ReadAll in PostLogIn: " + err.Error())
@@ -84,7 +86,7 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 			return
 		}
 
-		exists, err := user.Exists(db)
+		exists, err := user.Exists(ctx, db)
 		if err != nil {
 			log.Println("ERR user.Exists in PostLogIn: " + err.Error())
 			c.IndentedJSON(
@@ -97,10 +99,10 @@ func PostLogIn(db *pgxpool.Pool, envMap map[string]string) gin.HandlerFunc {
 		if exists {
 			err = user.Update(db)
 		} else {
-			err = user.Insert(db)
+			err = user.Insert(ctx, db)
 
 			go func() {
-				if err := user.SendNewUserMailAsync(context.TODO(), db, envMap); err != nil {
+				if err := user.SendNewUserMailAsync(ctx, db, envMap); err != nil {
 					utils.PrintStack(&err)
 				}
 			}()

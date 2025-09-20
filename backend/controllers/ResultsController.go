@@ -454,6 +454,8 @@ type RegionSelectGroup struct {
 
 func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := context.TODO()
+
 		regionSelectGroups := make([]RegionSelectGroup, 0)
 		regionSelectGroups = append(
 			regionSelectGroups,
@@ -471,7 +473,7 @@ func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 		}
 		regionSelectGroups = append(regionSelectGroups, RegionSelectGroup{"Continent", continents})
 
-		countries, err := models.GetCountries(db)
+		countries, err := models.GetCountries(ctx, db)
 		if err != nil {
 			log.Println("ERR GetCountries in GetRegionsGrouped: " + err.Error())
 			c.IndentedJSON(

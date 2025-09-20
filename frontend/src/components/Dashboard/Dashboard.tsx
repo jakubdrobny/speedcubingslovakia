@@ -16,6 +16,14 @@ const Dashboard = () => {
         </Button>
         <Button
           component={Link}
+          to="/admin/subscriptions"
+          color="primary"
+          variant="outlined"
+        >
+          Subscriptions
+        </Button>
+        <Button
+          component={Link}
           to={import.meta.env.VITE_MONITORING_PATH}
           reloadDocument
           color="primary"

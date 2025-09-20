@@ -26,6 +26,8 @@ import {
   MarkerType,
   ManageUser,
   User,
+  UserSubscriptionDetail,
+  SubscriptionStats,
 } from "../Types";
 import { FeatureCollection } from "geojson";
 import axios, { AxiosError } from "axios";
@@ -788,5 +790,17 @@ export const mergeUsers = async (
     old_user_id: oldUserId,
     new_user_id: newUserId,
   });
+  return response.data;
+};
+
+export const getSubscriptionStats = async (): Promise<SubscriptionStats> => {
+  const response = await axios.get("/api/stats/subscriptions");
+  return response.data;
+};
+
+export const getUserSubscriptionDetails = async (): Promise<
+  UserSubscriptionDetail[]
+> => {
+  const response = await axios.get("/api/stats/subscriptions/details");
   return response.data;
 };

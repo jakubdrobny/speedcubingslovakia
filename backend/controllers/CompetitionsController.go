@@ -300,11 +300,12 @@ func GetNewWeeklyCompetitionInfo(db *pgxpool.Pool) (models.CompetitionData, erro
 
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT c.name, c.enddate FROM competitions c WHERE c.competition_id LIKE ('WeeklyCompetition%') ORDER BY c.enddate DESC;`,
+		`SELECT c.name, c.enddate FROM competitions c WHERE c.competition_id LIKE ('WeeklyCompetition%') ORDER BY c.enddate DESC LIMIT 1;`,
 	)
 	if err != nil {
 		return models.CompetitionData{}, err
 	}
+	defer rows.Close()
 
 	competition.Name = "Weekly Competition 1"
 	competition.Startdate = utils.NextMonday()
@@ -319,8 +320,8 @@ func GetNewWeeklyCompetitionInfo(db *pgxpool.Pool) (models.CompetitionData, erro
 		log.Println(nameSplit)
 		if len(nameSplit) != 3 {
 			return models.CompetitionData{}, fmt.Errorf(
-				"Invalid last competition name format: " + latest.Name + ". Should be Weekly Competition {number}",
-			)
+				"Invalid last competition name format: %s. Should be Weekly Competition {number}",
+				latest.Name)
 		}
 
 		newCompNum, err := strconv.Atoi(nameSplit[2])
@@ -330,9 +331,6 @@ func GetNewWeeklyCompetitionInfo(db *pgxpool.Pool) (models.CompetitionData, erro
 
 		competition.Name = "Weekly Competition " + fmt.Sprint(newCompNum+1)
 		competition.Startdate = latest.Enddate
-
-		rows.Close()
-		break
 	}
 
 	competition.Enddate = competition.Startdate.AddDate(0, 0, 7)

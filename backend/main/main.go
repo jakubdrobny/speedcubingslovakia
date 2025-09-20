@@ -17,6 +17,7 @@ import (
 	"github.com/jakubdrobny/speedcubingslovakia/backend/logging"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/metrics"
 	"github.com/jakubdrobny/speedcubingslovakia/backend/middlewares"
+	"github.com/jakubdrobny/speedcubingslovakia/backend/models"
 )
 
 func main() {
@@ -69,6 +70,18 @@ func main() {
 			middlewares.AuthMiddleWare(),
 			middlewares.AdminMiddleWare(),
 			controllers.GetAdminStats(db),
+		)
+		stats.GET(
+			"/subscriptions/details",
+			middlewares.AuthMiddleWare(),
+			middlewares.AdminMiddleWare(),
+			gin.WrapH(controllers.GetUserSubscriptionDetails(db, models.GetUserSubscriptionDetails)),
+		)
+		stats.GET(
+			"/subscriptions",
+			middlewares.AuthMiddleWare(),
+			middlewares.AdminMiddleWare(),
+			gin.WrapH(controllers.GetSubscriptionStats(db, models.GetSubscriptionStats)),
 		)
 	}
 
