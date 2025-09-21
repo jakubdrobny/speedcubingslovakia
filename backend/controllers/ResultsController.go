@@ -676,6 +676,10 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 					return
 				}
 			}
+			defer rows.Close()
+
+			rankingsEntries := make([]RankingsEntry, 0)
+			resultsEntries := make([]models.ResultEntry, 0)
 
 			for rows.Next() {
 				var rankingsEntry RankingsEntry
@@ -686,32 +690,41 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 					c.IndentedJSON(http.StatusInternalServerError, "Failed to query rows from database.")
 					return
 				}
+				rankingsEntries = append(rankingsEntries, rankingsEntry)
+				resultsEntries = append(resultsEntries, resultsEntry)
+			}
+
+			for idx := range len(rankingsEntries) {
+				rankingsEntry := rankingsEntries[idx]
+				resultsEntry := resultsEntries[idx]
 
 				if rankingsEntry.WcaId == "" {
 					rankingsEntry.WcaId = rankingsEntry.Username
 				}
 				isfmc = utils.IsFMC(resultsEntry.Iconcode)
-				scrambles, err := utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
-				if err != nil {
-					log.Println("ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
-					c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
-					return
+				scrambles := make([]string, 5)
+				if isfmc {
+					scrambles, err = utils.GetScramblesByResultEntryId(db, resultsEntry.Eventid, rankingsEntry.CompetitionId)
+					if err != nil {
+						log.Println("ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error())
+						c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
+						return
+					}
 				}
 
 				ismbld := resultsEntry.Iconcode == "333mbf"
 
 				if single {
+					rankingsEntry.Times = []string{}
+
 					if persons {
 						rankingsEntry.Result = resultsEntry.SingleFormatted(isfmc, scrambles)
 						if utils.ParseSolveToMilliseconds(rankingsEntry.Result, false, "") >= constants.VERY_SLOW {
 							continue
 						}
-						rankingsEntry.Times = make([]string, 0)
 
 						rankings = append(rankings, rankingsEntry)
 					} else {
-						rankingsEntry.Times = make([]string, 0)
-
 						noOfSolves, _ := utils.GetNoOfSolves(resultsEntry.Format)
 
 						for idx, solve := range []string{resultsEntry.Solve1, resultsEntry.Solve2, resultsEntry.Solve3, resultsEntry.Solve4, resultsEntry.Solve5} {
@@ -750,6 +763,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 			if persons {
 				rankings = MergeNonUniqueRankings(rankings, isfmc)
 			}
+
 			sort.Slice(rankings, func(i int, j int) bool {
 				val1, val2 := utils.ParseSolveToMilliseconds(rankings[i].Result, false, ""), utils.ParseSolveToMilliseconds(rankings[j].Result, false, "")
 				if val1 == val2 {
@@ -757,6 +771,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 				}
 				return val1 < val2
 			})
+
 			AddPlacementToRankings(rankings)
 		}
 
