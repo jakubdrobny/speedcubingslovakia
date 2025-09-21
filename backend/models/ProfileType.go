@@ -188,18 +188,22 @@ func LoadBestSingleAndAverage(
 	single := constants.DNS
 	average := constants.DNS
 	formattedSingle := "DNS"
+	var err error
 
 	for _, resultEntry := range *resultEntries {
-		scrambles, err := utils.GetScramblesByResultEntryId(
-			db,
-			resultEntry.Eventid,
-			resultEntry.Competitionid,
-		)
-		if err != nil {
-			return "", "", err
+		isfmc := resultEntry.IsFMC()
+		scrambles := make([]string, 5)
+		if isfmc {
+			scrambles, err = utils.GetScramblesByResultEntryId(
+				db,
+				resultEntry.Eventid,
+				resultEntry.Competitionid,
+			)
+			if err != nil {
+				return "", "", err
+			}
 		}
 
-		isfmc := resultEntry.IsFMC()
 		utils.CompareSolves(&single, resultEntry.SingleFormatted(isfmc, scrambles), false, "")
 		if single == resultEntry.Single(resultEntry.IsFMC(), scrambles) {
 			formattedSingle = resultEntry.SingleFormatted(resultEntry.IsFMC(), scrambles)
@@ -238,15 +242,19 @@ func ProcessResultEntryToLoadRank(
 		val.Average = constants.DNS
 	}
 
-	isfmc := resultEntry.IsFMC()
+	var err error
 
-	scrambles, err := utils.GetScramblesByResultEntryId(
-		db,
-		resultEntry.Eventid,
-		resultEntry.Competitionid,
-	)
-	if err != nil {
-		return err
+	isfmc := resultEntry.IsFMC()
+	scrambles := make([]string, 5)
+	if isfmc {
+		scrambles, err = utils.GetScramblesByResultEntryId(
+			db,
+			resultEntry.Eventid,
+			resultEntry.Competitionid,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	utils.CompareSolves(&val.Single, resultEntry.SingleFormatted(isfmc, scrambles), false, "")
@@ -658,6 +666,7 @@ func GetResultsFromCompetitionFromRows(
 ) ([]CompetitionResult, error) {
 	competitionResults := make([]CompetitionResult, 0)
 	format := ""
+	var err error
 
 	for _, row := range rows {
 		resultEntry := row.ResultEntry
@@ -678,13 +687,16 @@ func GetResultsFromCompetitionFromRows(
 			continue
 		}
 
-		scrambles, err := utils.GetScramblesByResultEntryId(
-			db,
-			resultEntry.Eventid,
-			resultEntry.Competitionid,
-		)
-		if err != nil {
-			return []CompetitionResult{}, err
+		scrambles := make([]string, 5)
+		if resultEntry.IsFMC() {
+			scrambles, err = utils.GetScramblesByResultEntryId(
+				db,
+				resultEntry.Eventid,
+				resultEntry.Competitionid,
+			)
+			if err != nil {
+				return []CompetitionResult{}, err
+			}
 		}
 
 		competitionResult.Single = resultEntry.SingleFormatted(resultEntry.IsFMC(), scrambles)
@@ -871,13 +883,17 @@ func (p *ProfileType) CreateEventHistoryForUser(
 		hasAverage := resultEntry.Iconcode == "333mbf" || resultEntry.Format == "bo1"
 		hasUser = hasUser || resultEntry.Userid == user.Id
 		if resultEntry.Userid == user.Id {
-			scrambles, err := utils.GetScramblesByResultEntryId(
-				db,
-				resultEntry.Eventid,
-				resultEntry.Competitionid,
-			)
-			if err != nil {
-				return err
+			isfmc := resultEntry.IsFMC()
+			scrambles := make([]string, 5)
+			if isfmc {
+				scrambles, err = utils.GetScramblesByResultEntryId(
+					db,
+					resultEntry.Eventid,
+					resultEntry.Competitionid,
+				)
+				if err != nil {
+					return err
+				}
 			}
 
 			historyEntry.CompetitionId = resultEntry.Competitionid
@@ -1136,6 +1152,7 @@ func (p *ProfileType) CountRecordsInEventFromRows(
 	countryId := user.CountryId
 	var lastDateWR, lastDateCR, lastDateNR time.Time
 
+	var err error
 	checkAverage := false
 	for eventResultRowIdx := len(*eventResultsRows) - 1; eventResultRowIdx >= 0; eventResultRowIdx-- {
 		eventResultRow := (*eventResultsRows)[eventResultRowIdx]
@@ -1145,13 +1162,17 @@ func (p *ProfileType) CountRecordsInEventFromRows(
 		currentContId := eventResultRow.ContinentId
 		currentCountryId := eventResultRow.CountryId
 
-		scrambles, err := utils.GetScramblesByResultEntryId(
-			db,
-			resultEntry.Eventid,
-			resultEntry.Competitionid,
-		)
-		if err != nil {
-			return Recorders{}, err
+		isfmc := resultEntry.IsFMC()
+		scrambles := make([]string, 5)
+		if isfmc {
+			scrambles, err = utils.GetScramblesByResultEntryId(
+				db,
+				resultEntry.Eventid,
+				resultEntry.Competitionid,
+			)
+			if err != nil {
+				return Recorders{}, err
+			}
 		}
 		resultEntry.Scrambles = scrambles
 
