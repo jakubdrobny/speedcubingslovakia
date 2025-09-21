@@ -32,6 +32,7 @@ services:
     volumes:
       - .env.production:/app/.env
       - ./data/scramble_images:/app/scramble_images
+      - ./backend/CountriesGeo.json:/app/CountriesGeo.json
     environment:
       GIN_MODE: release
     networks:

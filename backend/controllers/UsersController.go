@@ -170,7 +170,7 @@ func GetSearchUsers(db interfaces.DB) gin.HandlerFunc {
 
 func GetUserMapData(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		buf, err := os.ReadFile("main/CountriesGeo.json")
+		buf, err := os.ReadFile("CountriesGeo.json")
 		if err != nil {
 			log.Println("ERR os.ReadFile in GetUserMapData: " + err.Error())
 			c.IndentedJSON(http.StatusInternalServerError, "Failed to load map data.")
