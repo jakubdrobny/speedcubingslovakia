@@ -842,6 +842,7 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 				return
 			}
 		}
+		defer rows.Close()
 
 		singleEntries := make(map[int][]RecordsItemEntry)
 		averageEntries := make(map[int][]RecordsItemEntry)
@@ -884,17 +885,20 @@ func GetRecords(db *pgxpool.Pool) gin.HandlerFunc {
 				rankingsEntry.WcaId = rankingsEntry.Username
 			}
 			isfmc = utils.IsFMC(resultsEntry.Iconcode)
-			scrambles, err := utils.GetScramblesByResultEntryId(
-				db,
-				resultsEntry.Eventid,
-				rankingsEntry.CompetitionId,
-			)
-			if err != nil {
-				log.Println(
-					"ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error(),
+			scrambles := make([]string, 5)
+			if isfmc {
+				scrambles, err = utils.GetScramblesByResultEntryId(
+					db,
+					resultsEntry.Eventid,
+					rankingsEntry.CompetitionId,
 				)
-				c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
-				return
+				if err != nil {
+					log.Println(
+						"ERR GetScramblesByResultEntryId in GetRankings (" + regionType + "+" + regionPrecise + "): " + err.Error(),
+					)
+					c.IndentedJSON(http.StatusInternalServerError, "Failed to load scrambles.")
+					return
+				}
 			}
 
 			recordsItemEntrySingle := RecordsItemEntry{
