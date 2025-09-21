@@ -1,4 +1,0 @@
-21 22  *  *  7 /app/jobs/run-job.sh /usr/local/bin/weekly_competition_job "WeeklyCompetitionJob"
-17 22  *  *  * /app/jobs/run-job.sh /usr/local/bin/database_backup_job "DatabaseBackupJob"
-10  *  *  *  * /app/jobs/run-job.sh /usr/local/bin/upcoming_wca_competitions_job "UpcomingWCACompetitionsJob"
-15 23  *  *  * /app/jobs/run-job.sh /usr/local/bin/delete_past_wca_competitions_job "DeletePastWCACompetitionsJob"

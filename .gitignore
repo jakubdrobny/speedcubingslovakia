@@ -4,6 +4,8 @@ backend/.env.production
 frontend/.env.development
 frontend/.env.production
 
+backend/cronjob/crontab
+
 backend/scrambler/tnoodle.log
 
 scrambling/node_modules
