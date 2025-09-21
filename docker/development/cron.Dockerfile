@@ -27,9 +27,6 @@ COPY --from=builder /app/bin/* /usr/local/bin
 
 COPY ./cronjob/run-job.sh /app/jobs/run-job.sh
 
-COPY ./cronjob/crontab /etc/crontabs/root
-
 RUN chmod +x /app/jobs/run-job.sh
-RUN chmod 0644 /etc/crontabs/root
 
 CMD ["crond", "-f", "-l", "8"]

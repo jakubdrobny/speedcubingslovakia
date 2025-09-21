@@ -36,6 +36,7 @@ services:
     restart: always
     volumes:
       - .env.development:/app/.env:ro
+      - ./backend/cronjob/crontab:/etc/crontabs/root:ro
       - ./backend/drive-credentials-development.json:/app/configs/drive-credentials.json:ro
       - ./data/db_backups:/app/db_backups
       - ./data/logs:/app/logs
