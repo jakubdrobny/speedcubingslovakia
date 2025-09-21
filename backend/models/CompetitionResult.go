@@ -234,13 +234,16 @@ func GetKinchQueryRows(rawRows pgx.Rows, db *pgxpool.Pool) ([]KinchQueryRow, err
 			competitionResult.WcaId = competitionResult.Username
 		}
 
-		scrambles, err := utils.GetScramblesByResultEntryId(
-			db,
-			resultEntry.Eventid,
-			resultEntry.Competitionid,
-		)
-		if err != nil {
-			return []KinchQueryRow{}, err
+		scrambles := make([]string, 5)
+		if resultEntry.IsFMC() {
+			scrambles, err = utils.GetScramblesByResultEntryId(
+				db,
+				resultEntry.Eventid,
+				resultEntry.Competitionid,
+			)
+			if err != nil {
+				return []KinchQueryRow{}, err
+			}
 		}
 		resultEntry.Scrambles = scrambles
 

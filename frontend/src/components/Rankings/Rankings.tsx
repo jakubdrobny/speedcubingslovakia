@@ -71,7 +71,9 @@ const Rankings = () => {
       singleRef.current,
       regionValueRef.current.split("+")[0],
       regionValueRef.current.split("+")[1],
-      !isOverall ? queryTypeValueRef.current : "100+Persons",
+      !isOverall || queryTypeValueRef.current.endsWith("Persons")
+        ? queryTypeValueRef.current
+        : "100+Persons",
     )
       .then((res: RankingsEntry[]) => {
         setRankings(res);
