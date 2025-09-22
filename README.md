@@ -19,9 +19,9 @@ Make sure to have [Git](https://git-scm.com/download/linux), [docker](https://do
         - `DRIVE_<DB|MONITORING>_BACKUP_FOLDER_ID` - you can find these ids in the url when you open the corresponding google drive directory in your browser
         - the paths in the variables should not be changed, since they are paths inside the docker containers, not your machine
     2. Copy the `backend/cronjob/crontab.example` file into a new `crontab` file in the `backend/cronjob` directory (and change the schedule as you wish).
-    3. Create service account according to [this](https://developers.google.com/workspace/guides/create-credentials) guide and save the created crendentials into `backend/drive-credentials-development.json`. Do NOT forget to share the backups folders with the create service account.
+    3. Create service account according to [this](https://developers.google.com/workspace/guides/create-credentials) guide and save the created crendentials into `backend/drive-credentials-development.json`. Do NOT forget to share the backups folders with the created service account.
 2. Start the entire application (frontend, backend, database, scrambling service, cron jobs and the monitoring stack) with:
 
-`docker compose -f docker-compose.dev.yml up -d --build`
+    `docker compose -f docker-compose.dev.yml up -d --build`
 
 You should have the entire app up and running :D
