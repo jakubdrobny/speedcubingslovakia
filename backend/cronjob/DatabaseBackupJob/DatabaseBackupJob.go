@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"sort"
 	"syscall"
 	"time"
@@ -71,17 +72,14 @@ func RemoveOldestBackups(folderPath, driveBackupFolderId string, fileService *dr
 		backupsFileEntries = append(backupsFileEntries, BackupFileEntry{Path: filePath, CTime: ctime})
 	}
 
-	if len(backupsFileEntries) <= 10 {
-		log.Println("Not enough file entries to erase extra one.")
-		return nil
-	}
+	if len(backupsFileEntries) > 10 {
+		sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
 
-	sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
-
-	for i := range len(backupsFileEntries) - 10 {
-		err = os.Remove(backupsFileEntries[i].Path)
-		if err != nil {
-			return err
+		for i := range len(backupsFileEntries) - 10 {
+			err = os.Remove(backupsFileEntries[i].Path)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -94,14 +92,7 @@ func RemoveOldestBackups(folderPath, driveBackupFolderId string, fileService *dr
 	}
 
 	for _, e := range f.Files {
-		isInFolder := false
-
-		for _, parent := range e.Parents {
-			if parent == driveBackupFolderId {
-				isInFolder = true
-				break
-			}
-		}
+		isInFolder := slices.Contains(e.Parents, driveBackupFolderId)
 
 		if !isInFolder {
 			continue
@@ -115,11 +106,13 @@ func RemoveOldestBackups(folderPath, driveBackupFolderId string, fileService *dr
 		backupsFileEntries = append(backupsFileEntries, BackupFileEntry{Id: e.Id, CTime: parsedTime})
 	}
 
-	sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
-	for i := range len(backupsFileEntries) - 10 {
-		err := fileService.Delete(backupsFileEntries[i].Id).SupportsAllDrives(true).Do()
-		if err != nil {
-			return nil
+	if len(backupsFileEntries) > 10 {
+		sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
+		for i := range len(backupsFileEntries) - 10 {
+			err := fileService.Delete(backupsFileEntries[i].Id).SupportsAllDrives(true).Do()
+			if err != nil {
+				return nil
+			}
 		}
 	}
 
@@ -167,7 +160,7 @@ func main() {
 	log.Println("Dump file successfully opened.")
 	log.Println("Uploading dump file to Google Drive...")
 
-	_, err = UploadFile(service, f, envMap["DRIVE_BACKUP_FOLDER_ID"])
+	_, err = UploadFile(service, f, envMap["DRIVE_DB_BACKUP_FOLDER_ID"])
 	if err != nil {
 		log.Println("ERR in UploadFile: " + err.Error())
 		return
@@ -185,7 +178,7 @@ func main() {
 	log.Println("Dump file in os successfully closed.")
 	log.Printf("Removing oldest backup dump in %s... (if more than 10 dump files are stored)\n", envMap["DB_BACKUPS_FOLDER_PATH"])
 
-	err = RemoveOldestBackups(envMap["DB_BACKUPS_FOLDER_PATH"], envMap["DRIVE_BACKUP_FOLDER_ID"], service.Files)
+	err = RemoveOldestBackups(envMap["DB_BACKUPS_FOLDER_PATH"], envMap["DRIVE_DB_BACKUP_FOLDER_ID"], service.Files)
 	if err != nil {
 		log.Println("ERR in RemoveOldestBackups: " + err.Error())
 		return

@@ -11,6 +11,7 @@ COPY . .
 RUN \
   CGO_ENABLED=0 go build -o /app/bin/weekly_competition_job ./cronjob/WeeklyCompetitionJob/WeeklyCompetitionJob.go & \
   CGO_ENABLED=0 go build -o /app/bin/database_backup_job ./cronjob/DatabaseBackupJob/DatabaseBackupJob.go & \
+  CGO_ENABLED=0 go build -o /app/bin/monitoring_backup_job ./cronjob/MonitoringBackupJob/MonitoringBackupJob.go & \
   CGO_ENABLED=0 go build -o /app/bin/upcoming_wca_competitions_job ./cronjob/UpcomingWCACompetitionsJob/UpcomingWCACompetitionsJob.go & \
   CGO_ENABLED=0 go build -o /app/bin/delete_past_wca_competitions_job ./cronjob/DeletePastWCACompetitionsJob/DeletePastWCACompetitionsJob.go & \
   wait
