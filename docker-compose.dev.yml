@@ -41,6 +41,10 @@ services:
       - ./data/db_backups:/app/db_backups
       - ./data/logs:/app/logs
       - ./data/scramble_images:/app/scramble_images
+      - ./data/monitoring_backups:/app/monitoring_backups
+      - ./data/grafana_data:/app/grafana_data
+      - ./data/loki_data:/app/loki_data
+      - ./data/mimir_data:/app/mimir_data
     networks:
       - speedcubingslovakia
     depends_on:
