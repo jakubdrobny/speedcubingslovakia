@@ -9,7 +9,7 @@ prometheus.scrape "backend" {
   forward_to = [prometheus.remote_write.mimir.receiver]
 }
 
-prometheus.scrape "node-exporter" {
+prometheus.scrape "node_exporter" {
   targets = [
     {
       "__address__" = "node-exporter:9100",
