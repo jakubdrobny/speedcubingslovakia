@@ -97,6 +97,18 @@ services:
     volumes:
       - ./scrambling:/app
 
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: node-exporter
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    command:
+      - '--path.rootfs=/host'
+    networks:
+      - speedcubingslovakia
+
   alloy:
     image: grafana/alloy:v1.10.1
     volumes:
