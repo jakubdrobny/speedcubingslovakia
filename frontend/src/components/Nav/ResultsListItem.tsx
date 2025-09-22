@@ -2,7 +2,7 @@ import {
   EmojiEvents,
   FormatListNumbered,
   Leaderboard,
-  Search,
+  Map,
 } from "@mui/icons-material";
 import { List, ListItemButton, ListItemDecorator, Tooltip } from "@mui/joy";
 
@@ -45,9 +45,9 @@ const ResultsListItem = () => {
             onClick={closeNav}
           >
             <ListItemDecorator>
-              <Search />
+              <Map />
             </ListItemDecorator>
-            Users
+            User map
           </ListItemButton>
         </List>
       }
