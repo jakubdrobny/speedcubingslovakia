@@ -22,7 +22,6 @@ import (
 
 var sourceDirs = []string{"/app/grafana_data", "/app/logs", "/app/loki_data", "/app/mimir_data"}
 
-// return filename, stdout, stderr, err
 func CompressMonitoringData(envMap map[string]string, outputFile string) error {
 	file, err := os.Create(outputFile)
 	if err != nil {
@@ -123,17 +122,14 @@ func RemoveOldestBackups(folderPath, driveBackupFolderId string, fileService *dr
 		backupsFileEntries = append(backupsFileEntries, BackupFileEntry{Path: filePath, CTime: ctime})
 	}
 
-	if len(backupsFileEntries) <= 10 {
-		log.Println("Not enough file entries to erase an extra one.")
-		return nil
-	}
+	if len(backupsFileEntries) > 10 {
+		sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
 
-	sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
-
-	for i := range len(backupsFileEntries) - 10 {
-		err = os.Remove(backupsFileEntries[i].Path)
-		if err != nil {
-			return fmt.Errorf("%w: when removing file with path=%s", err, backupsFileEntries[i].Path)
+		for i := range len(backupsFileEntries) - 10 {
+			err = os.Remove(backupsFileEntries[i].Path)
+			if err != nil {
+				return fmt.Errorf("%w: when removing file with path=%s", err, backupsFileEntries[i].Path)
+			}
 		}
 	}
 
@@ -160,11 +156,14 @@ func RemoveOldestBackups(folderPath, driveBackupFolderId string, fileService *dr
 		backupsFileEntries = append(backupsFileEntries, BackupFileEntry{Id: e.Id, CTime: parsedTime})
 	}
 
-	sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
-	for i := range len(backupsFileEntries) - 10 {
-		err := fileService.Delete(backupsFileEntries[i].Id).SupportsAllDrives(true).Do()
-		if err != nil {
-			return fmt.Errorf("%w: when deleting file with id=%s from drive", err, backupsFileEntries[i].Id)
+	if len(backupsFileEntries) > 10 {
+		sort.Slice(backupsFileEntries, func(i, j int) bool { return backupsFileEntries[i].CTime.Before(backupsFileEntries[j].CTime) })
+
+		for i := range len(backupsFileEntries) - 10 {
+			err := fileService.Delete(backupsFileEntries[i].Id).SupportsAllDrives(true).Do()
+			if err != nil {
+				return fmt.Errorf("%w: when deleting file with id=%s from drive", err, backupsFileEntries[i].Id)
+			}
 		}
 	}
 
