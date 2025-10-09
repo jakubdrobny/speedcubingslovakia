@@ -48,10 +48,7 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
   const [searchParams, setSearchParams] = useSearchParams();
 
   const updateBasicInfo = (info: CompetitionData, currentEventIdx: number) => {
-    const match =
-      info.events[competitionStateRef.current.currentEventIdx].format.match(
-        /\d+$/,
-      )?.[0];
+    const match = info.events[currentEventIdx].format.match(/\d+$/)?.[0];
     const noOfSolves = match ? parseInt(match) : 1;
 
     setCompetitionState((ps) => {
