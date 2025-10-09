@@ -77,11 +77,31 @@ type ProfileTypeResultHistory struct {
 	History       []ProfileTypeResultHistoryEntry `json:"history"`
 }
 
+type ProfileRecordsEventHistoryEntry struct {
+	Single          string `json:"single"`
+	Average         string `json:"average"`
+	Times           string `json:"times"`
+	CompetitionId   string `json:"competitionId"`
+	CompetitionName string `json:"competitionName"`
+}
+
+type ProfileRecordsEventHistory struct {
+	Event   CompetitionEvent                `json:"event"`
+	History ProfileRecordsEventHistoryEntry `json:"history"`
+}
+
+type ProfileTypeRecordsHistory struct {
+	WR ProfileRecordsEventHistory `json:"wr"`
+	CR ProfileRecordsEventHistory `json:"cr"`
+	NR ProfileRecordsEventHistory `json:"nr"`
+}
+
 type ProfileType struct {
 	Basics           ProfileTypeBasics          `json:"basics"`
 	PersonalBests    []ProfileTypePersonalBests `json:"personalBests"`
 	MedalCollection  MedalCollection            `json:"medalCollection"`
 	RecordCollection RecordCollection           `json:"recordCollection"`
+	RecordsHistory   ProfileTypeRecordsHistory  `json:"recordsHistory"`
 	ResultsHistory   []ProfileTypeResultHistory `json:"resultsHistory"`
 }
 
@@ -1268,6 +1288,11 @@ func (p *ProfileType) LoadRecordCollection(
 	return recorders, nil
 }
 
+func (p *ProfileType) LoadRecordHistory(db *pgxpool.Pool, user *User, recorders map[int]Recorders, rows map[int][]EventResultsRow) error {
+
+	return nil
+}
+
 func (p *ProfileType) Load(db *pgxpool.Pool, uid int) error {
 	err := p.LoadBasics(db, uid)
 	if err != nil {
@@ -1294,6 +1319,11 @@ func (p *ProfileType) Load(db *pgxpool.Pool, uid int) error {
 	}
 
 	err = p.LoadHistory(db, &user, recorders, rows)
+	if err != nil {
+		return err
+	}
+
+	err = p.LoadRecordHistory(db, &user, recorders, rows)
 	if err != nil {
 		return err
 	}

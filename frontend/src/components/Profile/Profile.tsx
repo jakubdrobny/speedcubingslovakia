@@ -18,6 +18,7 @@ import { WindowSizeContext } from "../../context/WindowSizeContext";
 import { WindowSizeContextType } from "../../Types";
 import { useContext } from "react";
 import { useParams } from "react-router-dom";
+import ProfileRecordsHistory from "./ProfileRecordsHistory";
 
 const Profile = () => {
   const { id = "trolko" } = useParams<{ id: string }>();
@@ -26,12 +27,10 @@ const Profile = () => {
     error: {},
   });
   const [profile, setProfile] = useState<ProfileType>(defaultProfile);
-  const { windowSize } = useContext(
-    WindowSizeContext
-  ) as WindowSizeContextType;
+  const { windowSize } = useContext(WindowSizeContext) as WindowSizeContextType;
 
   useEffect(() => {
-    setLoadingState({ isLoading: true, error: {} })
+    setLoadingState({ isLoading: true, error: {} });
 
     getProfile(id)
       .then((p: ProfileType) => {
@@ -100,6 +99,9 @@ const Profile = () => {
               />
             </Grid>
           </Grid>
+          {profile.recordsHistory && (
+            <ProfileRecordsHistory recordsHistory={profile.recordsHistory} />
+          )}
           {profile.resultsHistory && profile.resultsHistory.length > 0 && (
             <ProfileResultsHistory resultsHistory={profile.resultsHistory} />
           )}

@@ -1,48 +1,28 @@
 import { Card, Stack, Table, Typography } from "@mui/joy";
-import {
-  getCubingIconClassName,
-  reformatMultiTime,
-  shouldHideAverageColumn,
-} from "../../utils/utils";
+import { getCubingIconClassName, reformatMultiTime } from "../../utils/utils";
 
 import { Link } from "react-router-dom";
-import { ProfileTypeResultHistory } from "../../Types";
-import { useState } from "react";
+import { ProfileTypeRecordsHistory } from "../../Types";
 
-const ProfileResultsHistory: React.FC<{
-  resultsHistory: ProfileTypeResultHistory[];
-}> = ({ resultsHistory }) => {
+const ProfileRecordsHistory: React.FC<{
+  recordsHistory: ProfileTypeRecordsHistory;
+}> = ({ recordsHistory }) => {
   const goodHeight: React.CSSProperties = { height: "1em" };
   const left: React.CSSProperties = { textAlign: "left", ...goodHeight };
   const center: React.CSSProperties = { textAlign: "center", ...goodHeight };
   const right: React.CSSProperties = { textAlign: "right", ...goodHeight };
-  const [currentHistoryIdx, setCurrentHistoryIdx] = useState(0);
-  const isfmc = resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm";
-  const ismbld = resultsHistory[currentHistoryIdx]?.eventIconcode === "333mbf";
-  const hideAverageColumn = shouldHideAverageColumn(
-    resultsHistory[currentHistoryIdx]?.eventFormat,
-    resultsHistory[currentHistoryIdx]?.eventIconcode,
-  );
 
   const getColumnNames = () => {
     const columnNames = [
       "",
-      "Competition",
-      "Place",
       "Single",
+      "Average",
+      "Competition",
       "",
       "Average",
       "",
-      resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm"
-        ? "Moves"
-        : "Solves",
+      "Solves",
     ];
-
-    if (columnNames.includes("Average") && hideAverageColumn)
-      columnNames.splice(
-        columnNames.findIndex((x) => x === "Average"),
-        2,
-      );
 
     return columnNames;
   };
@@ -50,7 +30,7 @@ const ProfileResultsHistory: React.FC<{
   return (
     <Stack spacing={2} sx={{ whiteSpace: "nowrap" }}>
       <div style={{ display: "flex", justifyContent: "center" }}>
-        <Typography level="h3">Results</Typography>
+        <Typography level="h3">Record History</Typography>
       </div>
       <Card sx={{ padding: "0.4em 0.5em", gap: 0 }}>
         <div
@@ -199,4 +179,4 @@ const ProfileResultsHistory: React.FC<{
   );
 };
 
-export default ProfileResultsHistory;
+export default ProfileRecordsHistory;

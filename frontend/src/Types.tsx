@@ -293,11 +293,31 @@ export type ProfileTypeResultHistory = {
   history: ProfileTypeResultHistoryEntry[];
 };
 
+export type ProfileRecordsEventHistoryEntry = {
+  single: string;
+  average: string;
+  times: string[];
+  competitionId: string;
+  competitionName: string;
+};
+
+export type ProfileRecordsEventHistory = {
+  event: CompetitionEvent;
+  history: ProfileRecordsEventHistoryEntry[];
+};
+
+export type ProfileTypeRecordsHistory = {
+  wr: ProfileRecordsEventHistory;
+  cr: ProfileRecordsEventHistory;
+  nr: ProfileRecordsEventHistory;
+};
+
 export type ProfileType = {
   basics: ProfileTypeBasics;
   personalBests: ProfileTypePersonalBests[];
   medalCollection: { gold: string; silver: string; bronze: string };
   recordCollection: { wr: string; cr: string; nr: string };
+  recordsHistory: ProfileTypeRecordsHistory;
   resultsHistory: ProfileTypeResultHistory[];
 };
 
