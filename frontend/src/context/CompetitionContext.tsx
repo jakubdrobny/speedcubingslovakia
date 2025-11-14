@@ -71,13 +71,13 @@ export const CompetitionProvider: React.FC<{ children?: ReactNode }> = ({
     compId: string = competitionState.id,
   ) => {
     if (event.displayname === "Overall") {
-      event =
-        competitionStateRef.current.events[
-          competitionStateRef.current.currentEventIdx + 1
-        ];
+      event = competitionStateRef.current.events[1];
+      const match = event.format.match(/\d+$/)?.[0];
+      const noOfSolves = match ? parseInt(match) : 1;
       setCompetitionState((ps) => ({
         ...ps,
-        currentEventIdx: ps.currentEventIdx + 1,
+        currentEventIdx: 1,
+        noOfSolves: noOfSolves,
       }));
       searchParams.set("event", event.iconcode);
       setSearchParams(searchParams);
