@@ -12,6 +12,7 @@ import {
   isObjectEmpty,
   reformatMultiTime,
   renderResponseError,
+  getCubingIconClassName,
 } from "../../utils/utils";
 import { useContext, useEffect } from "react";
 
@@ -43,6 +44,12 @@ const CompetitionResults = () => {
   const ismbld =
     competitionState?.events[competitionState?.currentEventIdx]?.iconcode ===
     "333mbf";
+  const events = competitionState?.events;
+  const shouldNotHaveOverall =
+    events && events.length > 0 && events[0].id === -1;
+  const eventIconCodes = events
+    .slice(+shouldNotHaveOverall)
+    .map((event) => "ICON-" + event.iconcode);
 
   const columnNames = () => {
     let columnNames: string[] = [
@@ -57,6 +64,7 @@ const CompetitionResults = () => {
       [columnNames[3], columnNames[4]] = [columnNames[4], columnNames[3]];
     if (isOverall) {
       columnNames.splice(3, 3, "Score");
+      columnNames.push(...eventIconCodes);
     }
 
     if (bo1) columnNames = columnNames.filter((x) => x !== "Average");
@@ -138,9 +146,21 @@ const CompetitionResults = () => {
                     >
                       <Stack
                         direction="row"
-                        justifyContent={getColumnAlignment(idx)}
+                        justifyContent={
+                          val.startsWith("ICON-")
+                            ? "center"
+                            : getColumnAlignment(idx)
+                        }
                       >
-                        <b>{val}</b>
+                        {val.startsWith("ICON-") ? (
+                          <span
+                            className={getCubingIconClassName(val.slice(5))}
+                          >
+                            &nbsp;
+                          </span>
+                        ) : (
+                          <b>{val}</b>
+                        )}
                         {val === "Score" && (
                           <Tooltip
                             placement="right"
@@ -212,6 +232,22 @@ const CompetitionResults = () => {
                         <td style={{ height: "1em", textAlign: "left" }}>
                           <b>{result.score}</b>
                         </td>
+                        {result.scores &&
+                          result.scores.map((scoreStruct) => (
+                            <td
+                              style={{
+                                height: "1em",
+                                textAlign: "center",
+                                color:
+                                  scoreStruct.score === "100.00"
+                                    ? "red"
+                                    : "black",
+                                opacity: scoreStruct.score === "0.00" ? 0.5 : 1,
+                              }}
+                            >
+                              {scoreStruct.score}
+                            </td>
+                          ))}
                       </>
                     ) : (
                       <>

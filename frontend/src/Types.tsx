@@ -226,7 +226,13 @@ export type CompetitionResult = {
   average: string;
   times: string[];
   score: string;
+  scores: CompetitionResultScore[];
   comment: string;
+};
+
+export type CompetitionResultScore = {
+  iconcode: string;
+  score: string;
 };
 
 export type CompetitionResultStruct = {
