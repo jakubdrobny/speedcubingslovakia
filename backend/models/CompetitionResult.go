@@ -17,17 +17,25 @@ import (
 )
 
 type CompetitionResult struct {
-	Place       string   `json:"place"`
-	Username    string   `json:"username"`
-	WcaId       string   `json:"wca_id"`
-	CountryName string   `json:"country_name"`
-	CountryIso2 string   `json:"country_iso2"`
-	Single      string   `json:"single"`
-	Average     string   `json:"average"`
-	Times       []string `json:"times"`
-	Score       string   `json:"score"`
-	UserId      int      `json:"-"`
-	Comment     string   `json:"comment"`
+	Place       string                   `json:"place"`
+	Username    string                   `json:"username"`
+	WcaId       string                   `json:"wca_id"`
+	CountryName string                   `json:"country_name"`
+	CountryIso2 string                   `json:"country_iso2"`
+	Single      string                   `json:"single"`
+	Average     string                   `json:"average"`
+	Times       []string                 `json:"times"`
+	Score       string                   `json:"score"`
+	Scores      []CompetitionResultScore `json:"scores"`
+	UserId      int                      `json:"-"`
+	EventId     int                      `json:"-"`
+	Comment     string                   `json:"comment"`
+}
+
+type CompetitionResultScore struct {
+	EventId  int    `json:"-"`
+	Iconcode string `json:"iconcode"`
+	Score    string `json:"score"`
 }
 
 type BestEntry struct {
@@ -95,7 +103,7 @@ func AddOverallPlacement(results []CompetitionResult) {
 		results[0].Place = fmt.Sprintf("%d.", place)
 	}
 
-	for idx := 0; idx < len(results); idx++ {
+	for idx := range len(results) {
 		if idx+1 < len(results) {
 			a, _ := strconv.ParseFloat(results[idx].Score, 64)
 			b, _ := strconv.ParseFloat(results[idx+1].Score, 64)
@@ -112,11 +120,13 @@ func AddOverallPlacement(results []CompetitionResult) {
 func GetScores(
 	rows []KinchQueryRow,
 	bests map[int]BestEntry,
+	events []CompetitionEvent,
 	noOfEvents int,
 	db *pgxpool.Pool,
 ) ([]CompetitionResult, error) {
 	cums := make(map[int]map[int]float64)
 	res := make(map[int]CompetitionResult)
+	eventMap := make(map[int]string)
 
 	for _, row := range rows {
 		competitionResult := row.CompetitionResult
@@ -155,6 +165,7 @@ func GetScores(
 		} else if resultEntry.Iconcode == "333bf" || resultEntry.Iconcode == "333fm" || resultEntry.Iconcode == "unofficial-222bf" {
 			finalContrib = math.Max(finalContrib, singleContrib)
 		}
+		eventMap[resultEntry.Eventid] = resultEntry.Iconcode
 
 		if cums[resultEntry.Userid] == nil {
 			cums[resultEntry.Userid] = map[int]float64{}
@@ -171,10 +182,18 @@ func GetScores(
 		competitionResult := res[uid]
 
 		cum := 0.
-		for _, curCum := range cumEvents {
+		scores := []CompetitionResultScore{}
+		for _, event := range events {
+			if event.Id == -1 {
+				continue
+			}
+			curCum, _ := cumEvents[event.Id]
 			cum += float64(curCum)
+			scores = append(scores, CompetitionResultScore{EventId: event.Id, Score: fmt.Sprintf("%.2f", curCum), Iconcode: eventMap[event.Id]})
 		}
+
 		competitionResult.Score = fmt.Sprintf("%.2f", cum/float64(noOfEvents))
+		competitionResult.Scores = scores
 
 		competitionResults = append(competitionResults, competitionResult)
 	}
@@ -233,6 +252,7 @@ func GetKinchQueryRows(rawRows pgx.Rows, db *pgxpool.Pool) ([]KinchQueryRow, err
 		if competitionResult.WcaId == "" {
 			competitionResult.WcaId = competitionResult.Username
 		}
+		competitionResult.EventId = resultEntry.Eventid
 
 		scrambles := make([]string, 5)
 		if resultEntry.IsFMC() {
@@ -310,6 +330,7 @@ func GetOverallResults(
 	}
 
 	bests := make(map[int]BestEntry)
+	events := []CompetitionEvent{}
 	var noOfEvents int
 
 	if cid != "" {
@@ -325,9 +346,11 @@ func GetOverallResults(
 		for _, ev := range competition.Events {
 			bests[ev.Id] = BestEntry{constants.DNS, constants.DNS}
 		}
+
+		events = competition.Events
 		noOfEvents = len(competition.Events) - 1
 	} else {
-		events, err := GetAvailableEvents(db)
+		events, err = GetAvailableEvents(db)
 		if err != nil {
 			return []CompetitionResult{}, err
 		}
@@ -343,7 +366,7 @@ func GetOverallResults(
 		return []CompetitionResult{}, err
 	}
 
-	competitionResults, err := GetScores(rows, bests, noOfEvents, db)
+	competitionResults, err := GetScores(rows, bests, events, noOfEvents, db)
 	if err != nil {
 		return []CompetitionResult{}, err
 	}

@@ -146,7 +146,11 @@ const CompetitionResults = () => {
                     >
                       <Stack
                         direction="row"
-                        justifyContent={getColumnAlignment(idx)}
+                        justifyContent={
+                          val.startsWith("ICON-")
+                            ? "center"
+                            : getColumnAlignment(idx)
+                        }
                       >
                         {val.startsWith("ICON-") ? (
                           <span
@@ -238,11 +242,10 @@ const CompetitionResults = () => {
                                   scoreStruct.score === "100.00"
                                     ? "red"
                                     : "black",
-                                opacity:
-                                  scoreStruct.score === "0.00" ? 50 : 100,
+                                opacity: scoreStruct.score === "0.00" ? 0.5 : 1,
                               }}
                             >
-                              <b>{scoreStruct.score}</b>
+                              {scoreStruct.score}
                             </td>
                           ))}
                       </>
