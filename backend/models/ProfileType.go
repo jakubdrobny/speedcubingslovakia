@@ -334,59 +334,41 @@ func GetRankFromResults(
 		},
 	}
 
-	for nrIdx, crIdx, wrIdx, curIdx, nrPos, crPos, wrPos := -1, -1, 0, 1, 1, 1, 1; curIdx < len(resultsArrSingle) && resultsArrSingle[curIdx].Value <= singleResultInMili; curIdx++ {
-		if nrIdx == -1 && resultsArrSingle[curIdx-1].CountryId == user.CountryId {
-			nrIdx = curIdx - 1
-		}
-		if crIdx == -1 && resultsArrSingle[curIdx-1].ContinentId == user.ContinentId {
-			crIdx = curIdx - 1
+	wrSingle, crSingle, nrSingle := 1, 1, 1
+	for _, res := range resultsArrSingle {
+		if res.Value >= singleResultInMili {
+			break
 		}
 
-		if nrIdx != -1 && resultsArrSingle[nrIdx].Value < resultsArrSingle[curIdx].Value &&
-			resultsArrSingle[curIdx].CountryId == user.CountryId {
-			personalBestRanks.Single.NR = fmt.Sprint(nrPos + 1)
-			nrIdx = curIdx
-			nrPos++
+		wrSingle++
+		if res.ContinentId == user.ContinentId {
+			crSingle++
 		}
-		if crIdx != -1 && resultsArrSingle[crIdx].Value < resultsArrSingle[curIdx].Value &&
-			resultsArrSingle[curIdx].ContinentId == user.ContinentId {
-			personalBestRanks.Single.CR = fmt.Sprint(crPos + 1)
-			crIdx = curIdx
-			crPos++
-		}
-		if resultsArrSingle[wrIdx].Value < resultsArrSingle[curIdx].Value {
-			personalBestRanks.Single.WR = fmt.Sprint(wrPos + 1)
-			wrIdx = curIdx
-			wrPos++
+		if res.CountryId == user.CountryId {
+			nrSingle++
 		}
 	}
+	personalBestRanks.Single.WR = fmt.Sprint(wrSingle)
+	personalBestRanks.Single.CR = fmt.Sprint(crSingle)
+	personalBestRanks.Single.NR = fmt.Sprint(nrSingle)
 
-	for nrIdx, crIdx, wrIdx, curIdx, nrPos, crPos, wrPos := -1, -1, 0, 1, 1, 1, 1; curIdx < len(resultsArrAverage) && resultsArrAverage[curIdx].Value <= averageResultInMili; curIdx++ {
-		if nrIdx == -1 && resultsArrAverage[curIdx-1].CountryId == user.CountryId {
-			nrIdx = curIdx - 1
-		}
-		if crIdx == -1 && resultsArrAverage[curIdx-1].ContinentId == user.ContinentId {
-			crIdx = curIdx - 1
+	wrAverage, crAverage, nrAverage := 1, 1, 1
+	for _, res := range resultsArrAverage {
+		if res.Value >= averageResultInMili {
+			break
 		}
 
-		if nrIdx != -1 && resultsArrAverage[nrIdx].Value < resultsArrAverage[curIdx].Value &&
-			resultsArrAverage[curIdx].CountryId == user.CountryId {
-			personalBestRanks.Average.NR = fmt.Sprint(nrPos + 1)
-			nrIdx = curIdx
-			nrPos++
+		wrAverage++
+		if res.ContinentId == user.ContinentId {
+			crAverage++
 		}
-		if crIdx != -1 && resultsArrAverage[crIdx].Value < resultsArrAverage[curIdx].Value &&
-			resultsArrAverage[curIdx].ContinentId == user.ContinentId {
-			personalBestRanks.Average.CR = fmt.Sprint(crPos + 1)
-			crIdx = curIdx
-			crPos++
-		}
-		if resultsArrAverage[wrIdx].Value < resultsArrAverage[curIdx].Value {
-			personalBestRanks.Average.WR = fmt.Sprint(wrPos + 1)
-			wrIdx = curIdx
-			wrPos++
+		if res.CountryId == user.CountryId {
+			nrAverage++
 		}
 	}
+	personalBestRanks.Average.WR = fmt.Sprint(wrAverage)
+	personalBestRanks.Average.CR = fmt.Sprint(crAverage)
+	personalBestRanks.Average.NR = fmt.Sprint(nrAverage)
 
 	return personalBestRanks, nil
 }
