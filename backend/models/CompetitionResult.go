@@ -17,22 +17,22 @@ import (
 )
 
 type CompetitionResult struct {
-	Place       string                   `json:"place"`
-	Username    string                   `json:"username"`
-	WcaId       string                   `json:"wca_id"`
-	CountryName string                   `json:"country_name"`
-	CountryIso2 string                   `json:"country_iso2"`
-	Single      string                   `json:"single"`
-	Average     string                   `json:"average"`
-	Times       []string                 `json:"times"`
-	Score       string                   `json:"score"`
-	Scores      []CompetitionResultScore `json:"scores"`
-	UserId      int                      `json:"-"`
-	EventId     int                      `json:"-"`
-	Comment     string                   `json:"comment"`
+	Place       string       `json:"place"`
+	Username    string       `json:"username"`
+	WcaId       string       `json:"wca_id"`
+	CountryName string       `json:"country_name"`
+	CountryIso2 string       `json:"country_iso2"`
+	Single      string       `json:"single"`
+	Average     string       `json:"average"`
+	Times       []string     `json:"times"`
+	Score       string       `json:"score"`
+	Scores      []KinchScore `json:"scores"`
+	UserId      int          `json:"-"`
+	EventId     int          `json:"-"`
+	Comment     string       `json:"comment"`
 }
 
-type CompetitionResultScore struct {
+type KinchScore struct {
 	EventId  int    `json:"-"`
 	Iconcode string `json:"iconcode"`
 	Score    string `json:"score"`
@@ -182,14 +182,14 @@ func GetScores(
 		competitionResult := res[uid]
 
 		cum := 0.
-		scores := []CompetitionResultScore{}
+		scores := []KinchScore{}
 		for _, event := range events {
 			if event.Id == -1 {
 				continue
 			}
 			curCum, _ := cumEvents[event.Id]
 			cum += float64(curCum)
-			scores = append(scores, CompetitionResultScore{EventId: event.Id, Score: fmt.Sprintf("%.2f", curCum), Iconcode: eventMap[event.Id]})
+			scores = append(scores, KinchScore{EventId: event.Id, Score: fmt.Sprintf("%.2f", curCum), Iconcode: eventMap[event.Id]})
 		}
 
 		competitionResult.Score = fmt.Sprintf("%.2f", cum/float64(noOfEvents))
