@@ -495,15 +495,16 @@ func GetRegionsGrouped(db *pgxpool.Pool) gin.HandlerFunc {
 }
 
 type RankingsEntry struct {
-	Place           string   `json:"place"`
-	Username        string   `json:"username"`
-	WcaId           string   `json:"wca_id"`
-	CountryISO2     string   `json:"country_iso2"`
-	CountryName     string   `json:"country_name"`
-	Result          string   `json:"result"`
-	CompetitionId   string   `json:"competitionId"`
-	CompetitionName string   `json:"competitionName"`
-	Times           []string `json:"times"`
+	Place           string              `json:"place"`
+	Username        string              `json:"username"`
+	WcaId           string              `json:"wca_id"`
+	CountryISO2     string              `json:"country_iso2"`
+	CountryName     string              `json:"country_name"`
+	Result          string              `json:"result"`
+	CompetitionId   string              `json:"competitionId"`
+	CompetitionName string              `json:"competitionName"`
+	Times           []string            `json:"times"`
+	Scores          []models.KinchScore `json:"scores"`
 }
 
 type RecordsItem struct {
@@ -649,6 +650,7 @@ func GetRankings(db *pgxpool.Pool) gin.HandlerFunc {
 				rankingsEntry.CountryName = result.CountryName
 				rankingsEntry.CountryISO2 = result.CountryIso2
 				rankingsEntry.Result = result.Score
+				rankingsEntry.Scores = result.Scores
 
 				rankings = append(rankings, rankingsEntry)
 			}
