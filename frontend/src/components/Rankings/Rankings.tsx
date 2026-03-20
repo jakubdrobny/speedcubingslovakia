@@ -53,10 +53,8 @@ const Rankings = () => {
   const [queryTypeValue, setQueryTypeValue, queryTypeValueRef] =
     useState<string>(defaultQueryTypeValue);
   const { windowSize } = useContext(WindowSizeContext) as WindowSizeContextType;
-  const shouldNotHaveOverall =
-    events && events.length > 0 && events[0].id === -1;
   const eventIconCodes = events
-    .slice(+shouldNotHaveOverall)
+    .filter((event) => event.id !== -1)
     .map((event) => "ICON-" + event.iconcode);
 
   const fetchRankings = useCallback(() => {
