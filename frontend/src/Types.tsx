@@ -226,11 +226,11 @@ export type CompetitionResult = {
   average: string;
   times: string[];
   score: string;
-  scores: CompetitionResultScore[];
+  scores: KinchScore[];
   comment: string;
 };
 
-export type CompetitionResultScore = {
+export type KinchScore = {
   iconcode: string;
   score: string;
 };
@@ -327,6 +327,7 @@ export type RankingsEntry = {
   competitionName: string;
   competitionId: string;
   times: string[];
+  scores: KinchScore[];
 };
 
 export type RecordsItem = {

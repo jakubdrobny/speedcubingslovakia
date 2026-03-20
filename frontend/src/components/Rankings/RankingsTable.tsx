@@ -3,7 +3,7 @@ import { Card, Table } from "@mui/joy";
 import { Link } from "react-router-dom";
 import { RankingsEntry } from "../../Types";
 import React from "react";
-import { reformatMultiTime } from "../../utils/utils";
+import { getCubingIconClassName, reformatMultiTime } from "../../utils/utils";
 
 const RankingsTable: React.FC<{
   rankings: RankingsEntry[];
@@ -12,14 +12,25 @@ const RankingsTable: React.FC<{
   isfmc: boolean;
   ismbld: boolean;
   isoverall: boolean;
-}> = ({ rankings, single, loading, isfmc, ismbld, isoverall }) => {
+  eventIconCodes: string[];
+}> = ({
+  rankings,
+  single,
+  loading,
+  isfmc,
+  ismbld,
+  isoverall,
+  eventIconCodes,
+}) => {
   const columnNames = (() => {
     let columnNames = ["#", "Name", "Result", "Represeting", "Competition"];
     if (!single) columnNames.push(isfmc ? "Moves" : "Times");
-    if (isoverall)
+    if (isoverall) {
       columnNames = columnNames.filter(
-        (c) => !["Moves", "Times", "Competition"].includes(c)
+        (c) => !["Moves", "Times", "Competition"].includes(c),
       );
+      columnNames.push(...eventIconCodes);
+    }
     return columnNames;
   })();
 
@@ -50,10 +61,20 @@ const RankingsTable: React.FC<{
                 key={idx}
                 style={{
                   height: "1em",
-                  textAlign: idx === 0 || idx === 2 ? "right" : "left",
+                  textAlign: val.startsWith("ICON-")
+                    ? "center"
+                    : idx === 0 || idx === 2
+                      ? "right"
+                      : "left",
                 }}
               >
-                <b>{val}</b>
+                {val.startsWith("ICON-") ? (
+                  <span className={getCubingIconClassName(val.slice(5))}>
+                    &nbsp;
+                  </span>
+                ) : (
+                  <b>{val}</b>
+                )}
               </th>
             ))}
           </tr>
@@ -67,13 +88,13 @@ const RankingsTable: React.FC<{
                 isfmc && single
                   ? ranking.result.split(".")[0]
                   : ismbld
-                  ? reformatMultiTime(ranking.result)
-                  : ranking.result;
+                    ? reformatMultiTime(ranking.result)
+                    : ranking.result;
               ranking.times = isfmc
                 ? ranking.times.map((res) => res.split(".")[0])
                 : ismbld
-                ? ranking.times.map((res) => reformatMultiTime(res))
-                : ranking.times;
+                  ? ranking.times.map((res) => reformatMultiTime(res))
+                  : ranking.times;
               return (
                 <tr key={idx}>
                   <td style={{ height: "1em", textAlign: "right" }}>
@@ -100,7 +121,7 @@ const RankingsTable: React.FC<{
                     />
                     &nbsp;&nbsp;{ranking.country_name}
                   </td>
-                  {!isoverall && (
+                  {!isoverall ? (
                     <>
                       <td style={{ height: "1em" }}>
                         <Link to={`/competition/${ranking.competitionId}`}>
@@ -113,6 +134,21 @@ const RankingsTable: React.FC<{
                         </td>
                       )}
                     </>
+                  ) : (
+                    ranking.scores &&
+                    ranking.scores.map((scoreStruct) => (
+                      <td
+                        style={{
+                          height: "1em",
+                          textAlign: "center",
+                          color:
+                            scoreStruct.score === "100.00" ? "red" : "black",
+                          opacity: scoreStruct.score === "0.00" ? 0.5 : 1,
+                        }}
+                      >
+                        {scoreStruct.score}
+                      </td>
+                    ))
                   )}
                 </tr>
               );
