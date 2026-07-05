@@ -23,7 +23,7 @@ const RankingsTable: React.FC<{
   eventIconCodes,
 }) => {
   const columnNames = (() => {
-    let columnNames = ["#", "Name", "Result", "Represeting", "Competition"];
+    let columnNames = ["#", "Name", "Result", "Representing", "Competition"];
     if (!single) columnNames.push(isfmc ? "Moves" : "Times");
     if (isoverall) {
       columnNames = columnNames.filter(
