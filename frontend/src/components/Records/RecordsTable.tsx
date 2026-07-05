@@ -9,7 +9,13 @@ const RecordsTable: React.FC<{
   recordItems: RecordsItem[];
 }> = ({ recordItems }) => {
   const columnNames = (() => {
-    let columnNames = ["Type", "Name", "Result", "Represeting", "Competition"];
+    const columnNames = [
+      "Type",
+      "Name",
+      "Result",
+      "Representing",
+      "Competition",
+    ];
     return columnNames;
   })();
 
@@ -27,7 +33,7 @@ const RecordsTable: React.FC<{
             >
               <span
                 className={`${getCubingIconClassName(
-                  item.iconcode
+                  item.iconcode,
                 )} profile-cubing-icon-mock`}
               />
               &nbsp;{item.eventname}
@@ -57,7 +63,7 @@ const RecordsTable: React.FC<{
                       .concat(
                         item.entries[item.entries.length - 1].type !== "Single"
                           ? ["Solves"]
-                          : []
+                          : [],
                       )
                       .map((val, idx) => (
                         <th
@@ -68,8 +74,8 @@ const RecordsTable: React.FC<{
                               idx === 2
                                 ? "right"
                                 : val == "Solves"
-                                ? "center"
-                                : "left",
+                                  ? "center"
+                                  : "left",
                           }}
                         >
                           <b>{val}</b>
@@ -83,13 +89,13 @@ const RecordsTable: React.FC<{
                       isfmc && itemEntry.type === "Single"
                         ? itemEntry.result.split(".")[0]
                         : ismbld
-                        ? reformatMultiTime(itemEntry.result)
-                        : itemEntry.result;
+                          ? reformatMultiTime(itemEntry.result)
+                          : itemEntry.result;
                     itemEntry.solves = isfmc
                       ? itemEntry.solves.map((res) => res.split(".")[0])
                       : ismbld
-                      ? itemEntry.solves.map((res) => reformatMultiTime(res))
-                      : itemEntry.solves;
+                        ? itemEntry.solves.map((res) => reformatMultiTime(res))
+                        : itemEntry.solves;
                     return (
                       <tr key={idx}>
                         <td
