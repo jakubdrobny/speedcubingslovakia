@@ -636,13 +636,6 @@ export const AddReactionToAnnouncement = async (
   return response.data;
 };
 
-export const shouldHideAverageColumn = (
-  eventFormat: string,
-  eventIconcode: string,
-): boolean => {
-  return eventFormat == "bo1" || eventIconcode === "333mbf";
-};
-
 export const initialAverageInfo: AverageInfo = {
   single: "",
   average: "",

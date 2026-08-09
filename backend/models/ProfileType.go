@@ -406,7 +406,7 @@ type EventResultsRow struct {
 func LoadEventRows(db *pgxpool.Pool, eid int) ([]EventResultsRow, error) {
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format, e.iconcode, r.event_id, r.competition_id, countries.continent_id, u.country_id, c.name, u.name, u.wcaid, countries.country_id, countries.iso2, rs.visible FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id JOIN countries countries ON countries.country_id = u.country_id WHERE rs.visible IS TRUE AND r.event_id = $1 ORDER BY c.enddate DESC;`,
+		`SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, ce.format, e.iconcode, r.event_id, r.competition_id, countries.continent_id, u.country_id, c.name, u.name, u.wcaid, countries.country_id, countries.iso2, rs.visible FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN competition_events ce ON ce.competition_id = r.competition_id AND ce.event_id = r.event_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id JOIN countries countries ON countries.country_id = u.country_id WHERE rs.visible IS TRUE AND r.event_id = $1 ORDER BY c.enddate DESC;`,
 		eid,
 	)
 	if err != nil {
@@ -515,7 +515,7 @@ func (p *ProfileTypePersonalBests) ClearAverage() {
 func GetPersonalResultEntriesInEvent(db *pgxpool.Pool, uid int, eid int) ([]ResultEntry, error) {
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.user_id = $1 AND r.event_id = $2 AND rs.visible IS TRUE;`,
+		`SELECT r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, ce.format, e.iconcode, r.event_id, r.competition_id FROM results r JOIN events e ON e.event_id = r.event_id JOIN competition_events ce ON ce.event_id = e.event_id AND ce.competition_id = r.competition_id JOIN results_status rs ON rs.results_status_id = r.status_id WHERE r.user_id = $1 AND r.event_id = $2 AND rs.visible IS TRUE;`,
 		uid,
 		eid,
 	)
@@ -556,7 +556,7 @@ func (p *ProfileType) LoadPersonalBests(
 ) (map[int][]EventResultsRow, error) {
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT e.fulldisplayname, e.iconcode, e.event_id, e.format, e.displayname FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 GROUP BY e.fulldisplayname, e.iconcode, e.event_id ORDER BY e.event_id;`,
+		`SELECT e.fulldisplayname, e.iconcode, e.event_id, e.displayname FROM results r JOIN events e ON e.event_id = r.event_id WHERE r.user_id = $1 GROUP BY e.fulldisplayname, e.iconcode, e.event_id ORDER BY e.event_id;`,
 		user.Id,
 	)
 	if err != nil {
@@ -566,12 +566,10 @@ func (p *ProfileType) LoadPersonalBests(
 	p.PersonalBests = make([]ProfileTypePersonalBests, 0)
 	for rows.Next() {
 		var pbEntry ProfileTypePersonalBests
-		var eventFormat string
 		err = rows.Scan(
 			&pbEntry.EventName,
 			&pbEntry.EventIconCode,
 			&pbEntry.EventId,
-			&eventFormat,
 			&pbEntry.Event.Displayname,
 		)
 		if err != nil {
@@ -582,7 +580,6 @@ func (p *ProfileType) LoadPersonalBests(
 			Id:              pbEntry.EventId,
 			Fulldisplayname: pbEntry.EventName,
 			Displayname:     pbEntry.Event.Displayname,
-			Format:          eventFormat,
 			Iconcode:        pbEntry.EventIconCode,
 		}
 
@@ -595,8 +592,7 @@ func (p *ProfileType) LoadPersonalBests(
 	eventsResultRows := make(map[int][]EventResultsRow)
 
 	for idx := range p.PersonalBests {
-		checkAverage := p.PersonalBests[idx].EventIconCode == "333mbf" ||
-			p.PersonalBests[idx].Event.Format == "bo1"
+		checkAverage := p.PersonalBests[idx].EventIconCode == "333mbf"
 		eid := p.PersonalBests[idx].EventId
 
 		personalResultEntries, err := GetPersonalResultEntriesInEvent(db, user.Id, eid)
@@ -629,7 +625,7 @@ func (p *ProfileType) LoadPersonalBests(
 			"",
 		) >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearSingle()
-		} else if checkAverage || p.PersonalBests[idx].Event.Format == "bo1" || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
+		} else if checkAverage || utils.ParseSolveToMilliseconds(p.PersonalBests[idx].Average.Value, false, "") >= constants.VERY_SLOW {
 			p.PersonalBests[idx].ClearAverage()
 		}
 
@@ -753,7 +749,7 @@ func AddRecordsToHistory(
 ) {
 	singleSoFar := "DNS"
 	averageSoFar := "DNS"
-	checkAverage := history.EventIconCode == "333mbf" || history.EventFormat == "bo1"
+	checkAverage := history.EventIconCode == "333mbf"
 
 	for historyIdx := len(history.History) - 1; historyIdx >= 0; historyIdx-- {
 		historyEntry := history.History[historyIdx]
@@ -908,15 +904,15 @@ func (p *ProfileType) CreateEventHistoryForUser(
 					lastCompStartingIdx,
 					curIdx,
 					user.Id,
-					event.Format,
+					resultEntry.Format,
 					db,
 				)
 				if err != nil {
 					return err
 				}
 
-				canIncreaseMedalCount := (event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) ||
-					(!hasAverage && event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW)
+				canIncreaseMedalCount := (len(event.Format) > 0 && event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) ||
+					(!hasAverage && len(event.Format) > 0 && event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW)
 				if canIncreaseMedalCount {
 					switch historyEntry.Place {
 					case "1":

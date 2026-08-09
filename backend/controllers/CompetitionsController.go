@@ -155,11 +155,12 @@ func CreateCompetition(
 	}
 
 	for _, event := range competition.Events {
-		_, err := tx.Exec(
+		_, err = tx.Exec(
 			context.Background(),
-			`INSERT INTO competition_events (competition_id, event_id) VALUES ($1,$2);`,
+			`INSERT INTO competition_events (competition_id, event_id, format) VALUES ($1,$2,$3);`,
 			competition.Id,
 			event.Id,
+			event.Format,
 		)
 		if err != nil {
 			tx.Rollback(context.Background())

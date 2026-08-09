@@ -80,12 +80,20 @@ const CompetitionEdit: React.FC<CompetitionEditProps> = ({ edit }) => {
   }, []);
 
   const handleSelectedEventsChange = (selectedEventsNames: string[]) => {
-    const selectedEvents = selectedEventsNames.map(
-      (eName) =>
-        availableEvents.find(
-          (e) => e.displayname === eName,
-        ) as CompetitionEvent,
-    );
+    const selectedEvents = selectedEventsNames.map((eName) => {
+      // available events has the most recent event info, if the format changed
+      // editing old competitions without this workaround would cause the format to possible change
+      const existingEvent = competitionState.events?.find(
+        (e) => e.displayname === eName,
+      );
+      if (existingEvent) {
+        return existingEvent;
+      }
+
+      return availableEvents.find(
+        (e) => e.displayname === eName,
+      ) as CompetitionEvent;
+    });
     setCompetitionState({ ...competitionState, events: selectedEvents });
   };
 
