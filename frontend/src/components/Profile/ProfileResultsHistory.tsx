@@ -1,9 +1,5 @@
 import { Card, Stack, Table, Typography } from "@mui/joy";
-import {
-  getCubingIconClassName,
-  reformatMultiTime,
-  shouldHideAverageColumn,
-} from "../../utils/utils";
+import { getCubingIconClassName, reformatMultiTime } from "../../utils/utils";
 
 import { Link } from "react-router-dom";
 import { ProfileTypeResultHistory } from "../../Types";
@@ -19,10 +15,12 @@ const ProfileResultsHistory: React.FC<{
   const [currentHistoryIdx, setCurrentHistoryIdx] = useState(0);
   const isfmc = resultsHistory[currentHistoryIdx]?.eventIconcode === "333fm";
   const ismbld = resultsHistory[currentHistoryIdx]?.eventIconcode === "333mbf";
-  const hideAverageColumn = shouldHideAverageColumn(
-    resultsHistory[currentHistoryIdx]?.eventFormat,
-    resultsHistory[currentHistoryIdx]?.eventIconcode
-  );
+  const hideAverageColumn =
+    ismbld ||
+    (resultsHistory[currentHistoryIdx] &&
+      resultsHistory[currentHistoryIdx].history.every(
+        (entry) => !entry.average || entry.average === "",
+      ));
 
   const getColumnNames = () => {
     let columnNames = [
@@ -41,7 +39,7 @@ const ProfileResultsHistory: React.FC<{
     if (columnNames.includes("Average") && hideAverageColumn)
       columnNames.splice(
         columnNames.findIndex((x) => x === "Average"),
-        2
+        2,
       );
 
     return columnNames;
@@ -66,7 +64,7 @@ const ProfileResultsHistory: React.FC<{
             <span
               key={idx}
               className={`${getCubingIconClassName(
-                entry.eventIconcode
+                entry.eventIconcode,
               )} profile-cubing-icon-mock`}
               onClick={() => setCurrentHistoryIdx(idx)}
               style={{
@@ -90,10 +88,10 @@ const ProfileResultsHistory: React.FC<{
                         ...(columnTitle === ""
                           ? goodHeight
                           : idx < 3
-                          ? left
-                          : idx < 6 - (hideAverageColumn ? 2 : 0)
-                          ? right
-                          : center),
+                            ? left
+                            : idx < 6 - (hideAverageColumn ? 2 : 0)
+                              ? right
+                              : center),
                       }}
                     >
                       <b>{columnTitle}</b>
@@ -115,7 +113,7 @@ const ProfileResultsHistory: React.FC<{
                 >
                   <span
                     className={getCubingIconClassName(
-                      resultsHistory[currentHistoryIdx].eventIconcode
+                      resultsHistory[currentHistoryIdx].eventIconcode,
                     )}
                   />
                   &nbsp;{resultsHistory[currentHistoryIdx].eventName}
@@ -123,7 +121,7 @@ const ProfileResultsHistory: React.FC<{
                 {(hideAverageColumn ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5]).map(
                   (val) => (
                     <td key={val + 10} style={goodHeight}></td>
-                  )
+                  ),
                 )}
               </tr>
               {resultsHistory[currentHistoryIdx].history.map((entry, idx) => (
@@ -165,15 +163,15 @@ const ProfileResultsHistory: React.FC<{
                                 idx1 === 1
                                   ? entry.singleRecordColor
                                   : idx1 === 3
-                                  ? entry.averageRecordColor
-                                  : "black",
+                                    ? entry.averageRecordColor
+                                    : "black",
                             }}
                           >
                             {idx1 === 1 && isfmc
-                              ? val.split(".")[0]
+                              ? (val || "").split(".")[0]
                               : ismbld
-                              ? reformatMultiTime(val)
-                              : val}
+                                ? reformatMultiTime(val)
+                                : val}
                           </b>
                         )}
                       </td>
@@ -184,8 +182,8 @@ const ProfileResultsHistory: React.FC<{
                       ? (isfmc
                           ? entry.solves.map((x) => x.split(".")[0])
                           : ismbld
-                          ? entry.solves.map((x) => reformatMultiTime(x))
-                          : entry.solves
+                            ? entry.solves.map((x) => reformatMultiTime(x))
+                            : entry.solves
                         ).join(", ")
                       : entry.solves}
                   </td>

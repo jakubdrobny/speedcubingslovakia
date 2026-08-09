@@ -155,18 +155,12 @@ func CreateCompetition(
 	}
 
 	for _, event := range competition.Events {
-		competitionEvent, err := models.GetCompetitionEventById(db, competition.Id, event.Id)
-		if err != nil {
-			tx.Rollback(context.Background())
-			return "ERR models.GetCompetitionEventById in CreateCompetition: " + err.Error(), "Failed querying competition event information."
-		}
-
 		_, err = tx.Exec(
 			context.Background(),
 			`INSERT INTO competition_events (competition_id, event_id, format) VALUES ($1,$2,$3);`,
 			competition.Id,
 			event.Id,
-			competitionEvent.Format,
+			event.Format,
 		)
 		if err != nil {
 			tx.Rollback(context.Background())
