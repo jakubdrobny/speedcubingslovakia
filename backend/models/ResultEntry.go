@@ -383,7 +383,7 @@ func GetResultEntry(
 func GetResultEntryById(db *pgxpool.Pool, resultId int) (ResultEntry, error) {
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT re.result_id, re.competition_id, re.user_id, re.event_id, re.solve1, re.solve2, re.solve3, re.solve4, re.solve5, re.comment, re.status_id, c.name, e.displayname, rs.approvalfinished, rs.approved, rs.visible, rs.displayname, u.name, e.format, e.iconcode FROM results re JOIN competitions c ON c.competition_id = re.competition_id JOIN events e ON e.event_id = re.event_id JOIN results_status rs ON results_status_id = re.status_id JOIN users u ON u.user_id = re.user_id WHERE re.result_id = $1;`,
+		`SELECT re.result_id, re.competition_id, re.user_id, re.event_id, re.solve1, re.solve2, re.solve3, re.solve4, re.solve5, re.comment, re.status_id, c.name, e.displayname, rs.approvalfinished, rs.approved, rs.visible, rs.displayname, u.name, ce.format, e.iconcode FROM results re JOIN competitions c ON c.competition_id = re.competition_id JOIN competition_events ce ON ce.competition_id = re.competition_id AND ce.event_id = re.event_id JOIN events e ON e.event_id = re.event_id JOIN results_status rs ON results_status_id = re.status_id JOIN users u ON u.user_id = re.user_id WHERE re.result_id = $1;`,
 		resultId,
 	)
 	if err != nil {

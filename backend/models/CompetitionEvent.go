@@ -17,8 +17,8 @@ type CompetitionEvent struct {
 	Scramblingcode  string `json:"scramblingcode"`
 }
 
-func GetEventById(db *pgxpool.Pool, eventId int) (CompetitionEvent, error) {
-	rows, err := db.Query(context.Background(), "SELECT e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode FROM events e WHERE e.event_id = $1;", eventId)
+func GetCompetitionEventById(db *pgxpool.Pool, competitionID string, eventID int) (CompetitionEvent, error) {
+	rows, err := db.Query(context.Background(), "SELECT e.event_id, e.displayname, ce.format, e.iconcode, e.scramblingcode FROM competition_events ce JOIN events e ON e.event_id = ce.event_id WHERE ce.competition_id = $1 AND ce.event_id = $2;", competitionID, eventID)
 	if err != nil {
 		return CompetitionEvent{}, err
 	}

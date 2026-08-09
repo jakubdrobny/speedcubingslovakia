@@ -406,7 +406,7 @@ type EventResultsRow struct {
 func LoadEventRows(db *pgxpool.Pool, eid int) ([]EventResultsRow, error) {
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, e.format, e.iconcode, r.event_id, r.competition_id, countries.continent_id, u.country_id, c.name, u.name, u.wcaid, countries.country_id, countries.iso2, rs.visible FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id JOIN countries countries ON countries.country_id = u.country_id WHERE rs.visible IS TRUE AND r.event_id = $1 ORDER BY c.enddate DESC;`,
+		`SELECT r.user_id, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, c.enddate, ce.format, e.iconcode, r.event_id, r.competition_id, countries.continent_id, u.country_id, c.name, u.name, u.wcaid, countries.country_id, countries.iso2, rs.visible FROM results r JOIN competitions c ON c.competition_id = r.competition_id JOIN competition_events ce ON ce.competition_id = r.competition_id AND ce.event_id = r.event_id JOIN users u ON u.user_id = r.user_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id JOIN countries countries ON countries.country_id = u.country_id WHERE rs.visible IS TRUE AND r.event_id = $1 ORDER BY c.enddate DESC;`,
 		eid,
 	)
 	if err != nil {

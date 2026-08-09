@@ -53,7 +53,7 @@ func (c *CompetitionData) AddEvents(db *pgxpool.Pool, tx pgx.Tx, event_ids []int
 		if event.Id < 0 {
 			continue
 		}
-		_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id) VALUES ($1, $2);`, c.Id, event.Id)
+		_, err := tx.Exec(context.Background(), `INSERT INTO competition_events (competition_id, event_id, format) VALUES ($1, $2, $3);`, c.Id, event.Id, event.Format)
 		if err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) error {
 	scrambleSets := make([]ScrambleSet, 0)
 
 	for _, event := range c.Events {
-		rows, err := db.Query(context.Background(), `SELECT s.scramble_id, s.scramble, e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode, s.img FROM scrambles s LEFT JOIN events e ON s.event_id = e.event_id WHERE s.competition_id = $1 AND s.event_id = $2 ORDER BY e.event_id, s."order";`, c.Id, event.Id)
+		rows, err := db.Query(context.Background(), `SELECT s.scramble_id, s.scramble, e.event_id, e.displayname, ce.format, e.iconcode, e.scramblingcode, s.img FROM scrambles s LEFT JOIN events e ON s.event_id = e.event_id LEFT JOIN competition_events ce ON ce.competition_id = s.competition_id AND ce.event_id = s.event_id WHERE s.competition_id = $1 AND s.event_id = $2 ORDER BY e.event_id, s."order";`, c.Id, event.Id)
 		if err != nil {
 			return err
 		}
@@ -135,7 +135,7 @@ func (c *CompetitionData) GetScrambles(db *pgxpool.Pool) error {
 func (c *CompetitionData) GetEvents(db *pgxpool.Pool) error {
 	events := []CompetitionEvent{{-1, "", "Overall", "", "overall", ""}}
 
-	rows, err := db.Query(context.Background(), `SELECT e.event_id, e.displayname, e.format, e.iconcode, e.scramblingcode FROM competition_events ce JOIN events e ON ce.event_id = e.event_id WHERE ce.competition_id = $1 ORDER BY e.event_id`, c.Id)
+	rows, err := db.Query(context.Background(), `SELECT e.event_id, e.displayname, ce.format, e.iconcode, e.scramblingcode FROM competition_events ce JOIN events e ON ce.event_id = e.event_id WHERE ce.competition_id = $1 ORDER BY e.event_id`, c.Id)
 	if err != nil {
 		return err
 	}

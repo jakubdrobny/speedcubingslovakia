@@ -280,7 +280,7 @@ type OverallQueryStruct struct {
 
 func ConstructOverallResultsQuery(cid, regionGroup, region string) OverallQueryStruct {
 	var queryStruct OverallQueryStruct
-	queryStruct.Query = `SELECT u.user_id, u.wcaid, u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.event_id, e.iconcode, r.event_id, r.competition_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN continents cont ON c.continent_id = cont.continent_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id`
+	queryStruct.Query = `SELECT u.user_id, u.wcaid, u.name, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, ce.format, rs.visible, e.event_id, e.iconcode, r.event_id, r.competition_id FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN continents cont ON c.continent_id = cont.continent_id JOIN competition_events ce ON ce.competition_id = r.competition_id AND ce.event_id = r.event_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id`
 	var toAppend string
 	if cid != "" {
 		toAppend += ` WHERE r.competition_id = $1`
@@ -468,7 +468,7 @@ func GetResultsFromCompetitionByEventName(
 
 	rows, err := db.Query(
 		context.Background(),
-		`SELECT u.name, u.wcaid, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, e.format, rs.visible, e.iconcode, r.event_id, r.competition_id, r.comment, comp.enddate FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id JOIN competitions comp ON r.competition_id = comp.competition_id WHERE r.competition_id = $1 AND r.event_id = $2;`,
+		`SELECT u.name, u.wcaid, c.name, c.iso2, r.solve1, r.solve2, r.solve3, r.solve4, r.solve5, ce.format, rs.visible, e.iconcode, r.event_id, r.competition_id, r.comment, comp.enddate FROM results r JOIN users u ON u.user_id = r.user_id JOIN countries c ON c.country_id = u.country_id JOIN events e ON e.event_id = r.event_id JOIN results_status rs ON rs.results_status_id = r.status_id JOIN competitions comp ON r.competition_id = comp.competition_id JOIN competition_events ce ON ce.competition_id = r.competition_id AND ce.event_id = r.event_id WHERE r.competition_id = $1 AND r.event_id = $2;`,
 		cid,
 		eid,
 	)
