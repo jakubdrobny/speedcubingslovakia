@@ -911,8 +911,8 @@ func (p *ProfileType) CreateEventHistoryForUser(
 					return err
 				}
 
-				canIncreaseMedalCount := (len(event.Format) > 0 && event.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) ||
-					(!hasAverage && len(event.Format) > 0 && event.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW)
+				canIncreaseMedalCount := (len(resultEntry.Format) > 0 && resultEntry.Format[0] == 'b' && utils.ParseSolveToMilliseconds(historyEntry.Single, false, "") < constants.VERY_SLOW) ||
+					(!hasAverage && len(resultEntry.Format) > 0 && resultEntry.Format[0] != 'b' && utils.ParseSolveToMilliseconds(historyEntry.Average, false, "") < constants.VERY_SLOW)
 				if canIncreaseMedalCount {
 					switch historyEntry.Place {
 					case "1":
