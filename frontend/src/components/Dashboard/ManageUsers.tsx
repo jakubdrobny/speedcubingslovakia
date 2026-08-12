@@ -52,7 +52,7 @@ const ManageRoles = () => {
         });
     };
 
-  const columnNames = () => ["Order", "Name", "Country", "Is Admin?"];
+  const columnNames = () => ["User no.", "Name", "Country", "Is Admin?"];
 
   return (
     <Stack style={{ padding: 16 }} spacing={2}>
@@ -99,7 +99,7 @@ const ManageRoles = () => {
                 return (
                   <tr key={idx}>
                     <td style={{ height: "1em", textAlign: "right" }}>
-                      {user.id}
+                      {users.length - idx}
                     </td>
                     <td style={{ height: "1em", textAlign: "left" }}>
                       <Link
