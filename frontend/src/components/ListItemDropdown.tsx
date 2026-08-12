@@ -19,7 +19,11 @@ const ListItemDropdown: React.FC<{ content: ListItemDropdownContent }> = ({
       leaveTouchDelay={5000}
       sx={{ pointerEvents: "auto" }}
       title={
-        <List size="sm">
+        <List
+          size="sm"
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
           {content.dropdownItems.map((option: ListItemDropdownOption) => (
             <ListItemButton
               component={Link}
