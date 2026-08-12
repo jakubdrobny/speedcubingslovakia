@@ -481,3 +481,15 @@ export type UserSubscriptionDetail = {
   country_sub_count: number;
   position_sub_count: number;
 };
+
+export type ListItemDropdownOption = {
+  text: string;
+  icon: React.ElementType;
+  url: string;
+};
+
+export type ListItemDropdownContent = {
+  itemText: string;
+  itemIcon: React.ElementType;
+  dropdownItems: ListItemDropdownOption[];
+};
