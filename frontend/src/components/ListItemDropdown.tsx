@@ -1,11 +1,4 @@
-import {
-  Dropdown,
-  ListItemButton,
-  ListItemDecorator,
-  Menu,
-  MenuButton,
-  MenuItem,
-} from "@mui/joy";
+import { List, ListItemButton, ListItemDecorator, Tooltip } from "@mui/joy";
 
 import { Link } from "react-router-dom";
 import { NavContext } from "../context/NavContext";
@@ -19,27 +12,37 @@ const ListItemDropdown: React.FC<{ content: ListItemDropdownContent }> = ({
   const { closeNav } = useContext(NavContext) as NavContextType;
 
   return (
-    <Dropdown>
-      <MenuButton
-        slots={{ root: ListItemButton }}
-        slotProps={{ root: { sx: { justifyContent: "flex-end" } } }}
-      >
+    <Tooltip
+      variant="soft"
+      arrow
+      enterTouchDelay={0}
+      leaveTouchDelay={5000}
+      sx={{ pointerEvents: "auto" }}
+      title={
+        <List size="sm">
+          {content.dropdownItems.map((option: ListItemDropdownOption) => (
+            <ListItemButton
+              component={Link}
+              to={option.url}
+              key={option.url}
+              onClick={closeNav}
+            >
+              <ListItemDecorator>
+                <option.icon />
+              </ListItemDecorator>
+              {option.text}
+            </ListItemButton>
+          ))}
+        </List>
+      }
+    >
+      <ListItemButton sx={{ justifyContent: "flex-end" }}>
         <ListItemDecorator>
           <content.itemIcon />
         </ListItemDecorator>
         {content.itemText}
-      </MenuButton>
-      <Menu variant="soft" size="sm" placement="bottom-end">
-        {content.dropdownItems.map((option: ListItemDropdownOption) => (
-          <MenuItem component={Link} to={option.url} onClick={closeNav}>
-            <ListItemDecorator>
-              <option.icon />
-            </ListItemDecorator>
-            {option.text}
-          </MenuItem>
-        ))}
-      </Menu>
-    </Dropdown>
+      </ListItemButton>
+    </Tooltip>
   );
 };
 

@@ -15,7 +15,7 @@ const ResultsListItem = () => {
         itemIcon: FormatListNumbered,
         dropdownItems: [
           {
-            text: "",
+            text: "Rankings",
             url: "/rankings",
             icon: Leaderboard,
           },
