@@ -300,6 +300,10 @@ func (r *ResultEntry) GetSolves(isfmc bool, scrambles []string) []string {
 }
 
 func (r *ResultEntry) Average(noOfSolves int, isfmc bool, scrambles []string) int {
+	if r.Format == "bo1" {
+		return constants.DNS
+	}
+
 	solves := r.GetSolvesInMiliseconds(isfmc, scrambles)
 	sort.Ints(solves)
 
