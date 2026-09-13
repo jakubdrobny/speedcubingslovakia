@@ -3,11 +3,14 @@ import { getCubingIconClassName, reformatMultiTime } from "../../utils/utils";
 
 import { Link } from "react-router-dom";
 import { ProfileTypeResultHistory } from "../../Types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { EVENT_QUERY_PARAM_NAME } from "../../constants";
 
 const ProfileResultsHistory: React.FC<{
   resultsHistory: ProfileTypeResultHistory[];
 }> = ({ resultsHistory }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const goodHeight: React.CSSProperties = { height: "1em" };
   const left: React.CSSProperties = { textAlign: "left", ...goodHeight };
   const center: React.CSSProperties = { textAlign: "center", ...goodHeight };
@@ -21,6 +24,26 @@ const ProfileResultsHistory: React.FC<{
       resultsHistory[currentHistoryIdx].history.every(
         (entry) => !entry.average || entry.average === "",
       ));
+
+  const updateQueryEvent = (eventCode: string) => {
+    searchParams.set(EVENT_QUERY_PARAM_NAME, eventCode);
+    setSearchParams(searchParams);
+  };
+
+  useEffect(() => {
+    let eventCode = searchParams.get(EVENT_QUERY_PARAM_NAME);
+    if (!eventCode) {
+      eventCode =
+        resultsHistory.length > 0 ? resultsHistory[0].eventIconcode : "333";
+      updateQueryEvent(eventCode);
+    } else {
+      const idx = resultsHistory.findIndex(
+        (h) => h.eventIconcode === eventCode,
+      );
+      updateQueryEvent(idx >= 0 ? eventCode : "333");
+      setCurrentHistoryIdx(Math.max(idx, 0));
+    }
+  }, []);
 
   const getColumnNames = () => {
     let columnNames = [
@@ -72,7 +95,10 @@ const ProfileResultsHistory: React.FC<{
               className={`${getCubingIconClassName(
                 entry.eventIconcode,
               )} profile-cubing-icon-mock`}
-              onClick={() => setCurrentHistoryIdx(idx)}
+              onClick={() => {
+                setCurrentHistoryIdx(idx);
+                updateQueryEvent(resultsHistory[idx].eventIconcode);
+              }}
               style={{
                 padding: "0 0.25em",
                 fontSize: "1.75em",
@@ -139,7 +165,7 @@ const ProfileResultsHistory: React.FC<{
                     }}
                   >
                     <Link
-                      to={`/competition/${entry.competitionId}`}
+                      to={`/competition/${entry.competitionId}?event=${searchParams.get(EVENT_QUERY_PARAM_NAME)}`}
                       style={{ textDecoration: "none", color: "#0B6BCB" }}
                     >
                       <b>{entry.competitionName}</b>
