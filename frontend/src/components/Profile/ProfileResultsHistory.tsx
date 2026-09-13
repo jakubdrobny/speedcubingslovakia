@@ -165,7 +165,7 @@ const ProfileResultsHistory: React.FC<{
                     }}
                   >
                     <Link
-                      to={`/competition/${entry.competitionId}?\${searchParams.get(EVENT_QUERY_PARAM_NAME)}`}
+                      to={`/competition/${entry.competitionId}?event=${searchParams.get(EVENT_QUERY_PARAM_NAME)}`}
                       style={{ textDecoration: "none", color: "#0B6BCB" }}
                     >
                       <b>{entry.competitionName}</b>
