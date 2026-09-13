@@ -67,7 +67,8 @@ const CompetitionResults = () => {
       columnNames.push(...eventIconCodes);
     }
 
-    if (bo1) columnNames = columnNames.filter((x) => x !== "Average");
+    if (bo1)
+      columnNames = columnNames.filter((x) => x !== "Average" && x !== "Times");
 
     if (columnNames.includes("Average") && ismbld)
       columnNames = columnNames.filter((c) => c !== "Average");
@@ -261,9 +262,11 @@ const CompetitionResults = () => {
                             {averageFirst ? result.single : result.average}
                           </td>
                         )}
-                        <td style={{ height: "1em", textAlign: "left" }}>
-                          {result.times?.join(", ")}
-                        </td>
+                        {!bo1 && (
+                          <td style={{ height: "1em", textAlign: "left" }}>
+                            {result.times?.join(", ")}
+                          </td>
+                        )}
                       </>
                     )}
                     {!isOverall && anyComment && (
