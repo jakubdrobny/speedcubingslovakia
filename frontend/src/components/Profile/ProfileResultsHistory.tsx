@@ -42,6 +42,12 @@ const ProfileResultsHistory: React.FC<{
         2,
       );
 
+    if (hideAverageColumn)
+      columnNames.splice(
+        columnNames.findIndex((x) => x === "Solves"),
+        1,
+      );
+
     return columnNames;
   };
 
@@ -118,7 +124,7 @@ const ProfileResultsHistory: React.FC<{
                   />
                   &nbsp;{resultsHistory[currentHistoryIdx].eventName}
                 </td>
-                {(hideAverageColumn ? [0, 1, 2, 3] : [0, 1, 2, 3, 4, 5]).map(
+                {(hideAverageColumn ? [0, 1, 2] : [0, 1, 2, 3, 4, 5]).map(
                   (val) => (
                     <td key={val + 10} style={goodHeight}></td>
                   ),
@@ -177,16 +183,18 @@ const ProfileResultsHistory: React.FC<{
                       </td>
                     );
                   })}
-                  <td style={center}>
-                    {entry.solves
-                      ? (isfmc
-                          ? entry.solves.map((x) => x.split(".")[0])
-                          : ismbld
-                            ? entry.solves.map((x) => reformatMultiTime(x))
-                            : entry.solves
-                        ).join(", ")
-                      : entry.solves}
-                  </td>
+                  {!hideAverageColumn && (
+                    <td style={center}>
+                      {entry.solves
+                        ? (isfmc
+                            ? entry.solves.map((x) => x.split(".")[0])
+                            : ismbld
+                              ? entry.solves.map((x) => reformatMultiTime(x))
+                              : entry.solves
+                          ).join(", ")
+                        : entry.solves}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
