@@ -772,30 +772,30 @@ func AddRecordsToHistory(
 
 		recordersForComp, ok := recorders.NR[competitionEndDate]
 		if ok {
-			if recordersForComp.single == currentSingle {
+			if recordersForComp.single == currentSingle && currentSingle < constants.VERY_SLOW {
 				history.History[historyIdx].SingleRecord = "NR"
 			}
-			if !checkAverage && recordersForComp.average == currentAverage {
+			if !checkAverage && recordersForComp.average == currentAverage && currentAverage < constants.VERY_SLOW {
 				history.History[historyIdx].AverageRecord = "NR"
 			}
 		}
 
 		recordersForComp, ok = recorders.CR[competitionEndDate]
 		if ok {
-			if recordersForComp.single == currentSingle {
+			if recordersForComp.single == currentSingle && currentSingle < constants.VERY_SLOW {
 				history.History[historyIdx].SingleRecord = "CR"
 			}
-			if !checkAverage && recordersForComp.average == currentAverage {
+			if !checkAverage && recordersForComp.average == currentAverage && currentAverage < constants.VERY_SLOW {
 				history.History[historyIdx].AverageRecord = "CR"
 			}
 		}
 
 		recordersForComp, ok = recorders.WR[competitionEndDate]
 		if ok {
-			if recordersForComp.single == currentSingle {
+			if recordersForComp.single == currentSingle && currentSingle < constants.VERY_SLOW {
 				history.History[historyIdx].SingleRecord = "WR"
 			}
-			if !checkAverage && recordersForComp.average == currentAverage {
+			if !checkAverage && recordersForComp.average == currentAverage && currentAverage < constants.VERY_SLOW {
 				history.History[historyIdx].AverageRecord = "WR"
 			}
 		}
