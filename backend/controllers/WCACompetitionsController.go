@@ -567,7 +567,12 @@ func CheckUpcomingWCACompetitions(db *pgxpool.Pool, envMap map[string]string) er
 					City:            respComp.City,
 					Events: utils.Map(
 						respComp.EventIds,
-						func(iconcode string) models.CompetitionEvent { return models.CompetitionEvent{Iconcode: iconcode} },
+						func(iconcode string) models.CompetitionEvent {
+							if iconcode == "fto" { // wca icon code for fto does not match cubing icons icon code
+								iconcode = "unofficial-fto"
+							}
+							return models.CompetitionEvent{Iconcode: iconcode}
+						},
 					),
 					CountryId:         country.Id,
 					CountryName:       country.Name,
