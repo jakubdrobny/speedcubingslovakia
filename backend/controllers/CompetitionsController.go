@@ -297,44 +297,56 @@ func GetResultsFromCompetition(db *pgxpool.Pool) gin.HandlerFunc {
 }
 
 func GetNewWeeklyCompetitionInfo(db *pgxpool.Pool) (models.CompetitionData, error) {
-	var competition models.CompetitionData
+	competition := models.CompetitionData{
+		Name:      "Weekly Competition 1",
+		Startdate: utils.NextMonday(),
+	}
 
-	rows, err := db.Query(
+	var latest models.CompetitionData
+	err := db.QueryRow(
 		context.Background(),
 		`SELECT c.name, c.enddate FROM competitions c WHERE c.competition_id LIKE ('WeeklyCompetition%') ORDER BY c.enddate DESC LIMIT 1;`,
-	)
+	).Scan(&latest.Name, &latest.Enddate)
+	if err != nil {
+		return models.CompetitionData{}, fmt.Errorf("%w: when querying latest weekly competition", err)
+	}
+
+	nameSplit := strings.Split(latest.Name, " ")
+	log.Println(nameSplit)
+	if len(nameSplit) != 3 {
+		return models.CompetitionData{}, fmt.Errorf(
+			"Invalid last competition name format: %s. Should be Weekly Competition {number}",
+			latest.Name)
+	}
+
+	newCompNum, err := strconv.Atoi(nameSplit[2])
 	if err != nil {
 		return models.CompetitionData{}, err
 	}
-	defer rows.Close()
 
-	competition.Name = "Weekly Competition 1"
-	competition.Startdate = utils.NextMonday()
-	for rows.Next() {
-		var latest models.CompetitionData
-		err = rows.Scan(&latest.Name, &latest.Enddate)
-		if err != nil {
-			return models.CompetitionData{}, err
-		}
+	competition.Name = "Weekly Competition " + fmt.Sprint(newCompNum+1)
+	competition.Startdate = latest.Enddate
 
-		nameSplit := strings.Split(latest.Name, " ")
-		log.Println(nameSplit)
-		if len(nameSplit) != 3 {
-			return models.CompetitionData{}, fmt.Errorf(
-				"Invalid last competition name format: %s. Should be Weekly Competition {number}",
-				latest.Name)
-		}
-
-		newCompNum, err := strconv.Atoi(nameSplit[2])
-		if err != nil {
-			return models.CompetitionData{}, err
-		}
-
-		competition.Name = "Weekly Competition " + fmt.Sprint(newCompNum+1)
-		competition.Startdate = latest.Enddate
+	loc, err := time.LoadLocation("Europe/Bratislava")
+	if err != nil {
+		return models.CompetitionData{}, err
 	}
 
-	competition.Enddate = competition.Startdate.AddDate(0, 0, 7)
+	// DB stores dates in UTC and they are parsed into UTC.
+	// If we add 7 days in UTC and it passes through daylight savings,
+	// the browser will display 1:00 as start time when going from winter to summer time
+	// and as 23:00 (Sundary) when going from summer to winter time in Bratislava.
+	//
+	// Solution: AddDate function corrects this, but for UTC it does nothing UTC does NOT
+	// have daylight savings. Therefore, we convert startdate from UTC to 'Europe/Bratislava',
+	// and ONLY THEN use AddDate(7 days). BUT we also have to parse that date back to UTC,
+	// since that is the format the DB is storing it in.
+	//
+	// Last step might not be necessary, since if we put timezoned time into pgx, I would
+	// assume pgx will convert to utc when storing timezoned golang time.Time, but I am
+	// not willing to spend any more time on this, since after each codechange I have to
+	// rebuild the cron Docker image, which compiles 5 binaries (one for each cronjob (((: :D)
+	competition.Enddate = competition.Startdate.In(loc).AddDate(0, 0, 7).In(time.UTC)
 
 	events, err := models.GetAvailableEvents(db)
 	if err != nil {
